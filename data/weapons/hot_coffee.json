@@ -1,0 +1,14 @@
+{
+	"id": "hot_coffee",
+	"name": "HOT COFFEE",
+	"desc": "LEAVES A SCALDING PUDDLE",
+	"pattern": "puddle",
+	"status": "start",
+	"levels": [
+		{"damage": 4, "cooldown": 2.6, "count": 1, "radius": 14, "duration": 3, "tick": 0.5, "throw_range": 80, "desc": "SCALDING PUDDLE"},
+		{"damage": 4, "cooldown": 2.6, "count": 1, "radius": 17, "duration": 3, "tick": 0.5, "throw_range": 80, "desc": "BIGGER PUDDLE"},
+		{"damage": 5, "cooldown": 2.6, "count": 1, "radius": 20, "duration": 3, "tick": 0.5, "throw_range": 85, "desc": "BIGGER PUDDLE, MORE DAMAGE"},
+		{"damage": 5, "cooldown": 2.5, "count": 1, "radius": 23, "duration": 3.5, "tick": 0.5, "throw_range": 85, "desc": "BIGGER, LONGER PUDDLE"},
+		{"damage": 6, "cooldown": 2.5, "count": 2, "radius": 27, "duration": 3.5, "tick": 0.5, "throw_range": 90, "desc": "BIGGER PUDDLE, +1 CUP"}
+	]
+}

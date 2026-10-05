@@ -1,0 +1,1 @@
+{"id": "self_help_book", "name": "SELF-HELP BOOK", "group": "utility", "status": "unlock", "desc": "+10% XP", "modifiers_per_level": [{"stat": "xp_gain", "pct": 0.10}]}

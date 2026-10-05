@@ -59,6 +59,53 @@ The 15T is upper mid-range, not the low-end target in the brief. Logic is ~3.5x 
 
 Bot sims (8-minute runs, seeds 1-3): 2 reached the timer, 1 died at 4:05; one run hit the 300 cap (257 spawns turned into escalation).
 
+## Phase 2: Stat system and all build content
+
+- [x] Stat system: every stat = base + flat/percent modifiers keyed by source; defaults, min/max caps (`StatBlock`), 20 stats incl. crit, evasion, shield, luck, gold, projectiles, curse stats
+- [x] Event hooks as signals + `ItemSystem.emit`: on_hit, on_kill, on_damaged, on_level_up, on_chest_opened, on_shrine_activated, on_attack, on_projectile, every (timer)
+- [x] Item engine from data: modifiers, triggers (event + chance + effect), conditions; stacking with diminishing chances
+- [x] Rarity + chests: `Loot.roll` with chest kinds (paid / elite Rare+ / boss Epic+), luck shift, legendary limit, rules in `data/rules/loot.json`
+- [x] Content pool (`ContentPool`): start / owned unlocks / signature of owned character
+- [x] Combat helpers in `Run`: crits, burns, blasts, chain zaps, `fire_shot` (Clone Machine hook), gold, shield, evasion; `Fx` layer
+- [x] 10 weapons as data, 9 new patterns (subagent; reviewed: each hits through `hit_enemy` with its id, fires through `fire_shot`, follows the stat rules in `weapon.gd`)
+- [x] 16 tomes as data (subagent; the 6 phase 1 tomes reviewed, unchanged)
+- [x] 15 items as data (subagent)
+- [x] Check every entry against the brief (by hand + encoded in `tests/test_content.gd`: counts, status, rarity, group, stat or trigger per entry, no shared weapon patterns, text fits the pixel font)
+- [x] Automated test: every entry loads, can appear on a card / in a chest, applies in a live run without errors (`tests/test_content.gd`, `tests/test_weapons.gd`, `tests/test_items_engine.gd`)
+- [x] Slot rules (4 weapons, 4 tomes, level 5 max) and rarity rules (chest floors, luck, stacking, one legendary per run) tested
+- [x] Run project + tests: 412 checks pass, flow check OK, bot sim with chests OK
+- [x] 300-enemy fps with a full build (`bot_run.tscn -- --mode=stress --build=full`)
+- [ ] Full-build stress test on the Android phone (needs the phone; see Found)
+
+### Phase 2 results (2026-10-05, same desktop as phase 1, windowed, 20 s, ~295-300 enemies on screen)
+
+| Build | Vsync | Avg fps | 1% low fps | Logic ms/frame |
+| --- | --- | --- | --- | --- |
+| Full (4 weapons L5, 4 tomes L5 incl. +5 projectiles, all 15 items stacked) | on | 75.0 (display cap) | 69.0 | 3.42 |
+| Full | off | 318.9 | 135.8 | 1.52 |
+| Starter (Baguette only) | off | 348-371 | 150 | 1.35-1.44 |
+| Starter on `main` (phase 1 code), same day | off | 370-385 | - | 1.38-1.45 |
+
+Phase 1's 652 fps uncapped isn't reproducible today even on `main`; the machine is slower this session. Same-day, phase 2 hooks cost about nothing on the starter build.
+
+Bot sim, seed 2, paid chest every 45 s: survived 8:00, level 23, 4,897 kills, 512 gold.
+
+## Found during phase 2
+
+- [ ] Alarm Clock: "the next attack is a guaranteed crit" is read as the next weapon *hit*, not every hit of the next attack. For the Baguette swing (AoE) the other reading would crit the whole swing. Unused charges don't pile up (capped at one refill).
+- [ ] Fireworks: every other rocket lands on a random enemy on screen, the rest on a random spot. Pure random spots almost never hit at the start of a run. Revert in `rockets.gd` if the brief means pure random.
+- [ ] "Legendaries are unique, one per run" is read as at most one legendary per run in total (`legendary_per_run` in `data/rules/loot.json`). With one legendary in the MVP both readings behave the same.
+- [ ] Copy Machine Manual: +1 projectile per level (+5 at level 5), the strongest tome on paper. Watch in phase 8.
+- [ ] Whoopee Cushion fires from `on_damaged`, which only contact damage emits so far. Phase 3 enemy shots and Bloater explosions must go through the same damage path (`_contact_damage` -> shared function) or it won't trigger.
+- [ ] Turbo Pigeon and Gary don't exist in `data/characters/` yet; their signature weapons (`sharp_feathers`, `stapler`) name characters `turbo_pigeon` and `gary`. Phase 4 must use these ids.
+- [ ] No chest entities yet: `Run.open_chest(kind)` rolls and gives the item; phase 3 chests, elites and the boss call it. `--chests=S` on the sim opens one every S seconds meanwhile.
+- [ ] Elites don't exist yet; `EnemySystem.elite` is the flag Golden Toilet and `on_kill` read. Phase 3 sets it.
+- [ ] In-run gold: enemies drop 1 gold at 8% (added directly, no pickup). Paid chests and the merchant spend it in phase 3.
+- [ ] The pixel font has no `$`, `&` or accents: gold shows as "G 12", Piñata is "PINATA" in game text.
+- [ ] `tools/run_tests.sh` now runs `--import` first (new `class_name` scripts weren't seen by `-s` runs) and has a timeout (a compile error used to hang it).
+- [ ] Fireworks blast rings use `draw_arc` (1px, not antialiased); check they read as pixel art in phase 7.
+- [ ] All weapon, tome and item numbers are first guesses; phase 8 tunes them.
+
 ## Found during phase 0
 
 - [ ] JSON stores all numbers as floats. `Save._merge_defaults` restores ints only where a default exists; phase 4 stat/unlock dictionaries need their own int casting.

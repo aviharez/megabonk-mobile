@@ -30,8 +30,8 @@ func _init(map_def: Dictionary, enemy_cap: int) -> void:
 
 ## Advances time and returns what to spawn now: an array of
 ## {"enemy": id, "count": n, "grouped": bool}. `pack_sizes` maps enemy id to
-## [min, max] for pack enemies.
-func tick(delta: float, minute: float, alive: int, pack_sizes: Dictionary, rng: RandomNumberGenerator) -> Array:
+## [min, max] for pack enemies. `rate_mult` scales the spawn rate (Cursed Diary).
+func tick(delta: float, minute: float, alive: int, pack_sizes: Dictionary, rng: RandomNumberGenerator, rate_mult := 1.0) -> Array:
 	var out := []
 	var room := cap - alive
 	for i in schedule.size():
@@ -39,7 +39,7 @@ func tick(delta: float, minute: float, alive: int, pack_sizes: Dictionary, rng: 
 		if minute < e.from_min or minute >= e.to_min:
 			continue
 		var t := inverse_lerp(e.from_min, e.to_min, minute)
-		_acc[i] += lerpf(e.per_sec[0], e.per_sec[1], t) * delta
+		_acc[i] += lerpf(e.per_sec[0], e.per_sec[1], t) * delta * rate_mult
 		while _acc[i] >= 1.0:
 			_acc[i] -= 1.0
 			var n := 1

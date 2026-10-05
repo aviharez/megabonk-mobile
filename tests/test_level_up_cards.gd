@@ -42,7 +42,10 @@ func test_maxed_not_offered_and_fallback(t) -> void:
 	var tomes := {}
 	for tm in db.all("tomes").slice(0, int(rules.tome_slots)):
 		tomes[tm.id] = int(rules.max_level)
-	var cards := LevelUpCards.pick(_rng(1), db, {"baguette": 5}, tomes, rules)
+	var weapons := {}
+	for w in db.all("weapons").slice(0, int(rules.weapon_slots)):
+		weapons[w.id] = w.levels.size()
+	var cards := LevelUpCards.pick(_rng(1), db, weapons, tomes, rules)
 	t.check(cards.size() == 3, "still 3 cards")
 	var all_fallback := true
 	for c in cards:

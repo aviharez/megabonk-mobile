@@ -1,0 +1,15 @@
+{
+	"id": "loot",
+	"rarities": ["common", "rare", "epic", "legendary"],
+	"rarity_names": {"common": "COMMON", "rare": "RARE", "epic": "EPIC", "legendary": "LEGENDARY"},
+	"rarity_colors": {"common": "GRAY", "rare": "BLUE", "epic": "PURPLE", "legendary": "GOLD"},
+	"stackable": ["common", "rare", "epic"],
+	"legendary_per_run": 1,
+	"luck_per_tier": 1.0,
+	"chests": {
+		"paid": {"common": 62, "rare": 30, "epic": 7, "legendary": 1},
+		"elite": {"rare": 72, "epic": 24, "legendary": 4},
+		"boss": {"epic": 80, "legendary": 20}
+	},
+	"empty_chest_gold": 10
+}

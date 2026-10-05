@@ -1,0 +1,13 @@
+{
+	"id": "rubber_boots",
+	"name": "RUBBER BOOTS",
+	"rarity": "common",
+	"status": "start",
+	"desc": "LESS DAMAGE FROM TOUCHING",
+	"modifiers": [
+		{
+			"stat": "contact_damage_taken",
+			"pct": -0.1
+		}
+	]
+}

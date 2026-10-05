@@ -35,6 +35,7 @@ const PINK := 30
 const ENEMY_SHOT := 31
 
 static var _colors: PackedColorArray = PackedColorArray()
+static var _consts := {}
 
 
 static func colors() -> PackedColorArray:
@@ -61,7 +62,9 @@ static func has(c: Color) -> bool:
 ## Palette index for a constant name used in data files ("GREEN", "SKY"...).
 ## Returns -1 for unknown names and for ENEMY_SHOT (reserved, not for data).
 static func index_of(name: String) -> int:
-	var consts: Dictionary = load("res://scripts/core/palette.gd").get_script_constant_map()
+	if _consts.is_empty():
+		_consts = load("res://scripts/core/palette.gd").get_script_constant_map()
+	var consts := _consts
 	if name == "ENEMY_SHOT" or name == "PATH" or not consts.has(name):
 		return -1
 	return consts[name]

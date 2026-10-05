@@ -98,7 +98,7 @@ func test_getting_stale(t) -> void:
 func test_baguette_hits_each_enemy_once_per_swing(t) -> void:
 	var run := _start(t, {"invincible": true})
 	var hits := {}
-	run.on_hit.connect(func(slot: int, _a: float) -> void: hits[slot] = hits.get(slot, 0) + 1)
+	run.on_hit.connect(func(slot: int, _a: float, _c: bool, _s: String) -> void: hits[slot] = hits.get(slot, 0) + 1)
 	var slots := []
 	for a in 8:
 		slots.append(run.enemies.spawn(run.enemies.type_index["skitter"], run.player_pos() + Vector2.from_angle(a * TAU / 8.0) * 18.0, 1000, 1, 0))

@@ -1,0 +1,1 @@
+{"id": "coupon_clipping", "name": "COUPON CLIPPING", "group": "utility", "status": "start", "desc": "+15% GOLD", "modifiers_per_level": [{"stat": "gold_gain", "pct": 0.15}]}

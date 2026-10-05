@@ -1,0 +1,1 @@
+{"id": "dodgeball_rules", "name": "DODGEBALL RULES", "group": "defense", "status": "start", "desc": "+6% EVASION", "modifiers_per_level": [{"stat": "evasion", "flat": 0.06}]}

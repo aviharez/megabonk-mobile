@@ -1,0 +1,15 @@
+{
+	"id": "angry_neighbor",
+	"name": "ANGRY NEIGHBOR",
+	"rarity": "epic",
+	"status": "unlock",
+	"desc": "LOW HP: BIG DAMAGE BOOST",
+	"conditions": [
+		{
+			"if": "hp_below",
+			"value": 0.3,
+			"stat": "damage",
+			"pct": 0.6
+		}
+	]
+}

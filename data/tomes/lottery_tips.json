@@ -1,0 +1,1 @@
+{"id": "lottery_tips", "name": "LOTTERY TIPS", "group": "utility", "status": "unlock", "desc": "+0.1 LUCK", "modifiers_per_level": [{"stat": "luck", "flat": 0.1}]}

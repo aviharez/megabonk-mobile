@@ -2,8 +2,10 @@ extends Weapon
 ## "spin_swing" pattern (Baguette): every cooldown, the weapon sweeps a full
 ## circle around the player. Enemies within the radius are hit once per swing
 ## as the blade passes them. Uses level keys: damage, radius, cooldown,
-## swing_time, swings, knockback. Player stats: damage, area, cooldown.
+## swing_time, swings, knockback. Player stats: damage, area, cooldown, and
+## projectiles (each extra projectile is one more swing per attack).
 
+const LEVEL_KEYS := ["damage", "radius", "cooldown", "swing_time", "swings", "knockback"]
 ## Blades closer than this always hit (the blade covers the player's body).
 const INNER := 6.0
 
@@ -21,12 +23,12 @@ static var _next_attack_id := 1
 
 func update(delta: float, run: Node) -> void:
 	var st := stats()
-	var area: float = run.stat("area")
-	_radius = st.radius * area
+	_radius = area(run)
 	if not _swinging:
 		_cooldown -= delta
 		if _cooldown <= 0.0:
-			_start_swing(run, st.swings)
+			attacked(run)
+			_start_swing(run, amount(run, "swings"))
 		return
 
 	var step: float = TAU * delta / st.swing_time
@@ -40,7 +42,7 @@ func update(delta: float, run: Node) -> void:
 			_start_swing(run, _swings_left)
 		else:
 			_swinging = false
-			_cooldown = st.cooldown * run.stat("cooldown")
+			_cooldown = cooldown(run)
 
 
 func _start_swing(run: Node, swings: int) -> void:
@@ -56,7 +58,7 @@ func _hit_between(run: Node, from: float, step: float, st: Dictionary) -> void:
 	var enemies: EnemySystem = run.enemies
 	var center: Vector2 = run.player_pos()
 	enemies.query_circle(center, _radius, _hits)
-	var dmg: float = st.damage * run.stat("damage")
+	var d := dmg(run)
 	for e in _hits:
 		if enemies.last_hit[e] == _attack_id:
 			continue
@@ -69,7 +71,7 @@ func _hit_between(run: Node, from: float, step: float, st: Dictionary) -> void:
 		if dist <= INNER or rel <= step + half * 2.0:
 			enemies.last_hit[e] = _attack_id
 			var push: Vector2 = off / maxf(dist, 0.01) * st.knockback
-			run.hit_enemy(e, dmg, push)
+			run.hit_enemy(e, d, push, id())
 
 
 func draw(canvas: CanvasItem, origin: Vector2) -> void:

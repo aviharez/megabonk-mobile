@@ -1,0 +1,15 @@
+{
+	"id": "alarm_clock",
+	"name": "ALARM CLOCK",
+	"rarity": "rare",
+	"status": "unlock",
+	"desc": "SURE CRIT EVERY 20 SEC",
+	"triggers": [
+		{
+			"event": "every",
+			"interval": 20,
+			"effect": "crit_next",
+			"count": 1
+		}
+	]
+}

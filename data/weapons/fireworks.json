@@ -1,0 +1,14 @@
+{
+	"id": "fireworks",
+	"name": "FIREWORKS",
+	"desc": "RANDOM BLASTS ON SCREEN",
+	"pattern": "rockets",
+	"status": "unlock",
+	"levels": [
+		{"damage": 14, "cooldown": 2.2, "count": 2, "radius": 18, "knockback": 50, "flight": 0.5, "desc": "TWO ROCKETS"},
+		{"damage": 14, "cooldown": 2.2, "count": 3, "radius": 18, "knockback": 50, "flight": 0.5, "desc": "MORE ROCKETS"},
+		{"damage": 16, "cooldown": 2.1, "count": 4, "radius": 18, "knockback": 55, "flight": 0.5, "desc": "MORE ROCKETS, MORE DAMAGE"},
+		{"damage": 16, "cooldown": 2, "count": 5, "radius": 19, "knockback": 55, "flight": 0.5, "desc": "MORE ROCKETS"},
+		{"damage": 18, "cooldown": 2, "count": 7, "radius": 20, "knockback": 60, "flight": 0.5, "desc": "MANY MORE ROCKETS"}
+	]
+}

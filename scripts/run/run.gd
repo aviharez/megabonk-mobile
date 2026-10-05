@@ -4,13 +4,19 @@ extends Node2D
 ## All game logic advances in tick(delta), so headless tests and the bot
 ## simulation can step a run without real time passing.
 ##
-## Event hooks for items (phase 2) and the stat tracker (phase 4) are the
-## signals below; nothing listens to them yet in phase 1.
+## Event hooks: every event is a signal below (for the stat tracker in phase 4
+## and anything else that listens), and is also passed to ItemSystem.emit(),
+## which runs the item triggers from data. `source` is the weapon id, or
+## "item:<id>" for item effects.
 
-signal on_hit(enemy_slot: int, amount: float)
-signal on_kill(enemy_slot: int, enemy_id: String)
+signal on_hit(enemy_slot: int, amount: float, crit: bool, source: String)
+signal on_kill(enemy_slot: int, enemy_id: String, source: String, elite: bool)
 signal on_damaged(amount: float)
 signal on_level_up(new_level: int)
+signal on_chest_opened(kind: String, item_id: String)
+signal on_shrine_activated(shrine_id: String)
+signal on_attack(weapon_id: String)
+signal on_projectile(shot: Dictionary)
 signal run_ended(result: Dictionary)
 
 const MENU_SCENE := "res://scenes/main_menu.tscn"
@@ -27,6 +33,10 @@ static var next_options := {}
 ## invincible: ignore damage. no_save: don't write the result to the save.
 ## stress: keep the enemy count at the cap, spawned on screen.
 ## rules: overrides for data/rules/run.json keys. seed: RNG seed.
+## all_content: every weapon, tome and item is in the pool (tests, debug).
+## chest_every: open a paid chest every N seconds (sims, before phase 3 chests).
+## loadout: start with {"weapons": {id: level}, "tomes": {id: level},
+##   "items": {id: stacks}} on top of the signature weapon (tests, stress).
 var options := {}
 var db: GameData
 var rules: Dictionary
@@ -38,6 +48,8 @@ var spawner: Spawner
 var bounds := Rect2()
 
 var hp := 0.0
+var shield := 0.0
+var gold := 0.0
 var level := 1
 var xp := 0.0
 var kills := 0
@@ -48,6 +60,8 @@ var won := false
 var weapons: Array[Weapon] = []
 var owned_weapons := {}  # id -> level
 var owned_tomes := {}  # id -> level
+var items: ItemSystem
+var pool: ContentPool
 var pending_levels := 0
 var result := {}
 ## Time the last _process (logic + render prep) took, for the stress test.
@@ -57,13 +71,18 @@ var enemies: EnemySystem
 var gems: GemSystem
 var projectiles: ProjectileSystem
 var numbers: DamageNumbers
+var fx: Fx
 
 var _pos := Vector2.ZERO
 var _facing := Vector2.RIGHT
 var _iframes := 0.0
+var _shield_idle := 0.0
+var _burn_t := 0.0
+var _chest_t := 0.0
 var _recycle_t := 0.0
 var _pack_sizes := {}
 var _hits := PackedInt32Array()
+var _zap_hits := PackedInt32Array()
 var _player_view: Node2D
 var _weapon_view: Node2D
 var _camera: Camera2D
@@ -97,6 +116,12 @@ func _ready() -> void:
 	_pos = bounds.get_center()
 	stats = StatBlock.new(char_def.stats)
 	hp = stat("max_hp")
+	shield = stat("shield")
+	items = ItemSystem.new(self, db)
+	if options.get("all_content", false):
+		pool = ContentPool.new(db, {}, true)
+	else:
+		pool = ContentPool.from_save(db, get_node_or_null("/root/Save"))
 	spawner = Spawner.new(map_def, int(rules.enemy_cap))
 	for e: Dictionary in db.all("enemies"):
 		if e.has("pack_size"):
@@ -106,6 +131,7 @@ func _ready() -> void:
 	_build_world()
 	_build_ui()
 	_give_weapon(char_def.signature_weapon)
+	_apply_loadout(options.get("loadout", {}))
 	_render()
 
 
@@ -127,7 +153,7 @@ func tick(delta: float) -> void:
 	if options.get("stress", false):
 		_stress_fill()
 	else:
-		for req: Dictionary in spawner.tick(delta, minute, enemies.count(), _pack_sizes, rng):
+		for req: Dictionary in spawner.tick(delta, minute, enemies.count(), _pack_sizes, rng, stat("enemy_spawn_rate")):
 			_spawn_group(req)
 
 	var dir: Vector2 = _joystick.read()
@@ -140,6 +166,8 @@ func tick(delta: float) -> void:
 	var r: float = char_def.radius
 	_pos = (_pos + dir * stat("move_speed") * delta).clamp(bounds.position + Vector2(r, r), bounds.end - Vector2(r, r))
 	hp = minf(hp + stat("regen") * delta, stat("max_hp"))
+	_update_shield(delta)
+	items.update(delta)
 
 	enemies.update(delta, _pos)
 	_recycle_t -= delta
@@ -149,12 +177,20 @@ func tick(delta: float) -> void:
 	for w in weapons:
 		w.update(delta, self)
 	projectiles.update(delta, enemies)
+	_tick_burns(delta)
 	_contact_damage(delta, minute)
 
 	var got := gems.update(delta, _pos, stat("pickup_range"))
 	if got > 0.0:
 		add_xp(got)
 	numbers.update(delta)
+	fx.update(delta)
+	var every: float = options.get("chest_every", 0.0)
+	if every > 0.0:
+		_chest_t += delta
+		if _chest_t >= every:
+			_chest_t -= every
+			open_chest("paid")
 
 	if hp <= 0.0:
 		_end(false)
@@ -193,21 +229,162 @@ func add_xp(amount: float) -> void:
 		level += 1
 		pending_levels += 1
 		on_level_up.emit(level)
+		items.emit("on_level_up", {"level": level, "pos": _pos})
 		need = xp_needed(rules.xp_curve, level)
 
 
-## Damages an enemy (from any weapon). Handles the kill.
-func hit_enemy(slot: int, amount: float, push: Vector2) -> void:
+## Damages an enemy. Weapons call this with their damage (player damage
+## stat already applied) and their id as `source`. Rolls crits (or uses an
+## Alarm Clock charge) and fires on_hit, then handles the kill.
+## procs = false: item effect damage, which never crits and never fires
+## on_hit (so effects can't trigger each other in a loop).
+func hit_enemy(slot: int, amount: float, push: Vector2, source := "", procs := true) -> void:
 	if not enemies.pool.is_alive(slot):
 		return
-	on_hit.emit(slot, amount)
-	numbers.show_number(enemies.pos[slot], amount)
-	if enemies.hurt(slot, amount, push):
-		_kill(slot)
+	var crit := false
+	if procs:
+		crit = items.take_crit_charge() or rng.randf() < stat("crit_chance")
+		if crit:
+			amount *= stat("crit_damage")
+	numbers.show_number(enemies.pos[slot], amount, crit)
+	var died := enemies.hurt(slot, amount, push)
+	if procs:
+		on_hit.emit(slot, amount, crit, source)
+		items.emit("on_hit", {"slot": slot, "pos": enemies.pos[slot], "elite": enemies.elite[slot] == 1, "source": source, "crit": crit})
+	# An on_hit effect may already have killed it.
+	if died and enemies.pool.is_alive(slot):
+		_kill(slot, source)
+
+
+## Sets an enemy burning (refreshes duration, keeps the stronger burn).
+func burn_enemy(slot: int, dps: float, duration: float) -> void:
+	if not enemies.pool.is_alive(slot):
+		return
+	enemies.burn_dps[slot] = maxf(enemies.burn_dps[slot], dps)
+	enemies.burn_left[slot] = maxf(enemies.burn_left[slot], duration)
+
+
+## Damage and push in a circle. For item effects and blast weapons.
+func blast(at: Vector2, r: float, dmg: float, knockback: float, source: String, color := "PAPER", procs := false) -> void:
+	enemies.query_circle(at, r, _hits)
+	var hit := _hits.duplicate()
+	for e in hit:
+		var off := enemies.pos[e] - at
+		hit_enemy(e, dmg, off / maxf(off.length(), 0.01) * knockback, source, procs)
+	var c := Palette.index_of(color)
+	fx.ring(at, r, c)
+	if r >= 60.0:
+		fx.disc(at, r, c)
+
+
+## Lightning that jumps from `from` to the nearest enemy, then on to the
+## nearest not yet hit, `jumps` times in total. `skip` = a slot to leave out
+## of the first jump (the enemy that triggered it). Returns enemies hit.
+func chain_zap(from: Vector2, dmg: float, jumps: int, reach: float, source: String, skip := -1, procs := false, color := "SKY") -> int:
+	var hit := {}
+	if skip >= 0:
+		hit[skip] = true
+	var at := from
+	var n := 0
+	var c := Palette.index_of(color)
+	for j in jumps:
+		var e := _nearest_not_in(at, reach, hit)
+		if e < 0:
+			break
+		hit[e] = true
+		var to := enemies.pos[e]
+		fx.bolt(at, to, c)
+		hit_enemy(e, dmg, Vector2.ZERO, source, procs)
+		at = to
+		n += 1
+	return n
+
+
+func _nearest_not_in(at: Vector2, reach: float, skip: Dictionary) -> int:
+	enemies.query_circle(at, reach, _zap_hits)
+	var best := -1
+	var best_d := INF
+	for e in _zap_hits:
+		if skip.has(e) or not enemies.pool.is_alive(e):
+			continue
+		var d := at.distance_squared_to(enemies.pos[e])
+		if d < best_d:
+			best_d = d
+			best = e
+	return best
+
+
+## Fires a projectile through the item hooks (Clone Machine). See
+## ProjectileSystem for the shot keys. Returns the slot or -1.
+func fire_shot(shot: Dictionary) -> int:
+	var s := projectiles.fire(shot)
+	if s >= 0:
+		on_projectile.emit(shot)
+		items.emit("on_projectile", {"shot": shot, "pos": shot.pos})
+	return s
+
+
+## A copy of a shot, turned by up to `spread` radians. Doesn't fire hooks.
+func duplicate_shot(shot: Dictionary, spread: float) -> void:
+	var copy := shot.duplicate()
+	copy.vel = Vector2(shot.vel).rotated(rng.randf_range(-spread, spread))
+	projectiles.fire(copy)
+
+
+## Weapons call this once per attack (via Weapon.attacked()).
+func weapon_attacked(weapon_id: String) -> void:
+	on_attack.emit(weapon_id)
+	items.emit("on_attack", {"weapon": weapon_id, "pos": _pos})
+
+
+func add_gold(amount: float) -> void:
+	gold += amount * stat("gold_gain")
+
+
+func heal(amount: float) -> void:
+	hp = minf(hp + amount, stat("max_hp"))
+
+
+## Short message on the HUD (item pickups, boosts).
+func toast(text: String, color := "PAPER") -> void:
+	_hud.toast(text, Palette.index_of(color))
+
+
+## Adds one stack of an item (chest, merchant, tests).
+func give_item(id: String) -> void:
+	var before := stat("max_hp")
+	var shield_before := stat("shield")
+	items.add(id)
+	hp += maxf(0.0, stat("max_hp") - before)
+	shield += maxf(0.0, stat("shield") - shield_before)
+
+
+## Opens a chest of `kind` ("paid", "elite", "boss"): rolls an item with
+## the player's luck and gives it. Returns the item id ("" = nothing left
+## to give; the chest pays out gold instead).
+func open_chest(kind: String) -> String:
+	var id := Loot.roll(rng, db, kind, stat("luck"), items.stacks, pool)
+	if id == "":
+		add_gold(db.get_entry("rules", "loot").get("empty_chest_gold", 0.0))
+		toast("+GOLD", "GOLD")
+	else:
+		give_item(id)
+		var def := db.get_entry("items", id)
+		var loot := db.get_entry("rules", "loot")
+		toast(def.name, loot.rarity_colors[def.rarity])
+	on_chest_opened.emit(kind, id)
+	items.emit("on_chest_opened", {"kind": kind, "item": id, "pos": _pos})
+	return id
+
+
+## Shrines (phase 3) call this.
+func shrine_activated(shrine_id: String) -> void:
+	on_shrine_activated.emit(shrine_id)
+	items.emit("on_shrine_activated", {"shrine": shrine_id, "pos": _pos})
 
 
 func enemies_on_screen() -> int:
-	var view := _view_rect()
+	var view := view_rect()
 	var n := 0
 	for s in enemies.pool.active:
 		if view.has_point(enemies.pos[s]):
@@ -227,10 +404,11 @@ func apply_card(card: Dictionary) -> void:
 				owned_weapons[card.id] = card.level
 		"tome":
 			var before := stat("max_hp")
+			var shield_before := stat("shield")
 			owned_tomes[card.id] = card.level
-			for m: Dictionary in card.def.modifiers_per_level:
-				stats.set_modifier(m.stat, "tome:" + card.id, m.get("flat", 0.0) * card.level, m.get("pct", 0.0) * card.level)
+			stats.apply_modifiers("tome:" + card.id, card.def.modifiers_per_level, card.level)
 			hp += maxf(0.0, stat("max_hp") - before)
+			shield += maxf(0.0, stat("shield") - shield_before)
 		"fallback":
 			hp = minf(hp + card.def.get("heal", 0.0), stat("max_hp"))
 
@@ -246,6 +424,21 @@ func _give_weapon(id: String) -> void:
 	owned_weapons[id] = 1
 
 
+func _apply_loadout(lo: Dictionary) -> void:
+	var w: Dictionary = lo.get("weapons", {})
+	for id: String in w:
+		if not owned_weapons.has(id):
+			_give_weapon(id)
+		apply_card({"kind": "weapon", "id": id, "level": int(w[id]), "is_new": false, "def": db.get_entry("weapons", id)})
+	var t: Dictionary = lo.get("tomes", {})
+	for id: String in t:
+		apply_card({"kind": "tome", "id": id, "level": int(t[id]), "is_new": false, "def": db.get_entry("tomes", id)})
+	var it: Dictionary = lo.get("items", {})
+	for id: String in it:
+		for k in int(it[id]):
+			give_item(id)
+
+
 func _spawn_group(req: Dictionary) -> void:
 	var type_id: int = enemies.type_index[req.enemy]
 	var def: Dictionary = enemies.types[type_id]
@@ -257,13 +450,13 @@ func _spawn_group(req: Dictionary) -> void:
 		var at := base
 		if req.grouped:
 			at += Vector2(rng.randf_range(-spread, spread), rng.randf_range(-spread, spread))
-		enemies.spawn(type_id, at.clamp(bounds.position, bounds.end), growth * spawner.hp_mult(), spawner.damage_mult(), spawner.speed_mult())
+		enemies.spawn(type_id, at.clamp(bounds.position, bounds.end), growth * spawner.hp_mult() * stat("enemy_hp"), spawner.damage_mult() * stat("enemy_damage"), spawner.speed_mult())
 
 
 ## Stress test: keep the enemy count at the cap and every enemy on screen.
 ## New and stray enemies are placed inside the view, away from the player.
 func _stress_fill() -> void:
-	var view := _view_rect().intersection(bounds).grow(-4.0)
+	var view := view_rect().intersection(bounds).grow(-4.0)
 	var n := enemies.types.size()
 	for s in enemies.pool.active:
 		if not view.has_point(enemies.pos[s]):
@@ -296,7 +489,8 @@ func _half_view() -> Vector2:
 	return get_viewport_rect().size / 2.0
 
 
-func _view_rect() -> Rect2:
+## The visible area in world pixels (centered on the player).
+func view_rect() -> Rect2:
 	return Rect2(_pos - _half_view(), _half_view() * 2.0)
 
 
@@ -310,32 +504,75 @@ func _contact_damage(delta: float, minute: float) -> void:
 	var worst := 0.0
 	for s in _hits:
 		worst = maxf(worst, enemies.damage[s])
-	var dmg := worst * Passives.damage_taken_mult(char_def.passive, minute)
-	dmg = maxf(1.0, dmg - stat("armor"))
 	_iframes = rules.player_iframes
+	if rng.randf() < stat("evasion"):
+		numbers.show_text(_pos, "MISS")
+		return
+	var dmg := worst * Passives.damage_taken_mult(char_def.passive, minute) * stat("contact_damage_taken")
+	dmg = maxf(1.0, dmg - stat("armor"))
+	_shield_idle = 0.0
 	if options.get("invincible", false):
 		return
-	hp -= dmg
-	on_damaged.emit(dmg)
+	var absorbed := minf(shield, dmg)
+	shield -= absorbed
+	hp -= dmg - absorbed
+	on_damaged.emit(dmg - absorbed)
+	items.emit("on_damaged", {"amount": dmg - absorbed, "pos": _pos})
 
 
-func _kill(slot: int) -> void:
+## Shield (Tin Foil Hat): refills after rules.shield.delay seconds without
+## being hit, at refill_per_sec of the max per second.
+func _update_shield(delta: float) -> void:
+	var top := stat("shield")
+	if shield > top:
+		shield = top
+	if top <= 0.0:
+		return
+	_shield_idle += delta
+	if _shield_idle >= rules.shield.delay:
+		shield = minf(top, shield + top * rules.shield.refill_per_sec * delta)
+
+
+## Burning enemies take their damage every rules.burn_tick seconds.
+func _tick_burns(delta: float) -> void:
+	_burn_t += delta
+	var step: float = rules.burn_tick
+	if _burn_t < step:
+		return
+	_burn_t -= step
+	var i := enemies.pool.active.size() - 1
+	while i >= 0:
+		var s := enemies.pool.active[i]
+		i -= 1
+		if enemies.burn_left[s] > 0.0:
+			var t := minf(step, enemies.burn_left[s])
+			enemies.burn_left[s] -= step
+			hit_enemy(s, enemies.burn_dps[s] * t, Vector2.ZERO, "burn", false)
+			if enemies.pool.is_alive(s) and enemies.burn_left[s] <= 0.0:
+				enemies.burn_dps[s] = 0.0
+
+
+func _kill(slot: int, source := "") -> void:
 	var type_id := enemies.type_of[slot]
 	var def: Dictionary = enemies.types[type_id]
 	var at := enemies.pos[slot]
+	var elite := enemies.elite[slot] == 1
 	gems.drop(at, def.xp)
+	if rng.randf() < rules.gold.kill_chance:
+		add_gold(rules.gold.kill_amount)
 	if not _reduce_fx:
 		var p: CPUParticles2D = _particles.take()
 		p.position = at.round()
 		p.texture = PlaceholderArt.texture("dot", Palette.index_of(def.color))
 		p.restart()
 	kills += 1
-	on_kill.emit(slot, def.id)
+	on_kill.emit(slot, def.id, source, elite)
+	items.emit("on_kill", {"slot": slot, "pos": at, "elite": elite, "source": source, "enemy": def.id})
 	enemies.remove(slot)
 
 
 func _open_level_up() -> void:
-	_cards = LevelUpCards.pick(rng, db, owned_weapons, owned_tomes, rules)
+	_cards = LevelUpCards.pick(rng, db, owned_weapons, owned_tomes, rules, pool)
 	if options.get("auto_cards", false):
 		pending_levels -= 1
 		if not _cards.is_empty():
@@ -373,7 +610,7 @@ func _end(survived: bool) -> void:
 	gems.pull_all()
 	var c: Dictionary = rules.coins
 	var coins := floori((c.per_minute * elapsed / 60.0 + c.per_kill * kills) * (1.0 if won else c.death_multiplier))
-	result = {"won": won, "time": elapsed, "level": level, "kills": kills, "coins": coins}
+	result = {"won": won, "time": elapsed, "level": level, "kills": kills, "coins": coins, "gold": floori(gold)}
 	if not options.get("no_save", false):
 		var save := get_node_or_null("/root/Save")
 		if save != null:
@@ -456,6 +693,8 @@ func _render() -> void:
 	_camera.position = _pos.round()
 	_hud.hp = hp
 	_hud.hp_max = stat("max_hp")
+	_hud.shield = shield
+	_hud.gold = floori(gold)
 	_hud.xp = xp
 	_hud.xp_need = xp_needed(rules.xp_curve, level)
 	_hud.set_values(level, seconds_left(), kills)
@@ -484,7 +723,7 @@ func _build_world() -> void:
 	enemies.setup(db.all("enemies"), int(rules.enemy_cap), bounds)
 	add_child(enemies)
 	projectiles = ProjectileSystem.new()
-	projectiles.setup(128)
+	projectiles.setup(256)
 	projectiles.hit_fn = hit_enemy
 	add_child(projectiles)
 
@@ -497,9 +736,12 @@ func _build_world() -> void:
 			w.draw(_weapon_view, _pos))
 	add_child(_weapon_view)
 
-	var fx := Node2D.new()
+	var particle_root := Node2D.new()
+	add_child(particle_root)
+	_particles = NodePool.new(particle_root, PARTICLES, _make_particles)
+	fx = Fx.new()
+	fx.enabled = not _reduce_fx
 	add_child(fx)
-	_particles = NodePool.new(fx, PARTICLES, _make_particles)
 	numbers = DamageNumbers.new()
 	numbers.enabled = _setting("damage_numbers", true)
 	add_child(numbers)

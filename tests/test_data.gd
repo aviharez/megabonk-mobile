@@ -29,7 +29,7 @@ func test_bad_files_are_named(t) -> void:
 	_write("enemies/odd_role.json", '{"id": "odd_role", "name": "X", "role": "dancer", "hp": 1, "speed": 1, "damage": 1, "radius": 1, "xp": 1, "shape": "blob", "color": "RED"}')
 	_write("enemies/wrong_name.json", '{"id": "other", "name": "X", "role": "chaser", "hp": 1, "speed": 1, "damage": 1, "radius": 1, "xp": 1, "shape": "blob", "color": "RED"}')
 	_write("enemies/magenta.json", '{"id": "magenta", "name": "X", "role": "chaser", "hp": 1, "speed": 1, "damage": 1, "radius": 1, "xp": 1, "shape": "blob", "color": "ENEMY_SHOT"}')
-	_write("tomes/typo.json", '{"id": "typo", "name": "X", "status": "start", "desc": "X", "modifiers_per_level": [{"stat": "damgae", "pct": 0.1}]}')
+	_write("tomes/typo.json", '{"id": "typo", "name": "X", "status": "start", "group": "offense", "desc": "X", "modifiers_per_level": [{"stat": "damgae", "pct": 0.1}]}')
 	_write("maps/m.json", '{"id": "m", "size": [10, 10], "spawns": [{"enemy": "ghost", "from_min": 0, "to_min": 1, "per_sec": [1, 1]}]}')
 	var db := GameData.load_from(BAD)
 	var all := "\n".join(db.errors)

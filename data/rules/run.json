@@ -17,6 +17,9 @@
 		{"min_value": 20, "shape": "gem_big", "color": "RED"}
 	],
 	"magnet": {"start_speed": 40, "accel": 420, "collect_radius": 5},
+	"gold": {"kill_chance": 0.08, "kill_amount": 1},
+	"shield": {"delay": 4.0, "refill_per_sec": 0.5},
+	"burn_tick": 0.5,
 	"fallback_cards": [
 		{"id": "snack", "name": "SNACK", "desc": "HEAL 30 HP", "heal": 30}
 	]

@@ -1,0 +1,17 @@
+{
+	"id": "band_aid",
+	"name": "BAND-AID",
+	"rarity": "common",
+	"status": "start",
+	"desc": "MORE MAX HP, SLOW REGEN",
+	"modifiers": [
+		{
+			"stat": "max_hp",
+			"flat": 15
+		},
+		{
+			"stat": "regen",
+			"flat": 0.2
+		}
+	]
+}

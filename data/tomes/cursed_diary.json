@@ -1,0 +1,1 @@
+{"id": "cursed_diary", "name": "CURSED DIARY", "group": "risk", "status": "unlock", "desc": "MORE FOES, MORE LOOT", "modifiers_per_level": [{"stat": "enemy_hp", "pct": 0.10}, {"stat": "enemy_damage", "pct": 0.08}, {"stat": "enemy_spawn_rate", "pct": 0.10}, {"stat": "xp_gain", "pct": 0.08}, {"stat": "gold_gain", "pct": 0.10}, {"stat": "luck", "flat": 0.04}]}

@@ -3,18 +3,17 @@ extends RefCounted
 ## Picks the cards offered on level-up. Pure logic for headless tests.
 ##
 ## Candidates: upgrades for owned weapons/tomes below max level, plus new
-## weapons/tomes while a slot of that kind is free. Only content whose status
-## puts it in the pool can appear (phase 4 replaces this with owned content).
+## weapons/tomes while a slot of that kind is free. Only content in the
+## ContentPool can appear as a new card (start content, owned unlocks,
+## signature weapons of owned characters).
 ## If there are fewer candidates than cards, fallback cards fill the rest.
 ##
 ## A card: {"kind": "weapon"|"tome"|"fallback", "id", "level" (level after
 ## taking it), "is_new", "def"}.
 
-## Statuses that are in the pool before meta progression exists.
-const POOL_STATUSES := ["start"]
-
-
-static func pick(rng: RandomNumberGenerator, db: GameData, owned_weapons: Dictionary, owned_tomes: Dictionary, rules: Dictionary) -> Array:
+static func pick(rng: RandomNumberGenerator, db: GameData, owned_weapons: Dictionary, owned_tomes: Dictionary, rules: Dictionary, pool: ContentPool = null) -> Array:
+	if pool == null:
+		pool = ContentPool.new(db)
 	var max_level: int = int(rules.max_level)
 	var cands := []
 	for w: Dictionary in db.all("weapons"):
@@ -22,13 +21,13 @@ static func pick(rng: RandomNumberGenerator, db: GameData, owned_weapons: Dictio
 		var top := mini(max_level, w.levels.size())
 		if lvl > 0 and lvl < top:
 			cands.append({"kind": "weapon", "id": w.id, "level": lvl + 1, "is_new": false, "def": w})
-		elif lvl == 0 and owned_weapons.size() < int(rules.weapon_slots) and w.status in POOL_STATUSES:
+		elif lvl == 0 and owned_weapons.size() < int(rules.weapon_slots) and pool.has(w):
 			cands.append({"kind": "weapon", "id": w.id, "level": 1, "is_new": true, "def": w})
 	for t: Dictionary in db.all("tomes"):
 		var lvl: int = owned_tomes.get(t.id, 0)
 		if lvl > 0 and lvl < max_level:
 			cands.append({"kind": "tome", "id": t.id, "level": lvl + 1, "is_new": false, "def": t})
-		elif lvl == 0 and owned_tomes.size() < int(rules.tome_slots) and t.status in POOL_STATUSES:
+		elif lvl == 0 and owned_tomes.size() < int(rules.tome_slots) and pool.has(t):
 			cands.append({"kind": "tome", "id": t.id, "level": 1, "is_new": true, "def": t})
 
 	# Partial Fisher-Yates with the run's RNG (deterministic per seed).

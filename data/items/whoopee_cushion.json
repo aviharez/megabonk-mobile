@@ -1,0 +1,17 @@
+{
+	"id": "whoopee_cushion",
+	"name": "WHOOPEE CUSHION",
+	"rarity": "rare",
+	"status": "start",
+	"desc": "GET HIT: PUSH FOES AWAY",
+	"triggers": [
+		{
+			"event": "on_damaged",
+			"effect": "blast",
+			"radius": 40,
+			"damage": 5,
+			"knockback": 320,
+			"color": "LIME"
+		}
+	]
+}

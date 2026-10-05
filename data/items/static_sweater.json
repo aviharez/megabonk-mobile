@@ -1,0 +1,17 @@
+{
+	"id": "static_sweater",
+	"name": "STATIC SWEATER",
+	"rarity": "rare",
+	"status": "unlock",
+	"desc": "ATTACKS CAN ZAP LIGHTNING",
+	"triggers": [
+		{
+			"event": "on_attack",
+			"chance": 0.25,
+			"effect": "zap",
+			"damage": 8,
+			"jumps": 3,
+			"range": 70
+		}
+	]
+}

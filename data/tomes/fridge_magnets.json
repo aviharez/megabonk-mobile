@@ -1,0 +1,1 @@
+{"id": "fridge_magnets", "name": "FRIDGE MAGNETS", "group": "utility", "status": "unlock", "desc": "+20% PICKUP RANGE", "modifiers_per_level": [{"stat": "pickup_range", "pct": 0.20}]}

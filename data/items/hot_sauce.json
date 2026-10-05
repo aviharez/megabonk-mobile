@@ -1,0 +1,16 @@
+{
+	"id": "hot_sauce",
+	"name": "HOT SAUCE",
+	"rarity": "rare",
+	"status": "start",
+	"desc": "ATTACKS CAN BURN FOES",
+	"triggers": [
+		{
+			"event": "on_hit",
+			"chance": 0.3,
+			"effect": "burn",
+			"dps": 4,
+			"duration": 3
+		}
+	]
+}

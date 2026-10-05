@@ -14,14 +14,18 @@ const SCHEMA := {
 	"characters": {"id": TYPE_STRING, "name": TYPE_STRING, "signature_weapon": TYPE_STRING, "stats": TYPE_DICTIONARY, "radius": TYPE_FLOAT, "passive": TYPE_DICTIONARY},
 	"weapons": {"id": TYPE_STRING, "name": TYPE_STRING, "pattern": TYPE_STRING, "status": TYPE_STRING, "levels": TYPE_ARRAY},
 	"enemies": {"id": TYPE_STRING, "name": TYPE_STRING, "role": TYPE_STRING, "hp": TYPE_FLOAT, "speed": TYPE_FLOAT, "damage": TYPE_FLOAT, "radius": TYPE_FLOAT, "xp": TYPE_FLOAT, "shape": TYPE_STRING, "color": TYPE_STRING},
-	"tomes": {"id": TYPE_STRING, "name": TYPE_STRING, "status": TYPE_STRING, "desc": TYPE_STRING, "modifiers_per_level": TYPE_ARRAY},
+	"tomes": {"id": TYPE_STRING, "name": TYPE_STRING, "status": TYPE_STRING, "group": TYPE_STRING, "desc": TYPE_STRING, "modifiers_per_level": TYPE_ARRAY},
+	"items": {"id": TYPE_STRING, "name": TYPE_STRING, "rarity": TYPE_STRING, "status": TYPE_STRING, "desc": TYPE_STRING},
 	"maps": {"id": TYPE_STRING, "size": TYPE_ARRAY, "spawns": TYPE_ARRAY},
 	"rules": {"id": TYPE_STRING},
 }
 ## Values the code knows how to run. Data naming anything else is an error.
+## Weapon patterns come from Weapon.PATTERNS, item events/effects from ItemSystem.
 const ENEMY_ROLES := ["chaser", "pack"]
-const WEAPON_PATTERNS := ["spin_swing"]  # keep in sync with Weapon.PATTERNS
 const PASSIVES := ["getting_stale"]
+const WEAPON_STATUSES := ["start", "unlock", "signature"]
+const CONTENT_STATUSES := ["start", "unlock"]
+const TOME_GROUPS := ["offense", "defense", "utility", "risk"]
 
 static var _shared: GameData
 
@@ -103,17 +107,96 @@ func _check_entry(category: String, e: Dictionary) -> void:
 			if Palette.index_of(e.color) < 0:
 				errors.append("%s: unknown palette color \"%s\"" % [file, e.color])
 		"weapons":
-			if not e.pattern in WEAPON_PATTERNS:
-				errors.append("%s: unknown pattern \"%s\"" % [file, e.pattern])
-			if e.levels.is_empty():
-				errors.append("%s: needs at least one level" % file)
+			_check_weapon(e)
 		"tomes":
-			for m in e.modifiers_per_level:
-				if not (m is Dictionary and m.has("stat")):
-					errors.append("%s: each modifier needs a \"stat\"" % file)
+			if not e.status in CONTENT_STATUSES:
+				errors.append("%s: unknown status \"%s\"" % [file, e.status])
+			if not e.group in TOME_GROUPS:
+				errors.append("%s: unknown group \"%s\"" % [file, e.group])
+			if e.modifiers_per_level.is_empty():
+				errors.append("%s: needs at least one modifier" % file)
+			_check_modifiers(file, e.modifiers_per_level)
+		"items":
+			_check_item(e)
 		"characters":
 			if not e.passive.get("id", "") in PASSIVES:
 				errors.append("%s: unknown passive \"%s\"" % [file, e.passive.get("id", "")])
+
+
+func _check_weapon(e: Dictionary) -> void:
+	var file: String = e._file
+	if not Weapon.PATTERNS.has(e.pattern):
+		errors.append("%s: unknown pattern \"%s\"" % [file, e.pattern])
+		return
+	if not e.status in WEAPON_STATUSES:
+		errors.append("%s: unknown status \"%s\"" % [file, e.status])
+	if e.status == "signature" and typeof(e.get("character")) != TYPE_STRING:
+		errors.append("%s: a signature weapon needs \"character\"" % file)
+	if e.levels.is_empty():
+		errors.append("%s: needs at least one level" % file)
+	# Each pattern script lists the level keys it reads in LEVEL_KEYS.
+	var keys: Array = load(Weapon.PATTERNS[e.pattern]).get_script_constant_map().get("LEVEL_KEYS", [])
+	for i in e.levels.size():
+		var lv = e.levels[i]
+		if not lv is Dictionary:
+			errors.append("%s: level %d must be an object" % [file, i + 1])
+			continue
+		for k: String in keys + ["desc"]:
+			if not lv.has(k):
+				errors.append("%s: level %d is missing \"%s\"" % [file, i + 1, k])
+			elif k != "desc" and typeof(lv[k]) != TYPE_FLOAT:
+				errors.append("%s: level %d \"%s\" must be a number" % [file, i + 1, k])
+
+
+func _check_modifiers(file: String, mods: Array) -> void:
+	for m in mods:
+		if not (m is Dictionary and m.has("stat")):
+			errors.append("%s: each modifier needs a \"stat\"" % file)
+		elif not m.stat in StatBlock.NAMES:
+			errors.append("%s: unknown stat \"%s\"" % [file, m.stat])
+		elif not (m.has("flat") or m.has("pct")):
+			errors.append("%s: modifier for \"%s\" needs \"flat\" or \"pct\"" % [file, m.stat])
+
+
+func _check_item(e: Dictionary) -> void:
+	var file: String = e._file
+	if not e.status in CONTENT_STATUSES:
+		errors.append("%s: unknown status \"%s\"" % [file, e.status])
+	if not e.rarity in ["common", "rare", "epic", "legendary"]:
+		errors.append("%s: unknown rarity \"%s\"" % [file, e.rarity])
+	_check_modifiers(file, e.get("modifiers", []))
+	var trigs: Array = e.get("triggers", [])
+	for t in trigs:
+		if not t is Dictionary:
+			errors.append("%s: each trigger must be an object" % file)
+			continue
+		if not t.get("event", "") in ItemSystem.EVENTS:
+			errors.append("%s: unknown event \"%s\"" % [file, t.get("event", "")])
+		if t.get("event", "") == "every" and float(t.get("interval", 0.0)) <= 0.0:
+			errors.append("%s: an \"every\" trigger needs \"interval\" > 0" % file)
+		if not ItemSystem.EFFECTS.has(t.get("effect", "")):
+			errors.append("%s: unknown effect \"%s\"" % [file, t.get("effect", "")])
+			continue
+		for k: String in ItemSystem.EFFECTS[t.effect]:
+			if not t.has(k):
+				errors.append("%s: effect \"%s\" needs \"%s\"" % [file, t.effect, k])
+		var chance = t.get("chance", 1.0)
+		if typeof(chance) != TYPE_FLOAT or chance <= 0.0 or chance > 1.0:
+			errors.append("%s: \"chance\" must be a number in (0, 1]" % file)
+		if t.has("color") and Palette.index_of(t.color) < 0:
+			errors.append("%s: unknown palette color \"%s\"" % [file, t.color])
+		if t.effect == "stat_boost":
+			if t.get("choices") is Array and not t.choices.is_empty():
+				_check_modifiers(file, t.choices)
+			else:
+				errors.append("%s: \"choices\" must be a non-empty list" % file)
+	var conds: Array = e.get("conditions", [])
+	for c in conds:
+		if not (c is Dictionary and c.get("if", "") in ItemSystem.CONDITIONS and typeof(c.get("value")) == TYPE_FLOAT):
+			errors.append("%s: a condition needs a known \"if\" and a number \"value\"" % file)
+	_check_modifiers(file, conds)
+	if e.get("modifiers", []).is_empty() and trigs.is_empty() and conds.is_empty():
+		errors.append("%s: item does nothing (no modifiers, triggers or conditions)" % file)
 
 
 ## References between files (spawns name enemies, characters name weapons).
@@ -121,18 +204,12 @@ func _cross_check() -> void:
 	for c: Dictionary in entries.characters.values():
 		if not entries.weapons.has(c.signature_weapon):
 			errors.append("%s: signature weapon \"%s\" not found in weapons/" % [c._file, c.signature_weapon])
-		for stat: String in StatBlock.NAMES:
-			if not c.stats.has(stat):
-				errors.append("%s: missing stat \"%s\"" % [c._file, stat])
+		# Stats a character leaves out start at StatBlock.DEFAULTS.
 		for stat: String in c.stats:
 			if not stat in StatBlock.NAMES:
 				errors.append("%s: unknown stat \"%s\"" % [c._file, stat])
 			elif typeof(c.stats[stat]) != TYPE_FLOAT:
 				errors.append("%s: stat \"%s\" must be a number" % [c._file, stat])
-	for t: Dictionary in entries.tomes.values():
-		for m in t.modifiers_per_level:
-			if m is Dictionary and not m.get("stat", "") in StatBlock.NAMES:
-				errors.append("%s: unknown stat \"%s\"" % [t._file, m.get("stat", "")])
 	for m: Dictionary in entries.maps.values():
 		for s in m.spawns:
 			if not (s is Dictionary and entries.enemies.has(s.get("enemy", ""))):

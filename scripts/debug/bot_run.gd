@@ -9,7 +9,9 @@ extends Node
 ## Full-run simulation (bot plays until death or the timer; use headless +
 ## fixed fps so it runs faster than real time):
 ##   godot --headless --fixed-fps 30 --path . res://scenes/debug/bot_run.tscn -- --mode=sim [--invincible]
-## Common: --seed=N. --shot=S saves a screenshot to user://bot_run_shot.png
+## --build=full starts with a maxed late-run build (4 weapons and 4 tomes at
+## level 5, every item stacked) to measure the cost of all effects together.
+## --chests=S opens a paid chest every S seconds (sim). Common: --seed=N. --shot=S saves a screenshot to user://bot_run_shot.png
 ## after S seconds (windowed only). --cards stops auto-picking level-up cards.
 ## --joy drives the player with a simulated thumb drag instead of the bot.
 ## --die_at=S sets HP to 0 after S seconds (to see the game-over screen). Results print as one JSON line starting with "RESULT "
@@ -52,6 +54,18 @@ func _ready() -> void:
 		opts.rules = {"run_length_sec": 1.0e9}
 	elif _args.has("invincible"):
 		opts.invincible = true
+	if _args.has("chests"):
+		opts.chest_every = float(_args.chests)
+	if _args.get("build", "") == "full":
+		opts.all_content = true
+		var items := {}
+		for it: Dictionary in GameData.shared().all("items"):
+			items[it.id] = 1 if it.rarity == "legendary" else 3
+		opts.loadout = {
+			"weapons": {"baguette": 5, "garden_gnomes": 5, "stinky_socks": 5, "fireworks": 5},
+			"tomes": {"copy_machine_manual": 5, "think_big": 5, "speed_reading": 5, "muscle_magazine": 5},
+			"items": items,
+		}
 	Run.next_options = opts
 	_run = RUN_SCENE.instantiate()
 	add_child(_run)
@@ -126,6 +140,7 @@ func _stress_frame(delta: float) -> void:
 			"kills": _run.kills,
 			"gems_alive": _run.gems.count(),
 			"gem_merges": _run.gems.merges,
+			"build": _args.get("build", "starter"),
 		})
 
 

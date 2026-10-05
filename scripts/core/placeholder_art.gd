@@ -53,6 +53,49 @@ const MASKS := {
 		"oxo",
 		".o.",
 	],
+	# Weapon projectiles (phase 2).
+	"feather": [
+		"...oo",
+		"..oho",
+		".oxdo",
+		"oxdo.",
+		"oo...",
+	],
+	"staple": [
+		"oooooo",
+		"oxxxxo",
+		"oxoodo",
+		"oo..oo",
+	],
+	"duck": [
+		"..ooo...",
+		".oxxxo..",
+		".oxexoo.",
+		".oxxxodo",
+		"ooxxxoo.",
+		"oxxxxxxo",
+		"oddddddo",
+		".oooooo.",
+	],
+	"cup": [
+		".h.h...",
+		"..h.h..",
+		"ooooo..",
+		"oxxxooo",
+		"oxxxo.o",
+		"oxxxooo",
+		"odddo..",
+		".ooo...",
+	],
+	"rocket": [
+		".o.",
+		"oho",
+		"oxo",
+		"oxo",
+		"odo",
+		"ooo",
+		"o.o",
+	],
 }
 
 static var _cache := {}

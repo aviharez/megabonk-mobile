@@ -32,6 +32,11 @@ var role_of := PackedInt32Array()
 var last_hit := PackedInt32Array()
 ## 1 = any hit kills it, whatever its HP ("one_hit" in data, e.g. Blob).
 var one_hit := PackedByteArray()
+## 1 = elite (phase 3 spawns them; on_kill reports it for items like Golden Toilet).
+var elite := PackedByteArray()
+## Damage over time (Hot Sauce): damage per second and seconds left.
+var burn_dps := PackedFloat32Array()
+var burn_left := PackedFloat32Array()
 
 var bounds := Rect2()
 var _cols := 0
@@ -60,6 +65,9 @@ func setup(enemy_defs: Array, capacity: int, area: Rect2) -> void:
 	role_of.resize(capacity)
 	last_hit.resize(capacity)
 	one_hit.resize(capacity)
+	elite.resize(capacity)
+	burn_dps.resize(capacity)
+	burn_left.resize(capacity)
 	_cell_next.resize(capacity)
 	_cols = int(ceil(area.size.x / CELL)) + 1
 	_rows = int(ceil(area.size.y / CELL)) + 1
@@ -98,6 +106,9 @@ func spawn(type_id: int, at: Vector2, hp_mult: float, dmg_mult: float, speed_mul
 	role_of[s] = ROLE_IDS[def.role]
 	last_hit[s] = -1
 	one_hit[s] = 1 if def.get("one_hit", false) else 0
+	elite[s] = 0
+	burn_dps[s] = 0.0
+	burn_left[s] = 0.0
 	return s
 
 
@@ -139,6 +150,28 @@ func update(delta: float, target: Vector2) -> void:
 func move_to(slot: int, at: Vector2) -> void:
 	pos[slot] = at
 	knock[slot] = Vector2.ZERO
+
+
+## The closest enemy to `from` within `max_r` (center distance), skipping
+## `exclude`. Returns -1 if there is none.
+func nearest(from: Vector2, max_r: float, exclude: int = -1) -> int:
+	var best := -1
+	var best_d := max_r * max_r
+	var cx0 := maxi(0, int((from.x - max_r - bounds.position.x) / CELL))
+	var cx1 := mini(_cols - 1, int((from.x + max_r - bounds.position.x) / CELL))
+	var cy0 := maxi(0, int((from.y - max_r - bounds.position.y) / CELL))
+	var cy1 := mini(_rows - 1, int((from.y + max_r - bounds.position.y) / CELL))
+	for cy in range(cy0, cy1 + 1):
+		for cx in range(cx0, cx1 + 1):
+			var s := _cell_head[cy * _cols + cx]
+			while s >= 0:
+				if s != exclude and pool.is_alive(s):
+					var d := from.distance_squared_to(pos[s])
+					if d <= best_d:
+						best_d = d
+						best = s
+				s = _cell_next[s]
+	return best
 
 
 ## Fills `out` with the slots of enemies whose circle touches the given circle.

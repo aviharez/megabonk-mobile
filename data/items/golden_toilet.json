@@ -1,0 +1,40 @@
+{
+	"id": "golden_toilet",
+	"name": "GOLDEN TOILET",
+	"rarity": "epic",
+	"status": "unlock",
+	"desc": "ELITE KILLS: STAT BOOST",
+	"triggers": [
+		{
+			"event": "on_kill",
+			"elite_only": true,
+			"effect": "stat_boost",
+			"choices": [
+				{
+					"stat": "damage",
+					"pct": 0.06
+				},
+				{
+					"stat": "max_hp",
+					"flat": 12
+				},
+				{
+					"stat": "move_speed",
+					"pct": 0.05
+				},
+				{
+					"stat": "cooldown",
+					"pct": -0.04
+				},
+				{
+					"stat": "area",
+					"pct": 0.06
+				},
+				{
+					"stat": "crit_chance",
+					"flat": 0.03
+				}
+			]
+		}
+	]
+}

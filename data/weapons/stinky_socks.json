@@ -1,0 +1,14 @@
+{
+	"id": "stinky_socks",
+	"name": "STINKY SOCKS",
+	"desc": "HURTS FOES AROUND YOU",
+	"pattern": "aura",
+	"status": "start",
+	"levels": [
+		{"damage": 3, "cooldown": 0.5, "radius": 24, "knockback": 8, "desc": "STINKY AURA"},
+		{"damage": 3, "cooldown": 0.5, "radius": 27, "knockback": 8, "desc": "BIGGER RADIUS"},
+		{"damage": 4, "cooldown": 0.5, "radius": 30, "knockback": 10, "desc": "BIGGER RADIUS, MORE DAMAGE"},
+		{"damage": 4, "cooldown": 0.5, "radius": 34, "knockback": 10, "desc": "BIGGER RADIUS"},
+		{"damage": 5, "cooldown": 0.45, "radius": 38, "knockback": 12, "desc": "BIGGER RADIUS, MORE DAMAGE"}
+	]
+}

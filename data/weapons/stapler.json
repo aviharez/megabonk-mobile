@@ -1,0 +1,15 @@
+{
+	"id": "stapler",
+	"name": "STAPLER",
+	"desc": "RAPID-FIRE STAPLES",
+	"pattern": "rapid_shot",
+	"status": "signature",
+	"character": "gary",
+	"levels": [
+		{"damage": 5, "cooldown": 0.4, "count": 1, "speed": 170, "pierce": 0, "spread": 10, "desc": "RAPID STAPLES"},
+		{"damage": 6, "cooldown": 0.4, "count": 1, "speed": 170, "pierce": 0, "spread": 10, "desc": "MORE DAMAGE"},
+		{"damage": 6, "cooldown": 0.4, "count": 2, "speed": 170, "pierce": 0, "spread": 10, "desc": "+1 STAPLE"},
+		{"damage": 7, "cooldown": 0.33, "count": 2, "speed": 180, "pierce": 1, "spread": 10, "desc": "FASTER, PIERCE 1"},
+		{"damage": 8, "cooldown": 0.33, "count": 3, "speed": 180, "pierce": 1, "spread": 10, "desc": "+1 STAPLE, MORE DAMAGE"}
+	]
+}

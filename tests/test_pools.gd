@@ -79,9 +79,9 @@ func test_gem_pool_merges_when_full(t) -> void:
 func test_projectile_pool_drops_when_full(t) -> void:
 	var p := ProjectileSystem.new()
 	p.setup(2)
-	t.check(p.fire(Vector2.ZERO, Vector2.RIGHT, 1, 2, 1, 0) >= 0, "first")
-	t.check(p.fire(Vector2.ZERO, Vector2.RIGHT, 1, 2, 1, 0) >= 0, "second")
-	t.check(p.fire(Vector2.ZERO, Vector2.RIGHT, 1, 2, 1, 0) == -1, "third dropped")
+	t.check(p.fire({"pos": Vector2.ZERO, "vel": Vector2.RIGHT, "damage": 1.0}) >= 0, "first")
+	t.check(p.fire({"pos": Vector2.ZERO, "vel": Vector2.RIGHT, "damage": 1.0}) >= 0, "second")
+	t.check(p.fire({"pos": Vector2.ZERO, "vel": Vector2.RIGHT, "damage": 1.0}) == -1, "third dropped")
 	p.free()
 
 

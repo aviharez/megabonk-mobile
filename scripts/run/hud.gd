@@ -7,11 +7,18 @@ var hp := 1.0
 var hp_max := 1.0
 var xp := 0.0
 var xp_need := 1.0
+var shield := 0.0
+var gold := 0
+
+const TOAST_TIME := 1.6
 
 var _level: Label
 var _timer: Label
 var _kills: Label
 var _hp_text: Label
+var _gold: Label
+var _toast: Label
+var _toast_left := 0.0
 var _last_sec := -1
 
 
@@ -23,6 +30,25 @@ func _ready() -> void:
 	_kills = _label(Vector2(0, 6), HORIZONTAL_ALIGNMENT_RIGHT)
 	_hp_text = _label(Vector2(2, 22), HORIZONTAL_ALIGNMENT_LEFT)
 	_hp_text.add_theme_color_override("font_color", Palette.color(Palette.PAPER))
+	_gold = _label(Vector2(0, 22), HORIZONTAL_ALIGNMENT_RIGHT)
+	_gold.add_theme_color_override("font_color", Palette.color(Palette.GOLD))
+	_toast = _label(Vector2(0, 40), HORIZONTAL_ALIGNMENT_CENTER)
+	_toast.hide()
+
+
+## Shows `text` under the top bar for a moment (item pickups, boosts).
+func toast(text: String, color: int) -> void:
+	_toast.text = text
+	_toast.add_theme_color_override("font_color", Palette.color(color if color >= 0 else Palette.PAPER))
+	_toast.show()
+	_toast_left = TOAST_TIME
+
+
+func _process(delta: float) -> void:
+	if _toast_left > 0.0:
+		_toast_left -= delta
+		if _toast_left <= 0.0:
+			_toast.hide()
 
 
 func set_values(level: int, seconds_left: float, kills: int) -> void:
@@ -33,6 +59,7 @@ func set_values(level: int, seconds_left: float, kills: int) -> void:
 		_timer.text = "%d:%02d" % [sec / 60, sec % 60]
 	_kills.text = "KO %d" % kills
 	_hp_text.text = "%d/%d" % [ceili(hp), roundi(hp_max)]
+	_gold.text = "G %d" % gold
 	queue_redraw()
 
 
@@ -49,6 +76,10 @@ func _draw() -> void:
 	draw_rect(Rect2(3, 17, 50, 3), Palette.color(Palette.BLOOD))
 	var hw := floorf(50.0 * clampf(hp / hp_max, 0.0, 1.0))
 	draw_rect(Rect2(3, 17, hw, 3), Palette.color(Palette.RED if hp / hp_max < 0.3 else Palette.GREEN))
+	# Shield: a sky line over the HP bar, as a share of max HP.
+	if shield > 0.0:
+		var sw := floorf(50.0 * clampf(shield / hp_max, 0.0, 1.0))
+		draw_rect(Rect2(3, 17, sw, 1), Palette.color(Palette.SKY))
 
 
 func _label(at: Vector2, align: HorizontalAlignment) -> Label:

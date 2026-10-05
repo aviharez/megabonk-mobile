@@ -1,0 +1,18 @@
+{
+	"id": "microwave_meltdown",
+	"name": "MICROWAVE MELTDOWN",
+	"rarity": "legendary",
+	"status": "unlock",
+	"desc": "HUGE BLAST EVERY 60 SEC",
+	"triggers": [
+		{
+			"event": "every",
+			"interval": 60,
+			"effect": "blast",
+			"radius": 150,
+			"damage": 250,
+			"knockback": 200,
+			"color": "ORANGE"
+		}
+	]
+}

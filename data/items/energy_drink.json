@@ -1,0 +1,17 @@
+{
+	"id": "energy_drink",
+	"name": "ENERGY DRINK",
+	"rarity": "common",
+	"status": "start",
+	"desc": "MOVE AND ATTACK FASTER",
+	"modifiers": [
+		{
+			"stat": "move_speed",
+			"pct": 0.06
+		},
+		{
+			"stat": "cooldown",
+			"pct": -0.05
+		}
+	]
+}

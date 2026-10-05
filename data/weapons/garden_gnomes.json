@@ -1,0 +1,14 @@
+{
+	"id": "garden_gnomes",
+	"name": "GARDEN GNOMES",
+	"desc": "GNOMES CIRCLE AROUND YOU",
+	"pattern": "orbit",
+	"status": "start",
+	"levels": [
+		{"damage": 8, "cooldown": 0.5, "count": 2, "radius": 26, "size": 5, "speed": 3, "knockback": 30, "desc": "TWO GNOMES ON PATROL"},
+		{"damage": 8, "cooldown": 0.5, "count": 3, "radius": 26, "size": 5, "speed": 3, "knockback": 30, "desc": "+1 GNOME"},
+		{"damage": 9, "cooldown": 0.5, "count": 4, "radius": 28, "size": 5, "speed": 3.2, "knockback": 32, "desc": "+1 GNOME"},
+		{"damage": 10, "cooldown": 0.5, "count": 5, "radius": 28, "size": 6, "speed": 3.2, "knockback": 34, "desc": "+1 GNOME, MORE DAMAGE"},
+		{"damage": 11, "cooldown": 0.45, "count": 6, "radius": 30, "size": 6, "speed": 3.4, "knockback": 36, "desc": "+1 GNOME, MORE DAMAGE"}
+	]
+}

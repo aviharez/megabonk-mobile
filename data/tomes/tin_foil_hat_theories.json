@@ -1,0 +1,1 @@
+{"id": "tin_foil_hat_theories", "name": "TIN FOIL HAT THEORIES", "group": "defense", "status": "unlock", "desc": "+8 SHIELD", "modifiers_per_level": [{"stat": "shield", "flat": 8}]}

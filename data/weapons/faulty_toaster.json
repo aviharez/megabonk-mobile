@@ -1,0 +1,14 @@
+{
+	"id": "faulty_toaster",
+	"name": "FAULTY TOASTER",
+	"desc": "ZAPS CHAIN BETWEEN FOES",
+	"pattern": "chain",
+	"status": "unlock",
+	"levels": [
+		{"damage": 7, "cooldown": 1.6, "jumps": 3, "range": 60, "desc": "ZAPS 3 FOES"},
+		{"damage": 7, "cooldown": 1.6, "jumps": 4, "range": 60, "desc": "MORE CHAIN JUMPS"},
+		{"damage": 8, "cooldown": 1.55, "jumps": 5, "range": 62, "desc": "MORE CHAIN JUMPS"},
+		{"damage": 9, "cooldown": 1.5, "jumps": 6, "range": 64, "desc": "MORE CHAIN JUMPS"},
+		{"damage": 10, "cooldown": 1.5, "jumps": 8, "range": 66, "desc": "MANY MORE CHAIN JUMPS"}
+	]
+}

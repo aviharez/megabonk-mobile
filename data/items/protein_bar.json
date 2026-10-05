@@ -1,0 +1,13 @@
+{
+	"id": "protein_bar",
+	"name": "PROTEIN BAR",
+	"rarity": "common",
+	"status": "start",
+	"desc": "MORE DAMAGE",
+	"modifiers": [
+		{
+			"stat": "damage",
+			"pct": 0.08
+		}
+	]
+}

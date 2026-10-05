@@ -1,0 +1,1 @@
+{"id": "copy_machine_manual", "name": "COPY MACHINE MANUAL", "group": "offense", "status": "unlock", "desc": "+1 PROJECTILE", "modifiers_per_level": [{"stat": "projectiles", "flat": 1}]}

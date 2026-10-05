@@ -1,0 +1,13 @@
+{
+	"id": "lucky_penny",
+	"name": "LUCKY PENNY",
+	"rarity": "common",
+	"status": "start",
+	"desc": "MORE LUCK",
+	"modifiers": [
+		{
+			"stat": "luck",
+			"flat": 0.15
+		}
+	]
+}
