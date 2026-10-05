@@ -106,6 +106,9 @@ Bot sim, seed 2, paid chest every 45 s: survived 8:00, level 23, 4,897 kills, 51
 - [ ] Fireworks blast rings use `draw_arc` (1px, not antialiased); check they read as pixel art in phase 7.
 - [ ] All weapon, tome and item numbers are first guesses; phase 8 tunes them.
 
+- [x] Set up procedural-pixel-creatures (MIT, C#/Godot 4.5.2 .NET) as a standalone asset tool outside the repo at ~/Documents/Playgrounds/tools/procedural-pixel-creatures (owner-approved 2026-10-05). Not embedded: the game stays GDScript. Launch with `./ppc.sh` (`--overview`, `--testarea`, `--editor`, `--check`); it pins Godot 4.5.2 .NET in ~/.local/opt and .NET SDK 8.0.425 in ~/.dotnet. 17/17 core and 28/28 Godot self-tests pass on Linux.
+- [ ] Add a palette-snap script to tools/ that remaps sprite sheets exported from procedural-pixel-creatures to assets/palette.png before import. Its exports use their own colors, so they break the palette rule until remapped.
+
 ## Found during phase 0
 
 - [ ] JSON stores all numbers as floats. `Save._merge_defaults` restores ints only where a default exists; phase 4 stat/unlock dictionaries need their own int casting.
