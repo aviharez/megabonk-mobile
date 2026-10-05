@@ -1,0 +1,10 @@
+# Godot
+.godot/
+*.tmp
+# Exports
+build/
+*.apk
+*.aab
+*.idsig
+# Android custom build
+android/build/

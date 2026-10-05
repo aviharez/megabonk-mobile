@@ -1,0 +1,1 @@
+{"id": "power_nap_guide", "name": "POWER NAP GUIDE", "group": "defense", "status": "start", "desc": "+0.4 HP PER SECOND", "modifiers_per_level": [{"stat": "regen", "flat": 0.4}]}

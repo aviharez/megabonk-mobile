@@ -1,0 +1,1 @@
+{"id": "speed_reading", "name": "SPEED READING", "group": "offense", "status": "start", "desc": "-7% COOLDOWN", "modifiers_per_level": [{"stat": "cooldown", "pct": -0.07}]}

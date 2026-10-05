@@ -1,0 +1,23 @@
+{
+	"id": "run",
+	"run_length_sec": 480,
+	"max_dt": 0.05,
+	"enemy_cap": 300,
+	"gem_cap": 400,
+	"card_count": 3,
+	"weapon_slots": 4,
+	"tome_slots": 4,
+	"max_level": 5,
+	"player_iframes": 0.5,
+	"xp_curve": {"base": 5, "growth": 4.0, "exponent": 1.35},
+	"coins": {"per_minute": 4, "per_kill": 0.02, "death_multiplier": 0.6},
+	"gem_tiers": [
+		{"min_value": 1, "shape": "gem_small", "color": "SKY"},
+		{"min_value": 5, "shape": "gem_mid", "color": "PINK"},
+		{"min_value": 20, "shape": "gem_big", "color": "RED"}
+	],
+	"magnet": {"start_speed": 40, "accel": 420, "collect_radius": 5},
+	"fallback_cards": [
+		{"id": "snack", "name": "SNACK", "desc": "HEAL 30 HP", "heal": 30}
+	]
+}

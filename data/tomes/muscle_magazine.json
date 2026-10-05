@@ -1,0 +1,1 @@
+{"id": "muscle_magazine", "name": "MUSCLE MAGAZINE", "group": "offense", "status": "start", "desc": "+10% DAMAGE", "modifiers_per_level": [{"stat": "damage", "pct": 0.10}]}

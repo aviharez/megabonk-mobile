@@ -1,0 +1,1 @@
+{"id": "grandmas_soup_recipes", "name": "GRANDMA'S SOUP RECIPES", "group": "defense", "status": "start", "desc": "+20 MAX HP", "modifiers_per_level": [{"stat": "max_hp", "flat": 20}]}

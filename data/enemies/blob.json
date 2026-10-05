@@ -1,0 +1,14 @@
+{
+	"id": "blob",
+	"name": "BLOB",
+	"role": "chaser",
+	"hp": 8,
+	"hp_growth_per_minute": 0.12,
+	"one_hit": true,
+	"speed": 20,
+	"damage": 6,
+	"radius": 4,
+	"xp": 1,
+	"shape": "blob",
+	"color": "PURPLE"
+}

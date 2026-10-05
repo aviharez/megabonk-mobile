@@ -1,0 +1,1 @@
+{"id": "think_big", "name": "THINK BIG", "group": "offense", "status": "start", "desc": "+10% AREA SIZE", "modifiers_per_level": [{"stat": "area", "pct": 0.10}]}

@@ -1,0 +1,13 @@
+{
+	"id": "suburbia",
+	"name": "SUBURBIA",
+	"size": [720, 720],
+	"ground_colors": ["LEAF", "DEEP_GREEN", "GREEN"],
+	"despawn_distance": 260,
+	"escalation_per_blocked_spawn": 0.002,
+	"escalation_speed_cap": 1.5,
+	"spawns": [
+		{"enemy": "blob", "from_min": 0, "to_min": 8, "per_sec": [1.2, 14.0]},
+		{"enemy": "skitter", "from_min": 0.25, "to_min": 8, "per_sec": [0.2, 1.0]}
+	]
+}

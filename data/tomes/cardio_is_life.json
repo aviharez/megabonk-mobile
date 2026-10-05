@@ -1,0 +1,1 @@
+{"id": "cardio_is_life", "name": "CARDIO IS LIFE", "group": "utility", "status": "start", "desc": "+8% MOVE SPEED", "modifiers_per_level": [{"stat": "move_speed", "pct": 0.08}]}

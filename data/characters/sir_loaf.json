@@ -1,0 +1,26 @@
+{
+	"id": "sir_loaf",
+	"name": "SIR LOAF",
+	"desc": "A LOAF OF BREAD IN A KNIGHT'S HELMET",
+	"status": "start",
+	"signature_weapon": "baguette",
+	"stats": {
+		"max_hp": 120,
+		"move_speed": 52,
+		"pickup_range": 22,
+		"armor": 0,
+		"regen": 0,
+		"damage": 1.0,
+		"area": 1.0,
+		"cooldown": 1.0,
+		"xp_gain": 1.0
+	},
+	"radius": 5,
+	"passive": {
+		"id": "getting_stale",
+		"name": "GETTING STALE",
+		"desc": "TAKES LESS DAMAGE THE LONGER THE RUN LASTS",
+		"reduction_per_minute": 0.03,
+		"max_reduction": 0.24
+	}
+}
