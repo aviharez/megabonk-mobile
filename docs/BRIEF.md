@@ -245,7 +245,7 @@ Technical rules:
 
 ## Assets, audio, and VFX
 
-Every asset follows one locked palette (picked from Lospec), a 180×320 portrait base resolution, and character and enemy sprites of roughly 16×16 to 24×24.
+Every asset follows one locked palette (picked from Lospec), a 180×320 portrait base resolution (the minimum view; taller screens see more of the map), and character and enemy sprites of roughly 16×16 to 24×24.
 
 ### Asset sources
 
@@ -311,7 +311,7 @@ All content is data, and performance is measured on low-end Android phones from 
 ### Godot settings
 
 - Compatibility renderer.
-- 180×320 viewport, viewport stretch mode, integer scaling, Nearest texture filter.
+- 180×320 minimum viewport, viewport stretch mode, stretch aspect "expand" (taller or wider screens see more instead of black bars), integer scaling, Nearest texture filter. UI anchors to screen edges or the center.
 - CPUParticles2D for all particles.
 - Portrait orientation locked.
 
@@ -332,7 +332,7 @@ The full spec is in docs/BRIEF.md. The brief is the source of truth for content 
 - End every run with three headings: Blocked on me, Changed, Found. Mark anything you couldn't confirm, and say where you looked.
 
 ## Technical rules
-- Godot 4.7, GDScript, Compatibility renderer, portrait 180x320, viewport stretch mode, integer scaling, Nearest texture filter.
+- Godot 4.7, GDScript, Compatibility renderer, portrait 180x320 minimum view (stretch aspect expand: taller screens see more), viewport stretch mode, integer scaling, Nearest texture filter.
 - All content is data in data/. Adding content must not require code changes.
 - Stats are base value + modifiers. Item effects use event hooks (on_hit, on_kill, on_damaged, etc.).
 - Pool enemies, projectiles, gems, damage numbers, and particles. Max about 300 enemies on screen.

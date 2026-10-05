@@ -11,6 +11,7 @@ func test_display(t) -> void:
 	t.check(_s("display/window/size/viewport_height") == 320, "viewport height 320")
 	t.check(_s("display/window/stretch/mode") == "viewport", "stretch mode viewport")
 	t.check(_s("display/window/stretch/scale_mode") == "integer", "integer scaling")
+	t.check(_s("display/window/stretch/aspect") == "expand", "180x320 is the minimum view (expand)")
 	t.check(_s("display/window/handheld/orientation") == DisplayServer.SCREEN_PORTRAIT, "portrait locked")
 
 

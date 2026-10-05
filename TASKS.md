@@ -78,7 +78,7 @@ Bot sims (8-minute runs, seeds 1-3): 2 reached the timer, 1 died at 4:05; one ru
 - [ ] Spawner works on the "spawns" list only; phase 3 replaces it with the full spawn director (roles, SWARM INCOMING, elites).
 - [ ] Phone stress run: "uncapped" mode had no effect on Android (vsync stays on, the app runs at 60 Hz even on a 120 Hz screen). Real headroom on device is unknown; logic ms is the number to watch.
 - [ ] Phone 1% lows are ~50 fps (p99 frame ~20 ms) while the average is a flat 60. Find the spikes before phase 7 adds effects (suspects: gem merge scans all 400 gems per kill when the pool is full, damage-number text redraw, particle restarts).
-- [ ] Tall phones get ~19% of the screen as black bars at 180x320. Decide: keep bars, fill them with a palette pattern, or use stretch aspect "expand" to show more map vertically (still integer scale). This is a design choice for the owner.
+- [x] Tall phones got ~19% of the screen as black bars. Decided (owner, 2026-10-05): stretch aspect "expand", 180x320 is the minimum view. The Xiaomi 15T now shows 182x396 at 7x with only 10 px side bars. Menu and run panels are centered, HUD spans the width, spawns use the real view size. Brief and CLAUDE.md updated. Phone stress after the change: 60.1 avg / 50.9 1% low / 3.71 ms logic.
 - [ ] Xiaomi blocks adb input injection, so runs on the phone can't be driven from adb; play-testing the joystick on device needs a person.
 - [ ] No low-end Android device available yet for the brief's "low-end phones" target.
 

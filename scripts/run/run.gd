@@ -14,7 +14,6 @@ signal on_level_up(new_level: int)
 signal run_ended(result: Dictionary)
 
 const MENU_SCENE := "res://scenes/main_menu.tscn"
-const VIEW := Vector2(180, 320)
 ## Spawns appear this far outside the visible area.
 const SPAWN_MARGIN := Vector2(10, 10)
 const RECYCLE_EVERY := 0.25
@@ -208,7 +207,7 @@ func hit_enemy(slot: int, amount: float, push: Vector2) -> void:
 
 
 func enemies_on_screen() -> int:
-	var view := Rect2(_pos - VIEW / 2.0, VIEW)
+	var view := _view_rect()
 	var n := 0
 	for s in enemies.pool.active:
 		if view.has_point(enemies.pos[s]):
@@ -252,7 +251,7 @@ func _spawn_group(req: Dictionary) -> void:
 	var def: Dictionary = enemies.types[type_id]
 	var minute := elapsed / 60.0
 	var growth: float = 1.0 + def.get("hp_growth_per_minute", 0.0) * minute
-	var base := Spawner.edge_point(rng, _pos, VIEW / 2.0 + SPAWN_MARGIN, bounds)
+	var base := Spawner.edge_point(rng, _pos, _half_view() + SPAWN_MARGIN, bounds)
 	var spread: float = def.get("pack_spread", 0.0)
 	for i in req.count:
 		var at := base
@@ -264,7 +263,7 @@ func _spawn_group(req: Dictionary) -> void:
 ## Stress test: keep the enemy count at the cap and every enemy on screen.
 ## New and stray enemies are placed inside the view, away from the player.
 func _stress_fill() -> void:
-	var view := Rect2(_pos - VIEW / 2.0, VIEW).intersection(bounds).grow(-4.0)
+	var view := _view_rect().intersection(bounds).grow(-4.0)
 	var n := enemies.types.size()
 	for s in enemies.pool.active:
 		if not view.has_point(enemies.pos[s]):
@@ -288,7 +287,17 @@ func _recycle_far_enemies() -> void:
 	var far2 := far * far
 	for s in enemies.pool.active:
 		if enemies.pos[s].distance_squared_to(_pos) > far2:
-			enemies.move_to(s, Spawner.edge_point(rng, _pos, VIEW / 2.0 + SPAWN_MARGIN, bounds))
+			enemies.move_to(s, Spawner.edge_point(rng, _pos, _half_view() + SPAWN_MARGIN, bounds))
+
+
+## Half the visible area in world pixels. The view is at least 180x320 and
+## grows on taller or wider screens (stretch aspect "expand").
+func _half_view() -> Vector2:
+	return get_viewport_rect().size / 2.0
+
+
+func _view_rect() -> Rect2:
+	return Rect2(_pos - _half_view(), _half_view() * 2.0)
 
 
 func _contact_damage(delta: float, minute: float) -> void:
@@ -617,11 +626,19 @@ func _build_ui() -> void:
 	_pause_panel.add_child(quit)
 
 
+## A hidden panel. `rect` is in the 180x320 design frame; the panel is
+## anchored to the screen center so it stays centered on taller screens.
 func _panel(parent: Node, rect: Rect2, fill: int) -> PixelPanel:
 	var p := PixelPanel.new()
 	p.fill = fill
-	p.position = rect.position
-	p.size = rect.size
+	p.anchor_left = 0.5
+	p.anchor_right = 0.5
+	p.anchor_top = 0.5
+	p.anchor_bottom = 0.5
+	p.offset_left = rect.position.x - 90.0
+	p.offset_top = rect.position.y - 160.0
+	p.offset_right = p.offset_left + rect.size.x
+	p.offset_bottom = p.offset_top + rect.size.y
 	p.hide()
 	parent.add_child(p)
 	return p

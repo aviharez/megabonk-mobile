@@ -12,16 +12,16 @@ const SETTINGS := [
 ]
 
 @onready var _bg: ColorRect = $Background
-@onready var _title_a: Label = $TitleA
-@onready var _title_b: Label = $TitleB
-@onready var _subtitle: Label = $Subtitle
-@onready var _wallet: Label = $Wallet
+@onready var _title_a: Label = $Frame/TitleA
+@onready var _title_b: Label = $Frame/TitleB
+@onready var _subtitle: Label = $Frame/Subtitle
+@onready var _wallet: Label = $Frame/Wallet
 @onready var _version: Label = $Version
-@onready var _play: PixelButton = $Buttons/Play
-@onready var _settings_btn: PixelButton = $Buttons/Settings
+@onready var _play: PixelButton = $Frame/Buttons/Play
+@onready var _settings_btn: PixelButton = $Frame/Buttons/Settings
 @onready var _settings: Control = $SettingsPanel
-@onready var _toggles: VBoxContainer = $SettingsPanel/Toggles
-@onready var _settings_back: PixelButton = $SettingsPanel/Back
+@onready var _toggles: VBoxContainer = $SettingsPanel/Frame/Toggles
+@onready var _settings_back: PixelButton = $SettingsPanel/Frame/Back
 
 var _bob := false
 

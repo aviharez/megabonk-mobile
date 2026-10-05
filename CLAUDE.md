@@ -10,7 +10,7 @@ The full spec is in docs/BRIEF.md. The brief is the source of truth for content 
 - End every run with three headings: Blocked on me, Changed, Found. Mark anything you couldn't confirm, and say where you looked.
 
 ## Technical rules
-- Godot 4.7, GDScript, Compatibility renderer, portrait 180x320, viewport stretch mode, integer scaling, Nearest texture filter.
+- Godot 4.7, GDScript, Compatibility renderer, portrait 180x320 minimum view (stretch aspect expand: taller screens see more), viewport stretch mode, integer scaling, Nearest texture filter.
 - All content is data in data/. Adding content must not require code changes.
 - Stats are base value + modifiers. Item effects use event hooks (on_hit, on_kill, on_damaged, etc.).
 - Pool enemies, projectiles, gems, damage numbers, and particles. Max about 300 enemies on screen.

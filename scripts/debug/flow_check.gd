@@ -26,7 +26,7 @@ func _check() -> void:
 
 	tree.change_scene_to_file("res://scenes/main_menu.tscn")
 	await _frames(3)
-	tree.current_scene.get_node("Buttons/Play").pressed.emit()
+	tree.current_scene.get_node("Frame/Buttons/Play").pressed.emit()
 	await _frames(3)
 	var run := tree.current_scene as Run
 	if run == null:

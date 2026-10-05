@@ -27,6 +27,8 @@ window/size/viewport_height=320
 window/size/window_width_override=540
 window/size/window_height_override=960
 window/stretch/mode="viewport"
+; 180x320 is the minimum view; taller (or wider) screens see more, still at integer scale.
+window/stretch/aspect="expand"
 window/stretch/scale_mode="integer"
 window/handheld/orientation=1
 

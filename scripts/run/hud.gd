@@ -39,9 +39,10 @@ func set_values(level: int, seconds_left: float, kills: int) -> void:
 func _draw() -> void:
 	var ink := Palette.color(Palette.INK)
 	# XP bar: full width, 4px tall.
-	draw_rect(Rect2(0, 0, 180, 5), ink)
-	draw_rect(Rect2(1, 1, 178, 3), Palette.color(Palette.NIGHT))
-	var xw := floorf(178.0 * clampf(xp / xp_need, 0.0, 1.0))
+	var w := floorf(size.x)
+	draw_rect(Rect2(0, 0, w, 5), ink)
+	draw_rect(Rect2(1, 1, w - 2, 3), Palette.color(Palette.NIGHT))
+	var xw := floorf((w - 2) * clampf(xp / xp_need, 0.0, 1.0))
 	draw_rect(Rect2(1, 1, xw, 3), Palette.color(Palette.SKY))
 	# HP bar under the top row.
 	draw_rect(Rect2(2, 16, 52, 5), ink)
@@ -52,8 +53,12 @@ func _draw() -> void:
 
 func _label(at: Vector2, align: HorizontalAlignment) -> Label:
 	var l := Label.new()
-	l.position = at
-	l.size = Vector2(176, 10)
+	# Stretches across the screen width (2px margins), whatever its size.
+	l.anchor_right = 1.0
+	l.offset_left = at.x
+	l.offset_top = at.y
+	l.offset_right = -2.0
+	l.offset_bottom = at.y + 10.0
 	l.horizontal_alignment = align
 	l.add_theme_color_override("font_shadow_color", Palette.color(Palette.INK))
 	l.add_theme_constant_override("shadow_offset_x", 0)
