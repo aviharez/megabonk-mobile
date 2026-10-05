@@ -9,6 +9,8 @@ config/name="Swarm Survivor Pixel"
 config/description="Pixel survivor-like for mobile (working title)."
 config/version="0.0.1"
 run/main_scene="res://scenes/main_menu.tscn"
+; The "Android Stress" export preset (feature tag "stress") boots into the stress test.
+run/main_scene.stress="res://scenes/debug/bot_run.tscn"
 config/features=PackedStringArray("4.7", "GL Compatibility")
 config/icon="res://assets/icon/icon.png"
 boot_splash/bg_color=Color(0.0549, 0.0431, 0.0863, 1)

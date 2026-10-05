@@ -2,7 +2,10 @@ extends Node
 ## Bot-driven runs for measuring and checking the game without a player.
 ##
 ## Stress test (300 enemies on screen, invincible bot, reports fps):
-##   godot --path . res://scenes/debug/bot_run.tscn -- --mode=stress [--seconds=20] [--uncapped]
+##   godot --path . res://scenes/debug/bot_run.tscn -- --mode=stress [--seconds=20] [--uncapped] [--then_uncapped]
+## On a phone: export the "Android Stress" preset; it boots here (feature tag
+## "stress") and runs 30 s with vsync, then 30 s uncapped. Read the RESULT
+## lines with: adb logcat -s godot
 ## Full-run simulation (bot plays until death or the timer; use headless +
 ## fixed fps so it runs faster than real time):
 ##   godot --headless --fixed-fps 30 --path . res://scenes/debug/bot_run.tscn -- --mode=sim [--invincible]
@@ -33,6 +36,8 @@ func _ready() -> void:
 	for a in OS.get_cmdline_user_args():
 		var kv := a.trim_prefix("--").split("=", true, 1)
 		_args[kv[0]] = kv[1] if kv.size() > 1 else "true"
+	if OS.has_feature("stress"):
+		_args.merge({"mode": "stress", "seconds": "30", "then_uncapped": "true"})
 	_mode = _args.get("mode", "stress")
 	_measure = float(_args.get("seconds", "20"))
 	_warmup = float(_args.get("warmup", "3"))
@@ -105,6 +110,8 @@ func _stress_frame(delta: float) -> void:
 		var p99: float = sorted[int(sorted.size() * 0.99)]
 		_finish({
 			"mode": "stress",
+			"device": OS.get_model_name(),
+			"refresh_hz": DisplayServer.screen_get_refresh_rate(),
 			"renderer": RenderingServer.get_current_rendering_method(),
 			"gpu": RenderingServer.get_video_adapter_name(),
 			"vsync": DisplayServer.window_get_vsync_mode() != DisplayServer.VSYNC_DISABLED,
@@ -125,6 +132,18 @@ func _stress_frame(delta: float) -> void:
 func _finish(r: Dictionary) -> void:
 	var line := JSON.stringify(r)
 	print("RESULT " + line)
+	if _args.has("then_uncapped"):
+		# Second measurement with vsync off, same run, same horde.
+		_args.erase("then_uncapped")
+		DisplayServer.window_set_vsync_mode(DisplayServer.VSYNC_DISABLED)
+		Engine.max_fps = 0
+		_t = 0.0
+		_frames = 0
+		_frame_ms.clear()
+		_logic_ms = 0.0
+		_on_screen = 0
+		_on_screen_min = 1 << 30
+		return
 	var f := FileAccess.open("user://bot_run_%s.json" % r.mode, FileAccess.WRITE)
 	if f:
 		f.store_string(line)
