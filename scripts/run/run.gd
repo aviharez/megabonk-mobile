@@ -398,7 +398,10 @@ func _pause(on: bool) -> void:
 func _notification(what: int) -> void:
 	match what:
 		NOTIFICATION_WM_GO_BACK_REQUEST:
-			_pause(state == "live")
+			if state == "over":
+				_to_menu.call_deferred()
+			else:
+				_pause(state == "live")
 		NOTIFICATION_APPLICATION_PAUSED, NOTIFICATION_APPLICATION_FOCUS_OUT:
 			if not options.get("bot", false):
 				_pause(true)

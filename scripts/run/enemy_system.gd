@@ -40,6 +40,8 @@ var _cell_head := PackedInt32Array()
 var _cell_next := PackedInt32Array()
 var _batches: Array[SpriteBatch] = []
 var _time := 0.0
+## Largest enemy radius in data, so queries reach enemies centered in nearby cells.
+var _max_radius := 0.0
 
 
 func setup(enemy_defs: Array, capacity: int, area: Rect2) -> void:
@@ -64,6 +66,7 @@ func setup(enemy_defs: Array, capacity: int, area: Rect2) -> void:
 	_cell_head.resize(_cols * _rows)
 	_cell_head.fill(-1)
 	for def: Dictionary in enemy_defs:
+		_max_radius = maxf(_max_radius, def.radius)
 		type_index[def.id] = types.size()
 		types.append(def)
 		var b := SpriteBatch.new()
@@ -141,7 +144,7 @@ func move_to(slot: int, at: Vector2) -> void:
 ## Fills `out` with the slots of enemies whose circle touches the given circle.
 func query_circle(center: Vector2, r: float, out: PackedInt32Array) -> void:
 	out.clear()
-	var reach := r + 8.0  # biggest enemy radius margin
+	var reach := r + _max_radius
 	var cx0 := maxi(0, int((center.x - reach - bounds.position.x) / CELL))
 	var cx1 := mini(_cols - 1, int((center.x + reach - bounds.position.x) / CELL))
 	var cy0 := maxi(0, int((center.y - reach - bounds.position.y) / CELL))

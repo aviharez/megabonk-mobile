@@ -94,3 +94,20 @@ func test_enemy_pool_cap(t) -> void:
 			ok += 1
 	t.check(ok == 10 and e.count() == 10, "enemy pool holds 10, got %d" % ok)
 	e.free()
+
+
+func test_query_reaches_big_enemies(t) -> void:
+	# A big enemy (elite/boss size) must be found by a small query touching its edge.
+	var defs: Array = GameData.shared().all("enemies").duplicate(true)
+	var big: Dictionary = defs[0].duplicate(true)
+	big.id = "big"
+	big.radius = 30.0
+	defs.append(big)
+	var e := EnemySystem.new()
+	e.setup(defs, 10, Rect2(0, 0, 400, 400))
+	var s := e.spawn(defs.size() - 1, Vector2(200, 200), 1, 1, 1)
+	e.update(0.0, Vector2(200, 200))
+	var out := PackedInt32Array()
+	e.query_circle(Vector2(233, 200), 4.0, out)
+	t.check(out.has(s), "edge of a radius-30 enemy is hit")
+	e.free()
