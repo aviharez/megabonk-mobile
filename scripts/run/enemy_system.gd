@@ -118,6 +118,10 @@ var _ch_recover := PackedFloat32Array()
 ## _stuck resets on each side flip, stalled keeps counting until it moves.
 var _stuck := PackedFloat32Array()
 var stalled := PackedFloat32Array()
+## Where each walker was at the start of its current 1 s check, and how far
+## into it. Net distance per second also catches walkers that jitter in place.
+var _anchor := PackedVector2Array()
+var _anchor_t := PackedFloat32Array()
 var _time := 0.0
 ## Largest enemy radius alive or in data, so queries reach enemies centered in nearby cells.
 var _max_radius := 0.0
@@ -139,7 +143,7 @@ func setup(enemy_defs: Array, capacity: int, area: Rect2, reserve := 0) -> void:
 	# Packed arrays are copied on write, so each one is resized by name.
 	for arr: String in ["pos", "knock", "hp", "max_hp", "speed", "damage", "radius", "flash", "wobble", "type_of",
 			"role_of", "state", "timer", "aim", "flags", "last_hit", "one_hit", "elite", "trait_of", "shield", "split",
-			"outline", "draw_scale", "knock_taken", "burn_dps", "burn_left", "_cell_next", "_stuck", "stalled", "_free"]:
+			"outline", "draw_scale", "knock_taken", "burn_dps", "burn_left", "_cell_next", "_stuck", "stalled", "_free", "_anchor", "_anchor_t"]:
 		var a = get(arr)
 		a.resize(total)
 		set(arr, a)
@@ -235,6 +239,8 @@ func spawn(type_id: int, at: Vector2, hp_mult: float, dmg_mult: float, speed_mul
 	timer[s] = rng.randf() * _shot_every[type_id]
 	_stuck[s] = 0.0
 	stalled[s] = 0.0
+	_anchor[s] = at
+	_anchor_t[s] = 0.0
 	aim[s] = Vector2.ZERO
 	var f := 0
 	if def.get("flying", false):
@@ -373,13 +379,21 @@ func update(delta: float, target: Vector2) -> void:
 			if want > 0.05:
 				if p.distance_to(before) < want * 0.3:
 					_stuck[s] += delta
-					stalled[s] += delta
 					if _stuck[s] > 0.6:
 						_stuck[s] = 0.0
 						wobble[s] = fmod(wobble[s] + PI, TAU)
 				else:
 					_stuck[s] = 0.0
-					stalled[s] = 0.0
+			# Stalled = under 4 px of net progress per second while trying to move.
+			_anchor_t[s] += delta
+			if _anchor_t[s] >= 1.0:
+				if want > 0.05:
+					if p.distance_to(_anchor[s]) < 4.0:
+						stalled[s] += _anchor_t[s]
+					else:
+						stalled[s] = 0.0
+				_anchor[s] = p
+				_anchor_t[s] = 0.0
 		pos[s] = p.clamp(bounds.position, bounds.end)
 		if flash[s] > 0.0:
 			flash[s] -= delta
@@ -480,8 +494,10 @@ func _slide(s: int, p: Vector2, step: Vector2) -> Vector2:
 	var hit_x := cx >= 0 and cy >= 0 and cx < cols and cy < map.rows and blocked[cy * cols + cx] == 1
 	if not hit_x:
 		p.x = nx
+	# Blocked sideways: keep sliding the way it was already heading along the
+	# wall; only when it pushes almost straight into the wall pick a side.
 	var dy := step.y
-	if hit_x and absf(dy) < absf(step.x):
+	if hit_x and absf(dy) < absf(step.x) * 0.25:
 		dy = absf(step.x) * (1.0 if wobble[s] < PI else -1.0)
 	var ny := p.y + dy
 	lead = ny + (r if dy > 0.0 else -r)
@@ -490,7 +506,7 @@ func _slide(s: int, p: Vector2, step: Vector2) -> Vector2:
 	var hit_y := cx >= 0 and cy >= 0 and cx < cols and cy < map.rows and blocked[cy * cols + cx] == 1
 	if not hit_y:
 		p.y = ny
-	elif not hit_x and absf(step.x) < absf(step.y):
+	elif not hit_x and absf(step.x) < absf(step.y) * 0.25:
 		var nx2 := p.x + absf(step.y) * (1.0 if wobble[s] < PI else -1.0)
 		cx = int((nx2 + (r if nx2 > p.x else -r)) / MapLayout.CELL)
 		cy = int(p.y / MapLayout.CELL)
@@ -525,6 +541,8 @@ func move_to(slot: int, at: Vector2) -> void:
 	pos[slot] = at
 	knock[slot] = Vector2.ZERO
 	stalled[slot] = 0.0
+	_anchor[slot] = at
+	_anchor_t[slot] = 0.0
 
 
 ## The closest enemy to `from` within `max_r` (center distance), skipping

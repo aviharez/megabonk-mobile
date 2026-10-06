@@ -17,8 +17,11 @@ const CELL := 8
 const KINDS := {
 	"yard": false, "field": false, "garden": false, "path": false, "sand": false,
 	"sidewalk": false, "driveway": false, "road": false, "crosswalk": false,
-	"house": true, "shed": true, "fence": true, "hedge": true, "pond": true, "tree": true,
-	"pool": true, "car": true, "swing": true,
+	"house": true, "fence": true, "hedge": true, "pond": true, "tree": true,
+	"car": true, "swing": true,
+	# Sheds and backyard pools are walk-through too: with houses, fences and
+	# cars they left too little room to kite the horde.
+	"shed": false, "pool": false,
 	# Street furniture is walk-past decoration: solid posts along every
 	# sidewalk snagged the player and boxed fights into corridors.
 	# Same for bushes; trees block only their trunk cell (see _block).

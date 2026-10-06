@@ -776,3 +776,43 @@ func test_exploding_elite_still_drops_and_splits(t) -> void:
 	t.check(run.run_stats.get("elites_killed", 0.0) == 0.0 and run.kills == 0, "not counted as a defeat")
 	_done(t, run)
 
+
+
+## Every spot where the player fits can be reached from the start: no sealed
+## pocket (a map edit that closes a gap shows up here).
+func test_open_ground_is_all_reachable(t) -> void:
+	var run := _start(t)
+	var map := run.map
+	var r := run.player_radius() + 1.0
+	var fits := PackedByteArray()
+	fits.resize(map.cols * map.rows)
+	for c in map.cols * map.rows:
+		var center := Vector2((c % map.cols + 0.5) * MapLayout.CELL, (c / map.cols + 0.5) * MapLayout.CELL)
+		fits[c] = 1 if map.bounds.grow(-r).has_point(center) and map.is_area_free(center, r) else 0
+	var start := int(run.player_pos().y / MapLayout.CELL) * map.cols + int(run.player_pos().x / MapLayout.CELL)
+	var seen := PackedByteArray()
+	seen.resize(fits.size())
+	seen[start] = 1
+	var queue := PackedInt32Array([start])
+	var head := 0
+	while head < queue.size():
+		var c := queue[head]
+		head += 1
+		for d: Vector2i in [Vector2i(1, 0), Vector2i(-1, 0), Vector2i(0, 1), Vector2i(0, -1)]:
+			var nx := c % map.cols + d.x
+			var ny := c / map.cols + d.y
+			if nx < 0 or ny < 0 or nx >= map.cols or ny >= map.rows:
+				continue
+			var n := ny * map.cols + nx
+			if fits[n] == 1 and seen[n] == 0:
+				seen[n] = 1
+				queue.append(n)
+	var cut := []
+	var total := 0
+	for c in fits.size():
+		if fits[c] == 1:
+			total += 1
+			if seen[c] == 0:
+				cut.append(Vector2((c % map.cols + 0.5) * MapLayout.CELL, (c / map.cols + 0.5) * MapLayout.CELL))
+	t.check(cut.is_empty(), "%d of %d open cells can't be reached, e.g. %s" % [cut.size(), total, cut.slice(0, 5)])
+	_done(t, run)
