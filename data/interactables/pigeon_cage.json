@@ -1,0 +1,10 @@
+{
+	"id": "pigeon_cage",
+	"name": "PIGEON CAGE",
+	"behavior": "cage",
+	"radius": 8,
+	"shape": "cage",
+	"color": "GRAY",
+	"arrow": "MIST",
+	"stat_event": "pigeon_cage_opened"
+}

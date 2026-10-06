@@ -1,0 +1,23 @@
+{
+  "format": "game.sheet",
+  "frame_w": 18,
+  "frame_h": 15,
+  "frames": 4,
+  "fps": 12,
+  "origin": [
+    9,
+    10
+  ],
+  "source": {
+    "generator": "Procedural Pixel Creatures 1.0.0",
+    "generator_version": 2,
+    "family": "arthropod",
+    "archetype": "spider",
+    "seed": 28,
+    "name": "Luourek",
+    "content_id": "ccf7c4110d8739cd",
+    "clip": "walk_E",
+    "loop": true,
+    "sheet": "skitter.png"
+  }
+}

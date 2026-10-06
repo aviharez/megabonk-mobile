@@ -90,24 +90,108 @@ Phase 1's 652 fps uncapped isn't reproducible today even on `main`; the machine 
 
 Bot sim, seed 2, paid chest every 45 s: survived 8:00, level 23, 4,897 kills, 512 gold.
 
+## Phase 3: Map, enemies, and run flow
+
+- [x] Suburbia as data: bounded 720x880 map (slightly tall), roads, houses with gardens, fences, hedges, trees, a pond (`data/maps/suburbia.json` "props"); solid props block the player and walking enemies (`MapLayout`, 8px solid-cell grid, slide along walls); fliers (Gnats) and ghosts (Overdue Bills) pass over
+- [x] Data-driven spawn director (`Director`): schedule, SWARM INCOMING waves, elites every 60-90 s, Final Swarm with its own schedule and endless escalation, Overdue Bills; all numbers in the map file, except Overdue Bills, which are the same on every map (`data/rules/bills.json`; a map turns them on with `"bills": true`)
+- [x] 6 enemy roles in code + data: chaser (Blob), pack (Skitter), shooter (Spitter), exploder (Bloater, red warning zone), charger (Chomper, red aim line), swarm (Gnat, only in SWARM INCOMING); plus ghost (Overdue Bills) and boss
+- [x] Elites with 4 traits as data (`data/rules/elites.json`: Fast, Shielded, Splitting, Vicious): bigger (2x), glowing outline in the trait color (shader), drop an elite chest, can drop the cage key; set `EnemySystem.elite` so Golden Toilet and on_kill work
+- [x] SWARM INCOMING: warning banner, 20-30 s surge, `swarm_survived_no_damage` stat event
+- [x] Every interactable as data (`data/interactables/`): paid chest (in-run gold, price rises), elite chest, boss chest, charge shrine (pick 1 of 3 stats), risk/reward shrine, challenge shrine (kill 50 in 30 s), pot (gold), merchant (sells items for gold, comes and goes), pigeon cage + key, boss altar, portal
+- [x] Chests, elites and the boss open through `Run.open_chest(kind)`; paid chests and the merchant spend in-run gold; pots drop gold
+- [x] Indicator arrows at the screen edge (chests, shrines, altar, cage, key, merchant, portal, elites, boss); the altar arrow pulses with a hint on the first run at minute 5
+- [x] Mega Mole: summoned by standing 2.5 s in the altar circle; burrow with a visible shadow and a red pop-up zone, rock rings with a gap, Blob summons, faster below 50% HP; boss HP bar; defeat drops a boss chest and opens the portal
+- [x] Portal ends the run ("ESCAPED!"); Final Swarm at 8:00 (banner, HUD timer counts up, coin multiplier rises); Overdue Bills 2 min later: invulnerable, pass through everything, ignore knockback, armor and shield, faster and harder every minute, so the Final Swarm always ends
+- [x] One damage path: `Run.damage_player()` for contact, Spitter shots, Bloater explosions, Mega Mole, Overdue Bills; fires on_damaged (Whoopee Cushion)
+- [x] Pigeon cage: elite key (chance, guaranteed after 3 elites), opening records `pigeon_cage_opened` (Turbo Pigeon himself in phase 4)
+- [x] Big enemies: second separation pass with wide queries for enemies bigger than half a grid cell; bigger pushes smaller, the boss doesn't move
+- [x] Run facts recorded for phase 4 (`Run.record` / `stat_event`, `result.stats`): pots, shrines, elites, boss (time, HP, in Final Swarm), cage, chests, swarms, Final Swarm seconds...
+- [x] Data validation for roles, interactables, elites, bills, boss patterns, sheets + sidecars and map references (schedules, swarms, props and their colors); `tests/test_data.gd` has a failing-data case for each of the 16 holes the review found
+- [x] Sprite pipeline: `tools/creature_export/` (C# console, compiles the generator's Core by path) + `tools/palette_snap.py` (CIELAB snap, binary alpha, no reserved magenta, repacks to a 1px-padded strip + sidecar JSON, self-check); 12 candidates in `build/creature_candidates/`
+- [x] Import the approved sheets into `assets/creatures/` (owner picks 2026-10-05: blob_ooze_s114, skitter_spider_s28, chomper_beast_s5); sidecar JSONs added to the Android export filter; radii 5/4/6 to fit the bigger sprites
+- [x] Suburbia redesign (owner: "the current map design is so bad"): Main St / Oak Ave crossing with sidewalks and crosswalks, Elm Lane, Maple Court cul-de-sac, house rows facing their streets (yards, walkways, mailboxes, driveways, cars, fenced backyards with sheds and pools), Duckling Park (pond with ring path, playground, benches), sports field (altar fixed there), community garden + greenhouse; the cage sits in an SE backyard. Map baked into one texture at load. `tools/render_map.gd` renders a whole map (`--solid` shows blocked cells)
+- [x] Bot routes to goals with a breadth-first field over the cells the player's whole box fits in (boss sims: all 3 seeds beat Mega Mole and take the portal at 1:25, 1:38 and 1:42)
+- [x] SpriteBatch plays animated sheets: frame, mirror, outline and flash per instance in the custom data, whole-number scale in the transform
+- [x] 1% low spikes: profiled per frame section (`--profile`); the slow frames are kill-heavy frames, and with a full gem pool every kill scanned all 400 gems to merge. Gem merges now look up a nearby gem by cell (3.0 us instead of 11.7 us per kill on desktop, about 4x). New `missed_vsync_frames` metric: on desktop the "1% low" at vsync is timing jitter, 0 of 2251 frames missed a vsync (see results). Phone not re-measured (not connected)
+- [x] Android stress at Final Swarm density with a full build on the Xiaomi 15T (2026-10-06): 60.1 fps average, 0 and 1 missed vsyncs in 1,801 frames, logic ~7 ms (see results); playable debug build installed
+- [x] Tests: `tests/test_director.gd` (the run timeline table, swarms, elites, Final Swarm, bills), `tests/test_map_flow.gd` (map, roles, traits, every interactable, key + cage, boss + portal, every damage source through on_damaged, bills ignore armor/shield, Final Swarm always ends through bills, swarm stat event, first-run hint, arrows, big-enemy separation), `tests/test_sprite_sheets.gd`, plus a regression test per review fix (each one checked to fail with its fix undone); 626 checks pass, flow check OK
+- [x] Bot sims (8+ min, starter build, seeds 1-8) and boss sims (`--boss=1 --portal --build=full`, seeds 1-3): see results
+- [x] Review (2026-10-06, three reviewers + verification), all fixed with a regression test each:
+  - Blockers: the run could end twice in one frame (die on the portal: two saves); a shop/shrine menu stayed live under the game-over screen; a reused enemy slot could be told to explode; crowds pushed walkers into houses; the altar and most shrines had no arrow (only the 6 nearest objects, counted before dropping on-screen ones); data that passed validation crashed mid-run
+  - Should-fix: the altar was used up when the boss couldn't spawn; bills that couldn't spawn were still counted; a second risk shrine left the first one's effects on; an exploding elite dropped nothing and didn't split; walkers wedged in corners (side flip after 0.6 s, off-screen recycling after 3 s); role numbers read from dictionaries every frame (now cached per type); sheet sidecars not validated; `--only` with no match passed; stale TASKS claims
+  - Brief: the merchant re-checks the one-legendary rule at purchase; bills moved to shared rules; Splitting works on exploding elites
+  - Also: the Bloater placeholder had one 12-wide row; contact damage could come from an enemy killed earlier in the same frame; `Palette.color()` with a bad index no longer returns the reserved magenta; a walker pausing on purpose no longer resets its stall timer
+
+### Phase 3 results (same desktop, windowed, 30 s; first table 2026-10-05, second after the review fixes 2026-10-06)
+
+| Stress | Vsync | Avg fps | 1% low fps | Missed vsync | Logic ms/frame | On screen |
+| --- | --- | --- | --- | --- | --- | --- |
+| Final Swarm density (2:30 in, all roles, elites, 35 bills, ~50 enemy shots), full build | on (75 Hz) | 75.0 (cap) | 68.6 | 0 | 4.14 | 315 + bills |
+| 300 enemies (all roles), full build | off | 311.8 | 218.2 | 0 | 2.12 | 299 |
+| 300 enemies (all roles), starter | off | 255.3 | 169.0 | 0 | 1.96 | 300 |
+
+Logic per frame with the full build went from 1.52 ms (phase 2) to 2.12 ms uncapped: the new roles and wall sliding.
+
+After the review fixes, real sprites and the redesigned map (2026-10-06):
+
+| Stress | Vsync | Avg fps | 1% low fps | Missed vsync | Logic ms/frame | On screen |
+| --- | --- | --- | --- | --- | --- | --- |
+| Final Swarm density, full build | off | 282.7 | 154.2 | 0 | 2.42 | 318 incl. 35 bills |
+| 300 enemies, full build | off | 293.8 | 165.4 | 0 | 2.35 | 299 |
+
+The enemy update costs 1.46 ms instead of 1.18 ms: walls are now checked when separation pushes walkers (only for enemies within 2 cells of a solid cell) and stalls are tracked.
+
+| Phone: Xiaomi 15T, Android Stress preset (Final Swarm density, full build), vsync, 60 Hz | Avg fps | 1% low fps | Missed vsync | Logic ms avg / p99 / max | On screen |
+| --- | --- | --- | --- | --- | --- |
+| Run 1, 30 s | 60.1 | 50.4 | 0 of 1,801 | 7.02 / 9.78 / 12.24 | 315 incl. 35 bills |
+| Run 2, 30 s (the "uncapped" half; vsync stays on on Android) | 60.1 | 50.5 | 1 of 1,801 | 6.88 / 9.38 / 21.62 | 337 incl. 40 bills |
+
+The phone's ~50 fps "1% low" is frame-timing jitter, not dropped frames (0-1 missed vsyncs). Logic is ~7 ms at Final Swarm density, 2.9x the desktop; a phone 2-3x slower than the 15T would miss frames here.
+
+Bot sims on the redesigned map, after the review fixes (deterministic per seed, starter content, 8 seeds): deaths at 2:02, 3:42, 5:02, 5:11, 7:43, 9:35, 9:43, and one run ended by Overdue Bills at 10:24. Boss sims with a full build: all 3 seeds summon Mega Mole, beat it and take the portal (1:25, 1:38, 1:42).
+
+## Found during phase 3
+
+- [ ] Low-end headroom: game logic takes ~7 ms per frame on the Xiaomi 15T at Final Swarm density with a full build (enemy update is the largest part). A phone 2-3x slower would drop below 60 fps there. Still no low-end device to measure; options if needed: lower the Final Swarm cap, update far-off-screen enemies every other frame, or move hot loops to a GDExtension (asks first).
+
+- [ ] New map vs bot survival (seeded sims are now repeatable; 8 seeds, starter build, median death time): full first redesign 3:15, no solid props 7:18. Clutter cost the most (houses-only variant 6:07). Changed: trees block only their trunk cell, bushes and street furniture are walk-through, backyard side fences removed, long hedges split. That gave 4:33 (worst seed 2:54 instead of 1:14); after the review fixes (walkers no longer pushed into walls, wedged ones recycled) the median is 6:27 (worst 2:02). The rest comes from houses, sheds, pools, the pond and hedges; tune in phase 8 with real play, not only the bot.
+- [x] Sims are deterministic per seed: enemy wobble and first-shot timers use `EnemySystem.rng`, seeded from the run seed. Bot avoids walking into walls (`_bot_walkable`); `--map=ID` and `death_pos` in the sim result.
+- [ ] `data/maps/suburbia.json` was written by a one-off script (one prop per line); edit the JSON directly from now on.
+
+- [ ] Creature candidates are bigger than the brief's 16-24 px: Blob 16-20x15-16, Skitter 18-21x15, Chomper 25-28x17-20 (the generator's smallest body is ~10 px long, plus legs). Collision radii are 5/4/6 px (Blob, Skitter, Chomper); the owner approved the sizes. Options if too big: accept, crop legs, or draw them at a smaller scale.
+- [ ] Generated walk loops are short: 4 frames (spider, boar) or 5 (slime) at 12 fps.
+- [ ] Gnats "in huge numbers" share the 300 cap: during a swarm the regular schedule drops to 40% ("regular_mult") so Gnats get the room. Not a conflict with the performance limit, so not raised.
+- [ ] Overdue Bills ignore armor and shield (evasion still works, capped at 60%) and hit for 15% of max HP, +100% per minute. Without that, enough armor or a refilling shield made them harmless and the Final Swarm could last forever.
+- [ ] Taking the portal before 8:00 ends the run early (fewer minutes, fewer coins). The brief only says beating the boss opens it; read as the player's choice.
+- [ ] Dying in the Final Swarm counts as a survived run (no death coin penalty) and gets the Final Swarm coin multiplier; dying before 8:00 keeps the 0.6 penalty. Titles: ESCAPED!, OVERDUE! (bills), SWARMED! (other death after 8:00), TOASTED!, GAVE UP.
+- [ ] Elites at first-guess numbers were too strong at minute 1 (Fast Skitter at 1.7x outran the player and 14x HP stuck to him); now HP x10, damage x1.2, Fast x1.35, Vicious x1.5. Phase 8 tunes.
+- [ ] The starter bot can't beat Mega Mole at minute 3 (it now routes round houses, so it reaches the altar). Phase 8 needs a better fighting bot to check "beats Mega Mole on run 2 or 3".
+- [ ] Map objects that appear under the player (reward chests, the portal) need a fresh step in, so the portal can't end a run by accident.
+- [ ] Charge shrine bonuses, risk shrine and challenge numbers, merchant prices, paid chest price growth (x1.4) and pot gold are first guesses.
+- [ ] The Final Swarm "screen tint shift" (brief VFX table) is phase 7; the HUD shows a banner, a pink overtime timer and the coin multiplier for now.
+- [ ] Stat events recorded for phase 4: pots_broken, shrines_activated, elites_killed, keys_found, pigeon_cage_opened, boss_summoned, boss_defeated (+ boss_defeated_at, boss_defeated_hp_frac, boss_defeated_in_final_swarm), chests_opened, epic_from_paid_chest, items_bought, challenges_won, swarms_started, swarm_survived_no_damage, final_swarm_reached, final_swarm_seconds, damage_taken, max_item_copies. Kills by weapon and per character still come from on_kill.
+- [ ] `tests/run_tests.gd` takes `-- --only=<file prefix>` (fails if it matches nothing) and reports a test file that doesn't compile as a failure instead of hanging.
+- [ ] `SpriteBatch` centers each frame on the enemy position and ignores the sidecar "origin" (the feet). Cosmetic; revisit in phase 6 if sprites look like they float.
+- [ ] Measuring with a shell loop over "$args" in zsh passes all flags as one argument (no word splitting); call bot_run with separate arguments.
+
 ## Found during phase 2
 
 - [ ] Alarm Clock: "the next attack is a guaranteed crit" is read as the next weapon *hit*, not every hit of the next attack. For the Baguette swing (AoE) the other reading would crit the whole swing. Unused charges don't pile up (capped at one refill).
 - [ ] Fireworks: every other rocket lands on a random enemy on screen, the rest on a random spot. Pure random spots almost never hit at the start of a run. Revert in `rockets.gd` if the brief means pure random.
 - [ ] "Legendaries are unique, one per run" is read as at most one legendary per run in total (`legendary_per_run` in `data/rules/loot.json`). With one legendary in the MVP both readings behave the same.
 - [ ] Copy Machine Manual: +1 projectile per level (+5 at level 5), the strongest tome on paper. Watch in phase 8.
-- [ ] Whoopee Cushion fires from `on_damaged`, which only contact damage emits so far. Phase 3 enemy shots and Bloater explosions must go through the same damage path (`_contact_damage` -> shared function) or it won't trigger.
+- [x] (phase 3: every damage source goes through `Run.damage_player()`) Whoopee Cushion fires from `on_damaged`, which only contact damage emits so far. Phase 3 enemy shots and Bloater explosions must go through the same damage path (`_contact_damage` -> shared function) or it won't trigger.
 - [ ] Turbo Pigeon and Gary don't exist in `data/characters/` yet; their signature weapons (`sharp_feathers`, `stapler`) name characters `turbo_pigeon` and `gary`. Phase 4 must use these ids.
-- [ ] No chest entities yet: `Run.open_chest(kind)` rolls and gives the item; phase 3 chests, elites and the boss call it. `--chests=S` on the sim opens one every S seconds meanwhile.
-- [ ] Elites don't exist yet; `EnemySystem.elite` is the flag Golden Toilet and `on_kill` read. Phase 3 sets it.
-- [ ] In-run gold: enemies drop 1 gold at 8% (added directly, no pickup). Paid chests and the merchant spend it in phase 3.
+- [x] (phase 3) No chest entities yet: `Run.open_chest(kind)` rolls and gives the item; phase 3 chests, elites and the boss call it. `--chests=S` on the sim opens one every S seconds meanwhile.
+- [x] (phase 3) Elites don't exist yet; `EnemySystem.elite` is the flag Golden Toilet and `on_kill` read. Phase 3 sets it.
+- [x] (phase 3: paid chests and the merchant spend it, pots drop it) In-run gold: enemies drop 1 gold at 8% (added directly, no pickup). Paid chests and the merchant spend it in phase 3.
 - [ ] The pixel font has no `$`, `&` or accents: gold shows as "G 12", Piñata is "PINATA" in game text.
 - [ ] `tools/run_tests.sh` now runs `--import` first (new `class_name` scripts weren't seen by `-s` runs) and has a timeout (a compile error used to hang it).
 - [ ] Fireworks blast rings use `draw_arc` (1px, not antialiased); check they read as pixel art in phase 7.
 - [ ] All weapon, tome and item numbers are first guesses; phase 8 tunes them.
 
 - [x] Set up procedural-pixel-creatures (MIT, C#/Godot 4.5.2 .NET) as a standalone asset tool outside the repo at ~/Documents/Playgrounds/tools/procedural-pixel-creatures (owner-approved 2026-10-05). Not embedded: the game stays GDScript. Launch with `./ppc.sh` (`--overview`, `--testarea`, `--editor`, `--check`); it pins Godot 4.5.2 .NET in ~/.local/opt and .NET SDK 8.0.425 in ~/.dotnet. 17/17 core and 28/28 Godot self-tests pass on Linux.
-- [ ] Add a palette-snap script to tools/ that remaps sprite sheets exported from procedural-pixel-creatures to assets/palette.png before import. Its exports use their own colors, so they break the palette rule until remapped.
+- [x] (phase 3: `tools/palette_snap.py`) Add a palette-snap script to tools/ that remaps sprite sheets exported from procedural-pixel-creatures to assets/palette.png before import. Its exports use their own colors, so they break the palette rule until remapped.
 
 ## Found during phase 0
 
@@ -124,10 +208,10 @@ Bot sim, seed 2, paid chest every 45 s: survived 8:00, level 23, 4,897 kills, 51
 - [ ] Six start tomes exist as data already (Muscle Magazine, Speed Reading, Think Big, Grandma's Soup Recipes, Power Nap Guide, Cardio Is Life) so cards had content. Phase 2 should review them, not write duplicates.
 - [ ] All numbers (spawn rates, Baguette levels, XP curve, coins) are first guesses; tune in phase 8. The bot is simple and is not balance truth.
 - [ ] Desktop logic time is higher with vsync on (2.4 ms) than uncapped (1.2 ms), most likely CPU clock scaling at low load. Measure logic ms on the phone, where it matters.
-- [ ] Enemy separation only checks the 3x3 neighbouring 16px cells, so two enemies whose radii add up to more than 16px (elites, Mega Mole) won't push apart fully. Hit queries already handle big radii. Phase 3: grow the cell or separate big enemies separately.
-- [ ] Spawner works on the "spawns" list only; phase 3 replaces it with the full spawn director (roles, SWARM INCOMING, elites).
+- [x] (phase 3: second pass for big enemies) Enemy separation only checks the 3x3 neighbouring 16px cells, so two enemies whose radii add up to more than 16px (elites, Mega Mole) won't push apart fully. Hit queries already handle big radii. Phase 3: grow the cell or separate big enemies separately.
+- [x] (phase 3: `Director`) Spawner works on the "spawns" list only; phase 3 replaces it with the full spawn director (roles, SWARM INCOMING, elites).
 - [ ] Phone stress run: "uncapped" mode had no effect on Android (vsync stays on, the app runs at 60 Hz even on a 120 Hz screen). Real headroom on device is unknown; logic ms is the number to watch.
-- [ ] Phone 1% lows are ~50 fps (p99 frame ~20 ms) while the average is a flat 60. Find the spikes before phase 7 adds effects (suspects: gem merge scans all 400 gems per kill when the pool is full, damage-number text redraw, particle restarts).
+- [x] (phase 3: gem merge fixed; desktop and phone both show the vsync "1% low" is timing jitter: the 15T missed 0-1 vsyncs in 1,801 frames at Final Swarm density) Phone 1% lows are ~50 fps (p99 frame ~20 ms) while the average is a flat 60. Find the spikes before phase 7 adds effects (suspects: gem merge scans all 400 gems per kill when the pool is full, damage-number text redraw, particle restarts).
 - [x] Tall phones got ~19% of the screen as black bars. Decided (owner, 2026-10-05): stretch aspect "expand", 180x320 is the minimum view. On the Xiaomi 15T the game now fills the full height at 7x; only the 10 px side bars (1280 is not a multiple of 7) and a thin strip at the top edge (likely the camera cutout, not confirmed) stay black. Menu and run panels are centered, HUD spans the width, spawns use the real view size. Brief and CLAUDE.md updated. Phone stress after the change: 60.1 avg / 50.9 1% low / 3.71 ms logic.
 - [ ] Xiaomi blocks adb input injection, so runs on the phone can't be driven from adb; play-testing the joystick on device needs a person.
 - [ ] No low-end Android device available yet for the brief's "low-end phones" target.

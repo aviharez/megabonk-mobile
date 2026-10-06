@@ -1,0 +1,20 @@
+{
+	"id": "risk_shrine",
+	"name": "RISK SHRINE",
+	"behavior": "risk_shrine",
+	"radius": 18,
+	"shape": "shrine",
+	"color": "RED",
+	"arrow": "RED",
+	"charge_time": 2.0,
+	"duration": 45,
+	"modifiers": [
+		{"stat": "enemy_hp", "pct": 0.4},
+		{"stat": "enemy_damage", "pct": 0.3},
+		{"stat": "enemy_spawn_rate", "pct": 0.3},
+		{"stat": "xp_gain", "pct": 0.5},
+		{"stat": "gold_gain", "pct": 1.0},
+		{"stat": "luck", "flat": 0.3}
+	],
+	"reward_chest": "elite"
+}

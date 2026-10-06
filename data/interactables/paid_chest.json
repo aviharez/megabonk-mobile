@@ -1,0 +1,12 @@
+{
+	"id": "paid_chest",
+	"name": "CHEST",
+	"behavior": "paid_chest",
+	"radius": 7,
+	"shape": "chest",
+	"color": "WOOD",
+	"arrow": "GOLD",
+	"chest": "paid",
+	"price": 15,
+	"price_growth": 1.4
+}

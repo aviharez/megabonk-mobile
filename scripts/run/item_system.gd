@@ -77,6 +77,12 @@ static func stacked_chance(chance: float, n: int) -> float:
 	return 1.0 - pow(1.0 - clampf(chance, 0.0, 1.0), n)
 
 
+## True if any held item has a trigger on `event`. Callers check this first
+## so they don't build an event Dictionary on every hit for nothing.
+func listens(event: String) -> bool:
+	return _by_event.has(event)
+
+
 ## Runs every trigger listening to `event`. `ctx` carries what happened:
 ## on_hit/on_kill: slot, pos, elite, source; on_damaged: amount;
 ## on_attack: weapon, pos; on_projectile: shot (fire params).

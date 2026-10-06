@@ -1,0 +1,10 @@
+{
+	"id": "elite_chest",
+	"name": "ELITE CHEST",
+	"behavior": "free_chest",
+	"radius": 7,
+	"shape": "chest",
+	"color": "BLUE",
+	"arrow": "BLUE",
+	"chest": "elite"
+}

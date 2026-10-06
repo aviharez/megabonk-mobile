@@ -1,0 +1,14 @@
+{
+	"id": "bloater",
+	"name": "BLOATER",
+	"role": "exploder",
+	"hp": 22,
+	"hp_growth_per_minute": 0.15,
+	"speed": 18,
+	"damage": 5,
+	"radius": 5,
+	"xp": 3,
+	"shape": "bloater",
+	"color": "LIME",
+	"explode": {"trigger_range": 22, "fuse": 1.0, "radius": 28, "damage": 20}
+}

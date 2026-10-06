@@ -1,0 +1,9 @@
+{
+	"id": "cage_key",
+	"name": "KEY",
+	"behavior": "key",
+	"radius": 6,
+	"shape": "key",
+	"color": "GOLD",
+	"arrow": "GOLD"
+}

@@ -14,7 +14,13 @@ extends Node
 ## --chests=S opens a paid chest every S seconds (sim). Common: --seed=N. --shot=S saves a screenshot to user://bot_run_shot.png
 ## after S seconds (windowed only). --cards stops auto-picking level-up cards.
 ## --joy drives the player with a simulated thumb drag instead of the bot.
-## --die_at=S sets HP to 0 after S seconds (to see the game-over screen). Results print as one JSON line starting with "RESULT "
+## --die_at=S sets HP to 0 after S seconds (to see the game-over screen).
+## --final (stress) measures at Final Swarm density: the clock starts inside
+## the Final Swarm with Overdue Bills out, every role in the horde, elites.
+## --boss=M (sim) walks to the altar from minute M; --portal takes the portal.
+## --start=S starts the clock at S seconds. --map=ID plays another map.
+## --profile (stress) times each part of the frame and reports where the
+## slow frames (over 2x the median logic time) spend it. Results print as one JSON line starting with "RESULT "
 ## and are written to user://bot_run_<mode>.json.
 
 const RUN_SCENE := preload("res://scenes/run.tscn")
@@ -31,6 +37,10 @@ var _logic_ms := 0.0
 var _on_screen := 0
 var _on_screen_min := 1 << 30
 var _last_usec := 0
+var _logic := PackedFloat32Array()
+var _prof_total := {}
+var _prof_spike := {}
+var _prof_frames := []
 var _wall_start := 0
 
 
@@ -39,7 +49,7 @@ func _ready() -> void:
 		var kv := a.trim_prefix("--").split("=", true, 1)
 		_args[kv[0]] = kv[1] if kv.size() > 1 else "true"
 	if OS.has_feature("stress"):
-		_args.merge({"mode": "stress", "seconds": "30", "then_uncapped": "true"})
+		_args.merge({"mode": "stress", "seconds": "30", "then_uncapped": "true", "build": "full", "final": "true"})
 	_mode = _args.get("mode", "stress")
 	_measure = float(_args.get("seconds", "20"))
 	_warmup = float(_args.get("warmup", "3"))
@@ -51,9 +61,26 @@ func _ready() -> void:
 	if _mode == "stress":
 		opts.stress = true
 		opts.invincible = true
-		opts.rules = {"run_length_sec": 1.0e9}
+		if _args.has("final"):
+			# 2:30 into the Final Swarm: bills are out and speeding up.
+			opts.start_at = 480.0 + 150.0
+		else:
+			opts.rules = {"run_length_sec": 1.0e9}
+			opts.no_spawns = true
 	elif _args.has("invincible"):
 		opts.invincible = true
+	if _mode == "sim":
+		opts.bot_goals = true
+	if _args.has("map"):
+		opts.map = _args.map
+	if _args.has("start"):
+		opts.start_at = float(_args.start)
+	if _args.has("boss"):
+		opts.bot_boss_min = float(_args.boss)
+	if _args.has("portal"):
+		opts.bot_portal = true
+	if _args.has("profile"):
+		opts.profile = true
 	if _args.has("chests"):
 		opts.chest_every = float(_args.chests)
 	if _args.get("build", "") == "full":
@@ -91,18 +118,26 @@ func _process(delta: float) -> void:
 		var r := _run.result.duplicate()
 		r.merge({
 			"mode": "sim", "invincible": _args.has("invincible"),
-			"escalation": snappedf(_run.spawner.escalation, 0.001),
-			"blocked_spawns": _run.spawner.blocked_total,
+			"escalation": snappedf(_run.director.escalation(), 0.001),
+			"blocked_spawns": _run.director.blocked_total(),
+			"last_damage_source": _run.last_damage_source,
+			"death_pos": [roundi(_run.player_pos().x), roundi(_run.player_pos().y)],
 			"enemies_alive_at_end": _run.enemies.count(),
 			"weapon_level": _run.owned_weapons, "tomes": _run.owned_tomes,
 			"wall_seconds": (Time.get_ticks_msec() - _wall_start) / 1000.0,
 		})
 		_finish(r)
 	elif int(_run.elapsed) % 60 == 0 and int(_run.elapsed) != int(_run.elapsed - delta):
-		print("  minute %d: enemies %d, level %d, hp %d, kills %d" % [int(_run.elapsed) / 60, _run.enemies.count(), _run.level, _run.hp, _run.kills])
+		var mix := {}
+		for sl in _run.enemies.pool.active:
+			var id: String = _run.enemies.types[_run.enemies.type_of[sl]].id
+			mix[id] = mix.get(id, 0) + 1
+		print("  minute %d: enemies %d (+%d reserved), level %d, hp %d, kills %d, gold %d, elites %d, boss %s, swarm %s, final %s %s" % [int(_run.elapsed) / 60, _run.enemies.count(), _run.enemies.pool.count() - _run.enemies.count(), _run.level, _run.hp, _run.kills, _run.gold, _run.enemies.elites.size(), "dead" if _run.boss_defeated else ("up" if _run.boss_summoned else "-"), _run.director.swarm_active(), _run.final_swarm(), mix])
 
 
 func _stress_frame(delta: float) -> void:
+	if _args.has("trace") and int(_t + delta) != int(_t):
+		print("  t=%d elapsed=%.1f final=%s final_t=%.1f bills=%d spawned=%d pool=%d state=%s vsync=%d" % [_t, _run.elapsed, _run.director.final_started, _run.director.final_time, _run.enemies.ghosts.size(), _run.director.bills_spawned, _run.enemies.pool.count(), _run.state, DisplayServer.window_get_vsync_mode()])
 	_t += delta
 	var now := Time.get_ticks_usec()
 	if _t < _warmup:
@@ -112,6 +147,9 @@ func _stress_frame(delta: float) -> void:
 	_frame_ms.append((now - _last_usec) / 1000.0)
 	_last_usec = now
 	_logic_ms += _run.last_frame_usec / 1000.0
+	_logic.append(_run.last_frame_usec / 1000.0)
+	if _args.has("profile"):
+		_prof_frames.append([_run.last_frame_usec, _run.profile_frame.duplicate()])
 	var n := _run.enemies_on_screen()
 	_on_screen += n
 	_on_screen_min = mini(_on_screen_min, n)
@@ -122,7 +160,38 @@ func _stress_frame(delta: float) -> void:
 		var sorted := _frame_ms.duplicate()
 		sorted.sort()
 		var p99: float = sorted[int(sorted.size() * 0.99)]
+		var lsorted := _logic.duplicate()
+		lsorted.sort()
+		var prof := {}
+		if _args.has("profile"):
+			var median: float = lsorted[lsorted.size() / 2] * 1000.0
+			var spikes := 0
+			for f: Array in _prof_frames:
+				for k: String in f[1]:
+					_prof_total[k] = _prof_total.get(k, 0) + f[1][k]
+				if f[0] > 2.0 * median:
+					spikes += 1
+					for k: String in f[1]:
+						_prof_spike[k] = _prof_spike.get(k, 0) + f[1][k]
+			for k: String in _prof_total:
+				_prof_total[k] = snappedf(_prof_total[k] / 1000.0 / _prof_frames.size(), 0.001)
+			for k: String in _prof_spike:
+				_prof_spike[k] = snappedf(_prof_spike[k] / 1000.0 / maxi(spikes, 1), 0.001)
+			prof = {"avg_ms": _prof_total, "spike_frames": spikes, "spike_avg_ms": _prof_spike, "median_logic_ms": snappedf(median / 1000.0, 0.001)}
+		# A frame that really missed a vsync takes ~2 refresh intervals; one
+		# that only looks slow next to its neighbours is timing jitter.
+		var interval := 1000.0 / maxf(DisplayServer.screen_get_refresh_rate(), 1.0)
+		var missed := 0
+		for f in _frame_ms:
+			if f > interval * 1.5:
+				missed += 1
 		_finish({
+			"missed_vsync_frames": missed,
+			"missed_vsync_pct": snappedf(100.0 * missed / maxf(_frame_ms.size(), 1.0), 0.01),
+			"frame_max_ms": snappedf(sorted[sorted.size() - 1], 0.01),
+			"logic_p99_ms": snappedf(lsorted[int(lsorted.size() * 0.99)], 0.01),
+			"logic_max_ms": snappedf(lsorted[lsorted.size() - 1], 0.01),
+			"profile": prof,
 			"mode": "stress",
 			"device": OS.get_model_name(),
 			"refresh_hz": DisplayServer.screen_get_refresh_rate(),
@@ -140,6 +209,11 @@ func _stress_frame(delta: float) -> void:
 			"kills": _run.kills,
 			"gems_alive": _run.gems.count(),
 			"gem_merges": _run.gems.merges,
+			"enemies_total": _run.enemies.pool.count(),
+			"bills": _run.enemies.ghosts.size(),
+			"bills_spawned": _run.director.bills_spawned,
+			"enemy_shots": _run.enemy_shots.count(),
+			"final": _args.has("final"),
 			"build": _args.get("build", "starter"),
 		})
 
@@ -155,6 +229,10 @@ func _finish(r: Dictionary) -> void:
 		_t = 0.0
 		_frames = 0
 		_frame_ms.clear()
+		_logic.clear()
+		_prof_frames.clear()
+		_prof_total.clear()
+		_prof_spike.clear()
 		_logic_ms = 0.0
 		_on_screen = 0
 		_on_screen_min = 1 << 30

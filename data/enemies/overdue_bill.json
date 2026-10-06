@@ -1,0 +1,16 @@
+{
+	"id": "overdue_bill",
+	"name": "OVERDUE BILL",
+	"role": "ghost",
+	"hp": 1,
+	"speed": 30,
+	"damage": 0,
+	"damage_pct_max_hp": 0.15,
+	"radius": 4,
+	"xp": 0,
+	"shape": "bill",
+	"color": "PAPER",
+	"invulnerable": true,
+	"ignores_defense": true,
+	"flying": true
+}

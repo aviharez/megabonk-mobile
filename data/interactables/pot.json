@@ -1,0 +1,9 @@
+{
+	"id": "pot",
+	"name": "POT",
+	"behavior": "pot",
+	"radius": 5,
+	"shape": "pot",
+	"color": "CRUST",
+	"gold": [2, 6]
+}

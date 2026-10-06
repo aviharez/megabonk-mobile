@@ -1,0 +1,23 @@
+{
+  "format": "game.sheet",
+  "frame_w": 19,
+  "frame_h": 16,
+  "frames": 5,
+  "fps": 12,
+  "origin": [
+    9,
+    12
+  ],
+  "source": {
+    "generator": "Procedural Pixel Creatures 1.0.0",
+    "generator_version": 2,
+    "family": "amorphous",
+    "archetype": "ooze",
+    "seed": 114,
+    "name": "Kolaewen",
+    "content_id": "07dad7dacfded898",
+    "clip": "walk_E",
+    "loop": true,
+    "sheet": "blob.png"
+  }
+}

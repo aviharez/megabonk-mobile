@@ -8,3 +8,6 @@ build/
 *.idsig
 # Android custom build
 android/build/
+# creature_export (.NET) build output
+tools/creature_export/bin/
+tools/creature_export/obj/

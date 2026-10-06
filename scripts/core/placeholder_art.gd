@@ -3,7 +3,9 @@ extends RefCounted
 ## Phase 1 placeholder sprites: small geometric shapes built from ASCII masks
 ## at runtime, colored only from the palette. Replaced by real art in phase 6.
 ## Mask key: "." empty, "o" outline (INK), "x" body, "d" body shade,
-## "h" highlight (WHITE), "e" eye (INK).
+## "h" highlight (WHITE), "e" eye (INK). Fixed colors (not tinted): "p" PINK,
+## "g" GOLD, "b" WOOD, "k" BARK, "s" SKY, "m" MIST, "r" RED, "y" BUTTER,
+## "l" LEAF.
 
 const MASKS := {
 	"blob": [
@@ -96,6 +98,187 @@ const MASKS := {
 		"ooo",
 		"o.o",
 	],
+	# Phase 3 enemies.
+	"spitter": [
+		"...ooo...",
+		"..oxxxo..",
+		".oxhxxxo.",
+		".oxexexo.",
+		".oxxxxxoo",
+		"oxxxxxxoo",
+		"oxxxxxxo.",
+		".oddddo..",
+		"..oooo...",
+	],
+	"bloater": [
+		"...ooooo...",
+		"..oxxxxxo..",
+		".oxhxxxxxo.",
+		"oxhxxxxxxxo",
+		"oxxexxxexxo",
+		"oxxxxxxxxxo",
+		"oxxxoooxxxo",
+		"oxxxxxxxxxo",
+		".oxxxxxxxo.",
+		"..odddddo..",
+		"...ooooo...",
+	],
+	"chomper": [
+		"..oooooo..",
+		".oxxxxxxo.",
+		"oxhxexxexo",
+		"oxxxxxxxxo",
+		"oohohohooo",
+		"o........o",
+		"oohohohooo",
+		".oddddddo.",
+		"..o.oo.o..",
+	],
+	"gnat": [
+		"h.h",
+		"oxo",
+		".o.",
+	],
+	"bill": [
+		"ooooooo",
+		"ohhhhho",
+		"oxdddxo",
+		"oxxxxxo",
+		"oxdddxo",
+		"oxxxxxo",
+		"oxrrrxo",
+		"oxxxxxo",
+		"o.o.o.o",
+	],
+	"mole": [
+		"......oooooooooo......",
+		"....ookkkkkkkkkkoo....",
+		"...okkkkkkkkkkkkkko...",
+		"..okkkxxxxxxxxxxkkko..",
+		".okkxxxxxxxxxxxxxxkko.",
+		".okxxhxxxxxxxxxxhxxko.",
+		"okxxxxeexxxxxxeexxxxko",
+		"okxxxxeexxxxxxeexxxxko",
+		"okxxxxxxxxppxxxxxxxxko",
+		"okxxxxxxxppppxxxxxxxko",
+		"okxxxxxxxxppxxxxxxxxko",
+		"okxxxxxxxhohhxxxxxxxko",
+		"okxxxxxxxhohhxxxxxxxko",
+		".okxxxxxxxxxxxxxxxxko.",
+		"oohokxxxxxxxxxxxxkohoo",
+		"ohhhokxxxxxxxxxxkohhho",
+		"ohohookddddddddkoohoho",
+		".o.o..oooooooooo..o.o.",
+	],
+	"rock": [
+		".ooo.",
+		"oxxxo",
+		"oxhxo",
+		"oxxxo",
+		".ooo.",
+	],
+	# Interactables (phase 3).
+	"chest": [
+		".ooooooooo.",
+		"oxxxxxxxxxo",
+		"oxdddddddxo",
+		"oooooogoooo",
+		"oxxxxgxxxxo",
+		"oxxxgggxxxo",
+		"oxxxxxxxxxo",
+		"odddddddddo",
+		".ooooooooo.",
+	],
+	"pot": [
+		".ooooo.",
+		"..oxo..",
+		".oxxxo.",
+		"oxhxxxo",
+		"oxxxxxo",
+		"oxdddxo",
+		".oddddo",
+		"..ooo..",
+	],
+	"shrine": [
+		"...ooo...",
+		"..oxxxo..",
+		"..oxhxo..",
+		"..oxxxo..",
+		"..oxsxo..",
+		"..oxxxo..",
+		"..oxxxo..",
+		"..oxdxo..",
+		".ommmmmo.",
+		"ommmmmmmo",
+		"odddddddo",
+		"ooooooooo",
+	],
+	"cage": [
+		"....ooo....",
+		"...o...o...",
+		".ooooooooo.",
+		".omxmxmxmo.",
+		".omxmyyymo.",
+		".omxmyeymo.",
+		".omxmyyymo.",
+		".omxmxmxmo.",
+		".omxmxmxmo.",
+		"ooooooooooo",
+		"odddddddddo",
+		"ooooooooooo",
+	],
+	"key": [
+		".ooo.......",
+		"oxxxooooooo",
+		"ox.xxxxxxxo",
+		"oxxxoooxoxo",
+		".ooo...o.o.",
+	],
+	"altar": [
+		"....ooooo....",
+		"...orrrrro...",
+		"..ooooooooo..",
+		".omxmmmmmxmo.",
+		".ommmmkmmmmo.",
+		".omxmmmmmxmo.",
+		"ooooooooooooo",
+		"odddddddddddo",
+		"ooooooooooooo",
+	],
+	"portal": [
+		"...ooooo...",
+		"..oxxxxxo..",
+		".oxxsssxxo.",
+		"oxxsshssxxo",
+		"oxsshhhssxo",
+		"oxsshyhssxo",
+		"oxsshhhssxo",
+		"oxxsshssxxo",
+		".oxxsssxxo.",
+		"..oxxxxxo..",
+		"...ooooo...",
+	],
+	"merchant": [
+		"...ooooo...",
+		"..oxxxxxo..",
+		".ooooooooo.",
+		"...obbbo...",
+		"...obebo...",
+		"...obbbo...",
+		"..oxxxxxo..",
+		".oxxgxgxxo.",
+		".oxxxxxxxo.",
+		".oxxxxxxxo.",
+		"..okkokko..",
+		"..oo..oo...",
+	],
+	"arrow": [
+		"..o..",
+		".oxo.",
+		"oxxxo",
+		"ooxoo",
+		".ooo.",
+	],
 }
 
 static var _cache := {}
@@ -105,23 +288,35 @@ static func has_shape(shape: String) -> bool:
 	return MASKS.has(shape)
 
 
+const FIXED := {"p": Palette.PINK, "g": Palette.GOLD, "b": Palette.WOOD, "k": Palette.BARK, "s": Palette.SKY,
+	"m": Palette.MIST, "r": Palette.RED, "y": Palette.BUTTER, "l": Palette.LEAF}
+
+
 ## Texture for `shape` with body color `color_index`. Cached per pair.
-static func texture(shape: String, color_index: int) -> ImageTexture:
-	var key := "%s:%d" % [shape, color_index]
+## pad: empty pixels around the shape (the batch shader draws outlines there).
+static func texture(shape: String, color_index: int, pad := 0) -> ImageTexture:
+	var key := "%s:%d:%d" % [shape, color_index, pad]
 	if _cache.has(key):
 		return _cache[key]
 	var rows: Array = MASKS[shape]
-	var img := Image.create_empty(rows[0].length(), rows.size(), false, Image.FORMAT_RGBA8)
+	var w := 0
+	for row: String in rows:
+		w = maxi(w, row.length())
+	var img := Image.create_empty(w + pad * 2, rows.size() + pad * 2, false, Image.FORMAT_RGBA8)
 	var body := Palette.color(color_index)
 	var shade := _shade_of(color_index)
 	for y in rows.size():
 		var row: String = rows[y]
 		for x in row.length():
+			var at := Vector2i(x + pad, y + pad)
 			match row[x]:
-				"o", "e": img.set_pixel(x, y, Palette.color(Palette.INK))
-				"x": img.set_pixel(x, y, body)
-				"d": img.set_pixel(x, y, shade)
-				"h": img.set_pixel(x, y, Palette.color(Palette.WHITE))
+				"o", "e": img.set_pixelv(at, Palette.color(Palette.INK))
+				"x": img.set_pixelv(at, body)
+				"d": img.set_pixelv(at, shade)
+				"h": img.set_pixelv(at, Palette.color(Palette.WHITE))
+				_:
+					if FIXED.has(row[x]):
+						img.set_pixelv(at, Palette.color(FIXED[row[x]]))
 	var tex := ImageTexture.create_from_image(img)
 	_cache[key] = tex
 	return tex

@@ -3,7 +3,9 @@ extends RefCounted
 ## Decides what spawns and when, from the map's "spawns" schedule in data.
 ## Pure logic (no nodes) so it can be tested headless. Each schedule entry
 ## spawns `per_sec` (interpolated from start to end of its window) units per
-## second; a unit is one enemy, or one pack for "pack" enemies.
+## second; a unit is one enemy, or one pack for "pack" enemies. An entry's
+## optional "growth_per_min" adds that much per second for every minute since
+## its window opened (the Final Swarm keeps rising this way).
 ##
 ## Enemy cap: when a spawn would go over the cap, the blocked enemies are
 ## turned into escalation instead. Escalation multiplies HP and damage (and
@@ -20,7 +22,7 @@ var _acc := PackedFloat32Array()
 
 
 func _init(map_def: Dictionary, enemy_cap: int) -> void:
-	schedule = map_def.spawns
+	schedule = map_def.get("spawns", [])
 	cap = enemy_cap
 	escalation_step = map_def.get("escalation_per_blocked_spawn", escalation_step)
 	speed_cap = map_def.get("escalation_speed_cap", speed_cap)
@@ -39,7 +41,8 @@ func tick(delta: float, minute: float, alive: int, pack_sizes: Dictionary, rng: 
 		if minute < e.from_min or minute >= e.to_min:
 			continue
 		var t := inverse_lerp(e.from_min, e.to_min, minute)
-		_acc[i] += lerpf(e.per_sec[0], e.per_sec[1], t) * delta * rate_mult
+		var rate: float = lerpf(e.per_sec[0], e.per_sec[1], t) + float(e.get("growth_per_min", 0.0)) * (minute - e.from_min)
+		_acc[i] += rate * delta * rate_mult
 		while _acc[i] >= 1.0:
 			_acc[i] -= 1.0
 			var n := 1

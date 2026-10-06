@@ -1,0 +1,13 @@
+{
+	"id": "merchant",
+	"name": "MERCHANT",
+	"behavior": "merchant",
+	"radius": 10,
+	"shape": "merchant",
+	"color": "PURPLE",
+	"arrow": "BUTTER",
+	"chest": "merchant",
+	"stock": 3,
+	"prices": {"common": 20, "rare": 40, "epic": 80, "legendary": 150},
+	"stay_sec": 50
+}

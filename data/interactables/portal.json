@@ -1,0 +1,9 @@
+{
+	"id": "portal",
+	"name": "PORTAL",
+	"behavior": "portal",
+	"radius": 10,
+	"shape": "portal",
+	"color": "PURPLE",
+	"arrow": "PURPLE"
+}

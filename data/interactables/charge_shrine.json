@@ -1,0 +1,23 @@
+{
+	"id": "charge_shrine",
+	"name": "CHARGE SHRINE",
+	"behavior": "charge_shrine",
+	"radius": 18,
+	"shape": "shrine",
+	"color": "SKY",
+	"arrow": "SKY",
+	"charge_time": 3.0,
+	"offer": 3,
+	"choices": [
+		{"stat": "damage", "pct": 0.08, "desc": "DAMAGE +8%"},
+		{"stat": "max_hp", "flat": 15, "desc": "MAX HP +15"},
+		{"stat": "move_speed", "pct": 0.06, "desc": "SPEED +6%"},
+		{"stat": "area", "pct": 0.08, "desc": "AREA +8%"},
+		{"stat": "cooldown", "pct": -0.05, "desc": "COOLDOWN -5%"},
+		{"stat": "crit_chance", "flat": 0.04, "desc": "CRIT +4%"},
+		{"stat": "pickup_range", "pct": 0.15, "desc": "PICKUP +15%"},
+		{"stat": "luck", "flat": 0.06, "desc": "LUCK +6%"},
+		{"stat": "regen", "flat": 0.3, "desc": "REGEN +0.3"},
+		{"stat": "armor", "flat": 1, "desc": "ARMOR +1"}
+	]
+}

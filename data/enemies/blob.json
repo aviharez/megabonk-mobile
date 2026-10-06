@@ -7,8 +7,9 @@
 	"one_hit": true,
 	"speed": 20,
 	"damage": 6,
-	"radius": 4,
+	"radius": 5,
 	"xp": 1,
+	"sheet": "res://assets/creatures/blob.png",
 	"shape": "blob",
 	"color": "PURPLE"
 }

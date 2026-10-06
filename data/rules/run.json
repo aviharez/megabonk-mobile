@@ -3,6 +3,8 @@
 	"run_length_sec": 480,
 	"max_dt": 0.05,
 	"enemy_cap": 300,
+	"enemy_reserve": 48,
+	"enemy_shots": 160,
 	"gem_cap": 400,
 	"card_count": 3,
 	"weapon_slots": 4,

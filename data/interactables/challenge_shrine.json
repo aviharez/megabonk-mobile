@@ -1,0 +1,13 @@
+{
+	"id": "challenge_shrine",
+	"name": "CHALLENGE SHRINE",
+	"behavior": "challenge_shrine",
+	"radius": 18,
+	"shape": "shrine",
+	"color": "GOLD",
+	"arrow": "GOLD",
+	"charge_time": 2.0,
+	"kills": 50,
+	"time": 30,
+	"reward_chest": "elite"
+}

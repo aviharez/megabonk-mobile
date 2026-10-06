@@ -22,22 +22,28 @@ func _step(run: Run, seconds: float) -> void:
 			return
 
 
-func test_run_ends_when_timer_runs_out(t) -> void:
+func test_timer_end_starts_the_final_swarm(t) -> void:
+	# The timer doesn't end the run any more: the Final Swarm starts and the
+	# run goes on until death (Overdue Bills) or the portal.
 	var run := _start(t, {"invincible": true, "rules": {"run_length_sec": 20.0}})
 	var ended := []
 	run.run_ended.connect(func(r: Dictionary) -> void: ended.append(r))
 	_step(run, 25.0)
-	t.check(run.state == "over" and run.won, "timer end wins, state=%s" % run.state)
-	t.check(ended.size() == 1 and ended[0].won, "run_ended fired once")
+	t.check(run.state == "live" and run.final_swarm(), "timer end starts the Final Swarm, state=%s" % run.state)
+	t.check(ended.is_empty(), "the run goes on")
 	t.check(run.kills > 0, "the Baguette killed something (%d)" % run.kills)
-	t.check(run.result.coins >= 0 and run.result.time >= 20.0, "result filled")
+	t.check(run.seconds_left() < 0.0, "the HUD timer counts the Final Swarm (%s)" % run.seconds_left())
+	run.hp = -100.0  # below any regen from auto-picked tomes
+	run.tick(DT)
+	t.check(run.state == "over" and run.won and run.result.coins >= 0 and run.result.time >= 20.0, "dying in the Final Swarm still counts as surviving the timer")
+	t.check(ended.size() == 1, "run_ended fired once")
 	run.free()
 
 
 func test_run_ends_on_death(t) -> void:
 	var run := _start(t, {})
 	run.hp = 1.0
-	run.enemies.spawn(0, run.player_pos(), 1, 1, 1)
+	run.enemies.spawn(run.enemies.type_index["blob"], run.player_pos(), 1, 1, 1)
 	run.tick(DT)
 	t.check(run.state == "over" and not run.won, "death ends the run, state=%s hp=%s" % [run.state, run.hp])
 	run.free()

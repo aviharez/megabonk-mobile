@@ -1,0 +1,11 @@
+{
+	"id": "boss_altar",
+	"name": "BOSS ALTAR",
+	"behavior": "altar",
+	"radius": 20,
+	"shape": "altar",
+	"color": "BLOOD",
+	"arrow": "RED",
+	"charge_time": 2.5,
+	"boss": "mega_mole"
+}

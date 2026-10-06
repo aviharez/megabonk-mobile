@@ -1,0 +1,14 @@
+{
+	"id": "gnat",
+	"name": "GNAT",
+	"role": "swarm",
+	"hp": 2,
+	"hp_growth_per_minute": 0.15,
+	"speed": 50,
+	"damage": 2,
+	"radius": 2,
+	"xp": 0.5,
+	"shape": "gnat",
+	"color": "PLUM",
+	"flying": true
+}

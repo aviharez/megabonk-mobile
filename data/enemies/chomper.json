@@ -1,0 +1,15 @@
+{
+	"id": "chomper",
+	"name": "CHOMPER",
+	"role": "charger",
+	"hp": 30,
+	"hp_growth_per_minute": 0.15,
+	"speed": 24,
+	"damage": 10,
+	"radius": 6,
+	"xp": 4,
+	"sheet": "res://assets/creatures/chomper.png",
+	"shape": "chomper",
+	"color": "RUST",
+	"charge": {"range": 85, "windup": 0.7, "speed": 140, "time": 0.6, "recover": 0.7}
+}

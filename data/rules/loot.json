@@ -7,6 +7,7 @@
 	"legendary_per_run": 1,
 	"luck_per_tier": 1.0,
 	"chests": {
+		"merchant": {"common": 50, "rare": 35, "epic": 13, "legendary": 2},
 		"paid": {"common": 62, "rare": 30, "epic": 7, "legendary": 1},
 		"elite": {"rare": 72, "epic": 24, "legendary": 4},
 		"boss": {"epic": 80, "legendary": 20}

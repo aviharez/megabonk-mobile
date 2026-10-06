@@ -1,0 +1,16 @@
+{
+	"id": "elites",
+	"hp_mult": 10,
+	"damage_mult": 1.2,
+	"scale": 2,
+	"knockback_taken": 0.3,
+	"xp_mult": 10,
+	"chest": "elite_chest",
+	"key": {"drop": "cage_key", "chance": 0.3, "pity": 3},
+	"traits": {
+		"fast": {"name": "FAST", "color": "SKY", "speed_mult": 1.35},
+		"shielded": {"name": "SHIELDED", "color": "BLUE", "shield_frac": 0.6},
+		"splitting": {"name": "SPLITTING", "color": "LIME", "split_count": 3},
+		"vicious": {"name": "VICIOUS", "color": "RED", "damage_mult": 1.5, "speed_mult": 1.1}
+	}
+}

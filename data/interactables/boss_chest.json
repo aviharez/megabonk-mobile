@@ -1,0 +1,10 @@
+{
+	"id": "boss_chest",
+	"name": "BOSS CHEST",
+	"behavior": "free_chest",
+	"radius": 8,
+	"shape": "chest",
+	"color": "PURPLE",
+	"arrow": "PURPLE",
+	"chest": "boss"
+}
