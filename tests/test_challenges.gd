@@ -106,7 +106,10 @@ func test_every_challenge_triggers_in_a_run(t) -> void:
 		var need := float(ch.target)
 		if ch.scope == "total":
 			need = minf(float(ch.target), IN_RUN if d.size() < 3 else d[2])
-			data.stats[Meta.stat_key(ch.stat, ch.get("weapon", ""), ch.get("character", ""))] = float(ch.target) - need
+			if Meta.own_counter(ch):
+				data.challenges[ch.id] = float(ch.target) - need
+			else:
+				data.stats[Meta.stat_key(ch.stat, ch.get("weapon", ""), ch.get("character", ""))] = float(ch.target) - need
 		t.check(Meta.state(db, data, ch.reward) == "locked", "%s: locked before the run" % ch.id)
 		var opts: Dictionary = d[0].duplicate()
 		opts.character = who
@@ -122,17 +125,19 @@ func test_every_challenge_triggers_in_a_run(t) -> void:
 		save.free()
 
 
-## A challenge with a prerequisite can't complete until it's owned.
+## A challenge with a prerequisite can't complete until it's owned, and
+## progress made before that doesn't count.
 func test_prerequisite_blocks_completion(t) -> void:
 	var ch := db.get_entry("challenges", "copy_machine_manual")
 	var save := _fresh_save()
-	save.data.stats[Meta.stat_key("shots", "stapler", "gary")] = float(ch.target) - 1.0
+	save.data.challenges[ch.id] = float(ch.target) - 1.0
 	# Played as Gary through a debug option, without owning him.
 	var run := _start(t, save, {"character": "gary"})
 	_step(run, 2.0)
 	_end(t, run)
 	t.check(not run.result.completed.has(ch.id) and Meta.state(db, save.data, ch.reward) == "locked", "Gary not owned: Copy Machine Manual stays locked")
 	t.check(Meta.progress(db, save.data, ch).blocked, "shown as blocked")
+	t.check(float(save.data.challenges[ch.id]) == float(ch.target) - 1.0, "staples fired without Gary owned don't count")
 	run.free()
 	save.data.unlocks.gary = "owned"
 	run = _start(t, save, {"character": "gary"})
@@ -141,6 +146,23 @@ func test_prerequisite_blocks_completion(t) -> void:
 	t.check(run.result.completed.has(ch.id), "with Gary owned, the next run completes it")
 	run.free()
 	save.free()
+
+
+## Review fix: an Epic from a paid chest before Golden Toilet is owned
+## (Angry Neighbor bought first) doesn't complete Lottery Tips once it is.
+func test_progress_before_the_prerequisite_does_not_count(t) -> void:
+	var d := SaveManager.default_data()
+	d.unlocks.angry_neighbor = "owned"
+	Meta.commit_run(db, d, {"epic_from_paid_chest": 1.0}, "sir_loaf", 0)
+	t.check(Meta.state(db, d, "lottery_tips") == "locked", "blocked: stays locked")
+	d.unlocks.golden_toilet = "owned"
+	var done := Meta.commit_run(db, d, {}, "sir_loaf", 0)
+	t.check(done.is_empty() and Meta.state(db, d, "lottery_tips") == "locked", "an empty run after buying Golden Toilet doesn't complete it: %s" % [done])
+	t.check(Meta.progress(db, d, db.get_entry("challenges", "lottery_tips")).frac == 0.0, "progress starts at 0 once owned")
+	done = Meta.commit_run(db, d, {"epic_from_paid_chest": 1.0}, "sir_loaf", 0)
+	t.check(done.has("lottery_tips"), "an Epic from a paid chest after that completes it")
+	# The shared totals still count every run (game-over stats, other challenges).
+	t.check(float(d.stats.epic_from_paid_chest) == 2.0, "totals keep both runs")
 
 
 ## "Finish 3 runs" from a fresh save, no seeding: three real runs.

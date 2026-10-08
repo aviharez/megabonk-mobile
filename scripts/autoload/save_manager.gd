@@ -46,8 +46,8 @@ static func default_data() -> Dictionary:
 		"seen": {},
 		# Content the Toggler keeps out of the pool.
 		"toggled_off": {},
-		# Character picked last.
-		"character": "sir_loaf",
+		# Character picked last ("" = none yet: Meta.picked_character decides).
+		"character": "",
 		# Ad pacing, daily reward, Remove Ads (phase 5).
 		"ads": {},
 	}

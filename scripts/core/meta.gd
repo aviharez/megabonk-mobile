@@ -11,7 +11,9 @@ extends RefCounted
 ##   ("@<character id>"): "kills", "kills.hot_coffee", "kills@sir_loaf",
 ##   "shots.stapler@gary". Every run stat is added both plain and under the
 ##   character that played the run.
-## - "challenges": best single-run value per run-scope challenge id.
+## - "challenges": per challenge id, the best single-run value ("run" scope),
+##   or the count since its prerequisite was owned ("total" scope with
+##   "requires"; see own_counter).
 ## - "unlocks": content id -> "available" (challenge done) or "owned" (bought).
 ## - "seen": content ids whose "NEW" badge was seen on the unlocks screen.
 ## - "shop": shop entry id -> level bought.
@@ -103,6 +105,16 @@ static func owned_characters(db: GameData, data: Dictionary) -> Array:
 	return out
 
 
+## Who plays when nobody picks: the save's last pick if still owned, else
+## the first owned character (start ones come first). Names no character.
+static func picked_character(db: GameData, data: Dictionary) -> String:
+	var last: String = data.get("character", "")
+	if last != "" and not db.get_entry("characters", last).is_empty() and is_owned(db, data, last):
+		return last
+	var owned := owned_characters(db, data)
+	return owned[0].id if not owned.is_empty() else ""
+
+
 ## Bought unlocks (for the Toggler's "after 12 unlocks").
 static func owned_unlock_count(data: Dictionary) -> int:
 	var n := 0
@@ -141,12 +153,13 @@ static func is_done(db: GameData, data: Dictionary, ch: Dictionary) -> bool:
 
 ## Progress of a challenge: {"value", "has_value", "frac" (0..1), "done",
 ## "blocked" (its requirement isn't owned yet)}. "run" scope shows the best
-## single run so far; "total" the sum over every run.
+## single run so far; "total" the sum over every run (with a prerequisite:
+## every run since it was owned).
 static func progress(db: GameData, data: Dictionary, ch: Dictionary) -> Dictionary:
 	var done := is_done(db, data, ch)
 	var has := false
 	var v := 0.0
-	if ch.scope == "total":
+	if ch.scope == "total" and not own_counter(ch):
 		var stats: Dictionary = data.get("stats", {})
 		var key := stat_key(ch.stat, ch.get("weapon", ""), ch.get("character", ""))
 		has = stats.has(key)
@@ -180,6 +193,13 @@ static func progress_text(ch: Dictionary, p: Dictionary) -> String:
 	if _at_most(ch):
 		return "BEST %s / %s" % [fmt.call(p.value) if p.has_value else "-", fmt.call(float(ch.target))]
 	return "%s/%s" % [fmt.call(minf(p.value, float(ch.target))), fmt.call(float(ch.target))]
+
+
+## A "total" challenge with a prerequisite keeps its own count in "challenges",
+## so only runs played once the prerequisite is owned add to it (the shared
+## "stats" totals also hold the runs before).
+static func own_counter(ch: Dictionary) -> bool:
+	return ch.scope == "total" and ch.get("requires", "") != ""
 
 
 static func _at_most(ch: Dictionary) -> bool:
@@ -264,9 +284,15 @@ static func commit_run(db: GameData, data: Dictionary, run_stats: Dictionary, ch
 		totals[ck] = float(totals.get(ck, 0.0)) + v
 	var completed := []
 	for ch: Dictionary in challenges(db):
+		# A run played before the prerequisite was owned doesn't count for it
+		# (prerequisites are bought in the menu, so this is the run's state).
+		if not requirement_met(db, data, ch):
+			continue
 		if ch.scope == "run":
 			_update_best(data, ch, run_stats, character)
-		if is_done(db, data, ch) or not requirement_met(db, data, ch):
+		elif own_counter(ch):
+			_add_count(data, ch, run_stats, character)
+		if is_done(db, data, ch):
 			continue
 		var p := progress(db, data, ch)
 		if p.has_value and _meets(ch, p.value):
@@ -275,15 +301,22 @@ static func commit_run(db: GameData, data: Dictionary, run_stats: Dictionary, ch
 	return completed
 
 
-## The run's value for a run-scope challenge, kept if it beats the best.
-static func _update_best(data: Dictionary, ch: Dictionary, run_stats: Dictionary, character: String) -> void:
+## The run's value for a challenge (its weapon and character filters
+## applied), or null if the run didn't record it.
+static func _run_value(ch: Dictionary, run_stats: Dictionary, character: String) -> Variant:
 	var who: String = ch.get("character", "")
 	if who != "" and who != character:
-		return
+		return null
 	var key := stat_key(ch.stat, ch.get("weapon", ""))
-	if not run_stats.has(key):
+	return float(run_stats[key]) if run_stats.has(key) else null
+
+
+## The run's value for a run-scope challenge, kept if it beats the best.
+static func _update_best(data: Dictionary, ch: Dictionary, run_stats: Dictionary, character: String) -> void:
+	var rv: Variant = _run_value(ch, run_stats, character)
+	if rv == null:
 		return
-	var v := float(run_stats[key])
+	var v: float = rv
 	var best: Dictionary = data.challenges
 	if not best.has(ch.id):
 		best[ch.id] = v
@@ -291,6 +324,13 @@ static func _update_best(data: Dictionary, ch: Dictionary, run_stats: Dictionary
 		best[ch.id] = minf(float(best[ch.id]), v)
 	else:
 		best[ch.id] = maxf(float(best[ch.id]), v)
+
+
+## Adds the run's value to a challenge's own count (see own_counter).
+static func _add_count(data: Dictionary, ch: Dictionary, run_stats: Dictionary, character: String) -> void:
+	var rv: Variant = _run_value(ch, run_stats, character)
+	if rv != null:
+		data.challenges[ch.id] = float(data.challenges.get(ch.id, 0.0)) + float(rv)
 
 
 # --- Coin shop ----------------------------------------------------------------

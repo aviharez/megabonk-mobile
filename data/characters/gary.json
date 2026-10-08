@@ -58,6 +58,30 @@
 			{
 				"stat": "armor",
 				"flat": 0.5
+			},
+			{
+				"stat": "crit_damage",
+				"flat": 0.05
+			},
+			{
+				"stat": "evasion",
+				"flat": 0.01
+			},
+			{
+				"stat": "shield",
+				"flat": 2
+			},
+			{
+				"stat": "xp_gain",
+				"pct": 0.04
+			},
+			{
+				"stat": "gold_gain",
+				"pct": 0.05
+			},
+			{
+				"stat": "luck",
+				"flat": 0.03
 			}
 		]
 	}

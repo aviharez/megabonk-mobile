@@ -161,7 +161,7 @@ Bot sims on the redesigned map, after the review fixes (deterministic per seed, 
 - [x] Toggler screen (from the hero select): owned weapons, tomes and items on/off; off content never on cards or in chests
 - [x] Game-over screen: result, the 3 closest unlocks with progress bars, and what's ready to buy (NEW for this run's)
 - [x] Menu: UNLOCKS (silhouettes with challenge + progress, prices, BUY), SHOP, PICK A HERO (when there's a choice), notification dot; Android back closes the top screen
-- [x] Turbo Pigeon (Tailwind: +1% damage per point of move speed above 40) and Gary the Intern (Overtime: from 5:00 every minute adds +6% damage, +5% max HP, +3% speed, +4% area, -3% cooldown, crit, pickup, regen, armor; 6 steps max) with their signature weapons
+- [x] Turbo Pigeon (Tailwind: +1% damage per point of move speed above 40) and Gary the Intern (Overtime: from 5:00 every minute adds +6% damage, +5% max HP, +3% speed, +4% area, -3% cooldown, crit chance and damage, pickup, regen, armor, evasion, shield, XP, gold, luck; 6 steps max; every player stat but extra projectiles) with their signature weapons
 - [x] Persistence through the phase 0 save: new keys with defaults only (`challenges`, `seen`, `toggled_off`, `character`), so no version bump; a phase 0-3 save loads unchanged (tested); purchases and run results are written at once
 - [x] Data validation for challenges, shop entries, character status and passives, links (every unlock content has exactly one challenge, rewards are unlock content, filters/prerequisites exist, one shop entry per action) and content ids unique across folders; a failing-data case for each (`tests/test_data.gd`)
 - [x] Tests: `tests/test_challenges.gd` triggers every challenge in a real run (pots, shrines, elites, cage key, boss at the altar, swarm unhurt, real weapon kills, staples as Gary...) and checks it becomes available; drivers are per stat, so a new challenge on a known stat is covered without new test code (checked to fail with best-run tracking broken). `tests/test_meta.gd`: brief table, prices, two-step unlock, pool, character purchase, save on disk after "closing the app", old saves, tracker keys, at-most goals, closest/ready lists, shop rules, Reroll/Skip/Banish, Toggler, passives. 857 checks pass
@@ -169,6 +169,13 @@ Bot sims on the redesigned map, after the review fixes (deterministic per seed, 
 - [x] Tests and bots no longer read the player's real save: without `options.save` and with `no_save` a run uses a blank save (`bot_run --character=ID` for other heroes)
 - [x] Prices from bot sims (see results): Early 50, Mid 150, Hard 300, characters 1.5x (Turbo Pigeon 225, Gary 450)
 - [x] 300-enemy stress after the changes (results below)
+
+### Phase 4 review fixes (2026-10-08)
+
+- [x] Progress made before a prerequisite was owned counted once it was bought (an Epic from a paid chest with Angry Neighbor owned first completed Lottery Tips on the next empty run). Runs now only count for a challenge while its prerequisite is owned; a "total" challenge with "requires" keeps its own count in save "challenges" (`Meta.own_counter`). Tests: `test_progress_before_the_prerequisite_does_not_count`, `test_prerequisite_blocks_completion` (both checked to fail with the fix undone)
+- [x] Overtime raised 9 stats, the brief says "all stats": added crit damage, evasion, shield, XP, gold and luck; a test checks every player stat but projectiles is covered
+- [x] No character id in code: the menu, the run and the hero select use `Meta.picked_character` (last pick if owned, else the first owned, start characters first); the save default for "character" is now ""
+- [x] Tests: 882 checks pass, flow check OK
 
 ### Phase 4 results (2026-10-06, same desktop, windowed, 30 s)
 
@@ -198,6 +205,7 @@ Coins per run, bot sims (starter, seeds 1-8): 34, 8, 4, 655 (reached the Final S
 - [ ] The pigeon cage still appears (and can be opened) after Turbo Pigeon is unlocked; it just records the stat again.
 - [ ] Shortened texts to fit the pixel font on one line: Sir Loaf's passive is now "LESS DAMAGE TAKEN OVER TIME", challenge texts are 26 characters max (`tests/test_meta.gd` checks).
 - [ ] Character numbers are first guesses: Turbo Pigeon 85 HP / speed 64 (+24% damage at base speed), Gary 100 HP / damage 0.9 before Overtime.
+- [ ] A save that already had Copy Machine Manual or Static Sweater progress from after its prerequisite was owned starts those two (and Lottery Tips) from 0 after the review fix: the old shared totals can't tell before from after. Only test saves exist so far.
 - [ ] Phone stress not re-run for phase 4 (phone not connected); desktop shows no change in the hot loop.
 
 ## Found during phase 3

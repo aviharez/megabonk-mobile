@@ -135,6 +135,20 @@ func test_characters(t) -> void:
 
 # --- Two-step unlock and the pool ----------------------------------------------------
 
+## Review fix: no character id in code. A blank save plays the first start
+## character; the last pick is kept while owned.
+func test_picked_character_comes_from_data(t) -> void:
+	var d := _blank()
+	var starts := db.all("characters").filter(func(c: Dictionary) -> bool: return c.status == "start")
+	t.check(Meta.picked_character(db, d) == starts[0].id, "blank save: the first start character (%s)" % Meta.picked_character(db, d))
+	d.character = "gary"
+	t.check(Meta.picked_character(db, d) == starts[0].id, "last pick not owned: back to a start character")
+	d.unlocks.gary = "owned"
+	t.check(Meta.picked_character(db, d) == "gary", "last pick owned: kept")
+	d.character = "nobody"
+	t.check(Meta.picked_character(db, d) == starts[0].id, "unknown id: a start character")
+
+
 func test_two_step_unlock(t) -> void:
 	var d := _blank()
 	t.check(Meta.state(db, d, "alarm_clock") == "locked", "locked at first")
@@ -257,7 +271,7 @@ func test_older_saves_still_load(t) -> void:
 	s.load_game()
 	t.check(not s.read_only and s.data.version == SaveManager.SAVE_VERSION, "loads as the current version")
 	t.check(s.data.coins == 321 and s.data.runs_played == 9 and s.data.settings.music == false, "old values kept")
-	t.check(s.data.challenges is Dictionary and s.data.seen is Dictionary and s.data.toggled_off is Dictionary and s.data.character == "sir_loaf", "new keys filled")
+	t.check(s.data.challenges is Dictionary and s.data.seen is Dictionary and s.data.toggled_off is Dictionary and s.data.character == "", "new keys filled")
 	t.check(Meta.closest(db, s.data, 3).size() == 3, "meta works on it")
 	s.free()
 
@@ -475,6 +489,15 @@ func test_gary_overtime(t) -> void:
 	for i in int(6.0 / DT):
 		run.tick(DT)
 	t.check(run.stat("damage") > before.damage and run.stat("max_hp") > before.max_hp and run.stat("move_speed") > before.move_speed and run.stat("cooldown") < before.cooldown, "all stats rise after 5:00")
+	# Brief: "all stats rise". Every player stat but extra projectiles (a
+	# tome's job) and the multipliers on damage taken / enemies.
+	var not_player := ["projectiles", "contact_damage_taken", "enemy_hp", "enemy_damage", "enemy_spawn_rate"]
+	var covered := {}
+	for m: Dictionary in p.modifiers_per_step:
+		covered[m.stat] = true
+	for st: String in StatBlock.DEFAULTS:
+		if not st in not_player:
+			t.check(covered.has(st), "Overtime raises %s" % st)
 	var one := run.stat("damage")
 	run.elapsed = 60.0 * 30.0
 	run.tick(DT)

@@ -12,11 +12,12 @@ func _init(save_node: Node) -> void:
 
 
 func _fill() -> void:
+	var last := Meta.picked_character(db, save.data)
 	for c: Dictionary in Meta.owned_characters(db, save.data):
 		var weapon := db.get_entry("weapons", c.signature_weapon)
 		var b := PixelButton.new()
 		b.label = "%s\n%s\n%s" % [c.name, weapon.get("name", ""), c.passive.name]
-		b.face = Palette.GOLD if c.id == save.data.character else Palette.SKY
+		b.face = Palette.GOLD if c.id == last else Palette.SKY
 		b.custom_minimum_size = Vector2(W, 34)
 		b.pressed.connect(func() -> void: picked.emit(c.id))
 		list.add_child(b)

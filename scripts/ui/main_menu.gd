@@ -112,7 +112,7 @@ func _on_play() -> void:
 		var hero: HeroScreen = _open_screen(HeroScreen)
 		hero.picked.connect(_start_run)
 	else:
-		_start_run("sir_loaf")
+		_start_run(Meta.picked_character(db, Save.data))
 
 
 func _start_run(character: String) -> void:

@@ -188,13 +188,11 @@ func _ready() -> void:
 	if _save == null and not options.get("no_save", false):
 		_save = get_node_or_null("/root/Save")
 	meta = _save.data if _save != null else SaveManager.default_data()
-	var who: String = options.get("character", meta.get("character", "sir_loaf"))
-	if not options.has("character") and not Meta.is_owned(db, meta, who):
-		who = "sir_loaf"
+	var who: String = options.get("character", Meta.picked_character(db, meta))
 	char_def = db.get_entry("characters", who)
 	if char_def.is_empty():
 		push_error("Run: character '%s' not found" % who)
-		char_def = db.get_entry("characters", "sir_loaf")
+		char_def = db.get_entry("characters", Meta.picked_character(db, meta))
 	elite_rules = db.get_entry("rules", "elites")
 	if options.has("seed"):
 		rng.seed = int(options.seed)
