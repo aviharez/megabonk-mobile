@@ -1,0 +1,11 @@
+{
+	"id": "golden_toilet",
+	"tier": "mid",
+	"desc": "10 ELITES IN ONE RUN",
+	"stat": "elites_killed",
+	"scope": "run",
+	"target": 10,
+	"requires": "",
+	"reward": "golden_toilet",
+	"price": 150
+}

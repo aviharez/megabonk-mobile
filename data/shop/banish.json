@@ -1,0 +1,20 @@
+{
+	"id": "banish",
+	"name": "BANISH",
+	"desc": "REMOVE A CARD FOR THE RUN",
+	"kind": "action",
+	"action": "banish",
+	"needs": {
+		"runs": 3
+	},
+	"prices": [
+		50,
+		120,
+		220
+	],
+	"charges": [
+		1,
+		2,
+		3
+	]
+}

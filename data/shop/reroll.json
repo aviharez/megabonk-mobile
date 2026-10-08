@@ -1,0 +1,17 @@
+{
+	"id": "reroll",
+	"name": "REROLL",
+	"desc": "NEW LEVEL-UP CARDS",
+	"kind": "action",
+	"action": "reroll",
+	"prices": [
+		30,
+		80,
+		160
+	],
+	"charges": [
+		2,
+		3,
+		4
+	]
+}

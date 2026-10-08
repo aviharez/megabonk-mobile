@@ -1,0 +1,11 @@
+{
+	"id": "microwave_meltdown",
+	"tier": "hard",
+	"desc": "BEAT BOSS IN FINAL SWARM",
+	"stat": "boss_defeated_in_final_swarm",
+	"scope": "total",
+	"target": 1,
+	"requires": "",
+	"reward": "microwave_meltdown",
+	"price": 300
+}

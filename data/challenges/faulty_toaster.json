@@ -1,0 +1,12 @@
+{
+	"id": "faulty_toaster",
+	"tier": "mid",
+	"desc": "1000 KO WITH HOT COFFEE",
+	"stat": "kills",
+	"weapon": "hot_coffee",
+	"scope": "total",
+	"target": 1000,
+	"requires": "",
+	"reward": "faulty_toaster",
+	"price": 150
+}

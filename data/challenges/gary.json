@@ -1,0 +1,11 @@
+{
+	"id": "gary",
+	"tier": "hard",
+	"desc": "60 S IN THE FINAL SWARM",
+	"stat": "final_swarm_seconds",
+	"scope": "run",
+	"target": 60,
+	"requires": "",
+	"reward": "gary",
+	"price": 450
+}

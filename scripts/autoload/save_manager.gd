@@ -33,12 +33,21 @@ static func default_data() -> Dictionary:
 			"screen_shake": true,
 			"reduce_effects": false,
 		},
-		# Cumulative stat tracker totals, keyed by stat id (phase 4).
+		# Meta progression (phase 4); the keys are explained in scripts/core/meta.gd.
+		# Cumulative stat tracker totals, keyed by stat key ("kills.hot_coffee@gary").
 		"stats": {},
-		# Unlock state per content id: "available" or "owned" (phase 4).
+		# Unlock state per content id: "available" or "owned".
 		"unlocks": {},
-		# Coin shop purchases, keyed by shop item id (phase 4).
+		# Coin shop purchases: shop entry id -> level.
 		"shop": {},
+		# Best single-run value per run-scope challenge id.
+		"challenges": {},
+		# Available unlocks the player has seen ("NEW" badge, menu dot).
+		"seen": {},
+		# Content the Toggler keeps out of the pool.
+		"toggled_off": {},
+		# Character picked last.
+		"character": "sir_loaf",
 		# Ad pacing, daily reward, Remove Ads (phase 5).
 		"ads": {},
 	}

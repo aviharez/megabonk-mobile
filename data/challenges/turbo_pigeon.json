@@ -1,0 +1,11 @@
+{
+	"id": "turbo_pigeon",
+	"tier": "mid",
+	"desc": "OPEN THE PIGEON CAGE",
+	"stat": "pigeon_cage_opened",
+	"scope": "total",
+	"target": 1,
+	"requires": "",
+	"reward": "turbo_pigeon",
+	"price": 225
+}

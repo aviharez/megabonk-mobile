@@ -1,0 +1,19 @@
+{
+	"id": "magnetism",
+	"name": "MAGNETISM",
+	"desc": "+5% PICKUP RANGE PER LEVEL",
+	"kind": "stat",
+	"prices": [
+		20,
+		45,
+		80,
+		130,
+		200
+	],
+	"modifiers_per_level": [
+		{
+			"stat": "pickup_range",
+			"pct": 0.05
+		}
+	]
+}

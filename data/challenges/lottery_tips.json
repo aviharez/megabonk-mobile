@@ -1,0 +1,11 @@
+{
+	"id": "lottery_tips",
+	"tier": "mid",
+	"desc": "EPIC FROM A PAID CHEST",
+	"stat": "epic_from_paid_chest",
+	"scope": "total",
+	"target": 1,
+	"requires": "golden_toilet",
+	"reward": "lottery_tips",
+	"price": 150
+}

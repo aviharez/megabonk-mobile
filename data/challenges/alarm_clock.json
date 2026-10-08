@@ -1,0 +1,11 @@
+{
+	"id": "alarm_clock",
+	"tier": "early",
+	"desc": "FINISH 3 RUNS",
+	"stat": "runs_finished",
+	"scope": "total",
+	"target": 3,
+	"requires": "",
+	"reward": "alarm_clock",
+	"price": 50
+}

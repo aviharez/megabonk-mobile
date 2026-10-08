@@ -17,6 +17,13 @@ extends Node2D
 ## "item:<id>" for item effects. stat_event carries run facts for unlock
 ## challenges (pots_broken, elites_killed, boss_defeated...); they are also
 ## summed in `run_stats` and copied into the result.
+##
+## Meta progression (Meta): the run reads the save for the character, the
+## pool (owned unlocks, Toggler), permanent shop upgrades and level-up action
+## charges. At the end it commits `run_stats` to the save (the stat tracker
+## totals and unlock challenges), plus kills and shots per weapon
+## ("kills.<weapon>", "shots.<weapon>"), gems collected, the level reached and
+## whether the run was finished.
 
 signal on_hit(enemy_slot: int, amount: float, crit: bool, source: String)
 signal on_kill(enemy_slot: int, enemy_id: String, source: String, elite: bool)
@@ -30,6 +37,7 @@ signal stat_event(name: String, amount: float)
 signal run_ended(result: Dictionary)
 
 const MENU_SCENE := "res://scenes/main_menu.tscn"
+const SaveManager := preload("res://scripts/autoload/save_manager.gd")
 ## Spawns appear this far outside the visible area.
 const SPAWN_MARGIN := Vector2(10, 10)
 const RECYCLE_EVERY := 0.25
@@ -55,6 +63,11 @@ static var next_options := {}
 ## bot_boss_min: the bot walks to the altar from this minute (-1 = never).
 ## bot_portal: the bot takes the portal once it's open.
 ## no_spawns: the director spawns nothing (tests).
+## character: who plays (default: the save's last pick, if owned).
+## save: a save node to read meta progress from and commit the result to
+##   (tests). Without it the Save autoload is used, or, with no_save, a blank
+##   save that is never written (tests and bots don't depend on progress).
+## charges: overrides for the level-up action charges {"reroll": n, ...}.
 var options := {}
 var db: GameData
 var rules: Dictionary
@@ -63,6 +76,12 @@ var char_def: Dictionary
 var elite_rules: Dictionary
 var rng := RandomNumberGenerator.new()
 var stats: StatBlock
+## Save data the meta progression is read from (Save.data or a blank save).
+var meta: Dictionary
+## Level-up action charges left this run: {"reroll", "skip", "banish"}.
+var charges := {}
+## Phase 5 sets this when a rewarded ad can replace a missing charge.
+var ad_ready := func(_action: String) -> bool: return false
 var director: Director
 var bounds := Rect2()
 
@@ -124,6 +143,16 @@ var _elites_since_key := 0
 var _keys_dropped := 0
 var _shrine_n := 0
 var _pack_sizes := {}
+var _save: Node
+var _passive_state := {}
+## Cached tracker keys per source ("kills.<id>", "shots.<id>"): no string
+## building per kill.
+var _kill_keys := {}
+var _shot_keys := {}
+var _banish_mode := false
+var _cards_title: Label
+var _action_buttons := {}  # action -> ActionButton
+var _over_list: VBoxContainer
 var _hits := PackedInt32Array()
 var _zap_hits := PackedInt32Array()
 var _player_view: Node2D
@@ -155,7 +184,17 @@ func _ready() -> void:
 	rules = db.get_entry("rules", "run").duplicate(true)
 	rules.merge(options.get("rules", {}), true)
 	map_def = db.get_entry("maps", options.get("map", "suburbia"))
-	char_def = db.get_entry("characters", options.get("character", "sir_loaf"))
+	_save = options.get("save")
+	if _save == null and not options.get("no_save", false):
+		_save = get_node_or_null("/root/Save")
+	meta = _save.data if _save != null else SaveManager.default_data()
+	var who: String = options.get("character", meta.get("character", "sir_loaf"))
+	if not options.has("character") and not Meta.is_owned(db, meta, who):
+		who = "sir_loaf"
+	char_def = db.get_entry("characters", who)
+	if char_def.is_empty():
+		push_error("Run: character '%s' not found" % who)
+		char_def = db.get_entry("characters", "sir_loaf")
 	elite_rules = db.get_entry("rules", "elites")
 	if options.has("seed"):
 		rng.seed = int(options.seed)
@@ -165,13 +204,19 @@ func _ready() -> void:
 	bounds = Rect2(Vector2.ZERO, Vector2(map_def.size[0], map_def.size[1]))
 	_pos = bounds.get_center()
 	stats = StatBlock.new(char_def.stats)
+	for b: Array in Meta.stat_bonuses(db, meta):
+		stats.apply_modifiers(b[0], b[1], b[2])
+	Passives.update(char_def.passive, stats, 0.0, _passive_state)
 	hp = stat("max_hp")
 	shield = stat("shield")
 	items = ItemSystem.new(self, db)
 	if options.get("all_content", false):
 		pool = ContentPool.new(db, {}, true)
 	else:
-		pool = ContentPool.from_save(db, get_node_or_null("/root/Save"))
+		pool = ContentPool.from_save(db, meta)
+	for a: String in Meta.ACTIONS:
+		charges[a] = Meta.charges(db, meta, a)
+	charges.merge(options.get("charges", {}), true)
 	director = Director.new(map_def, int(rules.enemy_cap), float(rules.run_length_sec), rng, db.get_entry("rules", "bills"))
 	for e: Dictionary in db.all("enemies"):
 		if e.has("pack_size"):
@@ -234,6 +279,7 @@ func tick(delta: float) -> void:
 	if dir.length_squared() > 0.01:
 		_facing = dir.normalized()
 	_pos = map.move(_pos, dir * stat("move_speed") * delta, player_radius())
+	_update_passive(minute)
 	hp = minf(hp + stat("regen") * delta, stat("max_hp"))
 	_update_shield(delta)
 	items.update(delta)
@@ -264,7 +310,7 @@ func tick(delta: float) -> void:
 		_end("bills" if is_bill(last_damage_source) else "died")
 		return
 
-	var got := gems.update(delta, _pos, stat("pickup_range"))
+	var got := gems.update(delta, _pos, stat("pickup_range"))  # counts gems.collected
 	if got > 0.0:
 		add_xp(got)
 	_mark("gems")
@@ -467,6 +513,12 @@ func _nearest_not_in(at: Vector2, reach: float, skip: Dictionary) -> int:
 func fire_shot(shot: Dictionary) -> int:
 	var s := projectiles.fire(shot)
 	if s >= 0:
+		var src: String = shot.get("source", "")
+		var k: String = _shot_keys.get(src, "")
+		if k == "":
+			k = Meta.stat_key("shots", src)
+			_shot_keys[src] = k
+		run_stats[k] = run_stats.get(k, 0.0) + 1.0
 		on_projectile.emit(shot)
 		if items.listens("on_projectile"):
 			items.emit("on_projectile", {"shot": shot, "pos": shot.pos})
@@ -874,6 +926,12 @@ func _kill(slot: int, source := "") -> void:
 			p.texture = tex
 		p.restart()
 	kills += 1
+	if source != "":
+		var k: String = _kill_keys.get(source, "")
+		if k == "":
+			k = Meta.stat_key("kills", source)
+			_kill_keys[source] = k
+		run_stats[k] = run_stats.get(k, 0.0) + 1.0
 	var splits := enemies.split[slot]
 	on_kill.emit(slot, def.id, source, elite)
 	if items.listens("on_kill"):
@@ -960,8 +1018,17 @@ func _tick_hint(minute: float) -> void:
 
 
 func _first_run() -> bool:
-	var save := get_node_or_null("/root/Save")
-	return save != null and int(save.data.get("runs_played", 0)) == 0
+	return int(meta.get("runs_played", 0)) == 0
+
+
+## Character passives that change stats (Turbo Pigeon, Gary). A higher max HP
+## heals the difference, like a tome.
+func _update_passive(minute: float) -> void:
+	var before := stat("max_hp")
+	var msg := Passives.update(char_def.passive, stats, minute, _passive_state)
+	heal(maxf(0.0, stat("max_hp") - before))
+	if msg != "":
+		toast(msg, "BUTTER", 2.0)
 
 
 func _open_level_up() -> void:
@@ -972,8 +1039,15 @@ func _open_level_up() -> void:
 			apply_card(_cards[0])
 		return
 	state = "level_up"
+	_banish_mode = false
 	_joystick.release()
 	get_tree().paused = true
+	_show_cards()
+	_cards_panel.show()
+
+
+func _show_cards() -> void:
+	_cards_title.text = "BANISH WHICH?" if _banish_mode else "LEVEL UP!"
 	for i in _card_buttons.size():
 		var b := _card_buttons[i]
 		b.visible = i < _cards.size()
@@ -981,13 +1055,30 @@ func _open_level_up() -> void:
 			var card: Dictionary = _cards[i]
 			b.label = "\n".join(LevelUpCards.describe(card))
 			b.face = {"weapon": Palette.GOLD, "tome": Palette.SKY}.get(card.kind, Palette.MIST)
-	_cards_panel.show()
+			b.disabled = _banish_mode and not _can_banish(card)
+			if _banish_mode and not b.disabled:
+				b.face = Palette.SALMON
+	for a: String in _action_buttons:
+		var ab: ActionButton = _action_buttons[a]
+		ab.charges = charges.get(a, 0)
+		ab.ad = ab.charges <= 0
+		# Out of charges: the ad tag, usable once phase 5 has an ad ready.
+		ab.disabled = ab.charges <= 0 and not ad_ready.call(a)
+		ab.face = Palette.RED if a == "banish" and _banish_mode else Palette.MIST
 
 
 func _on_card(i: int) -> void:
 	if state != "level_up" or i >= _cards.size():
 		return
+	if _banish_mode:
+		banish_card(i)
+		return
 	apply_card(_cards[i])
+	_level_done()
+
+
+## One level-up is resolved (card taken or skipped): next one or back to play.
+func _level_done() -> void:
 	pending_levels -= 1
 	_cards_panel.hide()
 	if pending_levels > 0:
@@ -995,6 +1086,78 @@ func _on_card(i: int) -> void:
 		return
 	state = "live"
 	get_tree().paused = false
+
+
+func _on_action(action: String) -> void:
+	if state != "level_up":
+		return
+	match action:
+		"reroll":
+			reroll_cards()
+		"skip":
+			skip_level()
+		"banish":
+			# First tap picks banish mode, then a card; tapping again cancels.
+			_banish_mode = not _banish_mode and charges.get("banish", 0) > 0
+			_show_cards()
+
+
+## Level-up actions (coin shop charges). Each returns true if it did
+## something; a charge is only spent then.
+func reroll_cards() -> bool:
+	if state != "level_up" or charges.get("reroll", 0) <= 0:
+		return false
+	charges.reroll -= 1
+	_banish_mode = false
+	_cards = LevelUpCards.pick(rng, db, owned_weapons, owned_tomes, rules, pool)
+	_show_cards()
+	return true
+
+
+## Skips this level-up for the Skip entry's "gold".
+func skip_level() -> bool:
+	if state != "level_up" or charges.get("skip", 0) <= 0:
+		return false
+	charges.skip -= 1
+	add_gold(float(Meta.action_entry(db, "skip").get("gold", 0.0)))
+	toast("SKIPPED", "GOLD")
+	_level_done()
+	return true
+
+
+## Only new weapons and tomes can be banished (an option from the pool).
+func _can_banish(card: Dictionary) -> bool:
+	return card.kind in ["weapon", "tome"] and card.is_new
+
+
+## Removes card i's weapon or tome from the pool for the rest of the run and
+## puts a different card in its place.
+func banish_card(i: int) -> bool:
+	if state != "level_up" or charges.get("banish", 0) <= 0 or i >= _cards.size() or not _can_banish(_cards[i]):
+		return false
+	charges.banish -= 1
+	_banish_mode = false
+	pool.banish(_cards[i].id)
+	toast("BANISHED " + String(_cards[i].def.name), "SALMON")
+	var shown := {}
+	for c: Dictionary in _cards:
+		shown[c.kind + ":" + c.id] = true
+	# Enough candidates to find one that isn't on screen yet.
+	var r := rules.duplicate()
+	r.card_count = int(rules.card_count) + _cards.size()
+	var fresh := LevelUpCards.pick(rng, db, owned_weapons, owned_tomes, r, pool)
+	var repl: Dictionary = {}
+	for c: Dictionary in fresh:
+		if not shown.has(c.kind + ":" + c.id) and (c.kind != "fallback" or repl.is_empty()):
+			repl = c
+			if c.kind != "fallback":
+				break
+	if repl.is_empty():
+		_cards.remove_at(i)
+	else:
+		_cards[i] = repl
+	_show_cards()
+	return true
 
 
 # --- Shrine and merchant choices --------------------------------------------
@@ -1117,19 +1280,23 @@ func _end(reason: String) -> void:
 	gems.pull_all()
 	if reached_final:
 		run_stats["final_swarm_seconds"] = director.final_time
+	run_stats["kills"] = float(kills)
+	run_stats["level"] = float(level)
+	run_stats["gems_collected"] = float(gems.collected)
+	# Giving up doesn't count as finishing a run.
+	if reason != "gave_up":
+		run_stats["runs_finished"] = 1.0
 	var c: Dictionary = rules.coins
 	var mult := (1.0 if won else float(c.death_multiplier)) * director.coin_mult()
 	var played := minf(elapsed, rules.run_length_sec) + director.final_time
 	var coins := floori((c.per_minute * played / 60.0 + c.per_kill * kills) * mult)
 	result = {"won": won, "reason": reason, "escaped": reason == "portal", "time": elapsed, "level": level,
 		"kills": kills, "coins": coins, "coin_mult": snappedf(director.coin_mult(), 0.01), "gold": floori(gold),
-		"final_swarm_seconds": director.final_time, "boss_defeated": boss_defeated, "stats": run_stats.duplicate()}
-	if not options.get("no_save", false):
-		var save := get_node_or_null("/root/Save")
-		if save != null:
-			save.data.runs_played += 1
-			save.data.coins += coins
-			save.save_game()
+		"final_swarm_seconds": director.final_time, "boss_defeated": boss_defeated, "stats": run_stats.duplicate(),
+		"character": char_def.id, "completed": []}
+	if _save != null:
+		result.completed = Meta.commit_run(db, meta, result.stats, char_def.id, coins)
+		_save.save_game()
 	run_ended.emit(result)
 	if options.get("bot", false) and options.get("auto_cards", false):
 		return  # headless sims read `result`; no screen to show
@@ -1153,15 +1320,51 @@ func _end(reason: String) -> void:
 	_over_title.text = title
 	_over_title.add_theme_color_override("font_color", Palette.color(color))
 	var sec := int(minf(elapsed, rules.run_length_sec))
-	var lines := "TIME  %d:%02d\nLEVEL  %d\nKO  %d" % [sec / 60, sec % 60, level, kills]
+	var lines := "TIME %d:%02d   LEVEL %d\nKO %d" % [sec / 60, sec % 60, level, kills]
 	if reached_final:
 		var f := int(director.final_time)
-		lines += "\nFINAL SWARM  +%d:%02d" % [f / 60, f % 60]
-	lines += "\nCOINS  +%d" % coins
+		lines += "\nFINAL SWARM +%d:%02d" % [f / 60, f % 60]
+	lines += "\nCOINS +%d" % coins
 	if mult > 1.0:
 		lines += "  X%.1f" % director.coin_mult()
+	if _save != null:
+		lines += "  (%d)" % int(meta.coins)
 	_over_text.text = lines
+	_fill_over_progress()
 	_over_panel.show()
+
+
+## Game over: progress toward the closest unlocks, and what's ready to buy
+## (just unlocked ones marked NEW).
+func _fill_over_progress() -> void:
+	for c in _over_list.get_children():
+		c.queue_free()
+	var next := Meta.closest(db, meta, 3)
+	if not next.is_empty():
+		_over_list.add_child(_small_label("NEXT UNLOCKS", Palette.BUTTER))
+		for n: Dictionary in next:
+			var row := ChallengeRow.new().setup(n.challenge, n.progress, Meta.kind_name(db, n.challenge.reward))
+			_over_list.add_child(row)
+	var ready := Meta.ready_to_buy(db, meta)
+	if not ready.is_empty():
+		_over_list.add_child(_small_label("READY TO BUY", Palette.LIME))
+		var just := {}
+		for id: String in result.get("completed", []):
+			just[db.get_entry("challenges", id).reward] = true
+		for i in mini(ready.size(), 3):
+			var id: String = ready[i]
+			var price := int(Meta.challenge_for(db, id).price)
+			var tag := "NEW! " if just.has(id) else ""
+			_over_list.add_child(_small_label("%s%s  C %d" % [tag, Meta.content(db, id).name, price], Palette.LIME if just.has(id) else Palette.PAPER))
+		if ready.size() > 3:
+			_over_list.add_child(_small_label("+%d MORE IN UNLOCKS" % (ready.size() - 3), Palette.MIST))
+
+
+func _small_label(text: String, color: int) -> Label:
+	var l := Label.new()
+	l.text = text
+	l.add_theme_color_override("font_color", Palette.color(color))
+	return l
 
 
 func _pause(on: bool) -> void:
@@ -1495,9 +1698,20 @@ func _build_ui() -> void:
 	_hud = Hud.new()
 	ui.add_child(_hud)
 
-	# Level-up cards.
-	_cards_panel = _panel(ui, Rect2(4, 50, 172, 236), Palette.NIGHT)
-	_title(_cards_panel, "LEVEL UP!", Palette.BUTTER, 8)
+	# Level-up cards, with the Reroll / Skip / Banish actions under them.
+	_cards_panel = _panel(ui, Rect2(4, 36, 172, 258), Palette.NIGHT)
+	_cards_title = _title(_cards_panel, "LEVEL UP!", Palette.BUTTER, 8)
+	var actions := Meta.ACTIONS
+	for i in actions.size():
+		var ab := ActionButton.new()
+		ab.glyph = actions[i]
+		ab.face = Palette.MIST
+		ab.position = Vector2(6 + i * 54, 228)
+		ab.custom_minimum_size = Vector2(52, 22)
+		ab.size = ab.custom_minimum_size
+		ab.pressed.connect(_on_action.bind(actions[i]))
+		_cards_panel.add_child(ab)
+		_action_buttons[actions[i]] = ab
 	for i in 3:
 		var b := PixelButton.new()
 		b.position = Vector2(6, 34 + i * 64)
@@ -1526,17 +1740,22 @@ func _build_ui() -> void:
 	_choice_leave.pressed.connect(_close_choice)
 	_choice_panel.add_child(_choice_leave)
 
-	# Game over.
-	_over_panel = _panel(ui, Rect2(14, 64, 152, 186), Palette.NIGHT)
-	_over_title = _title(_over_panel, "", Palette.BUTTER, 10)
+	# Game over: result, closest unlocks, ready to buy.
+	_over_panel = _panel(ui, Rect2(6, 14, 168, 290), Palette.NIGHT)
+	_over_title = _title(_over_panel, "", Palette.BUTTER, 6)
 	_over_text = Label.new()
-	_over_text.position = Vector2(0, 36)
-	_over_text.size = Vector2(152, 100)
+	_over_text.position = Vector2(0, 28)
+	_over_text.size = Vector2(168, 40)
 	_over_text.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
 	_over_panel.add_child(_over_text)
+	_over_list = VBoxContainer.new()
+	_over_list.position = Vector2(6, 72)
+	_over_list.size = Vector2(156, 180)
+	_over_list.add_theme_constant_override("separation", 2)
+	_over_panel.add_child(_over_list)
 	var menu_btn := PixelButton.new()
 	menu_btn.label = "BACK TO MENU"
-	menu_btn.position = Vector2(20, 148)
+	menu_btn.position = Vector2(28, 260)
 	menu_btn.custom_minimum_size = Vector2(112, 20)
 	menu_btn.size = menu_btn.custom_minimum_size
 	menu_btn.pressed.connect(_to_menu)

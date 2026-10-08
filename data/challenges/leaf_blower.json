@@ -1,0 +1,11 @@
+{
+	"id": "leaf_blower",
+	"tier": "mid",
+	"desc": "SURVIVE A SWARM UNHURT",
+	"stat": "swarm_survived_no_damage",
+	"scope": "total",
+	"target": 1,
+	"requires": "",
+	"reward": "leaf_blower",
+	"price": 150
+}

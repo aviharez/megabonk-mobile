@@ -1,0 +1,11 @@
+{
+	"id": "clone_machine",
+	"tier": "hard",
+	"desc": "HOLD 3 OF ONE ITEM",
+	"stat": "max_item_copies",
+	"scope": "run",
+	"target": 3,
+	"requires": "",
+	"reward": "clone_machine",
+	"price": 300
+}

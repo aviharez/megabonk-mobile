@@ -1,0 +1,18 @@
+{
+	"id": "skip",
+	"name": "SKIP",
+	"desc": "SKIP A LEVEL-UP FOR GOLD",
+	"kind": "action",
+	"action": "skip",
+	"prices": [
+		25,
+		70,
+		140
+	],
+	"charges": [
+		1,
+		2,
+		3
+	],
+	"gold": 8
+}

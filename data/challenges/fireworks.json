@@ -1,0 +1,11 @@
+{
+	"id": "fireworks",
+	"tier": "early",
+	"desc": "DEFEAT MEGA MOLE",
+	"stat": "boss_defeated",
+	"scope": "total",
+	"target": 1,
+	"requires": "",
+	"reward": "fireworks",
+	"price": 50
+}

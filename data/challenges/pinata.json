@@ -1,0 +1,11 @@
+{
+	"id": "pinata",
+	"tier": "early",
+	"desc": "BREAK 20 POTS IN ONE RUN",
+	"stat": "pots_broken",
+	"scope": "run",
+	"target": 20,
+	"requires": "",
+	"reward": "pinata",
+	"price": 50
+}

@@ -1,0 +1,12 @@
+{
+	"id": "static_sweater",
+	"tier": "hard",
+	"desc": "300 KO WITH FAULTY TOASTER",
+	"stat": "kills",
+	"weapon": "faulty_toaster",
+	"scope": "total",
+	"target": 300,
+	"requires": "faulty_toaster",
+	"reward": "static_sweater",
+	"price": 300
+}

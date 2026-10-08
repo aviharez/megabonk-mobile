@@ -1,0 +1,11 @@
+{
+	"id": "self_help_book",
+	"tier": "mid",
+	"desc": "REACH LEVEL 20 IN A RUN",
+	"stat": "level",
+	"scope": "run",
+	"target": 20,
+	"requires": "",
+	"reward": "self_help_book",
+	"price": 150
+}

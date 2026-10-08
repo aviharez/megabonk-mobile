@@ -1,0 +1,12 @@
+{
+	"id": "cursed_diary",
+	"tier": "hard",
+	"desc": "BEAT THE BOSS BEFORE 4:00",
+	"stat": "boss_defeated_at",
+	"scope": "run",
+	"target": 240,
+	"goal": "at_most",
+	"requires": "",
+	"reward": "cursed_diary",
+	"price": 300
+}

@@ -1,0 +1,11 @@
+{
+	"id": "tin_foil_hat_theories",
+	"tier": "early",
+	"desc": "ACTIVATE 5 SHRINES",
+	"stat": "shrines_activated",
+	"scope": "total",
+	"target": 5,
+	"requires": "",
+	"reward": "tin_foil_hat_theories",
+	"price": 50
+}

@@ -1,0 +1,12 @@
+{
+	"id": "bubble_wrap_crafts",
+	"tier": "mid",
+	"desc": "2000 KO AS SIR LOAF",
+	"stat": "kills",
+	"character": "sir_loaf",
+	"scope": "total",
+	"target": 2000,
+	"requires": "",
+	"reward": "bubble_wrap_crafts",
+	"price": 150
+}

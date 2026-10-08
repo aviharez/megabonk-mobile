@@ -150,6 +150,56 @@ The phone's ~50 fps "1% low" is frame-timing jitter, not dropped frames (0-1 mis
 
 Bot sims on the redesigned map, after the review fixes (deterministic per seed, starter content, 8 seeds): deaths at 2:02, 3:42, 5:02, 5:11, 7:43, 9:35, 9:43, and one run ended by Overdue Bills at 10:24. Boss sims with a full build: all 3 seeds summon Mega Mole, beat it and take the portal (1:25, 1:38, 1:42).
 
+## Phase 4: Meta progression and characters
+
+- [x] Stat tracker: every run fact is summed per run (`Run.record`, plus kills and shots per weapon `kills.<weapon>` / `shots.<weapon>`, gems collected, level, runs finished) and committed at the end into save `stats` totals, plain and per character (`kills@sir_loaf`, `shots.stapler@gary`); one-per-run values (level, boss time, boss HP, Final Swarm seconds, item copies) are kept as best runs, never summed (`Meta.commit_run`)
+- [x] 19 unlock challenges as data (`data/challenges/`): stat, weapon/character filter, scope (run/total), target, goal (at_least/at_most), prerequisite, reward, price, tier; all 19 checked against the brief table in `tests/test_meta.gd`
+- [x] Two-step unlock: challenge done -> "available" (NEW badge, menu notification dot) -> bought with coins -> "owned"; a completed challenge never expires; prerequisites (Gary, Faulty Toaster) block completion until owned
+- [x] Only owned content in the pool and on the hero select (`ContentPool.from_save`); buying a character puts his signature weapon in the pool for every character
+- [x] Coin shop as data (`data/shop/`): Reroll, Skip (+8 gold), Banish (after 3 runs), Toggler (after 12 bought unlocks; 4/8 things off), permanent stat upgrades (Might, Vitality, Sneakers, Magnetism, Greed; 5 levels, max +15% damage)
+- [x] Level-up actions: pixel icon buttons under the cards with charges left; Banish = tap the X, then a new weapon/tome card (replaced, gone for the run); out of charges shows an AD tag (disabled until phase 5)
+- [x] Toggler screen (from the hero select): owned weapons, tomes and items on/off; off content never on cards or in chests
+- [x] Game-over screen: result, the 3 closest unlocks with progress bars, and what's ready to buy (NEW for this run's)
+- [x] Menu: UNLOCKS (silhouettes with challenge + progress, prices, BUY), SHOP, PICK A HERO (when there's a choice), notification dot; Android back closes the top screen
+- [x] Turbo Pigeon (Tailwind: +1% damage per point of move speed above 40) and Gary the Intern (Overtime: from 5:00 every minute adds +6% damage, +5% max HP, +3% speed, +4% area, -3% cooldown, crit, pickup, regen, armor; 6 steps max) with their signature weapons
+- [x] Persistence through the phase 0 save: new keys with defaults only (`challenges`, `seen`, `toggled_off`, `character`), so no version bump; a phase 0-3 save loads unchanged (tested); purchases and run results are written at once
+- [x] Data validation for challenges, shop entries, character status and passives, links (every unlock content has exactly one challenge, rewards are unlock content, filters/prerequisites exist, one shop entry per action) and content ids unique across folders; a failing-data case for each (`tests/test_data.gd`)
+- [x] Tests: `tests/test_challenges.gd` triggers every challenge in a real run (pots, shrines, elites, cage key, boss at the altar, swarm unhurt, real weapon kills, staples as Gary...) and checks it becomes available; drivers are per stat, so a new challenge on a known stat is covered without new test code (checked to fail with best-run tracking broken). `tests/test_meta.gd`: brief table, prices, two-step unlock, pool, character purchase, save on disk after "closing the app", old saves, tracker keys, at-most goals, closest/ready lists, shop rules, Reroll/Skip/Banish, Toggler, passives. 857 checks pass
+- [x] Flow check extended: game over shows the closest unlocks; UNLOCKS and SHOP open and close; with Turbo Pigeon owned, PLAY opens the hero select and his run starts with Sharp Feathers
+- [x] Tests and bots no longer read the player's real save: without `options.save` and with `no_save` a run uses a blank save (`bot_run --character=ID` for other heroes)
+- [x] Prices from bot sims (see results): Early 50, Mid 150, Hard 300, characters 1.5x (Turbo Pigeon 225, Gary 450)
+- [x] 300-enemy stress after the changes (results below)
+
+### Phase 4 results (2026-10-06, same desktop, windowed, 30 s)
+
+| Stress | Vsync | Avg fps | 1% low fps | Missed vsync | Logic ms/frame | On screen |
+| --- | --- | --- | --- | --- | --- | --- |
+| 300 enemies, full build | on (75 Hz) | 75.0 (cap) | 67.1 | 0 | 3.97 | 295 |
+| 300 enemies, full build | off | 330.8 | 242.0 | 0 | 2.15 | 299 |
+| 300 enemies, starter | off | 268.6 | 187.5 | 0 | 1.97 | 300 |
+| Final Swarm density, full build | off | 315.3 | 229.6 | 0 | 2.23 | 318 incl. 35 bills |
+
+Same or better than phase 3 (293.8 / 165.4 / 2.35 ms for the full build): the per-kill tracker keys cost nothing measurable. Phone not re-measured (not connected).
+
+Coins per run, bot sims (starter, seeds 1-8): 34, 8, 4, 655 (reached the Final Swarm, ended by bills at 11:05), 26, 18, 48, 16. Median 22; an 8-minute run earns ~110 before the Final Swarm multiplier. Prices use 50 coins as "an average run" (Early ~1 run, Mid ~3, Hard ~6).
+
+## Found during phase 4
+
+- [x] (owner, 2026-10-08: `"requires": "golden_toilet"` added, brief table updated) Lottery Tips ("Epic from a paid chest", Mid) can't be done before an Epic item is owned: all three Epics (Golden Toilet, Clone Machine, Angry Neighbor) are unlock content, and chests only roll what's in the pool. The earliest route is Golden Toilet (Mid). The brief lists no prerequisite; options: add `"requires": "golden_toilet"` so the screens say so, make one Epic start content, or accept the hidden order. Owner decision.
+- [ ] "10 elites in one run" (Mid): elites come every 60-90 s, so ~6 by 8:00; it needs Final Swarm time. Best bot run had 8 in 11 min. Watch in phase 8.
+- [ ] Coin income swings hugely with the Final Swarm multiplier (one sim earned 655, the others 4-48). Phase 8 should tune coins per minute/kill and the multiplier together with prices.
+- [ ] "Finish 3 runs" counts runs that end by death, bills or the portal, not GIVE UP (so it can't be farmed by quitting at 0:01).
+- [ ] "Collect 3,000 XP gems" counts dropped gems picked up; a merged gem counts as all the gems in it. Gems left on the ground at the end don't count. One bot run collects 90-6,200.
+- [ ] A run only reaches the save when it ends. Closing the app mid-run loses that run's progress (the save on disk stays intact). Committing on app pause would double-count runs that are resumed.
+- [ ] Out of charges, Reroll/Skip/Banish show an AD tag but stay disabled (`Run.ad_ready`). Phase 5: rewarded ad per action per run, and "try Skip/Banish once per run through an ad" without buying them.
+- [ ] Banish works on new weapon/tome cards only (upgrades and SNACK can't be banished).
+- [ ] "After 12 unlocks" for the Toggler is read as 12 bought unlocks.
+- [ ] Content icons on the unlocks screen are code-drawn placeholders (silhouette = INK glyph on SHADE); real icons in phase 6. Prices show as "C 50" (the pixel font has no coin glyph).
+- [ ] The pigeon cage still appears (and can be opened) after Turbo Pigeon is unlocked; it just records the stat again.
+- [ ] Shortened texts to fit the pixel font on one line: Sir Loaf's passive is now "LESS DAMAGE TAKEN OVER TIME", challenge texts are 26 characters max (`tests/test_meta.gd` checks).
+- [ ] Character numbers are first guesses: Turbo Pigeon 85 HP / speed 64 (+24% damage at base speed), Gary 100 HP / damage 0.9 before Overtime.
+- [ ] Phone stress not re-run for phase 4 (phone not connected); desktop shows no change in the hot loop.
+
 ## Found during phase 3
 
 - [ ] Map opened up (2026-10-06, owner request): house gaps widened to 30-32 px (were 14-28; houses narrowed, walkways and mailboxes re-centered), the 6 driveway cars removed, sheds and backyard pools walk-through, the 11 backyard hedge strips removed (park hedges kept). New test: every open spot the player fits is reachable from the start.
@@ -186,7 +236,7 @@ Bot sims on the redesigned map, after the review fixes (deterministic per seed, 
 - [ ] "Legendaries are unique, one per run" is read as at most one legendary per run in total (`legendary_per_run` in `data/rules/loot.json`). With one legendary in the MVP both readings behave the same.
 - [ ] Copy Machine Manual: +1 projectile per level (+5 at level 5), the strongest tome on paper. Watch in phase 8.
 - [x] (phase 3: every damage source goes through `Run.damage_player()`) Whoopee Cushion fires from `on_damaged`, which only contact damage emits so far. Phase 3 enemy shots and Bloater explosions must go through the same damage path (`_contact_damage` -> shared function) or it won't trigger.
-- [ ] Turbo Pigeon and Gary don't exist in `data/characters/` yet; their signature weapons (`sharp_feathers`, `stapler`) name characters `turbo_pigeon` and `gary`. Phase 4 must use these ids.
+- [x] (phase 4: both added with these ids) Turbo Pigeon and Gary don't exist in `data/characters/` yet; their signature weapons (`sharp_feathers`, `stapler`) name characters `turbo_pigeon` and `gary`. Phase 4 must use these ids.
 - [x] (phase 3) No chest entities yet: `Run.open_chest(kind)` rolls and gives the item; phase 3 chests, elites and the boss call it. `--chests=S` on the sim opens one every S seconds meanwhile.
 - [x] (phase 3) Elites don't exist yet; `EnemySystem.elite` is the flag Golden Toilet and `on_kill` read. Phase 3 sets it.
 - [x] (phase 3: paid chests and the merchant spend it, pots drop it) In-run gold: enemies drop 1 gold at 8% (added directly, no pickup). Paid chests and the merchant spend it in phase 3.
@@ -200,7 +250,7 @@ Bot sims on the redesigned map, after the review fixes (deterministic per seed, 
 
 ## Found during phase 0
 
-- [ ] JSON stores all numbers as floats. `Save._merge_defaults` restores ints only where a default exists; phase 4 stat/unlock dictionaries need their own int casting.
+- [x] (phase 4: `Meta` reads coins, shop levels and charges through `int()`; tested after a reload) JSON stores all numbers as floats. `Save._merge_defaults` restores ints only where a default exists; phase 4 stat/unlock dictionaries need their own int casting.
 - [x] Integer scale confirmed on a 1280x2772 phone: 7x (1260x2240). Letterbox bars are pure black (0,0,0), 266 px top and bottom, 10 px sides.
 - [ ] `tools/gen_placeholder_assets.py` overwrites the palette, font and icon; once the final Lospec palette is picked, update `PALETTE` and the `Palette` index constants together.
 

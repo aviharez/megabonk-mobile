@@ -1,0 +1,64 @@
+{
+	"id": "gary",
+	"name": "GARY THE INTERN",
+	"desc": "EXHAUSTED OFFICE INTERN",
+	"status": "unlock",
+	"signature_weapon": "stapler",
+	"stats": {
+		"max_hp": 100,
+		"move_speed": 50,
+		"pickup_range": 22,
+		"armor": 0,
+		"regen": 0,
+		"damage": 0.9,
+		"area": 1.0,
+		"cooldown": 1.0,
+		"xp_gain": 1.0
+	},
+	"radius": 5,
+	"passive": {
+		"id": "overtime",
+		"name": "OVERTIME",
+		"desc": "ALL STATS RISE AFTER 5:00",
+		"from_min": 5,
+		"max_steps": 6,
+		"modifiers_per_step": [
+			{
+				"stat": "damage",
+				"pct": 0.06
+			},
+			{
+				"stat": "max_hp",
+				"pct": 0.05
+			},
+			{
+				"stat": "move_speed",
+				"pct": 0.03
+			},
+			{
+				"stat": "area",
+				"pct": 0.04
+			},
+			{
+				"stat": "cooldown",
+				"pct": -0.03
+			},
+			{
+				"stat": "crit_chance",
+				"flat": 0.01
+			},
+			{
+				"stat": "pickup_range",
+				"pct": 0.05
+			},
+			{
+				"stat": "regen",
+				"flat": 0.1
+			},
+			{
+				"stat": "armor",
+				"flat": 0.5
+			}
+		]
+	}
+}

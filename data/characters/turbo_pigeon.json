@@ -1,0 +1,26 @@
+{
+	"id": "turbo_pigeon",
+	"name": "TURBO PIGEON",
+	"desc": "CITY PIGEON IN RUNNING SHOES",
+	"status": "unlock",
+	"signature_weapon": "sharp_feathers",
+	"stats": {
+		"max_hp": 85,
+		"move_speed": 64,
+		"pickup_range": 24,
+		"armor": 0,
+		"regen": 0,
+		"damage": 1.0,
+		"area": 1.0,
+		"cooldown": 1.0,
+		"xp_gain": 1.0
+	},
+	"radius": 4,
+	"passive": {
+		"id": "speed_damage",
+		"name": "TAILWIND",
+		"desc": "FASTER MEANS MORE DAMAGE",
+		"from_speed": 40,
+		"damage_per_speed": 0.01
+	}
+}

@@ -1,0 +1,19 @@
+{
+	"id": "might",
+	"name": "MIGHT",
+	"desc": "+3% DAMAGE PER LEVEL",
+	"kind": "stat",
+	"prices": [
+		20,
+		45,
+		80,
+		130,
+		200
+	],
+	"modifiers_per_level": [
+		{
+			"stat": "damage",
+			"pct": 0.03
+		}
+	]
+}

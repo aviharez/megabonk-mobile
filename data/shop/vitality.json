@@ -1,0 +1,19 @@
+{
+	"id": "vitality",
+	"name": "VITALITY",
+	"desc": "+6 MAX HP PER LEVEL",
+	"kind": "stat",
+	"prices": [
+		20,
+		45,
+		80,
+		130,
+		200
+	],
+	"modifiers_per_level": [
+		{
+			"stat": "max_hp",
+			"flat": 6
+		}
+	]
+}

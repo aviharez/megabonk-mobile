@@ -7,12 +7,17 @@ extends Node2D
 ## MERGE_CELL square (a full scan only when there is none): a big blast with
 ## a full pool used to scan every gem once per kill.
 ## Gem looks (tiers by value) come from data/rules/run.json "gem_tiers".
+## Every gem also counts how many dropped gems it holds (merges add up), so
+## `collected` is the number of gems picked up ("collect 3,000 XP gems").
 
 var pool: SlotPool
 var pos := PackedVector2Array()
 var value := PackedFloat32Array()
 var vel := PackedFloat32Array()
 var pulled := PackedByteArray()
+var gems_in := PackedInt32Array()
+## Gems picked up this run (a merged gem counts as every gem in it).
+var collected := 0
 var merges := 0
 ## Merges that needed the full scan (no gem in the neighbouring cells).
 var merge_scans := 0
@@ -34,6 +39,7 @@ func setup(rules: Dictionary) -> void:
 	value.resize(cap)
 	vel.resize(cap)
 	pulled.resize(cap)
+	gems_in.resize(cap)
 	_start_speed = rules.magnet.start_speed
 	_accel = rules.magnet.accel
 	_collect_r = rules.magnet.collect_radius
@@ -58,6 +64,7 @@ func drop(at: Vector2, xp: float) -> void:
 	value[s] = xp
 	vel[s] = 0.0
 	pulled[s] = 0
+	gems_in[s] = 1
 	_cell_gem[_key(at, 0, 0)] = s
 
 
@@ -83,6 +90,7 @@ func update(delta: float, target: Vector2, pickup_range: float) -> float:
 			vel[s] = _start_speed
 		if d2 <= c2:
 			got += value[s]
+			collected += gems_in[s]
 			pool.release(s)
 			continue
 		vel[s] += _accel * delta
@@ -131,6 +139,7 @@ func _merge_into_nearest(at: Vector2, xp: float) -> void:
 					best = s
 	if best >= 0:
 		value[best] += xp
+		gems_in[best] += 1
 		merges += 1
 		return
 	merge_scans += 1
@@ -141,4 +150,5 @@ func _merge_into_nearest(at: Vector2, xp: float) -> void:
 			best = s
 	if best >= 0:
 		value[best] += xp
+		gems_in[best] += 1
 		merges += 1

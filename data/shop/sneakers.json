@@ -1,0 +1,19 @@
+{
+	"id": "sneakers",
+	"name": "SNEAKERS",
+	"desc": "+2% SPEED PER LEVEL",
+	"kind": "stat",
+	"prices": [
+		20,
+		45,
+		80,
+		130,
+		200
+	],
+	"modifiers_per_level": [
+		{
+			"stat": "move_speed",
+			"pct": 0.02
+		}
+	]
+}

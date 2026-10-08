@@ -103,3 +103,58 @@ func _copy_tree(src: String, dst: String) -> void:
 			DirAccess.copy_absolute(src.path_join(f), dst.path_join(f))
 	for d in DirAccess.get_directories_at(src):
 		_copy_tree(src.path_join(d), dst.path_join(d))
+
+
+## Phase 4: challenges, shop entries and characters. Same method as above.
+func test_phase4_bad_data_is_caught(t) -> void:
+	var cases := [
+		["challenges/pinata.json", func(d: Dictionary) -> void: d.stat = "pots", "unknown stat \"pots\""],
+		["challenges/pinata.json", func(d: Dictionary) -> void: d.tier = "easy", "unknown tier \"easy\""],
+		["challenges/pinata.json", func(d: Dictionary) -> void: d.scope = "ever", "\"scope\" must be \"run\" or \"total\""],
+		["challenges/pinata.json", func(d: Dictionary) -> void: d.price = 12.5, "\"price\" must be a whole number"],
+		["challenges/pinata.json", func(d: Dictionary) -> void: d.target = 0, "\"target\" must be above 0"],
+		["challenges/pinata.json", func(d: Dictionary) -> void: d.weapon = "baguette", "only kills, shots can be narrowed"],
+		["challenges/pinata.json", func(d: Dictionary) -> void: d.erase("reward"), "pinata.json: missing \"reward\""],
+		["challenges/self_help_book.json", func(d: Dictionary) -> void: d.scope = "total", "\"level\" is one value per run"],
+		["challenges/cursed_diary.json", func(d: Dictionary) -> void: d.goal = "about", "\"goal\" must be"],
+		["challenges/faulty_toaster.json", func(d: Dictionary) -> void: d.weapon = "hot_cofee", "unknown weapon \"hot_cofee\""],
+		["challenges/bubble_wrap_crafts.json", func(d: Dictionary) -> void: d.character = "sir_loa", "unknown character \"sir_loa\""],
+		["challenges/static_sweater.json", func(d: Dictionary) -> void: d.requires = "toaster", "\"requires\" names unknown content \"toaster\""],
+		["challenges/fireworks.json", func(d: Dictionary) -> void: d.reward = "baguette", "reward \"baguette\" must have \"status\": \"unlock\""],
+		["challenges/fireworks.json", func(d: Dictionary) -> void: d.reward = "fire_works", "reward \"fire_works\" is not a character"],
+		# Two challenges for one reward also leaves fireworks without one.
+		["challenges/fireworks.json", func(d: Dictionary) -> void: d.reward = "pinata", "fireworks.json: unlock content needs a challenge"],
+		["shop/reroll.json", func(d: Dictionary) -> void: d.charges = [1, 2], "\"charges\" must list one number"],
+		["shop/reroll.json", func(d: Dictionary) -> void: d.action = "dance", "\"action\" must be one of"],
+		["shop/reroll.json", func(d: Dictionary) -> void: d.kind = "gizmo", "unknown kind \"gizmo\""],
+		["shop/reroll.json", func(d: Dictionary) -> void: d.prices = [], "\"prices\" must be a non-empty list"],
+		["shop/banish.json", func(d: Dictionary) -> void: d.needs = {"kills": 3}, "\"needs\" may only hold numbers"],
+		["shop/skip.json", func(d: Dictionary) -> void: d.action = "reroll", "a second shop entry for \"reroll\""],
+		["shop/might.json", func(d: Dictionary) -> void: d.modifiers_per_level[0].stat = "dmg", "unknown stat \"dmg\""],
+		["characters/gary.json", func(d: Dictionary) -> void: d.passive.id = "napping", "unknown passive \"napping\""],
+		["characters/gary.json", func(d: Dictionary) -> void: d.passive.erase("from_min"), "passive \"overtime\" needs a number \"from_min\""],
+		["characters/gary.json", func(d: Dictionary) -> void: d.passive.modifiers_per_step = [], "needs a non-empty \"modifiers_per_step\""],
+		["characters/turbo_pigeon.json", func(d: Dictionary) -> void: d.erase("status"), "turbo_pigeon.json: missing \"status\""],
+		["characters/turbo_pigeon.json", func(d: Dictionary) -> void: d.status = "secret", "unknown status \"secret\""],
+	]
+	for c: Array in cases:
+		_wipe(BAD)
+		_copy_tree(GameData.ROOT, BAD)
+		var path := BAD.path_join(c[0])
+		var d: Dictionary = JSON.parse_string(FileAccess.get_file_as_string(path))
+		c[1].call(d)
+		var f := FileAccess.open(path, FileAccess.WRITE)
+		f.store_string(JSON.stringify(d))
+		f.close()
+		var all := "\n".join(GameData.load_from(BAD).errors)
+		t.check(all.contains(c[2]), "%s: expected an error with '%s', got:\n%s" % [c[0], c[2], all])
+	# The same id in two content folders (unlocks name content by id alone).
+	_wipe(BAD)
+	_copy_tree(GameData.ROOT, BAD)
+	var tome: Dictionary = JSON.parse_string(FileAccess.get_file_as_string(BAD.path_join("tomes/muscle_magazine.json")))
+	tome.id = "protein_bar"
+	var tf := FileAccess.open(BAD.path_join("tomes/protein_bar.json"), FileAccess.WRITE)
+	tf.store_string(JSON.stringify(tome))
+	tf.close()
+	var dup := "\n".join(GameData.load_from(BAD).errors)
+	t.check(dup.contains("id \"protein_bar\" is also used in"), "duplicate content id caught:\n%s" % dup)

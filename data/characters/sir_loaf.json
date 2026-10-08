@@ -19,7 +19,7 @@
 	"passive": {
 		"id": "getting_stale",
 		"name": "GETTING STALE",
-		"desc": "TAKES LESS DAMAGE THE LONGER THE RUN LASTS",
+		"desc": "LESS DAMAGE TAKEN OVER TIME",
 		"reduction_per_minute": 0.03,
 		"max_reduction": 0.24
 	}

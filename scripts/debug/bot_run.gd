@@ -19,6 +19,8 @@ extends Node
 ## the Final Swarm with Overdue Bills out, every role in the horde, elites.
 ## --boss=M (sim) walks to the altar from minute M; --portal takes the portal.
 ## --start=S starts the clock at S seconds. --map=ID plays another map.
+## --character=ID plays another character (sims use a blank save, so nothing
+## else from meta progression applies).
 ## --profile (stress) times each part of the frame and reports where the
 ## slow frames (over 2x the median logic time) spend it. Results print as one JSON line starting with "RESULT "
 ## and are written to user://bot_run_<mode>.json.
@@ -79,6 +81,8 @@ func _ready() -> void:
 		opts.bot_boss_min = float(_args.boss)
 	if _args.has("portal"):
 		opts.bot_portal = true
+	if _args.has("character"):
+		opts.character = _args.character
 	if _args.has("profile"):
 		opts.profile = true
 	if _args.has("chests"):

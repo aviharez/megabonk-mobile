@@ -1,0 +1,13 @@
+{
+	"id": "copy_machine_manual",
+	"tier": "hard",
+	"desc": "FIRE 3000 STAPLES AS GARY",
+	"stat": "shots",
+	"weapon": "stapler",
+	"character": "gary",
+	"scope": "total",
+	"target": 3000,
+	"requires": "gary",
+	"reward": "copy_machine_manual",
+	"price": 300
+}

@@ -1,0 +1,17 @@
+{
+	"id": "toggler",
+	"name": "TOGGLER",
+	"desc": "TURN CONTENT OFF FOR RUNS",
+	"kind": "toggler",
+	"needs": {
+		"unlocks": 12
+	},
+	"prices": [
+		150,
+		300
+	],
+	"charges": [
+		4,
+		8
+	]
+}

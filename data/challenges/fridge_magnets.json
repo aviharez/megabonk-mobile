@@ -1,0 +1,11 @@
+{
+	"id": "fridge_magnets",
+	"tier": "early",
+	"desc": "COLLECT 3000 XP GEMS",
+	"stat": "gems_collected",
+	"scope": "total",
+	"target": 3000,
+	"requires": "",
+	"reward": "fridge_magnets",
+	"price": 50
+}
