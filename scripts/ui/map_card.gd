@@ -6,7 +6,7 @@ extends PixelButton
 
 const THUMB := Vector2i(164, 52)
 const HEIGHT := 84
-const LOCKED_HEIGHT := 28
+const LOCKED_HEIGHT := 30
 
 var thumb: Texture2D:
 	set(v):
@@ -33,7 +33,8 @@ func _draw() -> void:
 	var y := SHADOW if mode == DRAW_PRESSED or mode == DRAW_HOVER_PRESSED else 0
 	var font := get_theme_default_font()
 	var fs := get_theme_default_font_size()
-	var text_y := y + 5
+	# Locked: two lines inside the plate's top and bottom bevels.
+	var text_y := y + 3
 	if not disabled:
 		var at := Vector2i(floori((size.x - THUMB.x) / 2.0), y + 4)
 		draw_rect(Rect2i(at - Vector2i.ONE, THUMB + Vector2i(2, 2)), Palette.color(Palette.INK))
