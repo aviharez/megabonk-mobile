@@ -363,6 +363,14 @@ Same as phase 4 (330.8 / 242.0 / 2.15 ms uncapped): the Ads and Store autoloads 
   - [x] HUD pause button (2026-10-09): there was none (pause only via Android back / Esc / focus loss; iOS has no back key). `ActionButton` "pause" glyph, top right under the gold. Test: `test_run_flow.gd::test_pause_button_on_screen`
 - [ ] Enemy sheets from assets/creatures/ for every role (elites = scaled + recolored)
 - [ ] Placeholder inventory: list every code-drawn / placeholder asset and replace it
+  - Audit 2026-10-09 (`PlaceholderArt` shapes still in use; mask sizes in brackets):
+    - Map objects, `data/interactables/*.json` (already take a "sprite", like boss_altar): chest x3 colours paid WOOD / elite BLUE / boss PURPLE [11x9], pot [7x8], shrine x3 colours charge SKY / risk RED / challenge GOLD [9x12], pigeon cage [11x12], cage key [11x5], portal [11x11], merchant [11x12]
+    - Weapon projectiles, hard-coded in `scripts/run/weapons/*.gd`: feather (homing_shot), staple (rapid_shot), duck (bounce_shot), cup (puddle), rocket (rockets), bullet (projectile_system default) [3-8px]; need a data field per weapon for a shot sprite
+    - Enemy shots: bullet (`enemy_shots.gd`, shooters), rock (`mega_mole.gd`) [3x3, 5x5]
+    - XP gems, `data/rules/run.json` "gem_tiers": gem_small / gem_mid / gem_big [3x4, 5x5, 6x6]; owner: too small and hard to see, make them bigger and clearer
+    - Enemies on shapes: bloater, gnat, spitter, bill (need the owner's creature exports)
+    - Keep: hit particles "dot" (VFX, phase 7), HUD edge arrows (any angle), hero fallback
+  - Owner (2026-10-09): projectiles and gems via SpriteCook too, not hand-pixelled
   - Found so far (grep of `scripts/`, 2026-10-09; not yet a full audit):
     - Enemies still on `PlaceholderArt` shapes: Bloater, Gnat, Spitter, Overdue Bill (`data/enemies/*.json` "shape"); need procedural-pixel-creatures exports from the owner
     - `scripts/core/placeholder_art.gd` shapes: gems (3), projectiles (dot, bullet, feather, staple, duck, cup, rocket, rock), chest, pot, shrine, cage, key, altar, portal, merchant, arrow
