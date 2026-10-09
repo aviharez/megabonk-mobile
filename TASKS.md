@@ -337,6 +337,14 @@ Same as phase 4 (330.8 / 242.0 / 2.15 ms uncapped): the Ads and Store autoloads 
 - [ ] UI (CC0 pack or code), remapped to the palette
 - [ ] Enemy sheets from assets/creatures/ for every role (elites = scaled + recolored)
 - [ ] Placeholder inventory: list every code-drawn / placeholder asset and replace it
+  - Found so far (grep of `scripts/`, 2026-10-09; not yet a full audit):
+    - Enemies still on `PlaceholderArt` shapes: Bloater, Gnat, Spitter, Overdue Bill (`data/enemies/*.json` "shape"); need procedural-pixel-creatures exports from the owner
+    - `scripts/core/placeholder_art.gd` shapes: gems (3), projectiles (dot, bullet, feather, staple, duck, cup, rocket, rock), chest, pot, shrine, cage, key, altar, portal, merchant, arrow
+    - `scripts/ui/content_icon.gd`: weapon / tome / item / character icons
+    - `scripts/run/map_layout.gd`: the whole Suburbia map is drawn in code
+    - `scripts/run/fx.gd`, weapon `draw()` code: VFX (phase 7 owns most of it)
+    - UI drawing (`pixel_button.gd`, `pixel_panel.gd`, `hud.gd`, `thumb_stick.gd`, ...) not reviewed yet
+    - `run.gd` `_draw_player` rectangles: kept on purpose as the fallback for a character without sheets
 - [ ] Hero select screen (`scripts/ui/hero_screen.gd`) and unlock icons: show the character sheets instead of placeholders
 - [ ] Palette + grid check passes on every asset; ASSET_LOG records credits
 
