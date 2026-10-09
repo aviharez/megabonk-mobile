@@ -1,0 +1,27 @@
+{
+	"sir_loaf_base": {
+		"asset_id": "b7b40484-050b-469a-8a47-2d056ff97959",
+		"sha12": "4425556e98f3",
+		"label": "Sir Loaf base sprite (76x76 pixel output, NB2.1 1K); rejected by owner (wrong bread)"
+	},
+	"sir_loaf_tin": {
+		"asset_id": "fee7d917-1fb3-4af0-b3cb-4675bfb77734",
+		"sha12": "102167c90951",
+		"label": "Sir Loaf, tin loaf version (34x34 pixel output, NB2.1 1K); approved"
+	},
+	"sir_loaf_idle": {
+		"asset_id": "34e0d793-98d3-4061-846f-14fbb4412c65",
+		"sha12": "7fa63cf04bf6",
+		"label": "Sir Loaf idle, 4 frames 38x38 at 8 fps, from fee7d917"
+	},
+	"sir_loaf_walk": {
+		"asset_id": "27d5a82b-bd1d-4ebc-ac0c-c18abf234f93",
+		"sha12": "37cb23eef3c8",
+		"label": "Sir Loaf walk, 4 frames 38x38 at 8 fps, from fee7d917"
+	},
+	"sir_loaf_hit": {
+		"asset_id": "12c64ab2-09ef-439c-9dd6-83ee82bcff1c",
+		"sha12": "d915bdfbe858",
+		"label": "Sir Loaf hit, 4 frames 38x38 at 8 fps, from fee7d917"
+	}
+}

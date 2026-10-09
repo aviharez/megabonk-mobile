@@ -5,7 +5,7 @@ Planned layout (filled from phase 1 on):
 
 | Folder / file | Content | Phase |
 | --- | --- | --- |
-| `characters/` | Characters: "status" ("start" or "unlock"), base stats, signature weapon id, passive (id + its numbers: `getting_stale`, `speed_damage`, `overtime`; behavior in `scripts/run/passives.gd`) | 1, 4 |
+| `characters/` | Characters: "status" ("start" or "unlock"), base stats, signature weapon id, passive (id + its numbers: `getting_stale`, `speed_damage`, `overtime`; behavior in `scripts/run/passives.gd`), optional "sheets" by clip (`idle` required, `walk`, `hit`; `res://assets/characters/*.png` + sidecar from `tools/spritecook_shrink.py`), else a code-drawn fallback | 1, 4, 6 |
 | `weapons/` | Weapons: pattern, base stats, per-level modifiers | 1, 2 |
 | `tomes/` | Tomes: stat modifiers per level | 2 |
 | `items/` | Items: rarity, modifiers, or trigger + chance + effect hooks (format: `scripts/run/item_system.gd`) | 2 |

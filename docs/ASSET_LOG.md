@@ -4,8 +4,13 @@ SpriteCook credits (Starter plan, 800 per month). Ask before every generation. N
 
 | Date | Asset | Kind | Est. credits | Actual | Notes |
 | --- | --- | --- | --- | --- | --- |
+| 2026-10-09 | Sir Loaf base sprite (style reference) | generate_game_art, NB2.1 1K, pixel, 1 image, palette colors passed | 12 | 12 | asset `b7b40484-050b-469a-8a47-2d056ff97959` (ids in `docs/spritecook-assets.json`). Came back 76x76 and off-palette (2866 colours) despite the 24x24 hint and colour list; snapped + hand-cleaned to 24x24. Balance after: 788. Owner rejected the bread type |
+| 2026-10-09 | Sir Loaf, tin loaf version | generate_game_art, NB2.1 1K, pixel, 1 image, palette colors passed | 12 | 12 | asset `fee7d917-1fb3-4af0-b3cb-4675bfb77734`. Came back 34x34, 617 colours; snapped to 32x33. Balance after: 776. Owner approved; shrunk to 25x26, visor redrawn by hand |
+| 2026-10-09 | Sir Loaf idle animation | animate_game_art from `fee7d917`, 4 frames, spritesheet, default pixel engine | 20 | 20 | job `711f4a07-b033-4388-82f0-ab58bd57ccf6`, asset `34e0d793-98d3-4061-846f-14fbb4412c65`. 4 frames 38x38 at 8 fps; shrunk by the same factor as the still (27x30 frames), visor redrawn per frame. Owner approved. Balance after: 756 |
+| 2026-10-09 | Sir Loaf walk animation | animate_game_art from `fee7d917`, 4 frames, spritesheet, default pixel engine | 20 | 20 | job `5b3744d4-303c-4553-9daf-e82050195fcc`, asset `27d5a82b-bd1d-4ebc-ac0c-c18abf234f93`. Feet barely moved (about 1px after shrinking); tried a hand redraw of the feet; owner preferred the original, so it is used unedited. Owner approved. Balance after: 736 |
+| 2026-10-09 | Sir Loaf hit animation | animate_game_art from `fee7d917`, 4 frames, spritesheet, default pixel engine | 20 | 20 | job `a0860baa-90cc-46b8-9809-ac8ba2fff348`, asset `12c64ab2-09ef-439c-9dd6-83ee82bcff1c`. Subtle tilt rather than a big flinch; 28x31 frames after shrinking. Balance after: 716 |
 
-**Running total:** 0
+**Running total:** 84
 
 ## Non-SpriteCook placeholders
 

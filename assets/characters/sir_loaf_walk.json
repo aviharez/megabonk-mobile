@@ -1,0 +1,17 @@
+{
+  "format": "game.sheet",
+  "frame_w": 27,
+  "frame_h": 29,
+  "frames": 4,
+  "fps": 8.0,
+  "origin": [
+    13,
+    27
+  ],
+  "source": {
+    "generator": "SpriteCook",
+    "asset_id": "27d5a82b-bd1d-4ebc-ac0c-c18abf234f93",
+    "scale": 0.787878,
+    "sheet": "sir_loaf_walk.png"
+  }
+}

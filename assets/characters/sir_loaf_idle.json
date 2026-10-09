@@ -1,0 +1,17 @@
+{
+  "format": "game.sheet",
+  "frame_w": 27,
+  "frame_h": 30,
+  "frames": 4,
+  "fps": 8.0,
+  "origin": [
+    13,
+    28
+  ],
+  "source": {
+    "generator": "SpriteCook",
+    "asset_id": "34e0d793-98d3-4061-846f-14fbb4412c65",
+    "scale": 0.787878,
+    "sheet": "sir_loaf_idle.png"
+  }
+}

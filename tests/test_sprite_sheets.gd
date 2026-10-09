@@ -4,6 +4,9 @@ extends RefCounted
 ## its sidecar JSON (the format tools/palette_snap.py writes).
 
 const SHEET := "user://test_sheet.png"
+const RUN_SCENE := preload("res://scenes/run.tscn")
+
+var _nodes: Array[Node] = []
 
 
 func _strip(frames: int, w: int, h: int) -> Image:
@@ -66,3 +69,41 @@ func test_enemy_type_uses_a_sheet(t) -> void:
 	for id in ["blob", "skitter", "chomper"]:
 		var sh := EnemySystem.load_sheet(db.get_entry("enemies", id))
 		t.check(sh.get("frames", 0) >= 4 and sh.get("texture") != null, "%s plays its approved sheet (%d frames)" % [id, sh.get("frames", 0)])
+
+
+## Sir Loaf's SpriteCook sheets: every clip loads with its sidecar, the run
+## shows idle standing still, walk while moving, and hit once after a hit.
+func test_character_sheets(t) -> void:
+	var db := GameData.shared()
+	var loaf: Dictionary = db.get_entry("characters", "sir_loaf")
+	for clip: String in ["idle", "walk", "hit"]:
+		var sh := EnemySystem.load_sheet({"sheet": loaf.sheets[clip]})
+		t.check(sh.get("frames", 0) == 4 and sh.has("origin"), "Sir Loaf %s: 4 frames + origin (%s)" % [clip, sh.keys()])
+		if sh.has("texture"):
+			t.check(sh.texture.get_height() <= 32, "Sir Loaf %s fits 32 px tall (%d)" % [clip, sh.texture.get_height()])
+	Run.next_options = {"no_save": true, "seed": 5, "no_spawns": true, "character": "sir_loaf"}
+	var run: Run = RUN_SCENE.instantiate()
+	t.root.add_child(run)
+	_nodes.append(run)
+	run.tick(1.0 / 30.0)
+	t.check(run.player_clip() == "idle", "standing still: idle (%s)" % run.player_clip())
+	run._moving = true
+	t.check(run.player_clip() == "walk", "moving: walk")
+	run.damage_player(1.0, "test")
+	t.check(run.player_clip() == "hit", "after a hit: hit")
+	for i in 20:
+		run.tick(1.0 / 30.0)
+	run._moving = false
+	t.check(run.player_clip() == "idle", "the hit clip plays once (0.5 s), then idle again")
+	run._player_view.queue_redraw()
+	await t.process_frame
+	# Characters without sheets keep the code-drawn fallback.
+	var gary: Dictionary = db.get_entry("characters", "gary")
+	t.check(not gary.has("sheets"), "Gary has no sheets yet (fallback drawing)")
+
+
+func cleanup() -> void:
+	for n in _nodes:
+		if is_instance_valid(n):
+			n.free()
+	_nodes.clear()

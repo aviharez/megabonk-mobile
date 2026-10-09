@@ -1,0 +1,17 @@
+{
+  "format": "game.sheet",
+  "frame_w": 28,
+  "frame_h": 31,
+  "frames": 4,
+  "fps": 8.0,
+  "origin": [
+    14,
+    29
+  ],
+  "source": {
+    "generator": "SpriteCook",
+    "asset_id": "12c64ab2-09ef-439c-9dd6-83ee82bcff1c",
+    "scale": 0.787878,
+    "sheet": "sir_loaf_hit.png"
+  }
+}

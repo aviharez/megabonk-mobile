@@ -136,6 +136,11 @@ var danger: Fx
 var _pos := Vector2.ZERO
 var _facing := Vector2.RIGHT
 var _iframes := 0.0
+## Character sheets by clip (idle, walk, hit) from char_def.sheets; empty =
+## the code-drawn fallback. _hit_at: elapsed time of the last hit taken.
+var _sprites := {}
+var _moving := false
+var _hit_at := -INF
 var _shield_idle := 0.0
 var _burn_t := 0.0
 var _chest_t := 0.0
@@ -203,6 +208,10 @@ func _ready() -> void:
 	if char_def.is_empty():
 		push_error("Run: character '%s' not found" % who)
 		char_def = db.get_entry("characters", Meta.picked_character(db, meta))
+	for clip: String in char_def.get("sheets", {}):
+		var sh := EnemySystem.load_sheet({"sheet": char_def.sheets[clip]})
+		if not sh.is_empty():
+			_sprites[clip] = sh
 	elite_rules = db.get_entry("rules", "elites")
 	ad_rules = db.get_entry("rules", "ads")
 	ads = options.get("ads")
@@ -294,7 +303,8 @@ func tick(delta: float) -> void:
 		dir = Vector2.from_angle(elapsed * 0.8) * 0.4  # slow circle, keeps the horde on screen
 	elif options.get("bot", false):
 		dir = _bot_dir()
-	if dir.length_squared() > 0.01:
+	_moving = dir.length_squared() > 0.01
+	if _moving:
 		_facing = dir.normalized()
 	_pos = map.move(_pos, dir * stat("move_speed") * delta, player_radius())
 	_update_passive(minute)
@@ -448,6 +458,7 @@ func damage_player(amount: float, source: String, contact := false, pierce := fa
 	if rng.randf() < stat("evasion"):
 		numbers.show_text(_pos, "MISS")
 		return false
+	_hit_at = elapsed
 	var dmg := amount * Passives.damage_taken_mult(char_def.passive, elapsed / 60.0)
 	if contact:
 		dmg *= stat("contact_damage_taken")
@@ -1845,8 +1856,12 @@ func _draw_player() -> void:
 	# Blink during i-frames.
 	if _iframes > 0.0 and int(_iframes * 20.0) % 2 == 0:
 		return
-	var ink := Palette.color(Palette.INK)
 	var flip := _facing.x < 0.0
+	if not _sprites.is_empty():
+		_draw_player_sprite(v, flip)
+		return
+	# Code-drawn fallback for characters without sheets yet.
+	var ink := Palette.color(Palette.INK)
 	# Loaf body 11x8 with a crust top, helmet 7x4 on top, visor slit.
 	v.draw_rect(Rect2(-6, -3, 12, 8), ink)
 	v.draw_rect(Rect2(-5, -2, 10, 6), Palette.color(Palette.DOUGH))
@@ -1855,6 +1870,32 @@ func _draw_player() -> void:
 	v.draw_rect(Rect2(-3, -7, 6, 4), Palette.color(Palette.MIST))
 	v.draw_rect(Rect2(1 if not flip else -3, -6, 2, 1), ink)
 	v.draw_rect(Rect2(-1, -10, 2, 2), Palette.color(Palette.RED))  # plume
+
+
+## The clip the player sprite shows now: hit once after a hit, then walk
+## while moving, else idle; "" without sheets.
+func player_clip() -> String:
+	if _sprites.has("hit") and elapsed - _hit_at < _sprites.hit.frames / _sprites.hit.fps:
+		return "hit"
+	if _moving and _sprites.has("walk"):
+		return "walk"
+	return "idle" if _sprites.has("idle") else ""
+
+
+## Draws the frame of player_clip(). Sheets face right; the feet (sidecar origin) stand on the bottom of the
+## collision circle.
+func _draw_player_sprite(v: Node2D, flip: bool) -> void:
+	var clip := player_clip()
+	var t := elapsed - _hit_at if clip == "hit" else elapsed
+	var sh: Dictionary = _sprites[clip]
+	var tex: Texture2D = sh.texture
+	var fw := int(tex.get_width() / sh.frames)
+	var fh := tex.get_height()
+	var frame := int(t * sh.fps) % int(sh.frames)
+	var origin: Vector2 = sh.get("origin", Vector2(fw / 2, fh - 2))
+	v.draw_set_transform(Vector2(0, player_radius()), 0.0, Vector2(-1 if flip else 1, 1))
+	v.draw_texture_rect_region(tex, Rect2(-origin, Vector2(fw, fh)), Rect2(frame * fw, 0, fw, fh))
+	v.draw_set_transform(Vector2.ZERO)
 
 
 func _build_ui() -> void:

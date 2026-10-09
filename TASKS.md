@@ -321,3 +321,26 @@ Same as phase 4 (330.8 / 242.0 / 2.15 ms uncapped): the Ads and Store autoloads 
 - [ ] Xiaomi blocks adb input injection, so runs on the phone can't be driven from adb; play-testing the joystick on device needs a person.
 - [ ] No low-end Android device available yet for the brief's "low-end phones" target.
 
+
+## Phase 6: Assets
+
+- [x] Sir Loaf base sprite from SpriteCook (2026-10-09: v1 rejected (bread type), v2 tin loaf approved, shrunk to 25x26 with the visor redrawn by hand; 24 credits)
+- [x] Sir Loaf idle, walk, hit animations (all approved 2026-10-09; walk used unedited). Sheets in `assets/characters/` via `tools/spritecook_shrink.py` (one scale 0.788 for every clip, visor redrawn per frame); `data/characters/sir_loaf.json` "sheets"; run draws hit > walk > idle, mirrored facing left; characters without sheets keep the code-drawn fallback
+- [x] Test: `test_sprite_sheets.gd::test_character_sheets` (clips load, idle/walk/hit switching); 1062 checks pass
+- [ ] Turbo Pigeon, Gary: sprite + idle, walk, hit
+- [ ] Mega Mole: sprite + burrow, attack, hit
+- [ ] Weapon and item icons (one style-reference icon first)
+- [ ] Book sprite + 16 tome icons in code
+- [ ] Suburbia tiles and props
+- [ ] UI (CC0 pack or code), remapped to the palette
+- [ ] Enemy sheets from assets/creatures/ for every role (elites = scaled + recolored)
+- [ ] Placeholder inventory: list every code-drawn / placeholder asset and replace it
+- [ ] Palette + grid check passes on every asset; ASSET_LOG records credits
+
+### Phase 6 results so far (2026-10-09, same desktop, windowed, vsync, starter build, Sir Loaf sprite)
+
+| Stress test, 300 enemies, 20 s | Avg fps | 1% low fps | Logic ms/frame | Avg on screen |
+| --- | --- | --- | --- | --- |
+| Windowed, vsync on | 75.0 (display cap) | 66.6 | 2.98 | 299.3 |
+
+SpriteCook: 84 credits spent, 716 left.

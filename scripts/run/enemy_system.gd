@@ -202,7 +202,11 @@ static func load_sheet(def: Dictionary) -> Dictionary:
 	var meta = JSON.parse_string(FileAccess.get_file_as_string(meta_path))
 	if not meta is Dictionary:
 		return {}
-	return {"texture": tex, "frames": int(meta.get("frames", 1)), "fps": float(meta.get("fps", 10))}
+	var sheet := {"texture": tex, "frames": int(meta.get("frames", 1)), "fps": float(meta.get("fps", 10))}
+	var o = meta.get("origin")
+	if o is Array and o.size() == 2:
+		sheet.origin = Vector2(o[0], o[1])
+	return sheet
 
 
 ## Enemies counted against the cap (not elites, bosses or bills).

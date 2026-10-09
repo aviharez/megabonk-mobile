@@ -45,6 +45,8 @@ const PASSIVES := {
 }
 const WEAPON_STATUSES := ["start", "unlock", "signature"]
 const CONTENT_STATUSES := ["start", "unlock"]
+## Animation clips a character sheet can have (data/characters/*.json "sheets").
+const CHARACTER_CLIPS := ["idle", "walk", "hit"]
 const TOME_GROUPS := ["offense", "defense", "utility", "risk"]
 
 static var _shared: GameData
@@ -177,6 +179,14 @@ func _check_entry(category: String, e: Dictionary) -> void:
 		"characters":
 			if not e.status in CONTENT_STATUSES:
 				errors.append("%s: unknown status \"%s\"" % [file, e.status])
+			if e.has("sheets"):
+				if not e.sheets is Dictionary or not e.sheets.has("idle"):
+					errors.append("%s: \"sheets\" needs at least an \"idle\" sheet" % file)
+				else:
+					for clip: String in e.sheets:
+						if not clip in CHARACTER_CLIPS:
+							errors.append("%s: unknown sheet clip \"%s\"" % [file, clip])
+						_check_sheet(file, e.sheets[clip])
 			var pid: String = e.passive.get("id", "")
 			if not PASSIVES.has(pid):
 				errors.append("%s: unknown passive \"%s\"" % [file, pid])
