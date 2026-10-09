@@ -71,16 +71,17 @@ func test_enemy_type_uses_a_sheet(t) -> void:
 		t.check(sh.get("frames", 0) >= 4 and sh.get("texture") != null, "%s plays its approved sheet (%d frames)" % [id, sh.get("frames", 0)])
 
 
-## Sir Loaf's SpriteCook sheets: every clip loads with its sidecar, the run
+## Character SpriteCook sheets (Sir Loaf, Turbo Pigeon): every clip loads with its sidecar, the run
 ## shows idle standing still, walk while moving, and hit once after a hit.
 func test_character_sheets(t) -> void:
 	var db := GameData.shared()
-	var loaf: Dictionary = db.get_entry("characters", "sir_loaf")
-	for clip: String in ["idle", "walk", "hit"]:
-		var sh := EnemySystem.load_sheet({"sheet": loaf.sheets[clip]})
-		t.check(sh.get("frames", 0) == 4 and sh.has("origin"), "Sir Loaf %s: 4 frames + origin (%s)" % [clip, sh.keys()])
-		if sh.has("texture"):
-			t.check(sh.texture.get_height() <= 32, "Sir Loaf %s fits 32 px tall (%d)" % [clip, sh.texture.get_height()])
+	for who: String in ["sir_loaf", "turbo_pigeon"]:
+		var c: Dictionary = db.get_entry("characters", who)
+		for clip: String in ["idle", "walk", "hit"]:
+			var sh := EnemySystem.load_sheet({"sheet": c.sheets[clip]})
+			t.check(sh.get("frames", 0) == 4 and sh.has("origin"), "%s %s: 4 frames + origin (%s)" % [who, clip, sh.keys()])
+			if sh.has("texture"):
+				t.check(sh.texture.get_height() <= 32, "%s %s fits 32 px tall (%d)" % [who, clip, sh.texture.get_height()])
 	Run.next_options = {"no_save": true, "seed": 5, "no_spawns": true, "character": "sir_loaf"}
 	var run: Run = RUN_SCENE.instantiate()
 	t.root.add_child(run)

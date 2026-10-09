@@ -1,0 +1,17 @@
+{
+  "format": "game.sheet",
+  "frame_w": 25,
+  "frame_h": 25,
+  "frames": 4,
+  "fps": 8.0,
+  "origin": [
+    12,
+    23
+  ],
+  "source": {
+    "generator": "SpriteCook",
+    "asset_id": "428a4900-fe74-4a46-bdc5-f8c5d37094f1",
+    "scale": 0.67,
+    "sheet": "turbo_pigeon_hit.png"
+  }
+}

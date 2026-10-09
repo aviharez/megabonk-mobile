@@ -1,0 +1,17 @@
+{
+  "format": "game.sheet",
+  "frame_w": 21,
+  "frame_h": 25,
+  "frames": 4,
+  "fps": 8.0,
+  "origin": [
+    10,
+    23
+  ],
+  "source": {
+    "generator": "SpriteCook",
+    "asset_id": "79c020cd-404c-4153-b9cd-65d090814b43",
+    "scale": 0.67,
+    "sheet": "turbo_pigeon_walk.png"
+  }
+}

@@ -325,9 +325,11 @@ Same as phase 4 (330.8 / 242.0 / 2.15 ms uncapped): the Ads and Store autoloads 
 ## Phase 6: Assets
 
 - [x] Sir Loaf base sprite from SpriteCook (2026-10-09: v1 rejected (bread type), v2 tin loaf approved, shrunk to 25x26 with the visor redrawn by hand; 24 credits)
-- [x] Sir Loaf idle, walk, hit animations (all approved 2026-10-09; walk used unedited). Sheets in `assets/characters/` via `tools/spritecook_shrink.py` (one scale 0.788 for every clip, visor redrawn per frame); `data/characters/sir_loaf.json` "sheets"; run draws hit > walk > idle, mirrored facing left; characters without sheets keep the code-drawn fallback
-- [x] Test: `test_sprite_sheets.gd::test_character_sheets` (clips load, idle/walk/hit switching); 1062 checks pass
-- [ ] Turbo Pigeon, Gary: sprite + idle, walk, hit
+- [x] Sir Loaf idle, walk, hit animations (all approved 2026-10-09; walk used unedited). Sheets in `assets/characters/` via `tools/spritecook_shrink.py` (one scale for every clip, visor redrawn per frame); `data/characters/sir_loaf.json` "sheets"; run draws hit > walk > idle, mirrored facing left; characters without sheets keep the code-drawn fallback
+- [x] Test: `test_sprite_sheets.gd::test_character_sheets` (clips load for Sir Loaf and Turbo Pigeon, idle/walk/hit switching); 1071 checks pass
+- [x] Turbo Pigeon: sprite + idle, walk, hit (approved 2026-10-09; Sir Loaf as style reference; 72 credits)
+- [x] Heroes shrunk to ~22px tall on owner request (2026-10-09): both re-shrunk from the SpriteCook originals at scale 0.67 (was 0.788 / 0.8); no in-engine scaling, so the pixel grid stays clean. Rule for later characters: scale so the body is ~22px tall
+- [ ] Gary: sprite + idle, walk, hit
 - [ ] Mega Mole: sprite + burrow, attack, hit
 - [ ] Weapon and item icons (one style-reference icon first)
 - [ ] Book sprite + 16 tome icons in code
@@ -335,6 +337,7 @@ Same as phase 4 (330.8 / 242.0 / 2.15 ms uncapped): the Ads and Store autoloads 
 - [ ] UI (CC0 pack or code), remapped to the palette
 - [ ] Enemy sheets from assets/creatures/ for every role (elites = scaled + recolored)
 - [ ] Placeholder inventory: list every code-drawn / placeholder asset and replace it
+- [ ] Hero select screen (`scripts/ui/hero_screen.gd`) and unlock icons: show the character sheets instead of placeholders
 - [ ] Palette + grid check passes on every asset; ASSET_LOG records credits
 
 ### Phase 6 results so far (2026-10-09, same desktop, windowed, vsync, starter build, Sir Loaf sprite)
@@ -342,5 +345,6 @@ Same as phase 4 (330.8 / 242.0 / 2.15 ms uncapped): the Ads and Store autoloads 
 | Stress test, 300 enemies, 20 s | Avg fps | 1% low fps | Logic ms/frame | Avg on screen |
 | --- | --- | --- | --- | --- |
 | Windowed, vsync on | 75.0 (display cap) | 66.6 | 2.98 | 299.3 |
+| Same, Turbo Pigeon | 75.0 (display cap) | 66.2 | 3.26 | 299.6 |
 
-SpriteCook: 84 credits spent, 716 left.
+SpriteCook: 156 credits spent, 644 left.

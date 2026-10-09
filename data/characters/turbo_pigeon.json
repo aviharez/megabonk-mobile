@@ -16,6 +16,11 @@
 		"xp_gain": 1.0
 	},
 	"radius": 4,
+	"sheets": {
+		"idle": "res://assets/characters/turbo_pigeon_idle.png",
+		"walk": "res://assets/characters/turbo_pigeon_walk.png",
+		"hit": "res://assets/characters/turbo_pigeon_hit.png"
+	},
 	"passive": {
 		"id": "speed_damage",
 		"name": "TAILWIND",

@@ -23,5 +23,25 @@
 		"asset_id": "12c64ab2-09ef-439c-9dd6-83ee82bcff1c",
 		"sha12": "d915bdfbe858",
 		"label": "Sir Loaf hit, 4 frames 38x38 at 8 fps, from fee7d917"
+	},
+	"turbo_pigeon_base": {
+		"asset_id": "399956d3-e837-4d38-8c4b-ee52656a9e88",
+		"sha12": "7f613279df6c",
+		"label": "Turbo Pigeon base sprite (32x32, NB2.1 1K, style ref Sir Loaf)"
+	},
+	"turbo_pigeon_idle": {
+		"asset_id": "538c179d-24fc-48db-88e8-a7896379ab32",
+		"sha12": "544d801c9505",
+		"label": "Turbo Pigeon idle, 4 frames 36x36 at 8 fps, from 399956d3"
+	},
+	"turbo_pigeon_walk": {
+		"asset_id": "79c020cd-404c-4153-b9cd-65d090814b43",
+		"sha12": "0fe63ea02fe8",
+		"label": "Turbo Pigeon walk, 4 frames 36x36 at 8 fps, from 399956d3"
+	},
+	"turbo_pigeon_hit": {
+		"asset_id": "428a4900-fe74-4a46-bdc5-f8c5d37094f1",
+		"sha12": "fe983bb291ae",
+		"label": "Turbo Pigeon hit, 4 frames 36x36 at 8 fps, from 399956d3"
 	}
 }

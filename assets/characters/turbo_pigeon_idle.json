@@ -1,0 +1,17 @@
+{
+  "format": "game.sheet",
+  "frame_w": 21,
+  "frame_h": 25,
+  "frames": 4,
+  "fps": 8.0,
+  "origin": [
+    10,
+    23
+  ],
+  "source": {
+    "generator": "SpriteCook",
+    "asset_id": "538c179d-24fc-48db-88e8-a7896379ab32",
+    "scale": 0.67,
+    "sheet": "turbo_pigeon_idle.png"
+  }
+}
