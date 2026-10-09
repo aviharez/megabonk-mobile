@@ -358,6 +358,7 @@ Same as phase 4 (330.8 / 242.0 / 2.15 ms uncapped): the Ads and Store autoloads 
     - `run.gd` `_draw_player` rectangles: kept on purpose as the fallback for a character without sheets
 - [x] Hero select screen (`scripts/ui/hero_screen.gd`) and unlock icons: show the character sheets instead of placeholders (2026-10-09: cards 40px tall play the idle sheet via `scripts/ui/sheet_view.gd`)
 - [ ] Palette + grid check passes on every asset; ASSET_LOG records credits
+- [ ] Phone stress test (300 enemies) with the 2x world view: owner skipped it for now (2026-10-09); desktop: 75 fps cap, 1% low 66.2 at the 1.5 view. CLAUDE.md needs an fps number before the phase is done
 
 ### Phase 6 results so far (2026-10-09, same desktop, windowed, vsync, starter build, Sir Loaf sprite)
 
