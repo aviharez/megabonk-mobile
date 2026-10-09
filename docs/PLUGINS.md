@@ -40,5 +40,5 @@ Google Play has no public test product ids for Billing Library 8+. To test the r
 ## Not done yet (needs the owner, or a later phase)
 
 - **Consent (UMP / GDPR):** AdMob requires a consent message for users in the EEA/UK before serving personalized ads. The plugin ships the UMP API (`addons/admob/gdscript/src/ump/`). Scheduled for phase 9 (owner, 2026-10-09), after the owner sets up the consent message in AdMob.
-- **iOS:** the AdMob plugin supports iOS (binaries not vendored). Play Billing is Android only; iOS needs a StoreKit plugin, which needs approval before installing (phase 9).
+- **iOS:** the AdMob plugin supports iOS (binaries not vendored). Play Billing is Android only; iOS needs a StoreKit plugin, which needs approval before installing. Moved to phase 9 (owner, 2026-10-09); until then an iOS release build has no store and the shop shows STORE OFFLINE.
 - **app-ads.txt** on the developer website, before release.

@@ -217,6 +217,7 @@ Plugins (owner approved 2026-10-08): Poing AdMob 5.1.0 and GodotGooglePlayBillin
 - [x] (owner, 2026-10-09) No revive offer when Overdue Bills end the run; brief table updated
 - [ ] Test ads on the phone: rewarded (all placements), interstitial, banner; pause/resume when an ad fails (airplane mode) and when closed early (needs the phone)
 - [x] Consent (UMP / GDPR) moved to phase 9 (owner, 2026-10-09)
+- [x] iOS store (StoreKit plugin) moved to phase 9 (owner, 2026-10-09); until then iOS release builds show STORE OFFLINE
 - [ ] Remove Ads on a device (needs a Play Console product + license tester; see Blocked)
 - [x] 300-enemy stress after the changes (results below)
 - [x] Screens checked in a window (menu + banner + daily, desktop test ad, shop with NO ADS, revive offer, game over with 2X COINS): palette only, pixel font, boxed AD tag like the level-up buttons
