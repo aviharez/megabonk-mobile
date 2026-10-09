@@ -332,6 +332,8 @@ Same as phase 4 (330.8 / 242.0 / 2.15 ms uncapped): the Ads and Store autoloads 
 - [x] Gary: sprite + idle, walk, hit (2026-10-09; Sir Loaf + Pigeon as style references, scale 0.67; 72 credits). Shrunk without palette dark red (it made his eye look bloody), stapler re-reddened by `tools/art/gary_stapler.py`; `tools/spritecook_shrink.py` gained `--exclude`
 - [x] Mega Mole: sprite + walk, burrow, attack, hit (2026-10-09; 92 credits; full size 33px; walk added by owner). SpriteCook's burrow didn't dig, so the burrow is built from his walk frame (`tools/art/mole_burrow.py`). Clips merged into `assets/bosses/mega_mole.png` by `tools/sheet_clips.py`; `EnemySystem.play()` / `clip_of()` play named clips; the mole digs for `dig_time` 0.5 s (visible, hittable) before hiding, pops up with the burrow reversed, attacks on rocks and summons, flinches on hits at most every `hit_anim_gap` s. Test: `test_sprite_sheets.gd::test_boss_clips`; 1093 checks pass
 - [ ] Weapon and item icons (one style-reference icon first)
+  - [x] Baguette style-reference icon (2026-10-09; 12 credits; approved). Icons are 16x16, made by `tools/icon_shrink.py`, stored as `assets/icons/<kind>/<id>.png`
+  - [ ] Remaining 9 weapon + 15 item icons
 - [ ] Book sprite + 16 tome icons in code
 - [ ] Suburbia tiles and props
 - [ ] UI (CC0 pack or code), remapped to the palette
@@ -356,4 +358,4 @@ Same as phase 4 (330.8 / 242.0 / 2.15 ms uncapped): the Ads and Store autoloads 
 | Same, Turbo Pigeon | 75.0 (display cap) | 66.2 | 3.26 | 299.6 |
 | Same, Gary, heroes at ~22px | 75.0 (display cap) | 66.6 | 3.59 | 299.8 |
 
-SpriteCook: 320 credits spent, 480 left.
+SpriteCook: 332 credits spent, 468 left.

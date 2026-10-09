@@ -22,8 +22,9 @@ SpriteCook credits (Starter plan, 800 per month). Ask before every generation. N
 | 2026-10-09 | Mega Mole burrow animation | animate_game_art from `88627398`, 4 frames, spritesheet, default pixel engine | 20 | 20 | job `38316f3a-f8f2-40bb-839d-e87583697924`, asset `657a9412-8e66-4a52-9c10-e551fbb6b732`. Didn't dig (pink-blob head, ends curled up above ground); not used. Burrow built from his walk frame with `tools/art/mole_burrow.py` (owner choice). Balance after: 520 |
 | 2026-10-09 | Mega Mole attack animation | animate_game_art from `88627398`, 4 frames, spritesheet, default pixel engine | 20 | 20 | job `6d19f29a-7324-4350-832e-a96d80021aec`, asset `590c9371-08b3-445f-bc59-a3a106756356`. Owner approved. Balance after: 500 |
 | 2026-10-09 | Mega Mole hit animation | animate_game_art from `88627398`, 4 frames, spritesheet, default pixel engine | 20 | 20 | job `c19e8657-0940-4f83-9023-4434477ed1b9`, asset `e7d871bf-882c-41ec-b21c-434bbaa45c35`. Owner approved. Balance after: 480 |
+| 2026-10-09 | Baguette weapon icon (icon style reference) | generate_game_art, NB2.1 1K, pixel, 1 image, palette colors passed, 32px hint, style refs the 3 heroes | 12 | 12 | asset `9b021e66-e82a-4cb2-be85-d7ea1c4a62e0`. Came back 32x32; shrunk to 16x16 with `tools/icon_shrink.py` into `assets/icons/weapons/baguette.png`. Owner approved. Balance after: 468 |
 
-**Running total:** 320
+**Running total:** 332
 
 ## Non-SpriteCook placeholders
 

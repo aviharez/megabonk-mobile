@@ -88,5 +88,10 @@
 		"asset_id": "e7d871bf-882c-41ec-b21c-434bbaa45c35",
 		"sha12": "757c2c642b85",
 		"label": "Mega Mole hit, 4 frames 38x38 at 8 fps, from 88627398"
+	},
+	"baguette_icon": {
+		"asset_id": "9b021e66-e82a-4cb2-be85-d7ea1c4a62e0",
+		"sha12": "bcc4e5aad8aa",
+		"label": "Baguette weapon icon (32x32, NB2.1 1K, style refs the 3 heroes); icon style reference, shrunk to 16x16"
 	}
 }
