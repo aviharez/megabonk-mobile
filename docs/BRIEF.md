@@ -245,7 +245,7 @@ Technical rules:
 
 ## Assets, audio, and VFX
 
-Every asset follows one locked palette (picked from Lospec), a 180×320 portrait base resolution (the run's world view is 1.5× wider, like Survivor.io: owner change 2026-10-09) (the minimum view; taller screens see more of the map), and character and enemy sprites of roughly 16×16 to 24×24.
+Every asset follows one locked palette (picked from Lospec), a 180×320 portrait base resolution (the run's world view is 2× wider, like Survivor.io: owner change 2026-10-09) (the minimum view; taller screens see more of the map), and character and enemy sprites of roughly 16×16 to 24×24.
 
 ### Asset sources
 
@@ -332,7 +332,7 @@ The full spec is in docs/BRIEF.md. The brief is the source of truth for content 
 - End every run with three headings: Blocked on me, Changed, Found. Mark anything you couldn't confirm, and say where you looked.
 
 ## Technical rules
-- Godot 4.7, GDScript, Compatibility renderer, portrait 180x320 minimum view (stretch aspect expand: taller screens see more), canvas_items stretch mode (world view 1.5x wider during runs), integer scaling, Nearest texture filter.
+- Godot 4.7, GDScript, Compatibility renderer, portrait 180x320 minimum view (stretch aspect expand: taller screens see more), canvas_items stretch mode (world view 2x wider during runs), integer scaling, Nearest texture filter.
 - All content is data in data/. Adding content must not require code changes.
 - Stats are base value + modifiers. Item effects use event hooks (on_hit, on_kill, on_damaged, etc.).
 - Pool enemies, projectiles, gems, damage numbers, and particles. Max about 300 enemies on screen.
