@@ -1,7 +1,7 @@
 class_name ThumbStick
 extends Control
-## One-thumb floating joystick: the base appears where the thumb lands, the
-## knob follows the drag (clamped to RADIUS). `direction` is 0..1 in length,
+## One-thumb floating joystick: the base (UI kit "stick_base") appears where
+## the thumb lands, the knob ("stick_knob") follows the drag (clamped to RADIUS). `direction` is 0..1 in length,
 ## zero inside the dead zone. Mouse works too (touch emulation is on).
 ## Keyboard (WASD / arrows) is a desktop fallback, used when no thumb is down.
 
@@ -70,6 +70,10 @@ func _notification(what: int) -> void:
 
 func _draw() -> void:
 	if _touch < 0:
+		return
+	if UiArt.has("stick_base") and UiArt.has("stick_knob"):
+		UiArt.sprite(self, "stick_base", (_base - Vector2(UiArt.sprite_size("stick_base")) / 2.0).round())
+		UiArt.sprite(self, "stick_knob", (_knob - Vector2(UiArt.sprite_size("stick_knob")) / 2.0).round())
 		return
 	var ink := Palette.color(Palette.INK)
 	var ring := Palette.color(Palette.MIST)

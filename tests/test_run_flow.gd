@@ -138,7 +138,7 @@ func test_pause_button_on_screen(t) -> void:
 	# iOS has no back key: the HUD's pause button pauses, RESUME continues.
 	var run := _start(t, {"invincible": true, "no_spawns": true})
 	await t.process_frame
-	var btn: ActionButton = run.find_child("PauseButton", true, false)
+	var btn: BaseButton = run.find_child("PauseButton", true, false)
 	t.check(btn != null and btn.visible, "pause button in the run UI")
 	btn.pressed.emit()
 	t.check(run.state == "paused" and run.get_tree().paused, "it pauses the run (state=%s)" % run.state)

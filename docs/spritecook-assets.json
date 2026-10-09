@@ -208,5 +208,20 @@
 		"asset_id": "ddb1d07f-e5f1-4936-98f0-a4fe29c61766",
 		"sha12": "59e325993cad",
 		"label": "UI kit 1 component sheet (2048x2048, transparent): buttons, window, ribbon, tag, tiles, pips, toggles, coin, padlock, dot...; tools/art/ui_kit.py -> assets/ui/"
+	},
+	"ui_kit2": {
+		"asset_id": "43fb078e-1116-41f3-802b-dc929f0cd795",
+		"sha12": "",
+		"label": "UI kit 2 (in-run, child of kit 1), gpt-image-2 2K, hud; kit id (not an asset). Extracted (free), not finalized"
+	},
+	"ui_kit2_concept": {
+		"asset_id": "3813bb0f-5c06-4fb3-9a02-9ff6ea119692",
+		"sha12": "13113c341cc5",
+		"label": "UI kit 2 concept (run HUD + LEVEL UP overlay, 1152x2048); selected"
+	},
+	"ui_kit2_sheet1": {
+		"asset_id": "7b7b8904-045d-42f7-806f-d9310542cccb",
+		"sha12": "788b111365bd",
+		"label": "UI kit 2 component sheet (2048x2048): bars + fills, name plate, banner, cards, NEW badge, action buttons, pause, joystick, arrow, icons; tools/art/ui_kit.py (second sheet argument) -> assets/ui/"
 	}
 }

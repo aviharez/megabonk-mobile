@@ -48,6 +48,7 @@ func _initialize() -> void:
 	vp.add_child(run)
 	await process_frame
 	run.owned_tomes["think_big"] = 1
+	run.charges = {"reroll": 2, "skip": 1, "banish": 0}
 	run._open_level_up()
 	for i in 4:
 		await process_frame
@@ -64,6 +65,20 @@ func _initialize() -> void:
 	stick._knob = Vector2(102, 244)
 	stick.queue_redraw()
 	await _frame(vp, out + "/hud.png")
+	# Rarer HUD parts: boss bar + name plate, banner, key, shield; frozen so the run doesn't overwrite them.
+	run.interactables.has_key = true
+	run.shield = 20.0
+	run._hud.banner("SWARM INCOMING!", Palette.BUTTER, 99.0)
+	await _frames(2)
+	paused = true
+	run._hud.boss_frac = 0.6
+	run._hud.boss_name = "MEGA MOLE"
+	run._hud.queue_redraw()
+	await _frame(vp, out + "/hud_boss.png")
+	run._hud.boss_frac = -1.0
+	paused = false
+	run._hud.banner("", Palette.BUTTER, 0.0)
+	run.shield = 0.0
 	run._pause(true)
 	await _frame(vp, out + "/pause.png")
 	run._pause(false)
@@ -74,6 +89,19 @@ func _initialize() -> void:
 	run.state = "live"
 	run._end("gave_up")
 	await _frame(vp, out + "/results.png")
+	# The real window (540x960: UI 3x, world 2x), as the game shows it: the
+	# shots above squeeze the world view into the 180x320 frame.
+	run.queue_free()
+	Run.next_options = {"no_spawns": true, "no_save": true, "invincible": true, "seed": 3}
+	var live: Run = load("res://scenes/run.tscn").instantiate()
+	root.add_child(live)
+	for i in 3:
+		await process_frame
+	live.hp = live.stat("max_hp") * 0.6
+	for i in 4:
+		await process_frame
+	await RenderingServer.frame_post_draw
+	root.get_texture().get_image().save_png(out + "/hud_window.png")
 	print("render_ui: saved to %s" % ProjectSettings.globalize_path(out))
 	quit()
 
@@ -87,6 +115,11 @@ func _viewport() -> SubViewport:
 	vp.transparent_bg = false
 	root.add_child(vp)
 	return vp
+
+
+func _frames(n: int) -> void:
+	for i in n:
+		await process_frame
 
 
 func _frame(vp: SubViewport, path: String) -> void:

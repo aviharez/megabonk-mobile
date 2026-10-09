@@ -1,0 +1,14 @@
+[remap]
+
+importer="image"
+type="Image"
+uid="uid://dmlgx770pltpd"
+path="res://.godot/imported/heart.png-3f1f80c56a1ca447e0349f7dd68592e0.image"
+
+[deps]
+
+source_file="res://assets/ui/heart.png"
+dest_files=["res://.godot/imported/heart.png-3f1f80c56a1ca447e0349f7dd68592e0.image"]
+
+[params]
+

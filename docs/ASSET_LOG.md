@@ -44,8 +44,9 @@ SpriteCook credits (Starter plan, 800 per month). Ask before every generation. N
 | 2026-10-09 | Water sheet: pool, pond, lily pads, reeds | generate_game_art, NB2.1 1K, pixel, 1 image (2x2 sheet, 64px hint, smart crop off), palette colors passed, style refs sheets A + C + house | 12 | 12 | asset `09762765-cb69-4972-8992-cad4e2270002`. 68x68; cut at native size by `tools/art/water.py`. Pool 28x24 -> 9-slice template `assets/props/pool.png` (36x29, map "slice"); pond used as the style for the code-drawn pond (any size); lily pads 16x15 and reeds 15x17 stamped on it (map "decor"). Balance after: 240 |
 | 2026-10-09 | UI kit 1 (menus): 2 concepts of PICK A HERO | create_ui_kit (gpt-image-2, 2K, mobile 9:16, complete-states, style refs Sir Loaf + Baguette + house: max 3) + generate_ui_kit_concepts count 2 | 14 | 14 | kit `988d8330-a356-46cd-b8eb-4c936dabfa1e`, jobs `4d8fced0`, `ced4c50d`. 7 credits per concept (kit "credits.used" 14). Owner approved the two-kit plan (49 total). Balance after: 226 |
 | 2026-10-09 | UI kit 1: component sheet 1 from concept B | select_ui_kit_concept `eb90e23a` (owner picked B) + generate_ui_kit_component_sheets (sheet_count 2 asked, but focus_notes make it one sheet) | 7 | 9 | kit `988d8330`, job `518031f2`. Sheets cost 9, not 7 (kit "credits.used" 14 -> 23). Concept A `99dccf86` not used. One sheet covered all of kit 1, so no second sheet. extract_ui_kit_components was free (balance unchanged); finalize skipped (parts cut locally by `tools/art/ui_kit.py` into `assets/ui/`). Balance after: 217 |
+| 2026-10-09 | UI kit 2 (in-run, child of kit 1): 1 concept + 1 component sheet | create_ui_kit (parent `988d8330`, gpt-image-2 2K, hud, style refs concept B + kit 1 sheet + Sir Loaf) + generate_ui_kit_concepts count 1 + select + generate_ui_kit_component_sheets 1 | 16 | 16 | kit `43fb078e-1116-41f3-802b-dc929f0cd795`, concept `3813bb0f`, jobs `74746633`, `254c4e03`. Extract free, finalize skipped (cut locally into `assets/ui/`). Kit 1 + 2: 39 of the 49 approved. Balance after: 201 |
 
-**Running total:** 583
+**Running total:** 599
 
 ## Non-SpriteCook placeholders
 

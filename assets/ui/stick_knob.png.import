@@ -1,0 +1,14 @@
+[remap]
+
+importer="image"
+type="Image"
+uid="uid://spjy515ar18h"
+path="res://.godot/imported/stick_knob.png-0654ddd9fca5a2b858cee075f699042a.image"
+
+[deps]
+
+source_file="res://assets/ui/stick_knob.png"
+dest_files=["res://.godot/imported/stick_knob.png-0654ddd9fca5a2b858cee075f699042a.image"]
+
+[params]
+

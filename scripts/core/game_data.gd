@@ -342,6 +342,13 @@ func _cross_check() -> void:
 				ok = false
 		if ok:
 			_check_map(m)
+	var hp_bar = entries.rules.get("run", {}).get("player_hp_bar")
+	if hp_bar != null:
+		var ok: bool = hp_bar is Dictionary
+		for k: String in ["width", "height", "gap"]:
+			ok = ok and typeof(hp_bar.get(k)) == TYPE_FLOAT and hp_bar[k] >= 0.0
+		if not ok or hp_bar.height < 3.0 or hp_bar.width < 3.0:
+			errors.append("%s: \"player_hp_bar\" needs numbers \"width\" and \"height\" (3 or more) and \"gap\"" % entries.rules.run._file)
 	_check_ads(entries.rules.get("ads", {}))
 	_check_store(entries.rules.get("store", {}))
 	var bills: Dictionary = entries.rules.get("bills", {})

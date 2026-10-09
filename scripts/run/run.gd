@@ -115,7 +115,7 @@ var end_reason := ""
 var boss: MegaMole
 var boss_summoned := false
 var boss_defeated := false
-var _pause_btn: ActionButton
+var _pause_btn: SpriteButton
 ## Time the last _process (logic + render prep) took, for the stress test.
 var last_frame_usec := 0
 ## With options.profile: microseconds per section of the last frame.
@@ -1113,12 +1113,13 @@ func _show_cards() -> void:
 		b.visible = i < _cards.size()
 		if b.visible:
 			var card: Dictionary = _cards[i]
-			b.label = "\n".join(LevelUpCards.describe(card))
+			# "NEW!" goes on the card's badge plate instead of the text.
+			var lines := Array(LevelUpCards.describe(card)).map(func(l: String) -> String: return l.replace("  NEW!", ""))
+			b.label = "\n".join(lines)
+			b.badge = "NEW!" if card.get("is_new", false) else ""
 			b.art = Icons.texture(db, card.kind + "s", card.id) if card.kind in ["weapon", "tome"] else null
-			b.face = {"weapon": Palette.GOLD, "tome": Palette.SKY}.get(card.kind, Palette.MIST)
 			b.disabled = _banish_mode and not _can_banish(card)
-			if _banish_mode and not b.disabled:
-				b.face = Palette.SALMON
+			b.ink = Palette.SALMON if _banish_mode and not b.disabled else Palette.PAPER
 	for a: String in _action_buttons:
 		var ab: ActionButton = _action_buttons[a]
 		ab.charges = charges.get(a, 0)
@@ -1127,7 +1128,7 @@ func _show_cards() -> void:
 		ab.ad = ab.charges <= 0
 		ab.visible = ab.charges > 0 or _ad_offer(a)
 		ab.disabled = _ad_busy()
-		ab.face = Palette.RED if a == "banish" and _banish_mode else Palette.MIST
+		ab.ink = Palette.SALMON if a == "banish" and _banish_mode else Palette.PAPER
 
 
 func _on_card(i: int) -> void:
@@ -1905,6 +1906,7 @@ func _make_particles() -> CPUParticles2D:
 
 func _draw_player() -> void:
 	var v := _player_view
+	_draw_player_hp_bar(v)
 	# Blink during i-frames.
 	if _iframes > 0.0 and int(_iframes * 20.0) % 2 == 0:
 		return
@@ -1922,6 +1924,27 @@ func _draw_player() -> void:
 	v.draw_rect(Rect2(-3, -7, 6, 4), Palette.color(Palette.MIST))
 	v.draw_rect(Rect2(1 if not flip else -3, -6, 2, 1), ink)
 	v.draw_rect(Rect2(-1, -10, 2, 2), Palette.color(Palette.RED))  # plume
+
+
+## Small HP bar under the hero's feet, in world pixels (rules "player_hp_bar":
+## width, height, gap below the feet): INK outline, BLOOD track, GREEN fill
+## (RED under 30%), shield as a SKY line on top. Drawn while blinking too.
+func _draw_player_hp_bar(v: Node2D) -> void:
+	var cfg: Dictionary = rules.get("player_hp_bar", {})
+	if cfg.is_empty():
+		return
+	var w := int(cfg.get("width", 16))
+	var h := int(cfg.get("height", 4))
+	var top := Vector2(-w / 2, ceilf(player_radius()) + int(cfg.get("gap", 2)))
+	var f := clampf(hp / stat("max_hp"), 0.0, 1.0)
+	v.draw_rect(Rect2(top, Vector2(w, h)), Palette.color(Palette.INK))
+	v.draw_rect(Rect2(top + Vector2.ONE, Vector2(w - 2, h - 2)), Palette.color(Palette.BLOOD))
+	var fw := floorf((w - 2) * f)
+	if fw > 0.0:
+		v.draw_rect(Rect2(top + Vector2.ONE, Vector2(fw, h - 2)), Palette.color(Palette.RED if f < 0.3 else Palette.GREEN))
+	if shield > 0.0:
+		var sw := floorf((w - 2) * clampf(shield / stat("max_hp"), 0.0, 1.0))
+		v.draw_rect(Rect2(top + Vector2.ONE, Vector2(sw, 1)), Palette.color(Palette.SKY))
 
 
 ## The clip the player sprite shows now: hit once after a hit, then walk
@@ -1960,19 +1983,16 @@ func _build_ui() -> void:
 	_hud = Hud.new()
 	_hud.world_zoom = float(world_scale) / float(ui_scale)
 	ui.add_child(_hud)
-	# Pause on screen (iOS has no back key), top right under the gold.
-	_pause_btn = ActionButton.new()
+	# Pause on screen (iOS has no back key), top right under the HUD rows.
+	_pause_btn = SpriteButton.new()
 	_pause_btn.name = "PauseButton"
-	_pause_btn.glyph = "pause"
-	_pause_btn.show_count = false
-	_pause_btn.face = Palette.MIST
+	_pause_btn.part = "pause"
 	_pause_btn.anchor_left = 1.0
 	_pause_btn.anchor_right = 1.0
-	_pause_btn.offset_left = -18
+	_pause_btn.offset_left = -21
 	_pause_btn.offset_right = -2
-	_pause_btn.offset_top = 32
-	_pause_btn.offset_bottom = 50
-	_pause_btn.custom_minimum_size = Vector2(16, 18)
+	_pause_btn.offset_top = Hud.PAUSE_Y
+	_pause_btn.offset_bottom = Hud.PAUSE_Y + 21
 	_pause_btn.pressed.connect(_pause.bind(true))
 	ui.add_child(_pause_btn)
 
@@ -1996,6 +2016,9 @@ func _build_ui() -> void:
 		b.custom_minimum_size = Vector2(160, 58)
 		b.size = b.custom_minimum_size
 		b.art_above = true
+		b.frame = "card"
+		b.pressed_frame = "card_gold"
+		b.ink = Palette.PAPER
 		b.pressed.connect(_on_card.bind(i))
 		_cards_panel.add_child(b)
 		_card_buttons.append(b)

@@ -1,0 +1,14 @@
+[remap]
+
+importer="image"
+type="Image"
+uid="uid://dpemlbw32jmt"
+path="res://.godot/imported/xmark.png-f6a8dc524923acaefd3af91c6e0b3f9c.image"
+
+[deps]
+
+source_file="res://assets/ui/xmark.png"
+dest_files=["res://.godot/imported/xmark.png-f6a8dc524923acaefd3af91c6e0b3f9c.image"]
+
+[params]
+

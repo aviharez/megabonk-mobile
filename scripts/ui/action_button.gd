@@ -44,6 +44,9 @@ const ICONS := {
 	],
 }
 
+## UI kit icons per glyph (the pixel glyphs above are the fallback).
+const SPRITES := {"reroll": "die", "skip": "ffwd", "banish": "xmark"}
+
 @export var glyph := "reroll":
 	set(v):
 		glyph = v
@@ -67,6 +70,9 @@ var ad := false:
 func _ready() -> void:
 	super._ready()
 	label = ""
+	frame = "action"
+	pressed_frame = "action_pressed"
+	ink = Palette.PAPER
 
 
 func _draw() -> void:
@@ -77,12 +83,17 @@ func _draw() -> void:
 	var ink_c := Palette.color(Palette.SHADE if disabled else ink)
 	var top := y + (h - 7) / 2
 	var rows: Array = ICONS.get(glyph, [])
-	var left := 5 if show_count or rows.is_empty() else (int(size.x) - String(rows[0]).length()) / 2
-	for r in rows.size():
-		var row: String = rows[r]
-		for c in row.length():
-			if row[c] == "X":
-				draw_rect(Rect2i(left + c, top + r, 1, 1), ink_c)
+	var sprite: String = SPRITES.get(glyph, "")
+	if sprite != "" and UiArt.has(sprite):
+		var ss := UiArt.sprite_size(sprite)
+		UiArt.sprite(self, sprite, Vector2(5, y + floorf((h - 2 - ss.y) / 2.0)))
+	else:
+		var left := 5 if show_count or rows.is_empty() else (int(size.x) - String(rows[0]).length()) / 2
+		for r in rows.size():
+			var row: String = rows[r]
+			for c in row.length():
+				if row[c] == "X":
+					draw_rect(Rect2i(left + c, top + r, 1, 1), ink_c)
 	if not show_count:
 		return
 	var font := get_theme_default_font()

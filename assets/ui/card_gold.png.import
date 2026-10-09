@@ -1,0 +1,14 @@
+[remap]
+
+importer="image"
+type="Image"
+uid="uid://bx1m16u7o431"
+path="res://.godot/imported/card_gold.png-bcc7dcb624be6686338a5446e5b7d7bc.image"
+
+[deps]
+
+source_file="res://assets/ui/card_gold.png"
+dest_files=["res://.godot/imported/card_gold.png-bcc7dcb624be6686338a5446e5b7d7bc.image"]
+
+[params]
+

@@ -78,6 +78,7 @@ func test_phase3_bad_data_is_caught(t) -> void:
 		["maps/sewers.json", func(d: Dictionary) -> void: d.status = "unlock", "sewers.json: missing \"size\""],
 		["maps/suburbia.json", func(d: Dictionary) -> void: d.thumb = "res://nope.png", "thumbnail \"res://nope.png\" not found"],
 		["characters/gary.json", func(d: Dictionary) -> void: d.role = 3, "gary.json: \"role\" must be text"],
+		["rules/run.json", func(d: Dictionary) -> void: d.player_hp_bar.height = 2, "\"player_hp_bar\" needs numbers"],
 	]
 	for c: Array in cases:
 		_wipe(BAD)

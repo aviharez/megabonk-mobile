@@ -45,6 +45,22 @@ var toggle := -1:
 	set(v):
 		toggle = v
 		queue_redraw()
+## The UI kit frame: "button" (riveted plate recolored to `face`, the small
+## one when it doesn't fit) or another 9-slice part drawn as is ("card",
+## "action"); `pressed_frame` replaces it while pressed ("card_gold").
+var frame := "button":
+	set(v):
+		frame = v
+		queue_redraw()
+var pressed_frame := "":
+	set(v):
+		pressed_frame = v
+		queue_redraw()
+## Text on a small purple plate (UiArt "new_badge") at the top-right, "" none.
+var badge := "":
+	set(v):
+		badge = v
+		queue_redraw()
 ## Subclasses that draw their own label (AdButton) set this.
 var _own_label := false
 
@@ -67,7 +83,12 @@ func _draw() -> void:
 
 	# The UI kit's riveted button (UiArt), recolored to the face; the plain
 	# box when the button is smaller than the art.
-	var part := "button" if UiArt.fits("button", Vector2(w, h)) else ("button_small" if UiArt.fits("button_small", Vector2(w, h)) else "")
+	var part := ""
+	if frame != "button":
+		var f := pressed_frame if sunk and pressed_frame != "" else frame
+		part = f if UiArt.fits(f, Vector2(w, h)) else ""
+	else:
+		part = "button" if UiArt.fits("button", Vector2(w, h)) else ("button_small" if UiArt.fits("button_small", Vector2(w, h)) else "")
 	if part != "":
 		UiArt.draw(self, part, Rect2(0, y, w, h), Palette.GRAY if off else face, -1, 0 if sunk else SHADOW)
 	else:
@@ -96,6 +117,13 @@ func _draw() -> void:
 		else:
 			left = at.x + ContentIcon.SIZE + 1
 
+	if badge != "" and UiArt.has("new_badge"):
+		var bf := get_theme_default_font()
+		var bfs := get_theme_default_font_size()
+		var bw := int(bf.get_string_size(badge, HORIZONTAL_ALIGNMENT_LEFT, -1, bfs).x) + 6
+		var bx := w - bw - 3
+		UiArt.draw(self, "new_badge", Rect2(bx, y + 3, bw, 9))
+		draw_string(bf, Vector2(bx + 3, y + 4 + bf.get_ascent(bfs)), badge, HORIZONTAL_ALIGNMENT_LEFT, -1, bfs, Palette.color(Palette.PAPER))
 	var right := 0
 	if toggle >= 0:
 		var sw := "toggle_on" if toggle == 1 else "toggle_off"

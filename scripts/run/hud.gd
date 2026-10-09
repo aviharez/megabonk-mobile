@@ -4,7 +4,14 @@ extends Control
 ## plus the run-flow parts: big banners (SWARM INCOMING, FINAL SWARM), the
 ## boss HP bar, the Final Swarm coin multiplier, a running challenge shrine,
 ## the cage key, and arrows at the screen edge pointing at things out of view.
-## Bars are drawn as palette rects; text uses the pixel font labels.
+## Art from the UI kit (UiArt): bar frames with ramp fills, heart, clock,
+## skull, coin and key icons, the boss name plate and the banner plate.
+## Text uses the pixel font labels.
+##
+##   y 0-11   XP bar, full width
+##   y 13-26  heart + HP bar | clock + timer | coin + gold
+##   y 27-36  "LV n  hp/max"               | skull + kills
+##   y 38-58  key (left)                   | pause button (Run, PAUSE_Y)
 
 var hp := 1.0
 var hp_max := 1.0
@@ -14,6 +21,10 @@ var shield := 0.0
 var gold := 0
 
 const TOAST_TIME := 1.6
+## Top of the pause button Run puts on the right (under the HUD rows).
+const PAUSE_Y := 38
+const XP_H := 12
+const HP_BAR := Rect2(17, 14, 54, 12)
 const BANNER_TIME := 3.0
 
 ## Boss bar: 0..1, or -1 when there's no boss.
@@ -50,16 +61,18 @@ var _time := 0.0
 func _ready() -> void:
 	set_anchors_and_offsets_preset(PRESET_FULL_RECT)
 	mouse_filter = MOUSE_FILTER_IGNORE
-	_level = _label(Vector2(2, 6), HORIZONTAL_ALIGNMENT_LEFT)
-	_timer = _label(Vector2(0, 6), HORIZONTAL_ALIGNMENT_CENTER)
-	_kills = _label(Vector2(0, 6), HORIZONTAL_ALIGNMENT_RIGHT)
-	_hp_text = _label(Vector2(2, 22), HORIZONTAL_ALIGNMENT_LEFT)
+	_level = _label(Vector2(2, 28), HORIZONTAL_ALIGNMENT_LEFT)
+	_level.add_theme_color_override("font_color", Palette.color(Palette.BUTTER))
+	_hp_text = _label(Vector2(30, 28), HORIZONTAL_ALIGNMENT_LEFT)
 	_hp_text.add_theme_color_override("font_color", Palette.color(Palette.PAPER))
-	_gold = _label(Vector2(0, 22), HORIZONTAL_ALIGNMENT_RIGHT)
+	# Timer centered with the clock left of it (offset by half the clock).
+	_timer = _label(Vector2(8, 16), HORIZONTAL_ALIGNMENT_CENTER)
+	_gold = _label(Vector2(0, 16), HORIZONTAL_ALIGNMENT_RIGHT)
 	_gold.add_theme_color_override("font_color", Palette.color(Palette.GOLD))
-	_toast = _label(Vector2(0, 40), HORIZONTAL_ALIGNMENT_CENTER)
+	_kills = _label(Vector2(0, 28), HORIZONTAL_ALIGNMENT_RIGHT)
+	_toast = _label(Vector2(0, 50), HORIZONTAL_ALIGNMENT_CENTER)
 	_toast.hide()
-	_info = _label(Vector2(0, 30), HORIZONTAL_ALIGNMENT_CENTER)
+	_info = _label(Vector2(0, 40), HORIZONTAL_ALIGNMENT_CENTER)
 	# Banner: 2x text, centered a third of the way down the screen.
 	_banner = Label.new()
 	_banner.anchor_top = 0.3
@@ -73,6 +86,7 @@ func _ready() -> void:
 	_banner.add_theme_constant_override("shadow_offset_y", 1)
 	_banner.hide()
 	add_child(_banner)
+	UiArt.ribbon_behind(_banner, "banner", 22, 24)
 
 
 ## Big flashing text across the screen for a few seconds.
@@ -111,9 +125,9 @@ func set_values(level: int, seconds_left: float, kills: int) -> void:
 		var a := absi(sec)
 		_timer.text = ("+" if sec < 0 else "") + "%d:%02d" % [a / 60, a % 60]
 		_timer.add_theme_color_override("font_color", Palette.color(Palette.PINK if sec < 0 else Palette.PAPER))
-	_kills.text = "KO %d" % kills
+	_kills.text = "%d" % kills
 	_hp_text.text = "%d/%d" % [ceili(hp), roundi(hp_max)]
-	_gold.text = "G %d" % gold
+	_gold.text = "%d" % gold
 	var info := ""
 	if not challenge.is_empty():
 		info = "KILL %d  %dS" % challenge
@@ -125,39 +139,46 @@ func set_values(level: int, seconds_left: float, kills: int) -> void:
 
 
 func _draw() -> void:
-	var ink := Palette.color(Palette.INK)
-	# XP bar: full width, 4px tall.
 	var w := floorf(size.x)
-	draw_rect(Rect2(0, 0, w, 5), ink)
-	draw_rect(Rect2(1, 1, w - 2, 3), Palette.color(Palette.NIGHT))
-	var xw := floorf((w - 2) * clampf(xp / xp_need, 0.0, 1.0))
-	draw_rect(Rect2(1, 1, xw, 3), Palette.color(Palette.SKY))
-	# HP bar under the top row.
-	draw_rect(Rect2(2, 16, 52, 5), ink)
-	draw_rect(Rect2(3, 17, 50, 3), Palette.color(Palette.BLOOD))
-	var hw := floorf(50.0 * clampf(hp / hp_max, 0.0, 1.0))
-	draw_rect(Rect2(3, 17, hw, 3), Palette.color(Palette.RED if hp / hp_max < 0.3 else Palette.GREEN))
-	# Shield: a sky line over the HP bar, as a share of max HP.
+	UiArt.bar(self, "bar", Rect2(0, 0, w, XP_H), xp / xp_need, Palette.BLUE)
+	# HP: heart, bar (RED under 30%), shield as a SKY line on the fill's top row.
+	UiArt.sprite(self, "heart", Vector2(1, 13))
+	var hf := clampf(hp / hp_max, 0.0, 1.0)
+	UiArt.bar(self, "bar", HP_BAR, hf, Palette.RED if hf < 0.3 else Palette.GREEN)
 	if shield > 0.0:
-		var sw := floorf(50.0 * clampf(shield / hp_max, 0.0, 1.0))
-		draw_rect(Rect2(3, 17, sw, 1), Palette.color(Palette.SKY))
+		var inner := HP_BAR.grow(-4)
+		draw_rect(Rect2(inner.position, Vector2(floorf(inner.size.x * clampf(shield / hp_max, 0.0, 1.0)), 1)), Palette.color(Palette.SKY))
+	# Icons beside the right-aligned / centered numbers.
+	var fs := 8
+	var tw := _FONT.get_string_size(_timer.text, HORIZONTAL_ALIGNMENT_LEFT, -1, fs).x
+	UiArt.sprite(self, "clock", Vector2(floorf((w + 8 - tw) / 2.0) - 16, 13))
+	_icon_left_of(_gold, "coin", 13)
+	_icon_left_of(_kills, "skull", 25)
 	if has_key:
-		draw_texture(PlaceholderArt.texture("key", Palette.GOLD), Vector2(58, 15))
-	# Boss bar along the bottom.
+		UiArt.sprite(self, "key", Vector2(2, PAUSE_Y + 2))
+	# Boss bar along the bottom, its name on the red plate above it.
 	if boss_frac >= 0.0:
-		var y := floorf(size.y) - 12.0
-		draw_rect(Rect2(10, y, w - 20, 6), ink)
-		draw_rect(Rect2(11, y + 1, w - 22, 4), Palette.color(Palette.WINE))
-		draw_rect(Rect2(11, y + 1, floorf((w - 22) * boss_frac), 4), Palette.color(Palette.RED))
-		draw_string(_FONT, Vector2(floorf(w / 2.0) - floorf(_FONT.get_string_size(boss_name, HORIZONTAL_ALIGNMENT_LEFT, -1, 8).x / 2.0), y - 2), boss_name, HORIZONTAL_ALIGNMENT_LEFT, -1, 8, Palette.color(Palette.PAPER))
+		var y := floorf(size.y) - 16.0
+		UiArt.bar(self, "boss_bar", Rect2(8, y, w - 16, 12), boss_frac, Palette.RED)
+		var nw := _FONT.get_string_size(boss_name, HORIZONTAL_ALIGNMENT_LEFT, -1, fs).x
+		var px := floorf((w - nw - 10) / 2.0)
+		UiArt.draw(self, "name_plate", Rect2(px, y - 11, nw + 10, 11))
+		draw_string(_FONT, Vector2(px + 5, y - 3), boss_name, HORIZONTAL_ALIGNMENT_LEFT, -1, fs, Palette.color(Palette.PAPER))
 	_draw_arrows()
+
+
+## A UI kit icon just left of a right-aligned label's text.
+func _icon_left_of(l: Label, part: String, y: float) -> void:
+	var tw := _FONT.get_string_size(l.text, HORIZONTAL_ALIGNMENT_LEFT, -1, 8).x
+	var s := UiArt.sprite_size(part)
+	UiArt.sprite(self, part, Vector2(floorf(size.x) - 2 - tw - 2 - s.x, y))
 
 
 ## Arrows at the screen edge for targets outside the view. Inset below the
 ## top bars and above the boss bar.
 func _draw_arrows() -> void:
 	var view := Rect2(Vector2.ZERO, size)
-	var inner := Rect2(Vector2(6, 34), size - Vector2(12, 52))
+	var inner := Rect2(Vector2(6, 62), size - Vector2(12, 86))
 	var center := size / 2.0
 	for a: Dictionary in arrows:
 		var sp: Vector2 = (a.pos - view_center) * world_zoom + center

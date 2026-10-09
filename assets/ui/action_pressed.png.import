@@ -1,0 +1,14 @@
+[remap]
+
+importer="image"
+type="Image"
+uid="uid://i15ghotuexgx"
+path="res://.godot/imported/action_pressed.png-7b3553d6d5c495024800dd5aeaab5dd9.image"
+
+[deps]
+
+source_file="res://assets/ui/action_pressed.png"
+dest_files=["res://.godot/imported/action_pressed.png-7b3553d6d5c495024800dd5aeaab5dd9.image"]
+
+[params]
+

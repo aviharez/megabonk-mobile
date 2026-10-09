@@ -118,9 +118,25 @@ static func sprite_size(part: String) -> Vector2i:
 	return img.get_size() if img != null else Vector2i.ZERO
 
 
-## Puts the kit's red ribbon behind a (2x) title label, as wide as its text
-## (it follows text changes), 20px tall, centered on the text.
-static func ribbon_behind(label: Label) -> Control:
+## A bar: the 9-slice frame `part`, filled `frac` of its inside (`inset` px
+## from each edge) in `fill_face`'s ramp: light top row, face, dark bottom row.
+static func bar(ci: CanvasItem, part: String, rect: Rect2, frac: float, fill_face: int, inset := 4) -> void:
+	draw(ci, part, rect)
+	var inner := rect.grow(-inset)
+	var fw := floorf(inner.size.x * clampf(frac, 0.0, 1.0))
+	if fw <= 0.0 or inner.size.y <= 0.0:
+		return
+	var r := ramp(fill_face)
+	ci.draw_rect(Rect2(inner.position, Vector2(fw, inner.size.y)), r[1])
+	ci.draw_rect(Rect2(inner.position, Vector2(fw, 1)), r[0])
+	if inner.size.y > 2.0:
+		ci.draw_rect(Rect2(inner.position + Vector2(0, inner.size.y - 1), Vector2(fw, 1)), r[2])
+
+
+## Puts a kit plate (the red title ribbon by default) behind a (2x) label, as
+## wide as its text plus `pad` (it follows text changes), `height` px tall,
+## centered on the text.
+static func ribbon_behind(label: Label, part := "ribbon", height := 20, pad := 34) -> Control:
 	var r := Control.new()
 	r.mouse_filter = Control.MOUSE_FILTER_IGNORE
 	r.draw.connect(func() -> void:
@@ -130,9 +146,9 @@ static func ribbon_behind(label: Label) -> Control:
 		var fs := label.get_theme_font_size("font_size")
 		var tw := font.get_string_size(label.text, HORIZONTAL_ALIGNMENT_LEFT, -1, fs).x * label.scale.x
 		var cx := label.position.x + label.size.x * label.scale.x / 2.0
-		var rw := tw + 34
-		var top := label.position.y + floorf((font.get_height(fs) * label.scale.y - 20) / 2.0)
-		draw(r, "ribbon", Rect2(floorf(cx - rw / 2.0), top, rw, 20)))
+		var rw := tw + pad
+		var top := label.position.y + floorf((font.get_height(fs) * label.scale.y - height) / 2.0)
+		draw(r, part, Rect2(floorf(cx - rw / 2.0), top, rw, height)))
 	label.add_sibling(r)
 	label.get_parent().move_child(r, label.get_index())
 	# The label redraws when its text, size or visibility changes: follow it.

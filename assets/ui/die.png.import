@@ -1,0 +1,14 @@
+[remap]
+
+importer="image"
+type="Image"
+uid="uid://pfm1ptc81gtl"
+path="res://.godot/imported/die.png-f14f889246e205fb19bda6266fe7c046.image"
+
+[deps]
+
+source_file="res://assets/ui/die.png"
+dest_files=["res://.godot/imported/die.png-f14f889246e205fb19bda6266fe7c046.image"]
+
+[params]
+
