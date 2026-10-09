@@ -104,3 +104,27 @@ func test_card_text_fits_with_the_icon_above(t) -> void:
 							widest = w
 							line_max = line
 	t.check(widest <= 160 - 6, "widest card line '%s' is %d px" % [line_max, widest])
+
+
+func test_map_house_sprite_and_roof_colors(t) -> void:
+	var map_def := db.get_entry("maps", "suburbia")
+	var ml := MapLayout.new()
+	ml.setup(map_def)
+	var red := ml._sprite_for({"kind": "house", "color": "RED"})
+	var blue := ml._sprite_for({"kind": "house", "color": "BLUE"})
+	t.check(red != null and red.get_size() == Vector2i(34, 34), "house sprite loads (34x34)")
+	var counts := func(img: Image, idx: int) -> int:
+		var n := 0
+		for y in img.get_height():
+			for x in img.get_width():
+				n += int(img.get_pixel(x, y).a > 0.0 and img.get_pixel(x, y) == Palette.color(idx))
+		return n
+	t.check(counts.call(red, Palette.RED) > 20, "red roof drawn as is")
+	t.check(counts.call(blue, Palette.RED) == 0 and counts.call(blue, Palette.SALMON) == 0, "blue house has no red roof left")
+	t.check(counts.call(blue, Palette.BLUE) == counts.call(red, Palette.RED), "every RED roof pixel became BLUE")
+	t.check(ml._sprite_for({"kind": "house", "color": "BLUE"}) == blue, "recolors are cached")
+	t.check(_on_palette(blue), "recolored house stays on the palette")
+	# A house sprite stands on its rect: bottom centre on bottom centre.
+	var r := Rect2(100, 50, 30, 26)
+	t.check(MapLayout._sprite_pos(r, red) == Vector2i(98, 42), "sprite position %s" % MapLayout._sprite_pos(r, red))
+	ml.free()

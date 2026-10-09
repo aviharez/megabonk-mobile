@@ -10,7 +10,8 @@ extends Node2D
 ## The whole map is baked once into one texture (one sprite to draw each
 ## frame instead of thousands of rects). Ground props go down first, then
 ## dithered shadows, then the solid props. Palette colors only, whole pixels.
-## Placeholder art until phase 6, but it should read as a real place.
+## Kinds named in the map's "prop_art" are drawn from a sprite instead (see
+## _sprite_for); every other kind is drawn in code.
 
 const CELL := 8
 ## Prop kinds the code can draw. true = solid (blocks walkers).
@@ -49,6 +50,8 @@ var near_wall := PackedByteArray()
 var _lawn_colors := [Palette.LEAF, Palette.DEEP_GREEN, Palette.GREEN]
 var _img: Image
 var _rng := RandomNumberGenerator.new()
+## kind -> {"image": Image, "ramp": [palette indices], "colors": {name: [indices]}}
+var _art := {}
 
 
 func setup(map_def: Dictionary) -> void:
@@ -56,6 +59,19 @@ func setup(map_def: Dictionary) -> void:
 	props = map_def.get("props", [])
 	var cols_def: Array = map_def.get("ground_colors", ["LEAF", "DEEP_GREEN", "GREEN"])
 	_lawn_colors = cols_def.map(func(c: String) -> int: return Palette.index_of(c))
+	_art = {}
+	var art_def: Dictionary = map_def.get("prop_art", {})
+	for kind: String in art_def:
+		var a: Dictionary = art_def[kind]
+		var img := _load_image(a.get("sprite", ""))
+		if img == null:
+			push_error("MapLayout: prop_art sprite for \"%s\" not found" % kind)
+			continue
+		var to_idx := func(names: Array) -> Array: return names.map(func(n: String) -> int: return Palette.index_of(n))
+		var colors := {}
+		for c: String in a.get("colors", {}):
+			colors[c] = to_idx.call(a.colors[c])
+		_art[kind] = {"image": img, "ramp": to_idx.call(a.get("ramp", [])), "colors": colors}
 	cols = int(ceil(bounds.size.x / CELL))
 	rows = int(ceil(bounds.size.y / CELL))
 	blocked.resize(cols * rows)
@@ -195,6 +211,10 @@ func bake() -> Image:
 func _draw_prop(p: Dictionary) -> void:
 	var r := rect_of(p)
 	_rng.seed = int(r.position.x * 131.0 + r.position.y * 7.0)
+	if _art.has(p.kind):
+		var img := _sprite_for(p)
+		_img.blend_rect(img, Rect2i(Vector2i.ZERO, img.get_size()), _sprite_pos(r, img))
+		return
 	match p.kind:
 		"yard": _yard(r)
 		"field": _field(r)
@@ -218,6 +238,47 @@ func _draw_prop(p: Dictionary) -> void:
 		"swing": _swing(r)
 		"mailbox": _mailbox(r, p.get("color", "BLUE"))
 		"lamp": _lamp(r)
+
+
+## The kind's sprite for this prop. With a "color" listed in the art's
+## "colors", the sprite's "ramp" colors are swapped for that color's ramp
+## (a blue roof from the red house). Cached per kind and color.
+func _sprite_for(p: Dictionary) -> Image:
+	var a: Dictionary = _art[p.kind]
+	var col: String = p.get("color", "")
+	if not a.colors.has(col):
+		return a.image
+	var key := "_img_" + col
+	if not a.has(key):
+		var img := (a.image as Image).duplicate() as Image
+		var swap := {}
+		for i in mini(a.ramp.size(), a.colors[col].size()):
+			swap[Palette.color(a.ramp[i]).to_rgba32()] = Palette.color(a.colors[col][i])
+		for y in img.get_height():
+			for x in img.get_width():
+				var c := img.get_pixel(x, y)
+				if c.a > 0.0 and swap.has(c.to_rgba32()):
+					img.set_pixel(x, y, swap[c.to_rgba32()])
+		a[key] = img
+	return a[key]
+
+
+## Sprites stand on the prop: bottom centre of the sprite on the bottom
+## centre of the rect (the rect stays the solid footprint).
+static func _sprite_pos(r: Rect2, img: Image) -> Vector2i:
+	return Vector2i(int(floorf(r.get_center().x)) - img.get_width() / 2, int(r.end.y) - img.get_height())
+
+
+static func _load_image(path: String) -> Image:
+	if path == "" or not ResourceLoader.exists(path):
+		return null
+	var res = load(path)
+	var img: Image = res if res is Image else (res.get_image() if res is Texture2D else null)
+	if img == null:
+		return null
+	img = img.duplicate() as Image
+	img.convert(Image.FORMAT_RGBA8)
+	return img
 
 
 # Pixel helpers. All clip to the map.
@@ -289,6 +350,17 @@ func _light(col: String) -> String:
 ## Shadow down and to the right, as a dither (no alpha).
 func _shadow(p: Dictionary) -> void:
 	var r := rect_of(p)
+	if _art.has(p.kind):
+		# The sprite's own outline, 3 px down-right, dithered.
+		var img: Image = _art[p.kind].image
+		var at := _sprite_pos(r, img) + Vector2i(3, 3)
+		var ink := Palette.color(Palette.INK)
+		for y in img.get_height():
+			for x in img.get_width():
+				var m := at + Vector2i(x, y)
+				if (m.x + m.y) % 2 == 0 and img.get_pixel(x, y).a > 0.0 and Rect2i(Vector2i.ZERO, _img.get_size()).has_point(m):
+					_img.set_pixelv(m, ink)
+		return
 	match p.kind:
 		"tree":
 			var canopy := _canopy_rect(r)

@@ -186,7 +186,7 @@ func test_phase5_bad_data_is_caught(t) -> void:
 		t.check(all.contains(c[2]), "%s: expected an error with '%s', got:\n%s" % [c[0], c[2], all])
 
 
-func test_phase6_bad_tome_icons_are_caught(t) -> void:
+func test_phase6_bad_icons_and_prop_art_are_caught(t) -> void:
 	var cases := [
 		["tomes/think_big.json", func(d: Dictionary) -> void: d.icon.cover = ["PINK"], "icon \"cover\" must be [light, dark]"],
 		["tomes/think_big.json", func(d: Dictionary) -> void: d.icon.symbol_color = "CHARTREUSE", "unknown palette color \"CHARTREUSE\""],
@@ -194,6 +194,10 @@ func test_phase6_bad_tome_icons_are_caught(t) -> void:
 		["tomes/think_big.json", func(d: Dictionary) -> void: d.icon.symbol = ["XXXXXX"], "icon \"symbol\" must be up to 5 rows"],
 		["tomes/think_big.json", func(d: Dictionary) -> void: d.icon.symbol = ["X?X"], "icon \"symbol\" must be up to 5 rows"],
 		["tomes/think_big.json", func(d: Dictionary) -> void: d.icon = "book", "\"icon\" must be an object"],
+		["maps/suburbia.json", func(d: Dictionary) -> void: d.prop_art.house.sprite = "res://nope.png", "sprite \"res://nope.png\" not found"],
+		["maps/suburbia.json", func(d: Dictionary) -> void: d.prop_art.castle = {}, "prop_art \"castle\" must be a known prop kind"],
+		["maps/suburbia.json", func(d: Dictionary) -> void: d.prop_art.house.colors.BLUE = ["SKY"], "color \"BLUE\" needs as many colors as \"ramp\""],
+		["maps/suburbia.json", func(d: Dictionary) -> void: d.prop_art.house.ramp[0] = "SALMONY", "unknown palette color \"SALMONY\""],
 	]
 	for c: Array in cases:
 		_wipe(BAD)

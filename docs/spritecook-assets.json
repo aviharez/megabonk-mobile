@@ -128,5 +128,15 @@
 		"asset_id": "ea139f59-1628-478b-bec4-5a4267464934",
 		"sha12": "c660f9509fd0",
 		"label": "Blank grey book (32x32) for the 16 tome icons; tools/art/book_template.py, NB2.1 1K, style refs Baguette + sheet 1 + Sir Loaf"
+	},
+	"house_isometric": {
+		"asset_id": "0ce05423-4b2b-4a1a-9307-e2e837b83e0f",
+		"sha12": "f83f5d0b3ab3",
+		"label": "House (64x64, NB2.1 1K, style refs Baguette + Sir Loaf + icon sheet 1); not used: isometric, the map faces straight on"
+	},
+	"house_front": {
+		"asset_id": "cbcf286f-6108-4c3f-88d8-0c71974fcfe9",
+		"sha12": "4b0b17369955",
+		"label": "House, front-facing (34x34, NB2.1 1K, reference 0ce05423, style refs Baguette + Sir Loaf); assets/props/house.png, roof recolored per map data"
 	}
 }

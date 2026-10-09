@@ -1,0 +1,14 @@
+[remap]
+
+importer="image"
+type="Image"
+uid="uid://vqyamrycwr56"
+path="res://.godot/imported/house.png-01e2ff6b29889d37bc4c48c3d89f9368.image"
+
+[deps]
+
+source_file="res://assets/props/house.png"
+dest_files=["res://.godot/imported/house.png-01e2ff6b29889d37bc4c48c3d89f9368.image"]
+
+[params]
+

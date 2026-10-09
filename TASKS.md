@@ -338,6 +338,9 @@ Same as phase 4 (330.8 / 242.0 / 2.15 ms uncapped): the Ads and Store autoloads 
 - [x] Book sprite + 16 tome icons in code (2026-10-09; 12 credits; `tools/art/book_template.py` -> `assets/icons/book.png`; per-tome cover colors + 5x5 symbol in `data/tomes/*.json` "icon", built by `scripts/ui/icons.gd`, validated by GameData)
 - [x] Icons wired in: unlock rows (`ContentIcon`, now 18x18, INK silhouette when locked), level-up cards (icon above the text, `PixelButton.art` / `art_above`), toggler rows. Character unlock icons = head of the idle frame. Tests: `tests/test_icons.gd`, `test_data.gd::test_phase6_bad_tome_icons_are_caught`; 1571 checks pass, FLOW OK. Screens rendered by `tools/render_ui.gd`
 - [ ] Suburbia tiles and props
+  - Plan (owner-approved 2026-10-09): ground, roads, sidewalks, driveways, yards, gardens, pond, pool, hedges, fence, mailbox, lamp stay code-drawn (sizes vary per prop / too small for SpriteCook); SpriteCook for house, tree, bush, shed, car, bench, swing set
+  - [x] House (2026-10-09; 24 credits: the isometric first try isn't used). 34x34 front-facing, `assets/props/house.png`; map JSON "prop_art" names the sprite and the roof ramp per prop color (`MapLayout._sprite_for`, validated by GameData); sprite shadow follows its outline; the 15 house rects shrunk to 30x26 (same bottom centre). Test: `test_icons.gd::test_map_house_sprite_and_roof_colors`
+  - [ ] Sheets A (tree, bush, shed, car) and B (bench, swing set, second tree, one more)
 - [ ] UI (CC0 pack or code), remapped to the palette
 - [ ] Enemy sheets from assets/creatures/ for every role (elites = scaled + recolored)
 - [ ] Placeholder inventory: list every code-drawn / placeholder asset and replace it
@@ -360,4 +363,4 @@ Same as phase 4 (330.8 / 242.0 / 2.15 ms uncapped): the Ads and Store autoloads 
 | Same, Turbo Pigeon | 75.0 (display cap) | 66.2 | 3.26 | 299.6 |
 | Same, Gary, heroes at ~22px | 75.0 (display cap) | 66.6 | 3.59 | 299.8 |
 
-SpriteCook: 416 credits spent, 384 left.
+SpriteCook: 440 credits spent, 360 left.

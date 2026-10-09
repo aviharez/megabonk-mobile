@@ -30,8 +30,10 @@ SpriteCook credits (Starter plan, 800 per month). Ask before every generation. N
 | 2026-10-09 | Icon sheet 5: Lucky Penny, Magnet Keychain, Microwave Meltdown, Pinata | generate_game_art, NB2.1 1K, pixel, 1 image (2x2 icon sheet, 64px hint, smart crop off), palette colors passed, same refs | 12 | 12 | asset `9b0f5b98-cc93-48a1-9fc6-447606430702`. Balance after: 408 |
 | 2026-10-09 | Icon sheet 6: Protein Bar, Rubber Boots, Static Sweater, Whoopee Cushion | generate_game_art, NB2.1 1K, pixel, 1 image (2x2 icon sheet, 64px hint, smart crop off), palette colors passed, same refs | 12 | 12 | asset `c44f11cc-d1b9-4f5a-b58d-b7806ff505a5`. Balance after: 396 |
 | 2026-10-09 | Book for the tome icons | generate_game_art, NB2.1 1K, pixel, 1 image, palette colors passed, 32px hint, same refs | 12 | 12 | asset `ea139f59-1628-478b-bec4-5a4267464934`. Came back 32x32 grey book with a blank label; `tools/art/book_template.py` shrinks it to `assets/icons/book.png` and clears the label. Balance after: 384 |
+| 2026-10-09 | House (map prop style reference) | generate_game_art, NB2.1 1K, pixel, 1 image, palette colors passed, 64px hint, style refs Baguette + Sir Loaf + icon sheet 1 | 12 | 12 | asset `0ce05423-4b2b-4a1a-9307-e2e837b83e0f`. Came back 64x64 but isometric; the map faces straight on, so not used (owner choice). Balance after: 372 |
+| 2026-10-09 | House, front-facing | generate_game_art, NB2.1 1K, pixel, 1 image, palette colors passed, 64px hint, reference `0ce05423`, style refs Baguette + Sir Loaf | 12 | 12 | asset `cbcf286f-6108-4c3f-88d8-0c71974fcfe9`. Came back 34x34 (hint ignored); used at that size, house rects shrunk to 30x26 (owner choice). `tools/art/props.sh` -> `assets/props/house.png`; roof recolored per map data. Balance after: 360 |
 
-**Running total:** 416
+**Running total:** 440
 
 ## Non-SpriteCook placeholders
 
