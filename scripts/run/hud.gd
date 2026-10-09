@@ -27,6 +27,8 @@ var has_key := false
 ## World position the screen is centered on, and the arrow targets
 ## [{"pos", "color", "pulse"}] in world pixels.
 var view_center := Vector2.ZERO
+## UI pixels per world pixel (the world view is drawn smaller, see Run._fit_world_view).
+var world_zoom := 1.0
 var arrows: Array = []
 
 const _FONT := preload("res://assets/fonts/pixel.fnt")
@@ -158,7 +160,7 @@ func _draw_arrows() -> void:
 	var inner := Rect2(Vector2(6, 34), size - Vector2(12, 52))
 	var center := size / 2.0
 	for a: Dictionary in arrows:
-		var sp: Vector2 = a.pos - view_center + center
+		var sp: Vector2 = (a.pos - view_center) * world_zoom + center
 		if view.grow(-2.0).has_point(sp):
 			continue
 		var dir := (sp - center).normalized()

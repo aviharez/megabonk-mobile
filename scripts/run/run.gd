@@ -169,6 +169,12 @@ var _player_view: Node2D
 var _weapon_view: Node2D
 var _boss_view: Node2D
 var _camera: Camera2D
+## The world's own view (see _build_world) and the rect that shows it.
+var world_viewport: SubViewport
+var _world_rect: TextureRect
+## Screen pixels per world pixel / per UI pixel (whole numbers).
+var world_scale := 1
+var ui_scale := 1
 var _particles: NodePool
 var _reduce_fx := false
 var _hud: Hud
@@ -832,10 +838,30 @@ func _recycle_far_enemies() -> void:
 			enemies.move_to(s, _spawn_point(enemies.flags[s] & (EnemySystem.F_FLY | EnemySystem.F_GHOST) != 0))
 
 
-## Half the visible area in world pixels. The view is at least 270x480 and
-## grows on taller or wider screens (stretch aspect "expand").
+## Half the visible area in world pixels: the world view (see
+## _fit_world_view), at least 180x320 times "world_view_scale", and bigger on
+## taller or wider screens (stretch aspect "expand").
 func _half_view() -> Vector2:
-	return get_viewport_rect().size / 2.0
+	return Vector2(world_viewport.size) / 2.0 if world_viewport != null else get_viewport_rect().size / 2.0
+
+
+## Sizes the world view. The UI is drawn at the screen's whole-number scale
+## (ui_scale, from the 180x320 base); the world at a smaller whole number,
+## about ui_scale / "world_view_scale" (7x UI -> 5x world on a 1280 px wide
+## phone), so every world pixel is still a square block of screen pixels.
+func _fit_world_view() -> void:
+	var base := Vector2(ProjectSettings.get_setting("display/window/size/viewport_width"), ProjectSettings.get_setting("display/window/size/viewport_height"))
+	var win := Vector2(get_window().size)
+	ui_scale = maxi(1, floori(minf(win.x / base.x, win.y / base.y)))
+	var want: float = float(rules.get("world_view_scale", 1.0))
+	world_scale = clampi(roundi(ui_scale / want), 1, ui_scale)
+	var screen := get_viewport_rect().size * ui_scale
+	world_viewport.size = Vector2i(ceili(screen.x / world_scale), ceili(screen.y / world_scale))
+	_world_rect.size = Vector2(world_viewport.size)
+	# In UI pixels: one world pixel is world_scale / ui_scale of a UI pixel.
+	_world_rect.scale = Vector2.ONE * float(world_scale) / float(ui_scale)
+	if _hud != null:
+		_hud.world_zoom = float(world_scale) / float(ui_scale)
 
 
 ## The visible area in world pixels (centered on the player).
@@ -1778,55 +1804,75 @@ func _arrow_targets() -> Array:
 
 
 func _build_world() -> void:
+	# The world draws into its own pixel view at a smaller whole-number scale
+	# than the UI, so the player sees more of the map while menus, HUD and
+	# cards keep their size (rules "world_view_scale"; see _fit_world_view).
+	world_viewport = SubViewport.new()
+	world_viewport.canvas_item_default_texture_filter = Viewport.DEFAULT_CANVAS_ITEM_TEXTURE_FILTER_NEAREST
+	world_viewport.snap_2d_transforms_to_pixel = true
+	world_viewport.snap_2d_vertices_to_pixel = true
+	world_viewport.render_target_update_mode = SubViewport.UPDATE_ALWAYS
+	add_child(world_viewport)
+	var layer := CanvasLayer.new()
+	layer.layer = -1
+	add_child(layer)
+	_world_rect = TextureRect.new()
+	_world_rect.texture = world_viewport.get_texture()
+	_world_rect.texture_filter = CanvasItem.TEXTURE_FILTER_NEAREST
+	_world_rect.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	layer.add_child(_world_rect)
+	_fit_world_view()
+	get_viewport().size_changed.connect(_fit_world_view)
+
 	map = MapLayout.new()
 	map.setup(map_def)
-	add_child(map)
+	world_viewport.add_child(map)
 	interactables = Interactables.new()
 	interactables.setup(self, db)
-	add_child(interactables)
+	world_viewport.add_child(interactables)
 	_boss_view = Node2D.new()
 	_boss_view.draw.connect(func() -> void:
 		if boss != null:
 			boss.draw(_boss_view))
-	add_child(_boss_view)
+	world_viewport.add_child(_boss_view)
 
 	gems = GemSystem.new()
 	gems.setup(rules)
-	add_child(gems)
+	world_viewport.add_child(gems)
 	enemies = EnemySystem.new()
 	enemies.setup(db.all("enemies"), int(rules.enemy_cap), bounds, int(rules.get("enemy_reserve", 48)))
 	enemies.map = map
 	enemies.event_fn = _on_enemy_event
 	enemies.rng.seed = rng.seed ^ 0x5eed
-	add_child(enemies)
+	world_viewport.add_child(enemies)
 	projectiles = ProjectileSystem.new()
 	projectiles.setup(256)
 	projectiles.hit_fn = hit_enemy
-	add_child(projectiles)
+	world_viewport.add_child(projectiles)
 	enemy_shots = EnemyShots.new()
 	enemy_shots.setup(int(rules.get("enemy_shots", 160)))
-	add_child(enemy_shots)
+	world_viewport.add_child(enemy_shots)
 
 	_player_view = Node2D.new()
 	_player_view.draw.connect(_draw_player)
-	add_child(_player_view)
+	world_viewport.add_child(_player_view)
 	_weapon_view = Node2D.new()
 	_weapon_view.draw.connect(func() -> void:
 		for w in weapons:
 			w.draw(_weapon_view, _pos))
-	add_child(_weapon_view)
+	world_viewport.add_child(_weapon_view)
 
 	var particle_root := Node2D.new()
-	add_child(particle_root)
+	world_viewport.add_child(particle_root)
 	_particles = NodePool.new(particle_root, PARTICLES, _make_particles)
 	fx = Fx.new()
 	fx.enabled = not _reduce_fx
-	add_child(fx)
+	world_viewport.add_child(fx)
 	danger = Fx.new()
-	add_child(danger)
+	world_viewport.add_child(danger)
 	numbers = DamageNumbers.new()
 	numbers.enabled = _setting("damage_numbers", true)
-	add_child(numbers)
+	world_viewport.add_child(numbers)
 
 	interactables.place_from_map(map_def, map, rng, _pos)
 
@@ -1835,7 +1881,7 @@ func _build_world() -> void:
 	_camera.limit_top = int(bounds.position.y) - 8
 	_camera.limit_right = int(bounds.end.x) + 8
 	_camera.limit_bottom = int(bounds.end.y) + 8
-	add_child(_camera)
+	world_viewport.add_child(_camera)
 	_camera.make_current()
 
 
@@ -1911,6 +1957,7 @@ func _build_ui() -> void:
 	_joystick = ThumbStick.new()
 	ui.add_child(_joystick)
 	_hud = Hud.new()
+	_hud.world_zoom = float(world_scale) / float(ui_scale)
 	ui.add_child(_hud)
 
 	# Level-up cards, with the Reroll / Skip / Banish actions under them.

@@ -7,11 +7,13 @@ func _s(key: String) -> Variant:
 
 
 func test_display(t) -> void:
-	t.check(_s("display/window/size/viewport_width") == 270, "viewport width 270")
-	t.check(_s("display/window/size/viewport_height") == 480, "viewport height 480")
-	t.check(_s("display/window/stretch/mode") == "viewport", "stretch mode viewport")
+	t.check(_s("display/window/size/viewport_width") == 180, "viewport width 180")
+	t.check(_s("display/window/size/viewport_height") == 320, "viewport height 320")
+	# canvas_items: the UI is drawn at the screen's whole-number scale, and the
+	# run's world in its own view at a smaller one (Run._fit_world_view).
+	t.check(_s("display/window/stretch/mode") == "canvas_items", "stretch mode canvas_items")
 	t.check(_s("display/window/stretch/scale_mode") == "integer", "integer scaling")
-	t.check(_s("display/window/stretch/aspect") == "expand", "270x480 is the minimum view (expand)")
+	t.check(_s("display/window/stretch/aspect") == "expand", "180x320 is the minimum view (expand)")
 	t.check(_s("display/window/handheld/orientation") == DisplayServer.SCREEN_PORTRAIT, "portrait locked")
 
 

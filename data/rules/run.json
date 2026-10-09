@@ -7,6 +7,7 @@
 	"enemy_shots": 160,
 	"gem_cap": 400,
 	"card_count": 3,
+	"world_view_scale": 1.5,
 	"weapon_slots": 4,
 	"tome_slots": 4,
 	"max_level": 5,

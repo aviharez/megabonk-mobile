@@ -10,7 +10,7 @@ The full spec is in docs/BRIEF.md. The brief is the source of truth for content 
 - End every run with three headings: Blocked on me, Changed, Found. Mark anything you couldn't confirm, and say where you looked.
 
 ## Technical rules
-- Godot 4.7, GDScript, Compatibility renderer, portrait 270x480 minimum view (stretch aspect expand: taller screens see more), viewport stretch mode, integer scaling, Nearest texture filter.
+- Godot 4.7, GDScript, Compatibility renderer, portrait 180x320 minimum view (stretch aspect expand: taller screens see more), canvas_items stretch mode, integer scaling, Nearest texture filter. During a run the world is drawn in its own view at a smaller whole-number scale (rules "world_view_scale" 1.5: about 1.5x more map), while menus, HUD and cards keep the UI scale.
 - All content is data in data/. Adding content must not require code changes.
 - Stats are base value + modifiers. Item effects use event hooks (on_hit, on_kill, on_damaged, etc.).
 - Pool enemies, projectiles, gems, damage numbers, and particles. Max about 300 enemies on screen.

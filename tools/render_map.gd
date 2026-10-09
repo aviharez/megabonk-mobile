@@ -13,19 +13,17 @@ func _initialize() -> void:
 	var out: String = args.get("out", "user://map_%s.png" % map_id)
 	Run.next_options = {"map": map_id, "seed": int(args.get("seed", "7")), "no_spawns": true, "no_save": true, "invincible": true}
 	var run: Run = load("res://scenes/run.tscn").instantiate()
-	var vp := SubViewport.new()
+	root.add_child(run)
+	await process_frame
+	# The run draws its world in its own view: grow it to the whole map.
+	var vp := run.world_viewport
 	var size: Array = GameData.shared().get_entry("maps", map_id).size
 	vp.size = Vector2i(int(size[0]) + 16, int(size[1]) + 16)
-	vp.render_target_update_mode = SubViewport.UPDATE_ALWAYS
-	vp.transparent_bg = false
-	root.add_child(vp)
-	vp.add_child(run)
-	await process_frame
 	# Show the whole map: park the camera so the map's top-left is in view.
 	var cam := Camera2D.new()
 	cam.anchor_mode = Camera2D.ANCHOR_MODE_FIXED_TOP_LEFT
 	cam.position = Vector2(-8, -8)
-	run.add_child(cam)
+	vp.add_child(cam)
 	cam.make_current()
 	for c in run.get_children():
 		if c is CanvasLayer:
@@ -37,7 +35,7 @@ func _initialize() -> void:
 				for cx in run.map.cols:
 					if run.map.blocked[cy * run.map.cols + cx] == 1:
 						overlay.draw_rect(Rect2(cx * MapLayout.CELL, cy * MapLayout.CELL, MapLayout.CELL, MapLayout.CELL), Palette.color(Palette.RED), false))
-		run.add_child(overlay)
+		vp.add_child(overlay)
 	for i in 4:
 		await process_frame
 	await RenderingServer.frame_post_draw

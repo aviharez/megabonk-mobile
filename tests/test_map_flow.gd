@@ -816,3 +816,17 @@ func test_open_ground_is_all_reachable(t) -> void:
 				cut.append(Vector2((c % map.cols + 0.5) * MapLayout.CELL, (c / map.cols + 0.5) * MapLayout.CELL))
 	t.check(cut.is_empty(), "%d of %d open cells can't be reached, e.g. %s" % [cut.size(), total, cut.slice(0, 5)])
 	_done(t, run)
+
+
+func test_world_view_is_wider_than_the_ui(t) -> void:
+	var run := _start(t)
+	var vp: SubViewport = run.world_viewport
+	t.check(vp != null and run.map.get_parent() == vp and run._camera.get_parent() == vp, "the world draws in its own view")
+	var want: float = float(run.rules.get("world_view_scale", 1.0))
+	t.check(run.world_scale == clampi(roundi(run.ui_scale / want), 1, run.ui_scale), "world scale %d for UI scale %d" % [run.world_scale, run.ui_scale])
+	var ui := run.get_viewport_rect().size
+	t.check(absf(Vector2(vp.size).x - ui.x * run.ui_scale / run.world_scale) < 1.0, "world view %s for UI %s" % [vp.size, ui])
+	t.check(run.view_rect().size == Vector2(vp.size), "view_rect is the world view")
+	if run.ui_scale >= 2:
+		t.check(Vector2(vp.size).x > ui.x * 1.2, "the world shows more than the UI frame")
+	_done(t, run)
