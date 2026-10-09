@@ -32,8 +32,10 @@ SpriteCook credits (Starter plan, 800 per month). Ask before every generation. N
 | 2026-10-09 | Book for the tome icons | generate_game_art, NB2.1 1K, pixel, 1 image, palette colors passed, 32px hint, same refs | 12 | 12 | asset `ea139f59-1628-478b-bec4-5a4267464934`. Came back 32x32 grey book with a blank label; `tools/art/book_template.py` shrinks it to `assets/icons/book.png` and clears the label. Balance after: 384 |
 | 2026-10-09 | House (map prop style reference) | generate_game_art, NB2.1 1K, pixel, 1 image, palette colors passed, 64px hint, style refs Baguette + Sir Loaf + icon sheet 1 | 12 | 12 | asset `0ce05423-4b2b-4a1a-9307-e2e837b83e0f`. Came back 64x64 but isometric; the map faces straight on, so not used (owner choice). Balance after: 372 |
 | 2026-10-09 | House, front-facing | generate_game_art, NB2.1 1K, pixel, 1 image, palette colors passed, 64px hint, reference `0ce05423`, style refs Baguette + Sir Loaf | 12 | 12 | asset `cbcf286f-6108-4c3f-88d8-0c71974fcfe9`. Came back 34x34 (hint ignored); used at that size, house rects shrunk to 30x26 (owner choice). `tools/art/props.sh` -> `assets/props/house.png`; roof recolored per map data. Balance after: 360 |
+| 2026-10-09 | Prop sheet A: tree, bush, shed, car | generate_game_art, NB2.1 1K, pixel, 1 image (2x2 prop sheet, 64px hint, smart crop off), palette colors passed, style refs house + Baguette + Sir Loaf | 12 | 12 | asset `636f014e-1768-4160-afe3-4ea18300ab34`. Cut and shrunk by `tools/art/props.sh` (tree 20x22, bush 14x13, shed 22x22, car 20x15). Owner approved. Balance after: 348 |
+| 2026-10-09 | Prop sheet B: bench, swing set, pine, apple tree | generate_game_art, NB2.1 1K, pixel, 1 image (2x2 prop sheet, 64px hint, smart crop off), palette colors passed, style refs house + Baguette + Sir Loaf | 12 | 12 | asset `a88bfb87-04f5-4bbb-9274-8ad98494d4e4`. Bench 18x13, swing 26x19, pine 19x24, apple tree 19x22. Owner approved. Balance after: 336 |
 
-**Running total:** 440
+**Running total:** 464
 
 ## Non-SpriteCook placeholders
 

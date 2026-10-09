@@ -63,6 +63,9 @@ def main():
                          "(keeps small details like a logo)")
     ap.add_argument("--palette", default=ps.DEFAULT_PALETTE)
     ap.add_argument("--exclude", default="", help="extra palette indices to never use (31 is always excluded)")
+    ap.add_argument("--tight", action="store_true",
+                    help="crop the result to its content instead of a SIZE x SIZE canvas (map props stand on "
+                         "their bottom edge)")
     ap.add_argument("--preview", type=int, default=0, metavar="SCALE")
     args = ap.parse_args()
 
@@ -75,13 +78,16 @@ def main():
         if path == "-":
             continue
         out = make_icon(part, pal, allowed, args.size, args.method)
+        if args.tight:
+            ys, xs = np.nonzero(out[..., 3])
+            out = out[ys.min():ys.max() + 1, xs.min():xs.max() + 1]
         os.makedirs(os.path.dirname(os.path.abspath(path)), exist_ok=True)
         Image.fromarray(out).save(path)
         if args.preview:
             p = args.preview
             Image.fromarray(out).resize((args.size * p, args.size * p), Image.NEAREST).save(
                 os.path.splitext(path)[0] + "_preview.png")
-        print(f"{path}: {args.size}x{args.size}")
+        print(f"{path}: {out.shape[1]}x{out.shape[0]}")
 
 
 if __name__ == "__main__":

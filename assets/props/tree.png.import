@@ -1,0 +1,14 @@
+[remap]
+
+importer="image"
+type="Image"
+uid="uid://qoq5d81ce14i"
+path="res://.godot/imported/tree.png-4374f3711c31954246e8074816049f6a.image"
+
+[deps]
+
+source_file="res://assets/props/tree.png"
+dest_files=["res://.godot/imported/tree.png-4374f3711c31954246e8074816049f6a.image"]
+
+[params]
+

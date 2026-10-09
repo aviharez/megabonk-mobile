@@ -466,7 +466,8 @@ func _check_map(m: Dictionary) -> void:
 
 
 ## "prop_art": {kind: {"sprite": res path, "ramp": [palette colors in the
-## sprite], "colors": {prop color: [as many palette colors as the ramp]}}}.
+## sprite], "colors": {prop color: [as many palette colors as the ramp]},
+## "variants": {prop color: res path of another sprite}}}.
 func _check_prop_art(f: String, art) -> void:
 	if not art is Dictionary:
 		errors.append("%s: \"prop_art\" must be an object" % f)
@@ -479,8 +480,16 @@ func _check_prop_art(f: String, art) -> void:
 		var path = a.get("sprite")
 		if typeof(path) != TYPE_STRING or not ResourceLoader.exists(path):
 			errors.append("%s: prop_art \"%s\" sprite \"%s\" not found" % [f, kind, path])
+		var variants = a.get("variants", {})
+		if not variants is Dictionary:
+			variants = {}
+			errors.append("%s: prop_art \"%s\" \"variants\" must be an object" % [f, kind])
+		for c in variants:
+			if typeof(variants[c]) != TYPE_STRING or not ResourceLoader.exists(variants[c]):
+				errors.append("%s: prop_art \"%s\" variant \"%s\" sprite \"%s\" not found" % [f, kind, c, variants[c]])
 		var ramp = a.get("ramp", [])
-		var names: Array = ramp.duplicate() if ramp is Array else []
+		var names: Array = variants.keys()
+		names.append_array(ramp if ramp is Array else [])
 		var colors = a.get("colors", {})
 		if not colors is Dictionary:
 			colors = {}

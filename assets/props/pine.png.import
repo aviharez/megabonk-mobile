@@ -1,0 +1,14 @@
+[remap]
+
+importer="image"
+type="Image"
+uid="uid://1xog5v6flgvq"
+path="res://.godot/imported/pine.png-f0166fe66be521fe64c2175a79b8874d.image"
+
+[deps]
+
+source_file="res://assets/props/pine.png"
+dest_files=["res://.godot/imported/pine.png-f0166fe66be521fe64c2175a79b8874d.image"]
+
+[params]
+

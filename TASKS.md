@@ -340,7 +340,8 @@ Same as phase 4 (330.8 / 242.0 / 2.15 ms uncapped): the Ads and Store autoloads 
 - [ ] Suburbia tiles and props
   - Plan (owner-approved 2026-10-09): ground, roads, sidewalks, driveways, yards, gardens, pond, pool, hedges, fence, mailbox, lamp stay code-drawn (sizes vary per prop / too small for SpriteCook); SpriteCook for house, tree, bush, shed, car, bench, swing set
   - [x] House (2026-10-09; 24 credits: the isometric first try isn't used). 34x34 front-facing, `assets/props/house.png`; map JSON "prop_art" names the sprite and the roof ramp per prop color (`MapLayout._sprite_for`, validated by GameData); sprite shadow follows its outline; the 15 house rects shrunk to 30x26 (same bottom centre). Test: `test_icons.gd::test_map_house_sprite_and_roof_colors`
-  - [ ] Sheets A (tree, bush, shed, car) and B (bench, swing set, second tree, one more)
+  - [x] Sheets A (tree, bush, shed, car) and B (bench, swing set, pine, apple tree) (2026-10-09; 24 credits; owner approved). `tools/art/props.sh`; prop_art "variants" (GREEN tree = pine, RED tree = apple tree) and "colors" recolors (bush flowers, sheds, cars); shed rects 22x14, swing 26x10
+  - [ ] Owner: "the other things are bad" (code-drawn ground). Plan approved: SpriteCook textures (grass test first, then asphalt, paving, dirt/sand, garden soil), prop sheet C (mailbox, lamp, hedge, planter), boss altar sprite; free layout fixes (orphan driveways, yard stripes)
 - [ ] UI (CC0 pack or code), remapped to the palette
 - [ ] Enemy sheets from assets/creatures/ for every role (elites = scaled + recolored)
 - [ ] Placeholder inventory: list every code-drawn / placeholder asset and replace it
@@ -363,4 +364,4 @@ Same as phase 4 (330.8 / 242.0 / 2.15 ms uncapped): the Ads and Store autoloads 
 | Same, Turbo Pigeon | 75.0 (display cap) | 66.2 | 3.26 | 299.6 |
 | Same, Gary, heroes at ~22px | 75.0 (display cap) | 66.6 | 3.59 | 299.8 |
 
-SpriteCook: 440 credits spent, 360 left.
+SpriteCook: 464 credits spent, 336 left.

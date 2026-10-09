@@ -1,0 +1,14 @@
+[remap]
+
+importer="image"
+type="Image"
+uid="uid://b0q2rlkrw8i33"
+path="res://.godot/imported/bush.png-a438ff451f9a4951c15e95611ccbd4f5.image"
+
+[deps]
+
+source_file="res://assets/props/bush.png"
+dest_files=["res://.godot/imported/bush.png-a438ff451f9a4951c15e95611ccbd4f5.image"]
+
+[params]
+

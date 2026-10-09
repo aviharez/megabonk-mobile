@@ -127,4 +127,10 @@ func test_map_house_sprite_and_roof_colors(t) -> void:
 	# A house sprite stands on its rect: bottom centre on bottom centre.
 	var r := Rect2(100, 50, 30, 26)
 	t.check(MapLayout._sprite_pos(r, red) == Vector2i(98, 42), "sprite position %s" % MapLayout._sprite_pos(r, red))
+	# Variants: a GREEN tree is the pine, a plain one the round tree.
+	var plain := ml._sprite_for({"kind": "tree"})
+	var pine := ml._sprite_for({"kind": "tree", "color": "GREEN"})
+	t.check(pine != plain and pine.get_size() != plain.get_size(), "GREEN tree uses the pine sprite")
+	for kind: String in ["tree", "bush", "shed", "car", "bench", "swing"]:
+		t.check(ml._art.has(kind), "%s has prop art" % kind)
 	ml.free()

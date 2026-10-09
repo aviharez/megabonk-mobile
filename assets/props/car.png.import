@@ -1,0 +1,14 @@
+[remap]
+
+importer="image"
+type="Image"
+uid="uid://bn75b1p2tjh6l"
+path="res://.godot/imported/car.png-49714cc466ae2801fa4e7cf214699e10.image"
+
+[deps]
+
+source_file="res://assets/props/car.png"
+dest_files=["res://.godot/imported/car.png-49714cc466ae2801fa4e7cf214699e10.image"]
+
+[params]
+

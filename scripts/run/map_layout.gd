@@ -50,7 +50,8 @@ var near_wall := PackedByteArray()
 var _lawn_colors := [Palette.LEAF, Palette.DEEP_GREEN, Palette.GREEN]
 var _img: Image
 var _rng := RandomNumberGenerator.new()
-## kind -> {"image": Image, "ramp": [palette indices], "colors": {name: [indices]}}
+## kind -> {"image": Image, "ramp": [palette indices], "colors": {name: [indices]},
+## "variants": {name: Image}}
 var _art := {}
 
 
@@ -71,7 +72,14 @@ func setup(map_def: Dictionary) -> void:
 		var colors := {}
 		for c: String in a.get("colors", {}):
 			colors[c] = to_idx.call(a.colors[c])
-		_art[kind] = {"image": img, "ramp": to_idx.call(a.get("ramp", [])), "colors": colors}
+		var variants := {}
+		for c: String in a.get("variants", {}):
+			var v := _load_image(a.variants[c])
+			if v == null:
+				push_error("MapLayout: prop_art variant \"%s\" of \"%s\" not found" % [c, kind])
+			else:
+				variants[c] = v
+		_art[kind] = {"image": img, "ramp": to_idx.call(a.get("ramp", [])), "colors": colors, "variants": variants}
 	cols = int(ceil(bounds.size.x / CELL))
 	rows = int(ceil(bounds.size.y / CELL))
 	blocked.resize(cols * rows)
@@ -240,12 +248,15 @@ func _draw_prop(p: Dictionary) -> void:
 		"lamp": _lamp(r)
 
 
-## The kind's sprite for this prop. With a "color" listed in the art's
-## "colors", the sprite's "ramp" colors are swapped for that color's ramp
-## (a blue roof from the red house). Cached per kind and color.
+## The kind's sprite for this prop. A "color" listed in the art's "variants"
+## picks that sprite (a pine for a GREEN tree); one listed in "colors" swaps
+## the sprite's "ramp" colors for that color's ramp (a blue roof from the red
+## house). Cached per kind and color.
 func _sprite_for(p: Dictionary) -> Image:
 	var a: Dictionary = _art[p.kind]
 	var col: String = p.get("color", "")
+	if a.variants.has(col):
+		return a.variants[col]
 	if not a.colors.has(col):
 		return a.image
 	var key := "_img_" + col
@@ -352,7 +363,7 @@ func _shadow(p: Dictionary) -> void:
 	var r := rect_of(p)
 	if _art.has(p.kind):
 		# The sprite's own outline, 3 px down-right, dithered.
-		var img: Image = _art[p.kind].image
+		var img := _sprite_for(p)
 		var at := _sprite_pos(r, img) + Vector2i(3, 3)
 		var ink := Palette.color(Palette.INK)
 		for y in img.get_height():

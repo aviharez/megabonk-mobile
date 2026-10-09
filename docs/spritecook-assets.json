@@ -138,5 +138,15 @@
 		"asset_id": "cbcf286f-6108-4c3f-88d8-0c71974fcfe9",
 		"sha12": "4b0b17369955",
 		"label": "House, front-facing (34x34, NB2.1 1K, reference 0ce05423, style refs Baguette + Sir Loaf); assets/props/house.png, roof recolored per map data"
+	},
+	"props_sheet_a": {
+		"asset_id": "636f014e-1768-4160-afe3-4ea18300ab34",
+		"sha12": "434e6d4fe463",
+		"label": "Prop sheet A (2x2, 68x68, NB2.1 1K, style refs house + Baguette + Sir Loaf): tree, bush, shed, car"
+	},
+	"props_sheet_b": {
+		"asset_id": "a88bfb87-04f5-4bbb-9274-8ad98494d4e4",
+		"sha12": "27d817458738",
+		"label": "Prop sheet B (2x2, 68x68, same refs): bench, swing set, pine, apple tree"
 	}
 }

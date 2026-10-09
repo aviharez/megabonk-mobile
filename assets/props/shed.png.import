@@ -1,0 +1,14 @@
+[remap]
+
+importer="image"
+type="Image"
+uid="uid://6jnsu5sj2cgn"
+path="res://.godot/imported/shed.png-81ebe7e98a41e3b5872bf7f5296a4732.image"
+
+[deps]
+
+source_file="res://assets/props/shed.png"
+dest_files=["res://.godot/imported/shed.png-81ebe7e98a41e3b5872bf7f5296a4732.image"]
+
+[params]
+
