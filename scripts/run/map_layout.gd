@@ -30,7 +30,8 @@ const KINDS := {
 }
 ## Ground kinds in draw order (later ones cover earlier ones). Every other
 ## kind, solid or not, is drawn on top of the ground.
-const GROUND := ["yard", "field", "garden", "path", "sand", "sidewalk", "driveway", "road", "crosswalk"]
+## Fields go after paths and sand, so a pitch can sit inside a running track.
+const GROUND := ["yard", "garden", "path", "sand", "field", "sidewalk", "driveway", "road", "crosswalk"]
 ## Solid kinds that cast a shadow.
 const SHADOWED := ["house", "shed", "tree", "bush", "car", "hedge", "bench", "swing", "lamp", "mailbox", "planter"]
 ## Darker and lighter palette neighbours for roofs, cars and the like.

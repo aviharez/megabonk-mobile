@@ -1,16 +1,21 @@
 #!/usr/bin/env python3
-"""Build data/maps/suburbia.json (1440x1760) from the 720x880 block in tools/maps/suburbia_block.json.
+"""Build data/maps/suburbia.json (1440x1760) from two hand-designed 720x880 blocks:
+tools/maps/suburbia_block.json (A: houses, the pond park, the sports field with the altar) and
+tools/maps/suburbia_block_b.json (B: school ground, park with the public pool, parking lot; only
+its "size" and "props" are used).
 
-The block is placed four times: as is top-left and bottom-right, mirrored left-right top-right and
-bottom-left (only positions are mirrored; sprites keep facing the viewer, so houses still face
-their driveways). The main vertical road sits in the middle of the block, so it lines up across
-copies. A vertical and a horizontal road with sidewalks run along the seams and join the blocks
+Layout: A top-left and bottom-right, B top-right and bottom-left, so no two neighbours are the same
+block. The copies are not mirrored (that made the corners look mirrored and bunched the two ponds and
+the two running tracks around the map centre); the "flip" flag per copy is still there, it mirrors
+positions only (sprites keep facing the viewer). A block's edge that lies on a seam in one copy lies
+on the map edge in the other. Block streets that reach a seam
+end in a T-junction. A vertical and a horizontal road with sidewalks run along the seams and join the blocks
 into one grid of streets; objects under them are dropped and ground patches are cut back. In the
 three copies, roof, tree, shed, bush, planter, mailbox and car colors are re-rolled (fixed seed).
 Interactable counts scale with the area; fixed ones (with "at") stay in the top-left block, so
 there is still one boss altar and one cage. Everything else in the block (spawns, art...) is copied.
 
-Edit the block, then run:  python3 tools/maps/build_suburbia.py
+Edit a block, then run:  python3 tools/maps/build_suburbia.py
 """
 import json
 import os
@@ -18,6 +23,7 @@ import random
 
 ROOT = os.path.join(os.path.dirname(os.path.abspath(__file__)), "..", "..")
 BLOCK = os.path.join(ROOT, "tools/maps/suburbia_block.json")
+BLOCK_B = os.path.join(ROOT, "tools/maps/suburbia_block_b.json")
 OUT = os.path.join(ROOT, "data/maps/suburbia.json")
 
 GROUND = {"yard", "field", "garden", "path", "sand", "sidewalk", "driveway", "road", "crosswalk"}
@@ -79,11 +85,14 @@ def cut(p, a, b, axis):
 
 def main():
     block = json.load(open(BLOCK))
+    block_b = json.load(open(BLOCK_B))
     bw, bh = block["size"]
+    assert block_b["size"] == [bw, bh], "both blocks must be the same size"
     props = []
     rng = random.Random(SEED)
-    for i, (dx, dy, flip) in enumerate(((0, 0, False), (bw, 0, True), (0, bh, True), (bw, bh, False))):
-        for p in block["props"]:
+    copies = ((block, 0, 0, False), (block_b, bw, 0, False), (block_b, 0, bh, False), (block, bw, bh, False))
+    for i, (src, dx, dy, flip) in enumerate(copies):
+        for p in src["props"]:
             q = moved(mirror(p, bw) if flip else p, dx, dy)
             if i > 0 and q["kind"] in RECOLOR:
                 c = rng.choice(RECOLOR[q["kind"]])
