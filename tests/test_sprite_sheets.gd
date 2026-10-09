@@ -71,11 +71,11 @@ func test_enemy_type_uses_a_sheet(t) -> void:
 		t.check(sh.get("frames", 0) >= 4 and sh.get("texture") != null, "%s plays its approved sheet (%d frames)" % [id, sh.get("frames", 0)])
 
 
-## Character SpriteCook sheets (Sir Loaf, Turbo Pigeon): every clip loads with its sidecar, the run
+## Character SpriteCook sheets (all three heroes): every clip loads with its sidecar, the run
 ## shows idle standing still, walk while moving, and hit once after a hit.
 func test_character_sheets(t) -> void:
 	var db := GameData.shared()
-	for who: String in ["sir_loaf", "turbo_pigeon"]:
+	for who: String in ["sir_loaf", "turbo_pigeon", "gary"]:
 		var c: Dictionary = db.get_entry("characters", who)
 		for clip: String in ["idle", "walk", "hit"]:
 			var sh := EnemySystem.load_sheet({"sheet": c.sheets[clip]})
@@ -98,9 +98,20 @@ func test_character_sheets(t) -> void:
 	t.check(run.player_clip() == "idle", "the hit clip plays once (0.5 s), then idle again")
 	run._player_view.queue_redraw()
 	await t.process_frame
-	# Characters without sheets keep the code-drawn fallback.
-	var gary: Dictionary = db.get_entry("characters", "gary")
-	t.check(not gary.has("sheets"), "Gary has no sheets yet (fallback drawing)")
+	# A character without sheets falls back to the code-drawn shape.
+	_nodes.erase(run)
+	run.free()
+	var plain: Dictionary = db.get_entry("characters", "gary").duplicate()
+	plain.erase("sheets")
+	Run.next_options = {"no_save": true, "seed": 5, "no_spawns": true, "character": "gary"}
+	var run2: Run = RUN_SCENE.instantiate()
+	t.root.add_child(run2)
+	_nodes.append(run2)
+	run2.char_def = plain
+	run2._sprites = {}
+	t.check(run2.player_clip() == "", "no sheets: no clip, the fallback draws")
+	run2._player_view.queue_redraw()
+	await t.process_frame
 
 
 func cleanup() -> void:

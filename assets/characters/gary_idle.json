@@ -1,0 +1,18 @@
+{
+  "format": "game.sheet",
+  "frame_w": 21,
+  "frame_h": 26,
+  "frames": 4,
+  "fps": 8.0,
+  "origin": [
+    10,
+    24
+  ],
+  "source": {
+    "generator": "SpriteCook",
+    "asset_id": "319cf24a-87d7-4656-91a1-3bdb53aee94f",
+    "scale": 0.67,
+    "sheet": "gary_idle.png",
+    "hand_edit": "tools/art/gary_stapler.py"
+  }
+}

@@ -15,7 +15,7 @@ Frames are one horizontal row with a 1px transparent border; origin is the feet 
 
 Usage:
   python3 tools/spritecook_shrink.py SHEET.png --frames 4 --scale 0.788 --fps 8 \
-        --out assets/characters/sir_loaf_idle.png [--visor] [--asset-id ID] [--preview 8]
+        --out assets/characters/sir_loaf_idle.png [--visor] [--exclude 7] [--asset-id ID] [--preview 8]
 """
 import argparse
 import json
@@ -121,11 +121,13 @@ def main():
     ap.add_argument("--visor", action="store_true", help="redraw the knight visor on every frame")
     ap.add_argument("--asset-id", default="", help="SpriteCook asset id, stored in the sidecar")
     ap.add_argument("--palette", default=ps.DEFAULT_PALETTE)
+    ap.add_argument("--exclude", default="", help="extra palette indices to never use, e.g. 7 (31 is always excluded)")
     ap.add_argument("--preview", type=int, default=0, metavar="SCALE")
     args = ap.parse_args()
 
     pal = ps.load_palette(args.palette)
-    allowed = ps.allowed_indices(pal, set())
+    exclude = ps.parse_indices(args.exclude)
+    allowed = ps.allowed_indices(pal, exclude)
     src = Image.open(args.sheet).convert("RGBA")
     fw_src = src.width // args.frames
     small = []
@@ -163,7 +165,7 @@ def main():
     with open(side, "w") as fh_:
         json.dump(meta, fh_, indent=2)
         fh_.write("\n")
-    problems, ncol = ps.verify(args.out, pal, set(), meta)
+    problems, ncol = ps.verify(args.out, pal, exclude, meta)
     if problems:
         raise SystemExit(f"{args.out}: " + "; ".join(problems))
     print(f"OK   {args.out}: {args.frames} frames {fw}x{fh}, {ncol} palette colours, sidecar {side}")

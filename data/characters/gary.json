@@ -16,6 +16,11 @@
 		"xp_gain": 1.0
 	},
 	"radius": 5,
+	"sheets": {
+		"idle": "res://assets/characters/gary_idle.png",
+		"walk": "res://assets/characters/gary_walk.png",
+		"hit": "res://assets/characters/gary_hit.png"
+	},
 	"passive": {
 		"id": "overtime",
 		"name": "OVERTIME",

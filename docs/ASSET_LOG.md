@@ -13,8 +13,12 @@ SpriteCook credits (Starter plan, 800 per month). Ask before every generation. N
 | 2026-10-09 | Turbo Pigeon idle animation | animate_game_art from `399956d3`, 4 frames, spritesheet, default pixel engine | 20 | 20 | job `a7eb3aab-9907-4b02-841a-bf2212a4d2fb`, asset `538c179d-24fc-48db-88e8-a7896379ab32`. Balance after: 684 |
 | 2026-10-09 | Turbo Pigeon walk animation | animate_game_art from `399956d3`, 4 frames, spritesheet, default pixel engine | 20 | 20 | job `89a911ec-a50f-44ad-a384-2ce795c16daa`, asset `79c020cd-404c-4153-b9cd-65d090814b43`. Balance after: 664 |
 | 2026-10-09 | Turbo Pigeon hit animation | animate_game_art from `399956d3`, 4 frames, spritesheet, default pixel engine | 20 | 20 | job `2c2502f1-438a-4aee-a39c-b9a11fe946d3`, asset `428a4900-fe74-4a46-bdc5-f8c5d37094f1`. Balance after: 644 |
+| 2026-10-09 | Gary base sprite | generate_game_art, NB2.1 1K, pixel, 1 image, palette colors passed, style refs `fee7d917` + `399956d3` | 12 | 12 | asset `10fc4560-a44c-4873-8ab2-88730897f556`. Came back 34x34; owner approved at scale 0.67. Balance after: 632 |
+| 2026-10-09 | Gary idle animation | animate_game_art from `10fc4560`, 4 frames, spritesheet, default pixel engine | 20 | 20 | job `eddb599c-cfb8-42b5-b8ce-2e8bf304f950`, asset `319cf24a-87d7-4656-91a1-3bdb53aee94f`. Balance after: 612 |
+| 2026-10-09 | Gary walk animation | animate_game_art from `10fc4560`, 4 frames, spritesheet, default pixel engine | 20 | 20 | job `24491d8b-b3ed-473b-b8c1-f5ebed135e84`, asset `48c2dd61-0e1d-4360-91d6-1539ef32aca5`. Balance after: 592 |
+| 2026-10-09 | Gary hit animation | animate_game_art from `10fc4560`, 4 frames, spritesheet, default pixel engine | 20 | 20 | job `b9e6f4d5-e68c-4a6c-acc0-bc2ed568337c`, asset `d48eee82-101a-40a1-9daa-0967af49702b`. All three Gary clips shrunk without palette dark red (it made a bloody-looking eye) and the stapler re-reddened with `tools/art/gary_stapler.py` (owner choice). Balance after: 572 |
 
-**Running total:** 156
+**Running total:** 228
 
 ## Non-SpriteCook placeholders
 

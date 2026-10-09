@@ -1,0 +1,18 @@
+{
+  "format": "game.sheet",
+  "frame_w": 22,
+  "frame_h": 26,
+  "frames": 4,
+  "fps": 8.0,
+  "origin": [
+    11,
+    24
+  ],
+  "source": {
+    "generator": "SpriteCook",
+    "asset_id": "48c2dd61-0e1d-4360-91d6-1539ef32aca5",
+    "scale": 0.67,
+    "sheet": "gary_walk.png",
+    "hand_edit": "tools/art/gary_stapler.py"
+  }
+}

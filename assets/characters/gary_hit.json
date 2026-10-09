@@ -1,0 +1,18 @@
+{
+  "format": "game.sheet",
+  "frame_w": 24,
+  "frame_h": 26,
+  "frames": 4,
+  "fps": 8.0,
+  "origin": [
+    12,
+    24
+  ],
+  "source": {
+    "generator": "SpriteCook",
+    "asset_id": "d48eee82-101a-40a1-9daa-0967af49702b",
+    "scale": 0.67,
+    "sheet": "gary_hit.png",
+    "hand_edit": "tools/art/gary_stapler.py"
+  }
+}

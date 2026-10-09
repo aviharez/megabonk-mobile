@@ -43,5 +43,25 @@
 		"asset_id": "428a4900-fe74-4a46-bdc5-f8c5d37094f1",
 		"sha12": "fe983bb291ae",
 		"label": "Turbo Pigeon hit, 4 frames 36x36 at 8 fps, from 399956d3"
+	},
+	"gary_base": {
+		"asset_id": "10fc4560-a44c-4873-8ab2-88730897f556",
+		"sha12": "aa005d93356c",
+		"label": "Gary base sprite (34x34, NB2.1 1K, style refs Sir Loaf + Turbo Pigeon)"
+	},
+	"gary_idle": {
+		"asset_id": "319cf24a-87d7-4656-91a1-3bdb53aee94f",
+		"sha12": "d5edb7db258d",
+		"label": "Gary idle, 4 frames 38x38 at 8 fps, from 10fc4560"
+	},
+	"gary_walk": {
+		"asset_id": "48c2dd61-0e1d-4360-91d6-1539ef32aca5",
+		"sha12": "116c86638c85",
+		"label": "Gary walk, 4 frames 38x38 at 8 fps, from 10fc4560"
+	},
+	"gary_hit": {
+		"asset_id": "d48eee82-101a-40a1-9daa-0967af49702b",
+		"sha12": "95a3f1a66a9e",
+		"label": "Gary hit, 4 frames 38x38 at 8 fps, from 10fc4560"
 	}
 }
