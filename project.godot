@@ -16,9 +16,41 @@ config/icon="res://assets/icon/icon.png"
 boot_splash/bg_color=Color(0.0549, 0.0431, 0.0863, 1)
 boot_splash/show_image=false
 
+[admob]
+
+; Poing AdMob plugin settings. All listed so the plugin never needs to
+; re-save this file. App ids are Google's public TEST ids (docs/PLUGINS.md);
+; real ids only with the owner's OK. No mediation adapters are vendored.
+general/android/enabled=true
+general/android/app_id="ca-app-pub-3940256099942544~3347511713"
+general/android/enable_r8_optimization=false
+general/android/disable_initialization_optimization=false
+general/android/disable_ad_loading_optimization=false
+general/ios/enabled=true
+general/ios/app_id="ca-app-pub-3940256099942544~1458002511"
+mediation/applovin=false
+mediation/bidmachine=false
+mediation/chartboost=false
+mediation/dtexchange=false
+mediation/imobile=false
+mediation/inmobi=false
+mediation/ironsource=false
+mediation/line=false
+mediation/maio=false
+mediation/meta=false
+mediation/mintegral=false
+mediation/moloco=false
+mediation/mytarget=false
+mediation/pangle=false
+mediation/pubmatic=false
+mediation/unity_ads=false
+mediation/vungle=false
+
 [autoload]
 
 Save="*res://scripts/autoload/save_manager.gd"
+Ads="*res://scripts/autoload/ads.gd"
+Store="*res://scripts/autoload/store.gd"
 
 [display]
 
@@ -31,6 +63,10 @@ window/stretch/mode="viewport"
 window/stretch/aspect="expand"
 window/stretch/scale_mode="integer"
 window/handheld/orientation=1
+
+[editor_plugins]
+
+enabled=PackedStringArray("res://addons/admob/plugin.cfg", "res://addons/GodotGooglePlayBilling/plugin.cfg")
 
 [gui]
 

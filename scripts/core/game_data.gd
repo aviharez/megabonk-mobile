@@ -291,6 +291,8 @@ func _cross_check() -> void:
 				errors.append("%s: stat \"%s\" must be a number" % [c._file, stat])
 	for m: Dictionary in entries.maps.values():
 		_check_map(m)
+	_check_ads(entries.rules.get("ads", {}))
+	_check_store(entries.rules.get("store", {}))
 	var bills: Dictionary = entries.rules.get("bills", {})
 	if not bills.is_empty():
 		if entries.enemies.get(bills.get("enemy", ""), {}).get("role", "") != "ghost":
@@ -315,6 +317,70 @@ func _cross_check() -> void:
 			errors.append("%s: chest kind \"%s\" not in rules/loot.json" % [e._file, e.chest])
 		if e.has("reward_chest") and not entries.interactables.has(e.reward_chest + "_chest"):
 			errors.append("%s: no interactable \"%s_chest\"" % [e._file, e.reward_chest])
+
+
+## data/rules/ads.json: ad units, rewarded placement limits, revive, daily,
+## interstitial pacing, banner screens (scripts/autoload/ads.gd).
+const AD_PLACEMENTS := ["revive", "double_coins", "reroll", "skip", "banish", "daily"]
+const AD_FORMATS := ["banner", "interstitial", "rewarded"]
+
+
+func _check_ads(a: Dictionary) -> void:
+	if a.is_empty():
+		return
+	var f: String = a._file
+	for platform: String in ["android", "ios"]:
+		var u: Dictionary = a.get("units", {}).get(platform, {})
+		for fmt: String in AD_FORMATS:
+			if typeof(u.get(fmt)) != TYPE_STRING or not String(u.get(fmt)).begins_with("ca-app-pub-"):
+				errors.append("%s: units.%s needs an ad unit id \"%s\" (ca-app-pub-...)" % [f, platform, fmt])
+	var rw: Dictionary = a.get("rewarded", {})
+	for p: String in AD_PLACEMENTS:
+		var r: Dictionary = rw.get(p, {})
+		var limit: Variant = r.get("per_run", r.get("per_day"))
+		if r.size() != 1 or not _is_num(limit) or limit < 1.0:
+			errors.append("%s: rewarded \"%s\" needs one limit, \"per_run\" or \"per_day\" (1 or more)" % [f, p])
+	for p: String in rw:
+		if not p in AD_PLACEMENTS:
+			errors.append("%s: unknown rewarded placement \"%s\" (no code shows it)" % [f, p])
+	for k: String in ["hp_frac", "iframes", "clear_radius"]:
+		if not _is_num(a.get("revive", {}).get(k)):
+			errors.append("%s: revive needs a number \"%s\"" % [f, k])
+	if not _is_num(a.get("daily", {}).get("coins")):
+		errors.append("%s: daily needs a number \"coins\"" % f)
+	var ic: Dictionary = a.get("interstitial", {})
+	if not _is_pair(ic.get("runs_between")) or ic.runs_between[0] < 1.0 or ic.runs_between[0] > ic.runs_between[1]:
+		errors.append("%s: interstitial \"runs_between\" must be [min, max] runs, 1 or more" % f)
+	if not _is_num(ic.get("first_day_hours")):
+		errors.append("%s: interstitial needs a number \"first_day_hours\"" % f)
+	var screens: Variant = a.get("banner", {}).get("screens")
+	if not screens is Array or screens.has("run"):
+		errors.append("%s: banner \"screens\" must be a list of menu screens (never \"run\")" % f)
+	for k: String in ["show_timeout_sec", "reward_grace_sec"]:
+		if not _is_num(a.get(k)):
+			errors.append("%s: needs a number \"%s\"" % [f, k])
+	if not _is_pair(a.get("retry_sec")):
+		errors.append("%s: \"retry_sec\" must be [first, max]" % f)
+
+
+## data/rules/store.json: in-app products (scripts/autoload/store.gd).
+func _check_store(st: Dictionary) -> void:
+	if st.is_empty():
+		return
+	var f: String = st._file
+	var products: Variant = st.get("products")
+	if not products is Dictionary:
+		errors.append("%s: \"products\" must map product keys to products" % f)
+		return
+	for key: String in products:
+		var p: Dictionary = products[key]
+		for k: String in ["name", "desc", "android", "ios"]:
+			if typeof(p.get(k)) != TYPE_STRING or String(p.get(k)).is_empty():
+				errors.append("%s: product \"%s\" needs a \"%s\"" % [f, key, k])
+		if p.get("type") != "non_consumable":
+			errors.append("%s: product \"%s\" \"type\" must be \"non_consumable\" (the only kind Store handles)" % [f, key])
+		if key != "remove_ads":
+			errors.append("%s: unknown product \"%s\" (Store only knows what \"remove_ads\" grants)" % [f, key])
 
 
 func _check_map(m: Dictionary) -> void:

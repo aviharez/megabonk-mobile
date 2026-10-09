@@ -1,0 +1,13 @@
+{
+	"id": "store",
+	"products_note": "Product ids are PLACEHOLDERS until the owner creates them in Play Console / App Store Connect (docs/PLUGINS.md).",
+	"products": {
+		"remove_ads": {
+			"name": "NO ADS",
+			"desc": "NO BANNERS OR BREAK ADS",
+			"android": "remove_ads",
+			"ios": "remove_ads",
+			"type": "non_consumable"
+		}
+	}
+}

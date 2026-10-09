@@ -48,8 +48,21 @@ static func default_data() -> Dictionary:
 		"toggled_off": {},
 		# Character picked last ("" = none yet: Meta.picked_character decides).
 		"character": "",
-		# Ad pacing, daily reward, Remove Ads (phase 5).
-		"ads": {},
+		# Ad pacing, daily reward, Remove Ads (phase 5; see scripts/autoload/ads.gd).
+		"ads": {
+			# Remove Ads bought (no interstitials, no banners; rewarded ads stay).
+			"removed": false,
+			# Unix time of the first launch with ads ("never on day one").
+			"first_seen": 0,
+			# Runs ended since the last interstitial, and the gap drawn for the next one.
+			"runs_since_interstitial": 0,
+			"interstitial_gap": 0,
+			# A rewarded ad was watched since the last game over -> menu break.
+			"rewarded_since_break": false,
+			# Rewarded placements with a per-day limit (the daily reward):
+			# placement -> {"date": local "YYYY-MM-DD", "count": n}.
+			"per_day": {},
+		},
 	}
 
 

@@ -21,6 +21,8 @@ const SHADOW := 2
 	set(v):
 		ink = v
 		queue_redraw()
+## Subclasses that draw their own label (AdButton) set this.
+var _own_label := false
 
 
 func _ready() -> void:
@@ -48,6 +50,8 @@ func _draw() -> void:
 		draw_rect(Rect2i(2, y + 1, w - 4, 1), _lighter(fill))
 		draw_rect(Rect2i(2, y + h - 2, w - 4, 1), _darker(fill))
 
+	if _own_label:
+		return
 	# One centered line per "\n"-separated part of the label.
 	var font := get_theme_default_font()
 	var fs := get_theme_default_font_size()

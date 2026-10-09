@@ -229,7 +229,7 @@ Ads appear only at natural breaks, and most are chosen by the player. No forced 
 
 | Format | Placement | Limit |
 | --- | --- | --- |
-| Rewarded | Revive on death | 1 per run |
+| Rewarded | Revive on death (not when Overdue Bills end the run) | 1 per run |
 | Rewarded | 2x coins on the game-over screen, next to unlock progress | 1 per run |
 | Rewarded | Reroll, Skip, Banish when charges run out | Up to 1 per action per run |
 | Rewarded | Daily reward on the main menu | 1 per day |

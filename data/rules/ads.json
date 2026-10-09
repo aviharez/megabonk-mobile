@@ -1,0 +1,31 @@
+{
+	"id": "ads",
+	"units_note": "Google's public TEST ad units. Real units only with the owner's OK (docs/PLUGINS.md).",
+	"units": {
+		"android": {
+			"banner": "ca-app-pub-3940256099942544/9214589741",
+			"interstitial": "ca-app-pub-3940256099942544/1033173712",
+			"rewarded": "ca-app-pub-3940256099942544/5224354917"
+		},
+		"ios": {
+			"banner": "ca-app-pub-3940256099942544/2934735716",
+			"interstitial": "ca-app-pub-3940256099942544/4411468910",
+			"rewarded": "ca-app-pub-3940256099942544/1712485313"
+		}
+	},
+	"rewarded": {
+		"revive": {"per_run": 1},
+		"double_coins": {"per_run": 1},
+		"reroll": {"per_run": 1},
+		"skip": {"per_run": 1},
+		"banish": {"per_run": 1},
+		"daily": {"per_day": 1}
+	},
+	"revive": {"hp_frac": 0.5, "iframes": 2.5, "clear_radius": 56},
+	"daily": {"coins": 25},
+	"interstitial": {"runs_between": [2, 3], "first_day_hours": 24},
+	"banner": {"screens": ["menu", "shop", "unlocks"]},
+	"show_timeout_sec": 8.0,
+	"reward_grace_sec": 1.0,
+	"retry_sec": [2.0, 60.0]
+}

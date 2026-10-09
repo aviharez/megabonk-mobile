@@ -3,6 +3,11 @@ extends Control
 ## Settings toggles write straight to the save file. PLAY opens the hero
 ## select when there's a choice to make (more than one owned character, or
 ## the Toggler). UNLOCKS shows a red dot while something new is ready to buy.
+##
+## Ads (scripts/autoload/ads.gd): the daily reward button shows while a
+## rewarded ad can pay for it (once per day). The bottom banner shows on the
+## menu, shop and unlocks screens only (data/rules/ads.json "banner"), and
+## the whole menu shrinks by its height so nothing sits under it.
 
 const RUN_SCENE := "res://scenes/run.tscn"
 const SETTINGS := [
@@ -29,6 +34,9 @@ const SETTINGS := [
 
 var _bob := false
 var _dot: Control
+var _daily: AdButton
+var _ads: Node
+var _banner_screen := "?"
 
 
 func _ready() -> void:
@@ -66,11 +74,23 @@ func _ready() -> void:
 	red.mouse_filter = Control.MOUSE_FILTER_IGNORE
 	_dot.add_child(red)
 	_unlocks_btn.add_child(_dot)
+	_daily = AdButton.new()
+	_daily.name = "Daily"
+	_daily.face = Palette.BUTTER
+	_daily.custom_minimum_size = Vector2(112, 18)
+	_daily.pressed.connect(_on_daily)
+	$Frame/Buttons.add_child(_daily)
 	_settings_btn.pressed.connect(_open_settings)
 	_settings_back.pressed.connect(func() -> void: _settings.hide())
 	_build_toggles()
 	_settings.hide()
 	_refresh_wallet()
+	_ads = get_node_or_null("/root/Ads")
+	if _ads != null:
+		_ads.ready_changed.connect(_refresh_daily)
+		_ads.banner_inset_changed.connect(_apply_inset)
+		_apply_inset(_ads.banner_inset)
+	_refresh_daily()
 
 	# Goofy title bob in whole-pixel steps (keeps everything on the grid).
 	var t := Timer.new()
@@ -78,6 +98,60 @@ func _ready() -> void:
 	t.autostart = true
 	t.timeout.connect(_on_bob)
 	add_child(t)
+
+
+func _process(_delta: float) -> void:
+	# The banner follows whichever screen is on top (screens open and close
+	# from several places, so check here rather than at each one).
+	var screen := _current_screen()
+	if screen != _banner_screen:
+		_banner_screen = screen
+		if _ads != null:
+			_ads.set_banner(_ads.banner_screen(screen))
+
+
+func _exit_tree() -> void:
+	if _ads != null:
+		_ads.set_banner(false)
+
+
+## "menu", "shop", "unlocks", "settings", "hero" or "toggler".
+func _current_screen() -> String:
+	var screens := get_children().filter(func(c: Node) -> bool: return c is MenuScreen and not c.is_queued_for_deletion())
+	if not screens.is_empty():
+		var top := _top_screen(screens.back())
+		if top is ShopScreen:
+			return "shop"
+		if top is UnlocksScreen:
+			return "unlocks"
+		if top is TogglerScreen:
+			return "toggler"
+		return "hero"
+	if _settings != null and _settings.visible:
+		return "settings"
+	return "menu"
+
+
+## Keeps the menu (and the screens inside it) above the bottom banner.
+func _apply_inset(inset: int) -> void:
+	offset_bottom = -inset
+
+
+func _refresh_daily() -> void:
+	var coins := int(GameData.shared().get_entry("rules", "ads").get("daily", {}).get("coins", 0))
+	_daily.label = "DAILY +%d COINS" % coins
+	_daily.visible = _ads != null and _ads.can_offer("daily")
+
+
+func _on_daily() -> void:
+	if _ads == null or _ads.is_showing():
+		return
+	_ads.show_rewarded("daily", func(granted: bool) -> void:
+		if granted:
+			Save.data.coins = int(Save.data.coins) + int(GameData.shared().get_entry("rules", "ads").daily.coins)
+			Save.save_game()
+			_refresh_wallet()
+		_refresh_daily())
 
 
 func _notification(what: int) -> void:

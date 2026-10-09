@@ -391,7 +391,9 @@ func test_reroll(t) -> void:
 	t.check(changed and run.charges.reroll == 0, "new cards, charges used")
 	t.check(not run.reroll_cards(), "no charges left")
 	var ab: ActionButton = run._action_buttons.reroll
-	t.check(ab.ad and ab.disabled, "out of charges: ad icon, disabled until ads (phase 5)")
+	# No ads in this run: the AD state is set but the button stays hidden
+	# (rewarded buttons show only with an ad ready; tests/test_ads.gd).
+	t.check(ab.ad and not ab.visible, "out of charges and no ad: hidden")
 	_done(t, run)
 
 

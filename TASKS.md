@@ -190,6 +190,47 @@ Same or better than phase 3 (293.8 / 165.4 / 2.35 ms for the full build): the pe
 
 Coins per run, bot sims (starter, seeds 1-8): 34, 8, 4, 655 (reached the Final Swarm, ended by bills at 11:05), 26, 18, 48, 16. Median 22; an 8-minute run earns ~110 before the Final Swarm multiplier. Prices use 50 coins as "an average run" (Early ~1 run, Mid ~3, Hard ~6).
 
+## Phase 5: Monetization
+
+Plugins (owner approved 2026-10-08): Poing AdMob 5.1.0 and GodotGooglePlayBilling 3.3.0, vendored in `addons/`; see docs/PLUGINS.md. All ad ids are Google's public test ids; the IAP product id is a placeholder.
+
+- [x] Plugins researched (activity, Godot 4.7 support, license), owner picked, installed trimmed (no samples, C#, AI skills, mediation adapters); headless auto-download disabled; `project.godot` lists all `[admob]` settings so the plugin never rewrites it
+- [x] `Ads` autoload over an `AdBackend` (AdMob on device, `FakeAdBackend` on desktop/tests); `Store` autoload over a `StoreBackend` (Play Billing on Android, `FakeStoreBackend` elsewhere). Plugin classes only load on a device
+- [x] Numbers and ids as data: `data/rules/ads.json` (test units, limits, revive, daily coins, interstitial pacing, banner screens, timeouts), `data/rules/store.json` (Remove Ads); validated, with a failing case each (`tests/test_data.gd`)
+- [x] Rewarded: revive on death (1/run; not vs Overdue Bills; 50% HP, 2.5 s i-frames, nearby enemies pushed out, shots cleared), 2x coins on game over above the unlock progress (1/run), Reroll/Skip/Banish when out of charges (1 per action per run; also for players who never bought Skip/Banish), daily reward on the menu (+25 coins, 1/day, local date, in the save)
+- [x] Rewarded buttons show only when an ad is loaded and the limit allows; reward granted only after the SDK reward callback (also when it comes just after the close); a failed or skipped ad costs nothing
+- [x] Interstitial only at game over -> menu: every 2-3 runs (gap drawn each time), never in the first 24 h after first launch, skipped after any rewarded ad since the last break, never with Remove Ads; a failed one still reaches the menu and doesn't reset the gap
+- [x] Banner on menu, shop and unlocks only (hero select, Toggler, settings, runs: none); the menu shrinks by the banner height so nothing sits under it
+- [x] Pause: tree paused and master bus muted while a full-screen ad is up, restored to the previous state on close, show failure or watchdog timeout (SDK never answers); an ad that shows after the watchdog pauses again
+- [x] Remove Ads in the shop (store price as "USD 1.99": the pixel font has no currency symbols): removes banners at once and interstitials, rewarded stay; pending payments wait; restore on new install; the store's full list drops a refund; acknowledged per Play rules
+- [x] Tests: `tests/test_ads.gd` (135 checks: every outcome x every placement rule, pause restore, pacing, banner, Remove Ads, in-run revive / actions / 2x coins); mutation-checked: granting on tap, no pause restore, no per-run limit, interstitial after rewarded, banner kept with Remove Ads each fail it
+- [x] Flow check: banner on the menu and not in the run, daily reward, revive, 2x coins, interstitial skipped after rewarded / shown otherwise, Remove Ads from the shop
+- [x] Export presets on Gradle build (required by the AdMob plugin), Godot 4.7.2 build template in `android/build/`, editor-only plugin files excluded from the APK
+- [x] Debug APK builds with both plugins (Gradle, 45 s): both plugins' classes in the dex, manifest has the test AdMob app id, INTERNET and BILLING; minSdk 24, targetSdk 36
+- [x] First run on the phone (2026-10-08) found two bugs desktop tests couldn't:
+  - the export excluded `addons/admob/internal/*`, but AdRequest/MobileAds preload `internal/version/plugin_version.gd`, so no AdMob class compiled. Exclusion narrowed to the editor-only folders; new `tests/test_export_filters.gd` fails if any exported script loads an excluded file (checked against the old filter)
+  - loading an ad before `MobileAds.initialize` finished crashed the app (Next-Gen SDK throws). `admob_backend.gd` now queues loads and the banner until the init callback
+- [x] On the phone, no fill: init OK, every load fails cleanly with backoff retries, no rewarded buttons and no banner gap on the menu, no crash
+- [x] Review fixes (2026-10-09):
+  - a failed AdMob banner load left a dead AdView that `banner_load()` reused, so the banner never came back that session. `admob_backend.gd` now destroys it; `Ads` resets the banner backoff on a load. Tests drive the real `admob_backend.gd` against a stand-in AdView plugin (failed before the fix)
+  - the fake ad and store backends were picked whenever the native plugin was missing, so a release build without it (any iOS build) sold Remove Ads for free. Fakes are now debug-build only; release builds without the plugin get inert backends (no ads, STORE OFFLINE). Tested
+- [x] (owner, 2026-10-09) No revive offer when Overdue Bills end the run; brief table updated
+- [ ] Test ads on the phone: rewarded (all placements), interstitial, banner; pause/resume when an ad fails (airplane mode) and when closed early (needs the phone)
+- [x] Consent (UMP / GDPR) moved to phase 9 (owner, 2026-10-09)
+- [ ] Remove Ads on a device (needs a Play Console product + license tester; see Blocked)
+- [x] 300-enemy stress after the changes (results below)
+- [x] Screens checked in a window (menu + banner + daily, desktop test ad, shop with NO ADS, revive offer, game over with 2X COINS): palette only, pixel font, boxed AD tag like the level-up buttons
+- [x] Tests: 1048 checks pass (`tools/run_tests.sh`), flow check OK (after the review fixes)
+
+### Phase 5 results (2026-10-08, same desktop, windowed, 30 s, full build)
+
+| Stress | Vsync | Avg fps | 1% low fps | Missed vsync | Logic ms/frame | On screen |
+| --- | --- | --- | --- | --- | --- | --- |
+| 300 enemies, full build | on (75 Hz) | 75.0 (cap) | 66.8 | 0 | 4.76 | 295 |
+| 300 enemies, full build | off | 323.6 | 232.7 | 0 | 2.17 | 299 |
+
+Same as phase 4 (330.8 / 242.0 / 2.15 ms uncapped): the Ads and Store autoloads cost nothing in a run. Phone not measured (not connected).
+
 ## Found during phase 4
 
 - [x] (owner, 2026-10-08: `"requires": "golden_toilet"` added, brief table updated) Lottery Tips ("Epic from a paid chest", Mid) can't be done before an Epic item is owned: all three Epics (Golden Toilet, Clone Machine, Angry Neighbor) are unlock content, and chests only roll what's in the pool. The earliest route is Golden Toilet (Mid). The brief lists no prerequisite; options: add `"requires": "golden_toilet"` so the screens say so, make one Epic start content, or accept the hidden order. Owner decision.

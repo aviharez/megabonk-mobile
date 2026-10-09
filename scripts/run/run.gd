@@ -68,6 +68,8 @@ static var next_options := {}
 ##   (tests). Without it the Save autoload is used, or, with no_save, a blank
 ##   save that is never written (tests and bots don't depend on progress).
 ## charges: overrides for the level-up action charges {"reroll": n, ...}.
+## ads: an Ads service node (tests). Without it the Ads autoload is used
+##   when the run uses the Save autoload (the real game), never in bot runs.
 var options := {}
 var db: GameData
 var rules: Dictionary
@@ -80,8 +82,11 @@ var stats: StatBlock
 var meta: Dictionary
 ## Level-up action charges left this run: {"reroll", "skip", "banish"}.
 var charges := {}
-## Phase 5 sets this when a rewarded ad can replace a missing charge.
-var ad_ready := func(_action: String) -> bool: return false
+## Rewarded ads (scripts/autoload/ads.gd): revive on death, 2x coins at game
+## over, a level-up action when its charges run out. null = no ads.
+var ads: Node
+var ad_rules: Dictionary
+var revived := false
 var director: Director
 var bounds := Rect2()
 
@@ -175,6 +180,11 @@ var _over_panel: Control
 var _over_text: Label
 var _over_title: Label
 var _pause_panel: Control
+var _revive_panel: Control
+var _revive_btn: AdButton
+var _double_btn: AdButton
+var _menu_btn: PixelButton
+var _leaving := false
 
 
 func _ready() -> void:
@@ -194,6 +204,12 @@ func _ready() -> void:
 		push_error("Run: character '%s' not found" % who)
 		char_def = db.get_entry("characters", Meta.picked_character(db, meta))
 	elite_rules = db.get_entry("rules", "elites")
+	ad_rules = db.get_entry("rules", "ads")
+	ads = options.get("ads")
+	# The Ads autoload goes with the real save: runs on a test save, blank
+	# save (no_save) or a bot never see ads unless a test passes "ads".
+	if ads == null and not options.get("bot", false) and _save != null and _save == get_node_or_null("/root/Save"):
+		ads = get_node_or_null("/root/Ads")
 	if options.has("seed"):
 		rng.seed = int(options.seed)
 	else:
@@ -230,6 +246,10 @@ func _ready() -> void:
 	_build_ui()
 	_give_weapon(char_def.signature_weapon)
 	_apply_loadout(options.get("loadout", {}))
+	if ads != null:
+		ads.begin_run()
+		ads.set_banner(false)  # never during gameplay
+		ads.ready_changed.connect(_refresh_ad_buttons)
 	_render()
 
 
@@ -305,7 +325,7 @@ func tick(delta: float) -> void:
 	if hp <= 0.0:
 		# Before map objects run: a portal or merchant touched in the same
 		# frame must not act on a dead player.
-		_end("bills" if is_bill(last_damage_source) else "died")
+		_die()
 		return
 
 	var got := gems.update(delta, _pos, stat("pickup_range"))  # counts gems.collected
@@ -328,7 +348,7 @@ func tick(delta: float) -> void:
 			open_chest("paid")
 
 	if hp <= 0.0:
-		_end("bills" if is_bill(last_damage_source) else "died")
+		_die()
 	elif pending_levels > 0 and state == "live":
 		_open_level_up()
 
@@ -1059,14 +1079,16 @@ func _show_cards() -> void:
 	for a: String in _action_buttons:
 		var ab: ActionButton = _action_buttons[a]
 		ab.charges = charges.get(a, 0)
+		# Out of charges: the AD tag, shown only while a rewarded ad can pay
+		# for one more (once per action per run, see Ads).
 		ab.ad = ab.charges <= 0
-		# Out of charges: the ad tag, usable once phase 5 has an ad ready.
-		ab.disabled = ab.charges <= 0 and not ad_ready.call(a)
+		ab.visible = ab.charges > 0 or _ad_offer(a)
+		ab.disabled = _ad_busy()
 		ab.face = Palette.RED if a == "banish" and _banish_mode else Palette.MIST
 
 
 func _on_card(i: int) -> void:
-	if state != "level_up" or i >= _cards.size():
+	if state != "level_up" or i >= _cards.size() or _ad_busy():
 		return
 	if _banish_mode:
 		banish_card(i)
@@ -1087,7 +1109,10 @@ func _level_done() -> void:
 
 
 func _on_action(action: String) -> void:
-	if state != "level_up":
+	if state != "level_up" or _ad_busy():
+		return
+	if charges.get(action, 0) <= 0:
+		_action_by_ad(action)
 		return
 	match action:
 		"reroll":
@@ -1098,6 +1123,119 @@ func _on_action(action: String) -> void:
 			# First tap picks banish mode, then a card; tapping again cancels.
 			_banish_mode = not _banish_mode and charges.get("banish", 0) > 0
 			_show_cards()
+
+
+## Out of charges: a rewarded ad buys one charge of `action`, used at once
+## (Banish enters banish mode). Nothing happens unless the ad pays out.
+func _action_by_ad(action: String) -> void:
+	if not _ad_offer(action):
+		return
+	ads.show_rewarded(action, _on_action_ad.bind(action))
+	_show_cards()
+
+
+func _on_action_ad(granted: bool, action: String) -> void:
+	if not granted or state != "level_up":
+		_refresh_ad_buttons()
+		return
+	charges[action] = charges.get(action, 0) + 1
+	match action:
+		"reroll":
+			reroll_cards()
+		"skip":
+			skip_level()
+		"banish":
+			_banish_mode = true
+			_show_cards()
+
+
+## True when a rewarded ad can pay for `placement` now. Banish only while a
+## card on screen can be banished.
+func _ad_offer(placement: String) -> bool:
+	if ads == null or not ads.can_offer(placement):
+		return false
+	if placement == "banish":
+		return _cards.any(_can_banish)
+	return true
+
+
+## A full-screen ad is up: ignore taps underneath it.
+func _ad_busy() -> bool:
+	return ads != null and ads.is_showing()
+
+
+## Ad readiness changed: show or hide the rewarded buttons on screen.
+func _refresh_ad_buttons() -> void:
+	match state:
+		"level_up":
+			_show_cards()
+		"dying":
+			_revive_btn.visible = _ad_offer("revive")
+		"over":
+			_double_btn.visible = _can_double()
+
+
+# --- Revive (rewarded ad) -----------------------------------------------------
+
+## The player's HP hit 0. A death that isn't the Final Swarm's bills can be
+## undone once per run by a rewarded ad: the run waits on the revive offer.
+func _die() -> void:
+	var reason := "bills" if is_bill(last_damage_source) else "died"
+	if reason == "died" and _ad_offer("revive"):
+		state = "dying"
+		_choice = {}
+		_choice_panel.hide()
+		_cards_panel.hide()
+		_pause_panel.hide()
+		_joystick.release()
+		get_tree().paused = true
+		_revive_btn.visible = true
+		_revive_panel.show()
+		return
+	_end(reason)
+
+
+func _on_revive_pressed() -> void:
+	if state != "dying" or _ad_busy() or not _ad_offer("revive"):
+		return
+	ads.show_rewarded("revive", func(granted: bool) -> void:
+		if state != "dying":
+			return
+		if granted:
+			revive()
+		else:
+			# No reward (failed, skipped): back to the offer, still paused.
+			_refresh_ad_buttons())
+
+
+func _decline_revive() -> void:
+	if state == "dying" and not _ad_busy():
+		_revive_panel.hide()
+		_end("died")
+
+
+## Back on your feet: part of max HP, a few seconds of i-frames, and the
+## enemies close by pushed out to the clear radius (shots in the air vanish).
+func revive() -> void:
+	var rv: Dictionary = ad_rules.get("revive", {})
+	revived = true
+	hp = stat("max_hp") * float(rv.get("hp_frac", 0.5))
+	_iframes = float(rv.get("iframes", 2.0))
+	var r := float(rv.get("clear_radius", 48.0))
+	enemies.query_circle(_pos, r, _hits)
+	var boss_slot := _boss_slot()
+	for slot in _hits:
+		if slot == boss_slot:
+			continue
+		var away := enemies.pos[slot] - _pos
+		if away.length_squared() < 0.25:
+			away = Vector2.RIGHT.rotated(rng.randf() * TAU)
+		enemies.move_to(slot, _pos + away.normalized() * (r + enemies.radius[slot]))
+	enemy_shots.clear()
+	_revive_panel.hide()
+	state = "live"
+	get_tree().paused = false
+	toast("BACK FOR SECONDS!", "LIME")
 
 
 ## Level-up actions (coin shop charges). Each returns true if it did
@@ -1272,6 +1410,7 @@ func _end(reason: String) -> void:
 	_choice_panel.hide()
 	_cards_panel.hide()
 	_pause_panel.hide()
+	_revive_panel.hide()
 	end_reason = reason
 	var reached_final := final_swarm()
 	won = reason == "portal" or reached_final
@@ -1295,6 +1434,8 @@ func _end(reason: String) -> void:
 	if _save != null:
 		result.completed = Meta.commit_run(db, meta, result.stats, char_def.id, coins)
 		_save.save_game()
+	if ads != null:
+		ads.end_run()
 	run_ended.emit(result)
 	if options.get("bot", false) and options.get("auto_cards", false):
 		return  # headless sims read `result`; no screen to show
@@ -1317,19 +1458,47 @@ func _end(reason: String) -> void:
 				color = Palette.PINK
 	_over_title.text = title
 	_over_title.add_theme_color_override("font_color", Palette.color(color))
+	_over_text.text = _over_lines()
+	_double_btn.visible = _can_double()
+	_fill_over_progress()
+	_over_panel.show()
+
+
+func _over_lines() -> String:
 	var sec := int(minf(elapsed, rules.run_length_sec))
 	var lines := "TIME %d:%02d   LEVEL %d\nKO %d" % [sec / 60, sec % 60, level, kills]
-	if reached_final:
+	if final_swarm():
 		var f := int(director.final_time)
 		lines += "\nFINAL SWARM +%d:%02d" % [f / 60, f % 60]
-	lines += "\nCOINS +%d" % coins
-	if mult > 1.0:
+	lines += "\nCOINS +%d" % (result.coins * (2 if result.get("coins_doubled", false) else 1))
+	if result.get("coins_doubled", false):
+		lines += "  X2"
+	elif director.coin_mult() > 1.0:
 		lines += "  X%.1f" % director.coin_mult()
 	if _save != null:
 		lines += "  (%d)" % int(meta.coins)
-	_over_text.text = lines
-	_fill_over_progress()
-	_over_panel.show()
+	return lines
+
+
+# --- 2x coins (rewarded ad) ---------------------------------------------------
+
+func _can_double() -> bool:
+	return state == "over" and _save != null and int(result.get("coins", 0)) > 0 \
+		and not result.get("coins_doubled", false) and _ad_offer("double_coins")
+
+
+func _on_double_pressed() -> void:
+	if not _can_double() or _ad_busy():
+		return
+	ads.show_rewarded("double_coins", func(granted: bool) -> void:
+		if granted and state == "over" and not result.get("coins_doubled", false):
+			# The run's coins once more, on top of what commit_run added.
+			meta.coins = int(meta.coins) + int(result.coins)
+			result.coins_doubled = true
+			_save.save_game()
+			_over_text.text = _over_lines()
+			toast("COINS X2!", "GOLD")
+		_double_btn.visible = _can_double())
 
 
 ## Game over: progress toward the closest unlocks, and what's ready to buy
@@ -1382,6 +1551,8 @@ func _notification(what: int) -> void:
 		NOTIFICATION_WM_GO_BACK_REQUEST:
 			if state == "over":
 				_to_menu.call_deferred()
+			elif state == "dying":
+				_decline_revive()
 			else:
 				_pause(state == "live")
 		NOTIFICATION_APPLICATION_PAUSED, NOTIFICATION_APPLICATION_FOCUS_OUT:
@@ -1746,18 +1917,55 @@ func _build_ui() -> void:
 	_over_text.size = Vector2(168, 40)
 	_over_text.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
 	_over_panel.add_child(_over_text)
+	# 2x coins (rewarded ad), right above the unlock progress it feeds.
+	_double_btn = AdButton.new()
+	_double_btn.label = "2X COINS"
+	_double_btn.face = Palette.GOLD
+	_double_btn.position = Vector2(28, 70)
+	_double_btn.custom_minimum_size = Vector2(112, 18)
+	_double_btn.size = _double_btn.custom_minimum_size
+	_double_btn.pressed.connect(_on_double_pressed)
+	_double_btn.hide()
+	_over_panel.add_child(_double_btn)
 	_over_list = VBoxContainer.new()
-	_over_list.position = Vector2(6, 72)
-	_over_list.size = Vector2(156, 180)
+	_over_list.position = Vector2(6, 92)
+	_over_list.size = Vector2(156, 164)
 	_over_list.add_theme_constant_override("separation", 2)
 	_over_panel.add_child(_over_list)
-	var menu_btn := PixelButton.new()
-	menu_btn.label = "BACK TO MENU"
-	menu_btn.position = Vector2(28, 260)
-	menu_btn.custom_minimum_size = Vector2(112, 20)
-	menu_btn.size = menu_btn.custom_minimum_size
-	menu_btn.pressed.connect(_to_menu)
-	_over_panel.add_child(menu_btn)
+	_menu_btn = PixelButton.new()
+	_menu_btn.label = "BACK TO MENU"
+	_menu_btn.position = Vector2(28, 260)
+	_menu_btn.custom_minimum_size = Vector2(112, 20)
+	_menu_btn.size = _menu_btn.custom_minimum_size
+	_menu_btn.pressed.connect(_to_menu)
+	_over_panel.add_child(_menu_btn)
+
+	# Revive offer (rewarded ad) after a death.
+	_revive_panel = _panel(ui, Rect2(20, 100, 140, 112), Palette.NIGHT)
+	_title(_revive_panel, "TOASTED?", Palette.RED, 8)
+	var why := Label.new()
+	why.text = "WATCH AN AD\nTO GET BACK UP"
+	why.position = Vector2(0, 32)
+	why.size = Vector2(140, 20)
+	why.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
+	why.add_theme_color_override("font_color", Palette.color(Palette.MIST))
+	_revive_panel.add_child(why)
+	_revive_btn = AdButton.new()
+	_revive_btn.label = "REVIVE"
+	_revive_btn.face = Palette.LIME
+	_revive_btn.position = Vector2(18, 58)
+	_revive_btn.custom_minimum_size = Vector2(104, 20)
+	_revive_btn.size = _revive_btn.custom_minimum_size
+	_revive_btn.pressed.connect(_on_revive_pressed)
+	_revive_panel.add_child(_revive_btn)
+	var no := PixelButton.new()
+	no.label = "NO THANKS"
+	no.face = Palette.MIST
+	no.position = Vector2(18, 84)
+	no.custom_minimum_size = Vector2(104, 20)
+	no.size = no.custom_minimum_size
+	no.pressed.connect(_decline_revive)
+	_revive_panel.add_child(no)
 
 	# Pause.
 	_pause_panel = _panel(ui, Rect2(24, 110, 132, 100), Palette.NIGHT)
@@ -1817,6 +2025,19 @@ func _title(parent: Control, text: String, color: int, y: int) -> Label:
 	return l
 
 
+## Back to the menu. After a game over this is the one break where an
+## interstitial may show (Ads decides); the menu loads once it's gone.
 func _to_menu() -> void:
+	if _leaving or _ad_busy():
+		return
+	_leaving = true
+	_menu_btn.disabled = true
+	if ads != null and state == "over":
+		ads.at_break(func(_shown: bool) -> void: _go_to_menu())
+	else:
+		_go_to_menu()
+
+
+func _go_to_menu() -> void:
 	get_tree().paused = false
 	get_tree().change_scene_to_file(MENU_SCENE)

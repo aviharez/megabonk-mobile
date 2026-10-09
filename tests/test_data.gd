@@ -158,3 +158,29 @@ func test_phase4_bad_data_is_caught(t) -> void:
 	tf.close()
 	var dup := "\n".join(GameData.load_from(BAD).errors)
 	t.check(dup.contains("id \"protein_bar\" is also used in"), "duplicate content id caught:\n%s" % dup)
+
+
+func test_phase5_bad_data_is_caught(t) -> void:
+	var cases := [
+		["rules/ads.json", func(d: Dictionary) -> void: d.units.android.rewarded = "", "units.android needs an ad unit id \"rewarded\""],
+		["rules/ads.json", func(d: Dictionary) -> void: d.rewarded.revive = {}, "rewarded \"revive\" needs one limit"],
+		["rules/ads.json", func(d: Dictionary) -> void: d.rewarded.daily = {"per_day": 0}, "rewarded \"daily\" needs one limit"],
+		["rules/ads.json", func(d: Dictionary) -> void: d.rewarded.chest = {"per_run": 1}, "unknown rewarded placement \"chest\""],
+		["rules/ads.json", func(d: Dictionary) -> void: d.revive.erase("hp_frac"), "revive needs a number \"hp_frac\""],
+		["rules/ads.json", func(d: Dictionary) -> void: d.interstitial.runs_between = [3, 2], "\"runs_between\" must be [min, max]"],
+		["rules/ads.json", func(d: Dictionary) -> void: d.banner.screens.append("run"), "never \"run\""],
+		["rules/store.json", func(d: Dictionary) -> void: d.products.remove_ads.erase("android"), "product \"remove_ads\" needs a \"android\""],
+		["rules/store.json", func(d: Dictionary) -> void: d.products.remove_ads.type = "consumable", "\"type\" must be \"non_consumable\""],
+		["rules/store.json", func(d: Dictionary) -> void: d.products.gems = d.products.remove_ads.duplicate(), "unknown product \"gems\""],
+	]
+	for c: Array in cases:
+		_wipe(BAD)
+		_copy_tree(GameData.ROOT, BAD)
+		var path := BAD.path_join(c[0])
+		var d: Dictionary = JSON.parse_string(FileAccess.get_file_as_string(path))
+		c[1].call(d)
+		var f := FileAccess.open(path, FileAccess.WRITE)
+		f.store_string(JSON.stringify(d))
+		f.close()
+		var all := "\n".join(GameData.load_from(BAD).errors)
+		t.check(all.contains(c[2]), "%s: expected an error with '%s', got:\n%s" % [c[0], c[2], all])
