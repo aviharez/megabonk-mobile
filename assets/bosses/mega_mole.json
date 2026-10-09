@@ -1,0 +1,65 @@
+{
+  "format": "game.sheet",
+  "frame_w": 40,
+  "frame_h": 39,
+  "frames": 16,
+  "fps": 8.0,
+  "origin": [
+    20,
+    37
+  ],
+  "default": "walk",
+  "clips": {
+    "walk": {
+      "start": 0,
+      "frames": 4,
+      "fps": 8.0
+    },
+    "burrow": {
+      "start": 4,
+      "frames": 4,
+      "fps": 8.0
+    },
+    "attack": {
+      "start": 8,
+      "frames": 4,
+      "fps": 8.0
+    },
+    "hit": {
+      "start": 12,
+      "frames": 4,
+      "fps": 8.0
+    }
+  },
+  "source": {
+    "generator": "tools/sheet_clips.py",
+    "clips": {
+      "walk": {
+        "generator": "SpriteCook",
+        "asset_id": "612cac51-90fd-4cae-95c2-751794b3b14a",
+        "scale": 1.0,
+        "sheet": "walk.png"
+      },
+      "burrow": {
+        "generator": "SpriteCook",
+        "asset_id": "612cac51-90fd-4cae-95c2-751794b3b14a",
+        "scale": 1.0,
+        "sheet": "burrow.png",
+        "hand_edit": "tools/art/mole_burrow.py (sinking frames from frame 0)"
+      },
+      "attack": {
+        "generator": "SpriteCook",
+        "asset_id": "590c9371-08b3-445f-bc59-a3a106756356",
+        "scale": 1.0,
+        "sheet": "attack.png"
+      },
+      "hit": {
+        "generator": "SpriteCook",
+        "asset_id": "e7d871bf-882c-41ec-b21c-434bbaa45c35",
+        "scale": 1.0,
+        "sheet": "hit.png"
+      }
+    },
+    "sheet": "mega_mole.png"
+  }
+}

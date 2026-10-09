@@ -546,6 +546,16 @@ func _check_sheet(f: String, path: Variant) -> void:
 	var size := tex.get_size() if tex != null else Vector2(Image.load_from_file(path).get_size())
 	if int(meta.frame_w) * int(meta.frames) != int(size.x) or int(meta.frame_h) != int(size.y):
 		errors.append("%s: sheet %s is %dx%d but the sidecar says %d frames of %dx%d" % [f, path, size.x, size.y, meta.frames, meta.frame_w, meta.frame_h])
+	# Named clips (tools/sheet_clips.py): each inside the strip, default one of them.
+	if meta.has("clips"):
+		if not meta.clips is Dictionary or not meta.clips.has(meta.get("default", "")):
+			errors.append("%s: sidecar \"%s\" clips need a \"default\" that is one of them" % [f, meta_path])
+			return
+		for c: String in meta.clips:
+			var clip = meta.clips[c]
+			if not clip is Dictionary or not _is_num(clip.get("start")) or not _is_num(clip.get("frames")) or not _is_num(clip.get("fps")) \
+					or int(clip.start) < 0 or int(clip.frames) < 1 or float(clip.fps) <= 0.0 or int(clip.start) + int(clip.frames) > int(meta.frames):
+				errors.append("%s: clip \"%s\" in \"%s\" needs start, frames and fps inside the strip" % [f, c, meta_path])
 
 
 

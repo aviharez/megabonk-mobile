@@ -63,5 +63,30 @@
 		"asset_id": "d48eee82-101a-40a1-9daa-0967af49702b",
 		"sha12": "95a3f1a66a9e",
 		"label": "Gary hit, 4 frames 38x38 at 8 fps, from 10fc4560"
+	},
+	"mega_mole_base": {
+		"asset_id": "88627398-7d7e-4079-be57-d06f76ef5be4",
+		"sha12": "7b1a20486f0c",
+		"label": "Mega Mole base sprite (34x34, NB2.1 1K, style refs the 3 heroes)"
+	},
+	"mega_mole_walk": {
+		"asset_id": "612cac51-90fd-4cae-95c2-751794b3b14a",
+		"sha12": "e76a5c747f58",
+		"label": "Mega Mole walk, 4 frames 38x38 at 8 fps, from 88627398"
+	},
+	"mega_mole_burrow": {
+		"asset_id": "657a9412-8e66-4a52-9c10-e551fbb6b732",
+		"sha12": "9aeb845c2d32",
+		"label": "Mega Mole burrow, 4 frames 38x38 at 8 fps, from 88627398; not used (didn't dig), burrow built by tools/art/mole_burrow.py"
+	},
+	"mega_mole_attack": {
+		"asset_id": "590c9371-08b3-445f-bc59-a3a106756356",
+		"sha12": "9aed4f8d861f",
+		"label": "Mega Mole attack, 4 frames 38x38 at 8 fps, from 88627398"
+	},
+	"mega_mole_hit": {
+		"asset_id": "e7d871bf-882c-41ec-b21c-434bbaa45c35",
+		"sha12": "757c2c642b85",
+		"label": "Mega Mole hit, 4 frames 38x38 at 8 fps, from 88627398"
 	}
 }

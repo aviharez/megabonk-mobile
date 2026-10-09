@@ -114,6 +114,58 @@ func test_character_sheets(t) -> void:
 	await t.process_frame
 
 
+
+## Mega Mole's sheet has named clips: walk loops by default, the others play
+## once (burrow also backwards) and hand back to walk.
+func test_boss_clips(t) -> void:
+	var db := GameData.shared()
+	var def: Dictionary = db.get_entry("enemies", "mega_mole")
+	var sheet := EnemySystem.load_sheet(def)
+	t.check(sheet.get("default", "") == "walk" and sheet.get("clips", {}).size() == 4, "mole sheet: 4 clips, walk default (%s)" % [sheet.get("clips", {}).keys()])
+	var e := EnemySystem.new()
+	e.setup([def, db.get_entry("enemies", "blob")], 4, Rect2(0, 0, 400, 400))
+	var s := e.spawn(0, Vector2(100, 100), 1.0, 1.0, 1.0)
+	var b := e.spawn(1, Vector2(200, 100), 1.0, 1.0, 1.0)
+	t.check(e.clip_of(s) == "walk" and e.clip_of(b) == "", "default walk; the Blob has no clips")
+	e.play(s, "attack")
+	t.check(e.clip_of(s) == "attack", "attack plays")
+	e.render()
+	var start: int = sheet.clips.attack.start
+	t.check(e._batches[0].multimesh.buffer[10] == float(start), "attack starts on its first frame (%s)" % e._batches[0].multimesh.buffer[10])
+	e.update(0.6, Vector2(300, 300))
+	t.check(e.clip_of(s) == "walk", "after 4 frames at 8 fps it walks again")
+	e.play(s, "burrow", true)
+	e.render()
+	var bs: int = sheet.clips.burrow.start
+	t.check(e._batches[0].multimesh.buffer[10] == float(bs + 3), "reverse burrow starts on its last frame (pop-up)")
+	e.play(s, "nope")
+	t.check(e.clip_of(s) == "burrow", "an unknown clip is ignored")
+	e.free()
+	# In a run: the dig phase shows the burrow clip before it hides.
+	Run.next_options = {"no_save": true, "seed": 5, "no_spawns": true}
+	var run: Run = RUN_SCENE.instantiate()
+	t.root.add_child(run)
+	_nodes.append(run)
+	run.tick(1.0 / 30.0)
+	t.check(run.summon_boss("mega_mole", run.player_pos() + Vector2(60, 0)), "boss summoned")
+	var mole := run.boss
+	mole.cfg.patterns = ["burrow"]
+	mole.t = 0.0
+	run.tick(1.0 / 30.0)
+	t.check(mole.phase == "burrow_dig" and run.enemies.clip_of(mole.slot) == "burrow" and not run.enemies.is_hidden(mole.slot), "digging: burrow clip, still visible")
+	for i in 20:
+		run.tick(1.0 / 30.0)
+	t.check(mole.phase == "burrow_chase" and run.enemies.is_hidden(mole.slot), "then it hides and the shadow chases")
+	mole.phase = "rest"
+	run.enemies.set_hidden(mole.slot, false)
+	run.enemies._anim.erase(mole.slot)
+	run.hit_enemy(mole.slot, 1.0, Vector2.ZERO)
+	t.check(run.enemies.clip_of(mole.slot) == "hit", "hit while resting: hit clip")
+	run.enemies._anim.erase(mole.slot)
+	run.hit_enemy(mole.slot, 1.0, Vector2.ZERO)
+	t.check(run.enemies.clip_of(mole.slot) == "walk", "not again within hit_anim_gap")
+
+
 func cleanup() -> void:
 	for n in _nodes:
 		if is_instance_valid(n):

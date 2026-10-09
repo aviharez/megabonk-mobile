@@ -102,6 +102,12 @@ var _cell_head := PackedInt32Array()
 var _cell_next := PackedInt32Array()
 var _batches: Array[SpriteBatch] = []
 var _fps := PackedFloat32Array()  # per type, animation frames per second
+## Per type: named clips from the sheet sidecar (tools/sheet_clips.py), {}
+## for single-clip sheets. _anim: slot -> the clip it plays instead of the
+## default loop {clip, t0, reverse}; it ends after one pass.
+var _clips: Array[Dictionary] = []
+var _default_clip: Array[String] = []
+var _anim := {}
 ## Per-type role numbers from data, cached at setup (hot loop reads these).
 var _kd_lo := PackedFloat32Array()
 var _kd_hi := PackedFloat32Array()
@@ -178,6 +184,8 @@ func setup(enemy_defs: Array, capacity: int, area: Rect2, reserve := 0) -> void:
 		else:
 			b.setup(sheet.texture, total, sheet.frames)
 			_fps.append(sheet.fps)
+		_clips.append(sheet.get("clips", {}))
+		_default_clip.append(sheet.get("default", ""))
 		add_child(b)
 		_batches.append(b)
 
@@ -203,6 +211,9 @@ static func load_sheet(def: Dictionary) -> Dictionary:
 	if not meta is Dictionary:
 		return {}
 	var sheet := {"texture": tex, "frames": int(meta.get("frames", 1)), "fps": float(meta.get("fps", 10))}
+	if meta.get("clips") is Dictionary and meta.get("default") is String:
+		sheet.clips = meta.clips
+		sheet.default = meta.default
 	var o = meta.get("origin")
 	if o is Array and o.size() == 2:
 		sheet.origin = Vector2(o[0], o[1])
@@ -237,6 +248,7 @@ func spawn(type_id: int, at: Vector2, hp_mult: float, dmg_mult: float, speed_mul
 	radius[s] = def.radius
 	flash[s] = 0.0
 	wobble[s] = rng.randf() * TAU
+	_anim.erase(s)
 	type_of[s] = type_id
 	role_of[s] = ROLE_IDS[def.role]
 	state[s] = ST_MOVE
@@ -311,6 +323,39 @@ func remove(slot: int) -> void:
 
 func is_ghost(slot: int) -> bool:
 	return flags[slot] & F_GHOST != 0
+
+
+## Plays a named clip of the slot's sheet once (reverse: backwards), then
+## the default clip loops again. Unknown clips and single-clip sheets: no-op.
+func play(slot: int, clip: String, reverse := false) -> void:
+	if _clips[type_of[slot]].has(clip):
+		_anim[slot] = {"clip": clip, "t0": _time, "reverse": reverse}
+
+
+## The clip the slot shows now ("" for single-clip sheets and shapes).
+func clip_of(slot: int) -> String:
+	var clips: Dictionary = _clips[type_of[slot]]
+	if clips.is_empty():
+		return ""
+	var a: Dictionary = _anim.get(slot, {})
+	if not a.is_empty():
+		var c: Dictionary = clips[a.clip]
+		if (_time - a.t0) * float(c.fps) < float(c.frames):
+			return a.clip
+		_anim.erase(slot)
+	return _default_clip[type_of[slot]]
+
+
+## Frame in the sheet for a slot with named clips.
+func _clip_frame(s: int) -> int:
+	var name := clip_of(s)
+	var c: Dictionary = _clips[type_of[s]][name]
+	var n := int(c.frames)
+	var a: Dictionary = _anim.get(s, {})
+	if a.is_empty():
+		return int(c.start) + int(_time * float(c.fps) + wobble[s] * 4.0) % n
+	var i := mini(int((_time - a.t0) * float(c.fps)), n - 1)
+	return int(c.start) + (n - 1 - i if a.reverse else i)
 
 
 func set_hidden(slot: int, on: bool) -> void:
@@ -600,7 +645,9 @@ func render() -> void:
 		var t := type_of[s]
 		var fl := flash[s] > 0.0 or (state[s] == ST_WINDUP and blink and role_of[s] != ROLE_SHOOTER)
 		var frame := 0
-		if _fps[t] > 0.0:
+		if not _clips[t].is_empty():
+			frame = _clip_frame(s)
+		elif _fps[t] > 0.0:
 			frame = int(_time * _fps[t] + wobble[s] * 4.0)
 		var out := outline[s]
 		if shield[s] > 0.0 and blink:

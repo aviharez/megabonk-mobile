@@ -436,6 +436,8 @@ func hit_enemy(slot: int, amount: float, push: Vector2, source := "", procs := t
 			amount *= stat("crit_damage")
 	numbers.show_number(enemies.pos[slot], amount, crit)
 	var died := enemies.hurt(slot, amount, push)
+	if not died and boss != null and slot == boss.slot:
+		boss.on_hit()
 	if procs:
 		on_hit.emit(slot, amount, crit, source)
 		if items.listens("on_hit"):

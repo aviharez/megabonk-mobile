@@ -17,8 +17,13 @@ SpriteCook credits (Starter plan, 800 per month). Ask before every generation. N
 | 2026-10-09 | Gary idle animation | animate_game_art from `10fc4560`, 4 frames, spritesheet, default pixel engine | 20 | 20 | job `eddb599c-cfb8-42b5-b8ce-2e8bf304f950`, asset `319cf24a-87d7-4656-91a1-3bdb53aee94f`. Balance after: 612 |
 | 2026-10-09 | Gary walk animation | animate_game_art from `10fc4560`, 4 frames, spritesheet, default pixel engine | 20 | 20 | job `24491d8b-b3ed-473b-b8c1-f5ebed135e84`, asset `48c2dd61-0e1d-4360-91d6-1539ef32aca5`. Balance after: 592 |
 | 2026-10-09 | Gary hit animation | animate_game_art from `10fc4560`, 4 frames, spritesheet, default pixel engine | 20 | 20 | job `b9e6f4d5-e68c-4a6c-acc0-bc2ed568337c`, asset `d48eee82-101a-40a1-9daa-0967af49702b`. All three Gary clips shrunk without palette dark red (it made a bloody-looking eye) and the stapler re-reddened with `tools/art/gary_stapler.py` (owner choice). Balance after: 572 |
+| 2026-10-09 | Mega Mole base sprite | generate_game_art, NB2.1 1K, pixel, 1 image, palette colors passed, 48px hint, style refs the 3 heroes | 12 | 12 | asset `88627398-7d7e-4079-be57-d06f76ef5be4`. Came back 34x34 (hint ignored); owner approved at full size (33x33). Balance after: 560 |
+| 2026-10-09 | Mega Mole walk animation | animate_game_art from `88627398`, 4 frames, spritesheet, default pixel engine | 20 | 20 | job `c045cb6e-df3b-4c17-ac05-bae714038069`, asset `612cac51-90fd-4cae-95c2-751794b3b14a`. Owner approved. Balance after: 540 |
+| 2026-10-09 | Mega Mole burrow animation | animate_game_art from `88627398`, 4 frames, spritesheet, default pixel engine | 20 | 20 | job `38316f3a-f8f2-40bb-839d-e87583697924`, asset `657a9412-8e66-4a52-9c10-e551fbb6b732`. Didn't dig (pink-blob head, ends curled up above ground); not used. Burrow built from his walk frame with `tools/art/mole_burrow.py` (owner choice). Balance after: 520 |
+| 2026-10-09 | Mega Mole attack animation | animate_game_art from `88627398`, 4 frames, spritesheet, default pixel engine | 20 | 20 | job `6d19f29a-7324-4350-832e-a96d80021aec`, asset `590c9371-08b3-445f-bc59-a3a106756356`. Owner approved. Balance after: 500 |
+| 2026-10-09 | Mega Mole hit animation | animate_game_art from `88627398`, 4 frames, spritesheet, default pixel engine | 20 | 20 | job `c19e8657-0940-4f83-9023-4434477ed1b9`, asset `e7d871bf-882c-41ec-b21c-434bbaa45c35`. Owner approved. Balance after: 480 |
 
-**Running total:** 228
+**Running total:** 320
 
 ## Non-SpriteCook placeholders
 

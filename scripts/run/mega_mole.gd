@@ -4,7 +4,8 @@ extends RefCounted
 ## "boss"), so weapons hit it like anything else; this controller moves it
 ## and runs its patterns. Numbers come from data/enemies/mega_mole.json "boss":
 ##
-##   burrow  digs down (can't be hit), its shadow chases the player, stops
+##   burrow  digs down ("dig_time", still visible and hittable; the burrow
+##           clip), then can't be hit while its shadow chases the player, stops
 ##           with a red warning zone, then it pops up there and hurts the
 ##           player if they're still inside
 ##   rocks   rings of rocks (enemy shots) with a gap to slip through
@@ -12,6 +13,10 @@ extends RefCounted
 ##
 ## Below "rage_below" of its HP every timer runs faster ("rage_speedup" is
 ## the time scale) and its shadow and rocks move faster.
+##
+## Sheet clips (assets/bosses/mega_mole.json): walk loops; burrow plays when
+## it digs and backwards when it pops up; attack on rocks and summons; hit
+## when damaged (at most every "hit_anim_gap" s, only between attacks).
 
 var run: Node
 var slot := -1
@@ -22,6 +27,7 @@ var rage := false
 var shadow := Vector2.ZERO
 var _next := 0
 var _rings_left := 0
+var _last_hit_anim := -INF
 
 
 func _init(owner_run: Node, boss_slot: int) -> void:
@@ -63,6 +69,13 @@ func update(delta: float) -> void:
 			t -= dt
 			if t <= 0.0:
 				_start_next()
+		"burrow_dig":
+			t -= dt
+			if t <= 0.0:
+				phase = "burrow_chase"
+				t = float(cfg.burrow.chase_time)
+				shadow = e.pos[slot]
+				e.set_hidden(slot, true)
 		"burrow_chase":
 			var b: Dictionary = cfg.burrow
 			var to := player - shadow
@@ -82,6 +95,7 @@ func update(delta: float) -> void:
 				var b: Dictionary = cfg.burrow
 				e.set_hidden(slot, false)
 				e.pos[slot] = shadow
+				e.play(slot, "burrow", true)
 				run.fx.ring(shadow, float(b.radius), Palette.CRUST)
 				if player.distance_to(shadow) <= float(b.radius) + run.player_radius():
 					run.damage_player(float(b.damage) * e.damage[slot] / float(run.enemies.types[e.type_of[slot]].damage), "mega_mole")
@@ -91,6 +105,7 @@ func update(delta: float) -> void:
 			t -= dt
 			if t <= 0.0:
 				_ring(fast)
+				run.enemies.play(slot, "attack")
 				_rings_left -= 1
 				if _rings_left > 0:
 					t = float(cfg.rocks.get("ring_delay", 0.6))
@@ -105,11 +120,10 @@ func _start_next() -> void:
 	_next += 1
 	match p:
 		"burrow":
-			phase = "burrow_chase"
-			t = float(cfg.burrow.chase_time)
-			shadow = run.enemies.pos[slot]
-			run.enemies.set_hidden(slot, true)
-			run.fx.ring(shadow, run.enemies.radius[slot], Palette.CRUST)
+			phase = "burrow_dig"
+			t = float(cfg.burrow.get("dig_time", 0.0))
+			run.enemies.play(slot, "burrow")
+			run.fx.ring(run.enemies.pos[slot], run.enemies.radius[slot], Palette.CRUST)
 		"rocks":
 			phase = "rocks"
 			t = 0.0
@@ -121,8 +135,20 @@ func _start_next() -> void:
 				var at: Vector2 = run.enemies.pos[slot] + Vector2.from_angle(TAU * i / n) * float(sm.distance)
 				run.spawn_enemy(sm.enemy, at)
 			run.fx.ring(run.enemies.pos[slot], float(sm.distance), Palette.PURPLE)
+			run.enemies.play(slot, "attack")
 			phase = "rest"
 			t = _rest_time()
+
+
+## Flinch when hit: only while resting (attacks keep their clip) and at most
+## every "hit_anim_gap" seconds, since weapons hit it many times a second.
+func on_hit() -> void:
+	if phase != "rest" or not alive() or run.enemies.clip_of(slot) != "walk":
+		return
+	if run.elapsed - _last_hit_anim < float(cfg.get("hit_anim_gap", 1.5)):
+		return
+	_last_hit_anim = run.elapsed
+	run.enemies.play(slot, "hit")
 
 
 ## One ring of rocks around the mole with `gap` neighbouring rocks left out

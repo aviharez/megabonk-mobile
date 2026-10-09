@@ -9,13 +9,15 @@
 	"radius": 11,
 	"xp": 60,
 	"shape": "mole",
+	"sheet": "res://assets/bosses/mega_mole.png",
 	"color": "BARK",
 	"boss": {
 		"rage_below": 0.5,
 		"rage_speedup": 0.65,
 		"rest": [1.2, 2.0],
+		"hit_anim_gap": 1.5,
 		"patterns": ["burrow", "rocks", "summon"],
-		"burrow": {"chase_time": 1.8, "chase_speed": 70, "warn": 0.7, "radius": 22, "damage": 22, "up_time": 0.4},
+		"burrow": {"dig_time": 0.5, "chase_time": 1.8, "chase_speed": 70, "warn": 0.7, "radius": 22, "damage": 22, "up_time": 0.4},
 		"rocks": {"count": 18, "gap": 3, "speed": 55, "damage": 12, "radius": 3, "life": 4.0, "rings": 2, "ring_delay": 0.6},
 		"summon": {"enemy": "blob", "count": 6, "distance": 26}
 	}
