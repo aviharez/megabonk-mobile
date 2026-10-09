@@ -1,0 +1,14 @@
+[remap]
+
+importer="image"
+type="Image"
+uid="uid://bljmql8rvgqro"
+path="res://.godot/imported/book.png-82c3ebc62557aabaef289e9167f25f0a.image"
+
+[deps]
+
+source_file="res://assets/icons/book.png"
+dest_files=["res://.godot/imported/book.png-82c3ebc62557aabaef289e9167f25f0a.image"]
+
+[params]
+

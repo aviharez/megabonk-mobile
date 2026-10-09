@@ -1,10 +1,13 @@
 class_name HeroScreen
 extends MenuScreen
-## Character select before a run: only owned characters. Each card shows the
-## signature weapon and the passive; tapping it starts the run. With the
+## Character select before a run: only owned characters. Each card plays the
+## character's idle sheet (if it has one) and shows the signature weapon and
+## the passive; tapping it starts the run. With the
 ## Toggler bought, a button opens it first.
 
 signal picked(character_id: String)
+
+const CARD_H := 40
 
 
 func _init(save_node: Node) -> void:
@@ -18,9 +21,17 @@ func _fill() -> void:
 		var b := PixelButton.new()
 		b.label = "%s\n%s\n%s" % [c.name, weapon.get("name", ""), c.passive.name]
 		b.face = Palette.GOLD if c.id == last else Palette.SKY
-		b.custom_minimum_size = Vector2(W, 34)
+		b.custom_minimum_size = Vector2(W, CARD_H)
 		b.pressed.connect(func() -> void: picked.emit(c.id))
 		list.add_child(b)
+		var idle := EnemySystem.load_sheet({"sheet": c.get("sheets", {}).get("idle", "")})
+		if not idle.is_empty():
+			var sv := SheetView.new(idle)
+			# Feet on the face's bottom edge, left of the text.
+			var fs := sv.frame_size()
+			sv.position = Vector2(6, CARD_H - PixelButton.SHADOW - 2 - fs.y)
+			b.add_child(sv)
+			b.label_left = 6 + fs.x
 		var l := Label.new()
 		l.text = c.passive.desc
 		l.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER

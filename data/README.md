@@ -6,9 +6,9 @@ Planned layout (filled from phase 1 on):
 | Folder / file | Content | Phase |
 | --- | --- | --- |
 | `characters/` | Characters: "status" ("start" or "unlock"), base stats, signature weapon id, passive (id + its numbers: `getting_stale`, `speed_damage`, `overtime`; behavior in `scripts/run/passives.gd`), optional "sheets" by clip (`idle` required, `walk`, `hit`; `res://assets/characters/*.png` + sidecar from `tools/spritecook_shrink.py`), else a code-drawn fallback | 1, 4, 6 |
-| `weapons/` | Weapons: pattern, base stats, per-level modifiers | 1, 2 |
-| `tomes/` | Tomes: stat modifiers per level | 2 |
-| `items/` | Items: rarity, modifiers, or trigger + chance + effect hooks (format: `scripts/run/item_system.gd`) | 2 |
+| `weapons/` | Weapons: pattern, base stats, per-level modifiers. Icon: `assets/icons/weapons/<id>.png` (16x16, imported as Image; none = placeholder glyph) | 1, 2, 6 |
+| `tomes/` | Tomes: stat modifiers per level; optional "icon": {"cover": [light, dark] palette colors, "symbol_color", "symbol": up to 5 rows of up to 5 `X`/`.`}, drawn on `assets/icons/book.png` by `scripts/ui/icons.gd` | 2, 6 |
+| `items/` | Items: rarity, modifiers, or trigger + chance + effect hooks (format: `scripts/run/item_system.gd`). Icon: `assets/icons/items/<id>.png` like weapons | 2, 6 |
 | `enemies/` | Enemies: role (chaser, pack, shooter, exploder, charger, swarm, ghost, boss), stats, role numbers ("shot", "explode", "charge", "boss"), placeholder shape or animated "sheet" (`res://assets/creatures/<id>.png` + sidecar .json from `tools/palette_snap.py`; a boss sheet may hold named clips from `tools/sheet_clips.py`); Mega Mole "boss": "dig_time" (burrow clip before hiding), "hit_anim_gap" | 1, 3 |
 | `maps/` | Map size and "props" (road, garden, house, fence, hedge, pond, tree; solid ones block walkers), spawn schedule, "swarms" (SWARM INCOMING), "elites", "final_swarm" (own schedule, endless escalation, coin multiplier, Overdue Bills), "interactables" to place, "merchant" timing, boss hint minute. Read by `Director` and `MapLayout` | 1, 3 |
 | `interactables/` | Map objects: "behavior" (paid_chest, free_chest, pot, charge_shrine, risk_shrine, challenge_shrine, merchant, cage, key, altar, portal) + its numbers, look, "arrow" color. Used by touching or standing in them (`Interactables`) | 3 |

@@ -333,8 +333,10 @@ Same as phase 4 (330.8 / 242.0 / 2.15 ms uncapped): the Ads and Store autoloads 
 - [x] Mega Mole: sprite + walk, burrow, attack, hit (2026-10-09; 92 credits; full size 33px; walk added by owner). SpriteCook's burrow didn't dig, so the burrow is built from his walk frame (`tools/art/mole_burrow.py`). Clips merged into `assets/bosses/mega_mole.png` by `tools/sheet_clips.py`; `EnemySystem.play()` / `clip_of()` play named clips; the mole digs for `dig_time` 0.5 s (visible, hittable) before hiding, pops up with the burrow reversed, attacks on rocks and summons, flinches on hits at most every `hit_anim_gap` s. Test: `test_sprite_sheets.gd::test_boss_clips`; 1093 checks pass
 - [ ] Weapon and item icons (one style-reference icon first)
   - [x] Baguette style-reference icon (2026-10-09; 12 credits; approved). Icons are 16x16, made by `tools/icon_shrink.py`, stored as `assets/icons/<kind>/<id>.png`
-  - [ ] Remaining 9 weapon + 15 item icons
-- [ ] Book sprite + 16 tome icons in code
+  - [x] Remaining 9 weapon + 15 item icons (2026-10-09; six 2x2 sheets, 72 credits, cut by `tools/icon_shrink.py --grid 2`; rebuild all with `tools/art/icons.sh RAW_DIR`)
+  - [ ] Owner review of the 24 batch icons; weakest at 16px: Leaf Blower (small), Faulty Toaster, Golden Toilet
+- [x] Book sprite + 16 tome icons in code (2026-10-09; 12 credits; `tools/art/book_template.py` -> `assets/icons/book.png`; per-tome cover colors + 5x5 symbol in `data/tomes/*.json` "icon", built by `scripts/ui/icons.gd`, validated by GameData)
+- [x] Icons wired in: unlock rows (`ContentIcon`, now 18x18, INK silhouette when locked), level-up cards (icon above the text, `PixelButton.art` / `art_above`), toggler rows. Character unlock icons = head of the idle frame. Tests: `tests/test_icons.gd`, `test_data.gd::test_phase6_bad_tome_icons_are_caught`; 1571 checks pass, FLOW OK. Screens rendered by `tools/render_ui.gd`
 - [ ] Suburbia tiles and props
 - [ ] UI (CC0 pack or code), remapped to the palette
 - [ ] Enemy sheets from assets/creatures/ for every role (elites = scaled + recolored)
@@ -342,12 +344,12 @@ Same as phase 4 (330.8 / 242.0 / 2.15 ms uncapped): the Ads and Store autoloads 
   - Found so far (grep of `scripts/`, 2026-10-09; not yet a full audit):
     - Enemies still on `PlaceholderArt` shapes: Bloater, Gnat, Spitter, Overdue Bill (`data/enemies/*.json` "shape"); need procedural-pixel-creatures exports from the owner
     - `scripts/core/placeholder_art.gd` shapes: gems (3), projectiles (dot, bullet, feather, staple, duck, cup, rocket, rock), chest, pot, shrine, cage, key, altar, portal, merchant, arrow
-    - `scripts/ui/content_icon.gd`: weapon / tome / item / character icons
+    - `scripts/ui/content_icon.gd`: placeholder glyphs now only for content without art (none at the moment)
     - `scripts/run/map_layout.gd`: the whole Suburbia map is drawn in code
     - `scripts/run/fx.gd`, weapon `draw()` code: VFX (phase 7 owns most of it)
     - UI drawing (`pixel_button.gd`, `pixel_panel.gd`, `hud.gd`, `thumb_stick.gd`, ...) not reviewed yet
     - `run.gd` `_draw_player` rectangles: kept on purpose as the fallback for a character without sheets
-- [ ] Hero select screen (`scripts/ui/hero_screen.gd`) and unlock icons: show the character sheets instead of placeholders
+- [x] Hero select screen (`scripts/ui/hero_screen.gd`) and unlock icons: show the character sheets instead of placeholders (2026-10-09: cards 40px tall play the idle sheet via `scripts/ui/sheet_view.gd`)
 - [ ] Palette + grid check passes on every asset; ASSET_LOG records credits
 
 ### Phase 6 results so far (2026-10-09, same desktop, windowed, vsync, starter build, Sir Loaf sprite)
@@ -358,4 +360,4 @@ Same as phase 4 (330.8 / 242.0 / 2.15 ms uncapped): the Ads and Store autoloads 
 | Same, Turbo Pigeon | 75.0 (display cap) | 66.2 | 3.26 | 299.6 |
 | Same, Gary, heroes at ~22px | 75.0 (display cap) | 66.6 | 3.59 | 299.8 |
 
-SpriteCook: 332 credits spent, 468 left.
+SpriteCook: 416 credits spent, 384 left.

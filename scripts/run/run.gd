@@ -1085,6 +1085,7 @@ func _show_cards() -> void:
 		if b.visible:
 			var card: Dictionary = _cards[i]
 			b.label = "\n".join(LevelUpCards.describe(card))
+			b.art = Icons.texture(db, card.kind + "s", card.id) if card.kind in ["weapon", "tome"] else null
 			b.face = {"weapon": Palette.GOLD, "tome": Palette.SKY}.get(card.kind, Palette.MIST)
 			b.disabled = _banish_mode and not _can_banish(card)
 			if _banish_mode and not b.disabled:
@@ -1929,6 +1930,7 @@ func _build_ui() -> void:
 		b.position = Vector2(6, 34 + i * 64)
 		b.custom_minimum_size = Vector2(160, 58)
 		b.size = b.custom_minimum_size
+		b.art_above = true
 		b.pressed.connect(_on_card.bind(i))
 		_cards_panel.add_child(b)
 		_card_buttons.append(b)

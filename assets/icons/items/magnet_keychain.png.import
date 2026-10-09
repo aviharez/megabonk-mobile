@@ -1,0 +1,14 @@
+[remap]
+
+importer="image"
+type="Image"
+uid="uid://d4km3ma1tiec4"
+path="res://.godot/imported/magnet_keychain.png-575482e274808da6af247d6ed17d5f59.image"
+
+[deps]
+
+source_file="res://assets/icons/items/magnet_keychain.png"
+dest_files=["res://.godot/imported/magnet_keychain.png-575482e274808da6af247d6ed17d5f59.image"]
+
+[params]
+

@@ -23,7 +23,8 @@ func _fill() -> void:
 		var b := PixelButton.new()
 		b.label = "%s  %s" % ["OFF" if off else "ON ", e.name]
 		b.face = Palette.SALMON if off else Palette.GREEN
-		b.custom_minimum_size = Vector2(W, 16)
+		b.art = Icons.texture(db, c, e.id)
+		b.custom_minimum_size = Vector2(W, 24)
 		b.disabled = not off and data.toggled_off.size() >= slots
 		b.pressed.connect(_toggle.bind(e.id))
 		list.add_child(b)

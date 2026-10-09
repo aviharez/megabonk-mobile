@@ -1,1 +1,1 @@
-{"id": "dodgeball_rules", "name": "DODGEBALL RULES", "group": "defense", "status": "start", "desc": "+6% EVASION", "modifiers_per_level": [{"stat": "evasion", "flat": 0.06}]}
+{"id": "dodgeball_rules", "name": "DODGEBALL RULES", "group": "defense", "status": "start", "desc": "+6% EVASION", "modifiers_per_level": [{"stat": "evasion", "flat": 0.06}], "icon": {"cover": ["SALMON", "RED"], "symbol_color": "WINE", "symbol": [".XXX.", "X...X", "XXXXX", "X...X", ".XXX."]}}

@@ -1,0 +1,14 @@
+[remap]
+
+importer="image"
+type="Image"
+uid="uid://cij5fn2rry6wq"
+path="res://.godot/imported/stapler.png-e81bd1a86940d0b43d3b49fc3354f840.image"
+
+[deps]
+
+source_file="res://assets/icons/weapons/stapler.png"
+dest_files=["res://.godot/imported/stapler.png-e81bd1a86940d0b43d3b49fc3354f840.image"]
+
+[params]
+

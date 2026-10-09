@@ -1,0 +1,14 @@
+[remap]
+
+importer="image"
+type="Image"
+uid="uid://yy5nu5eg4q3a"
+path="res://.godot/imported/microwave_meltdown.png-12c11df9dbb3e5d67d55440adcfd203b.image"
+
+[deps]
+
+source_file="res://assets/icons/items/microwave_meltdown.png"
+dest_files=["res://.godot/imported/microwave_meltdown.png-12c11df9dbb3e5d67d55440adcfd203b.image"]
+
+[params]
+

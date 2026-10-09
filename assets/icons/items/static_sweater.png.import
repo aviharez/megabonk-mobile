@@ -1,0 +1,14 @@
+[remap]
+
+importer="image"
+type="Image"
+uid="uid://brvyqfikqbhbb"
+path="res://.godot/imported/static_sweater.png-67b6c33b6c854d4341705098bedf1e43.image"
+
+[deps]
+
+source_file="res://assets/icons/items/static_sweater.png"
+dest_files=["res://.godot/imported/static_sweater.png-67b6c33b6c854d4341705098bedf1e43.image"]
+
+[params]
+

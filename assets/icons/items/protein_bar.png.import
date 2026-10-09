@@ -1,0 +1,14 @@
+[remap]
+
+importer="image"
+type="Image"
+uid="uid://bowaht28sekg1"
+path="res://.godot/imported/protein_bar.png-5b1ffce7d79e0cc9158eca8ba1900f63.image"
+
+[deps]
+
+source_file="res://assets/icons/items/protein_bar.png"
+dest_files=["res://.godot/imported/protein_bar.png-5b1ffce7d79e0cc9158eca8ba1900f63.image"]
+
+[params]
+

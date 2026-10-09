@@ -1,0 +1,14 @@
+[remap]
+
+importer="image"
+type="Image"
+uid="uid://bc1beqfbo8a0b"
+path="res://.godot/imported/rubber_duck.png-5674b9119eeaa43a03cdf91e9bd809b3.image"
+
+[deps]
+
+source_file="res://assets/icons/weapons/rubber_duck.png"
+dest_files=["res://.godot/imported/rubber_duck.png-5674b9119eeaa43a03cdf91e9bd809b3.image"]
+
+[params]
+

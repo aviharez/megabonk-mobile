@@ -1,0 +1,14 @@
+[remap]
+
+importer="image"
+type="Image"
+uid="uid://5je0c2n6ey4d"
+path="res://.godot/imported/band_aid.png-fd6dc3118aae6b77ed83c9b06e39ee4b.image"
+
+[deps]
+
+source_file="res://assets/icons/items/band_aid.png"
+dest_files=["res://.godot/imported/band_aid.png-fd6dc3118aae6b77ed83c9b06e39ee4b.image"]
+
+[params]
+

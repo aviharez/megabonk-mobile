@@ -120,6 +120,27 @@ func _load_file(category: String, file: String) -> void:
 	entries[category][e.id] = e
 
 
+## A tome's "icon" (Icons.tome): {"cover": [light, dark], "symbol_color", "symbol": rows of "X" and "."}.
+func _check_tome_icon(file: String, icon) -> void:
+	if not icon is Dictionary:
+		errors.append("%s: \"icon\" must be an object" % file)
+		return
+	var cover = icon.get("cover")
+	if not (cover is Array and cover.size() == 2):
+		errors.append("%s: icon \"cover\" must be [light, dark] palette colors" % file)
+		cover = []
+	for c in cover + [icon.get("symbol_color")]:
+		if typeof(c) != TYPE_STRING or Palette.index_of(c) < 0:
+			errors.append("%s: icon has an unknown palette color \"%s\"" % [file, c])
+	var rows = icon.get("symbol")
+	var ok: bool = rows is Array and rows.size() > 0 and rows.size() <= Icons.SYMBOL_SIZE
+	if ok:
+		for r in rows:
+			ok = ok and r is String and r.length() <= Icons.SYMBOL_SIZE and r.replace("X", "").replace(".", "") == ""
+	if not ok:
+		errors.append("%s: icon \"symbol\" must be up to %d rows of up to %d \"X\" / \".\"" % [file, Icons.SYMBOL_SIZE, Icons.SYMBOL_SIZE])
+
+
 func _check_entry(category: String, e: Dictionary) -> void:
 	var file: String = e._file
 	match category:
@@ -174,6 +195,8 @@ func _check_entry(category: String, e: Dictionary) -> void:
 			if e.modifiers_per_level.is_empty():
 				errors.append("%s: needs at least one modifier" % file)
 			_check_modifiers(file, e.modifiers_per_level)
+			if e.has("icon"):
+				_check_tome_icon(file, e.icon)
 		"items":
 			_check_item(e)
 		"characters":

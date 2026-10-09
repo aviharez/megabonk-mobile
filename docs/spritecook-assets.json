@@ -93,5 +93,40 @@
 		"asset_id": "9b021e66-e82a-4cb2-be85-d7ea1c4a62e0",
 		"sha12": "bcc4e5aad8aa",
 		"label": "Baguette weapon icon (32x32, NB2.1 1K, style refs the 3 heroes); icon style reference, shrunk to 16x16"
+	},
+	"icon_sheet_1": {
+		"asset_id": "bdc85d1a-6c37-4dd5-8dc6-d824e847c85c",
+		"sha12": "7698a0f1e5ee",
+		"label": "Icon sheet 1 (2x2, 68x68): Faulty Toaster, Hot Coffee, Rubber Duck, Stapler, NB2.1 1K, style refs Baguette + the 3 heroes"
+	},
+	"icon_sheet_2": {
+		"asset_id": "aafc6496-8fbb-4fba-9bac-078ad5407b46",
+		"sha12": "446fb2f2ea81",
+		"label": "Icon sheet 2 (2x2, 68x68): Fireworks, Garden Gnomes, Leaf Blower, Sharp Feathers, NB2.1 1K, style refs Baguette + sheet 1 + Sir Loaf"
+	},
+	"icon_sheet_3": {
+		"asset_id": "c23417af-1885-4112-857c-2d2a05b1758a",
+		"sha12": "145a936050a6",
+		"label": "Icon sheet 3 (2x2, 68x68): Stinky Socks, Alarm Clock, Angry Neighbor, Band-Aid, NB2.1 1K, style refs Baguette + sheet 1 + Sir Loaf"
+	},
+	"icon_sheet_4": {
+		"asset_id": "b0851884-148b-49c1-9254-7eb827dea3a3",
+		"sha12": "b46a0a7fc154",
+		"label": "Icon sheet 4 (2x2, 68x68): Clone Machine, Energy Drink, Golden Toilet, Hot Sauce, NB2.1 1K, style refs Baguette + sheet 1 + Sir Loaf"
+	},
+	"icon_sheet_5": {
+		"asset_id": "9b0f5b98-cc93-48a1-9fc6-447606430702",
+		"sha12": "945149412645",
+		"label": "Icon sheet 5 (2x2, 68x68): Lucky Penny, Magnet Keychain, Microwave Meltdown, Pinata, NB2.1 1K, style refs Baguette + sheet 1 + Sir Loaf"
+	},
+	"icon_sheet_6": {
+		"asset_id": "c44f11cc-d1b9-4f5a-b58d-b7806ff505a5",
+		"sha12": "18d42b6a895d",
+		"label": "Icon sheet 6 (2x2, 68x68): Protein Bar, Rubber Boots, Static Sweater, Whoopee Cushion, NB2.1 1K, style refs Baguette + sheet 1 + Sir Loaf"
+	},
+	"book": {
+		"asset_id": "ea139f59-1628-478b-bec4-5a4267464934",
+		"sha12": "c660f9509fd0",
+		"label": "Blank grey book (32x32) for the 16 tome icons; tools/art/book_template.py, NB2.1 1K, style refs Baguette + sheet 1 + Sir Loaf"
 	}
 }

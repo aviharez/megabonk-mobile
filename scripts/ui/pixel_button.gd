@@ -21,6 +21,24 @@ const SHADOW := 2
 	set(v):
 		ink = v
 		queue_redraw()
+## Optional 16x16 picture (Icons) on the left, in an 18x18 frame; the label is
+## then centered in the space to its right. (Not Button.icon, which Button
+## would draw itself.)
+var art: Texture2D:
+	set(v):
+		art = v
+		queue_redraw()
+## Draw `art` centered above the label instead of on its left (tall buttons
+## with long lines, like the level-up cards).
+var art_above := false:
+	set(v):
+		art_above = v
+		queue_redraw()
+## Pixels on the left kept free of the label (a picture added as a child).
+var label_left := 0:
+	set(v):
+		label_left = v
+		queue_redraw()
 ## Subclasses that draw their own label (AdButton) set this.
 var _own_label := false
 
@@ -50,6 +68,22 @@ func _draw() -> void:
 		draw_rect(Rect2i(2, y + 1, w - 4, 1), _lighter(fill))
 		draw_rect(Rect2i(2, y + h - 2, w - 4, 1), _darker(fill))
 
+	var left := label_left
+	var text_top := y
+	var text_h := h
+	if art != null:
+		var at := Vector2i(5, y + (h - ContentIcon.SIZE) / 2)
+		if art_above:
+			at = Vector2i((w - ContentIcon.SIZE) / 2, y + 4)
+		draw_rect(Rect2i(at, Vector2i(ContentIcon.SIZE, ContentIcon.SIZE)), Palette.color(Palette.INK))
+		draw_rect(Rect2i(at + Vector2i.ONE, Vector2i(Icons.SIZE, Icons.SIZE)), Palette.color(Palette.NIGHT))
+		draw_texture(art, Vector2(at + Vector2i.ONE))
+		if art_above:
+			text_top = at.y + ContentIcon.SIZE
+			text_h = y + h - text_top
+		else:
+			left = at.x + ContentIcon.SIZE + 1
+
 	if _own_label:
 		return
 	# One centered line per "\n"-separated part of the label.
@@ -57,10 +91,10 @@ func _draw() -> void:
 	var fs := get_theme_default_font_size()
 	var lines := label.split("\n")
 	var lh := font.get_height(fs)
-	var top := y + floorf((h - lh * lines.size()) / 2.0) + font.get_ascent(fs)
+	var top := text_top + floorf((text_h - lh * lines.size()) / 2.0) + font.get_ascent(fs)
 	for i in lines.size():
 		var tw := font.get_string_size(lines[i], HORIZONTAL_ALIGNMENT_LEFT, -1, fs).x
-		var pos := Vector2(floorf((w - tw) / 2.0), top + lh * i)
+		var pos := Vector2(left + floorf((w - left - tw) / 2.0), top + lh * i)
 		draw_string(font, pos, lines[i], HORIZONTAL_ALIGNMENT_LEFT, -1, fs, Palette.color(Palette.SHADE if off else ink))
 
 

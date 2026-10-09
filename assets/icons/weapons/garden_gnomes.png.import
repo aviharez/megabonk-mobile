@@ -1,0 +1,14 @@
+[remap]
+
+importer="image"
+type="Image"
+uid="uid://cd7ovrjjnra0h"
+path="res://.godot/imported/garden_gnomes.png-e401759582d7e5812e0b36842c1cdecf.image"
+
+[deps]
+
+source_file="res://assets/icons/weapons/garden_gnomes.png"
+dest_files=["res://.godot/imported/garden_gnomes.png-e401759582d7e5812e0b36842c1cdecf.image"]
+
+[params]
+

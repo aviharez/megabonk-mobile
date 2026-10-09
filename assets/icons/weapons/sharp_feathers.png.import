@@ -1,0 +1,14 @@
+[remap]
+
+importer="image"
+type="Image"
+uid="uid://b5dc7yplysoyv"
+path="res://.godot/imported/sharp_feathers.png-28fdc3db0ace2778719f990b5a95aa4c.image"
+
+[deps]
+
+source_file="res://assets/icons/weapons/sharp_feathers.png"
+dest_files=["res://.godot/imported/sharp_feathers.png-28fdc3db0ace2778719f990b5a95aa4c.image"]
+
+[params]
+
