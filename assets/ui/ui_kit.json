@@ -1,0 +1,90 @@
+{
+	"button": {
+		"slice": [
+			6,
+			7,
+			6,
+			8
+		],
+		"ramp": [
+			"MIST",
+			"GRAY",
+			"NIGHT"
+		]
+	},
+	"button_small": {
+		"slice": [
+			3,
+			3,
+			3,
+			4
+		],
+		"ramp": [
+			"MIST",
+			"GRAY",
+			"NIGHT"
+		]
+	},
+	"window": {
+		"slice": [
+			7,
+			7,
+			7,
+			9
+		],
+		"fill": "NIGHT"
+	},
+	"row": {
+		"slice": [
+			5,
+			5,
+			5,
+			5
+		],
+		"fill": "SHADE"
+	},
+	"ribbon": {
+		"slice": [
+			12,
+			9,
+			12,
+			9
+		]
+	},
+	"tag": {
+		"slice": [
+			4,
+			4,
+			4,
+			4
+		],
+		"ramp": [
+			"SKY",
+			"BLUE",
+			"OCEAN"
+		]
+	},
+	"tile": {
+		"slice": [
+			5,
+			5,
+			5,
+			5
+		]
+	},
+	"tile_selected": {
+		"slice": [
+			5,
+			5,
+			5,
+			5
+		]
+	},
+	"pip_on": {},
+	"pip_off": {},
+	"toggle_on": {},
+	"toggle_off": {},
+	"coin": {},
+	"padlock": {},
+	"dot": {}
+}

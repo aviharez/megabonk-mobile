@@ -30,7 +30,7 @@ func test_bad_files_are_named(t) -> void:
 	_write("enemies/wrong_name.json", '{"id": "other", "name": "X", "role": "chaser", "hp": 1, "speed": 1, "damage": 1, "radius": 1, "xp": 1, "shape": "blob", "color": "RED"}')
 	_write("enemies/magenta.json", '{"id": "magenta", "name": "X", "role": "chaser", "hp": 1, "speed": 1, "damage": 1, "radius": 1, "xp": 1, "shape": "blob", "color": "ENEMY_SHOT"}')
 	_write("tomes/typo.json", '{"id": "typo", "name": "X", "status": "start", "group": "offense", "desc": "X", "modifiers_per_level": [{"stat": "damgae", "pct": 0.1}]}')
-	_write("maps/m.json", '{"id": "m", "size": [10, 10], "spawns": [{"enemy": "ghost", "from_min": 0, "to_min": 1, "per_sec": [1, 1]}]}')
+	_write("maps/m.json", '{"id": "m", "name": "M", "size": [10, 10], "spawns": [{"enemy": "ghost", "from_min": 0, "to_min": 1, "per_sec": [1, 1]}]}')
 	var db := GameData.load_from(BAD)
 	var all := "\n".join(db.errors)
 	for needle in ["broken.json: JSON error", "no_hp.json: missing \"hp\"", "odd_role.json: unknown role", "wrong_name.json: id \"other\"", "magenta.json: unknown palette color", "typo.json: unknown stat \"damgae\"", "m.json: spawn names unknown enemy \"ghost\""]:
@@ -73,6 +73,11 @@ func test_phase3_bad_data_is_caught(t) -> void:
 		["enemies/gnat.json", func(d: Dictionary) -> void: d.sheet = "res://assets/palette.png", "sidecar"],
 		["rules/elites.json", func(d: Dictionary) -> void: d.chest = "portal", "\"chest\" must name a free_chest"],
 		["rules/bills.json", func(d: Dictionary) -> void: d.enemy = "blob", "bills.json: \"enemy\" must be a ghost"],
+		["maps/sewers.json", func(d: Dictionary) -> void: d.unlock_after = "moon", "sewers.json: \"unlock_after\" must name another map"],
+		["maps/sewers.json", func(d: Dictionary) -> void: d.status = "soon", "sewers.json: unknown status \"soon\""],
+		["maps/sewers.json", func(d: Dictionary) -> void: d.status = "unlock", "sewers.json: missing \"size\""],
+		["maps/suburbia.json", func(d: Dictionary) -> void: d.thumb = "res://nope.png", "thumbnail \"res://nope.png\" not found"],
+		["characters/gary.json", func(d: Dictionary) -> void: d.role = 3, "gary.json: \"role\" must be text"],
 	]
 	for c: Array in cases:
 		_wipe(BAD)

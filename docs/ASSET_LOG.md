@@ -42,8 +42,10 @@ SpriteCook credits (Starter plan, 800 per month). Ask before every generation. N
 | 2026-10-09 | Prop sheet C: mailbox, lamp, hedge, planter | generate_game_art, NB2.1 1K, pixel, 1 image (2x2 sheet, 64px hint, smart crop off), palette colors passed, style refs sheets A + B + house | 12 | 12 | asset `ee14ea4d-277a-4393-8988-a91f53174b90`. Mailbox 7x12, lamp 6x20, hedge 20x13 (repeated along hedge rows), planter 20x14. Balance after: 264 |
 | 2026-10-09 | Boss altar | generate_game_art, NB2.1 1K, pixel, 1 image, palette colors passed, 32px hint, style refs sheet A + Mega Mole + house | 12 | 12 | asset `10ff3aff-c52b-45fd-bd61-5fb4c9837279`. Stone altar with a mole face; 24x22 in `assets/props/altar.png`, `data/interactables/boss_altar.json` "sprite". Balance after: 252 |
 | 2026-10-09 | Water sheet: pool, pond, lily pads, reeds | generate_game_art, NB2.1 1K, pixel, 1 image (2x2 sheet, 64px hint, smart crop off), palette colors passed, style refs sheets A + C + house | 12 | 12 | asset `09762765-cb69-4972-8992-cad4e2270002`. 68x68; cut at native size by `tools/art/water.py`. Pool 28x24 -> 9-slice template `assets/props/pool.png` (36x29, map "slice"); pond used as the style for the code-drawn pond (any size); lily pads 16x15 and reeds 15x17 stamped on it (map "decor"). Balance after: 240 |
+| 2026-10-09 | UI kit 1 (menus): 2 concepts of PICK A HERO | create_ui_kit (gpt-image-2, 2K, mobile 9:16, complete-states, style refs Sir Loaf + Baguette + house: max 3) + generate_ui_kit_concepts count 2 | 14 | 14 | kit `988d8330-a356-46cd-b8eb-4c936dabfa1e`, jobs `4d8fced0`, `ced4c50d`. 7 credits per concept (kit "credits.used" 14). Owner approved the two-kit plan (49 total). Balance after: 226 |
+| 2026-10-09 | UI kit 1: component sheet 1 from concept B | select_ui_kit_concept `eb90e23a` (owner picked B) + generate_ui_kit_component_sheets (sheet_count 2 asked, but focus_notes make it one sheet) | 7 | 9 | kit `988d8330`, job `518031f2`. Sheets cost 9, not 7 (kit "credits.used" 14 -> 23). Concept A `99dccf86` not used. One sheet covered all of kit 1, so no second sheet. extract_ui_kit_components was free (balance unchanged); finalize skipped (parts cut locally by `tools/art/ui_kit.py` into `assets/ui/`). Balance after: 217 |
 
-**Running total:** 560
+**Running total:** 583
 
 ## Non-SpriteCook placeholders
 

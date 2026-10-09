@@ -1,0 +1,14 @@
+[remap]
+
+importer="image"
+type="Image"
+uid="uid://dat16gpdw5wxy"
+path="res://.godot/imported/dot.png-73bf812dbdeb82e67dcaf3915b62ef52.image"
+
+[deps]
+
+source_file="res://assets/ui/dot.png"
+dest_files=["res://.godot/imported/dot.png-73bf812dbdeb82e67dcaf3915b62ef52.image"]
+
+[params]
+

@@ -19,6 +19,9 @@ extends RefCounted
 ## - "shop": shop entry id -> level bought.
 ## - "toggled_off": content ids the Toggler keeps out of the pool.
 ## - "character": the character picked last.
+## - "map": the map picked last.
+## - "maps_cleared": map id -> true once its boss was defeated (opens the
+##   maps whose "unlock_after" names it).
 ##
 ## Challenges (data/challenges/): {"stat", optional "weapon" / "character"
 ## filter, "scope": "run" | "total", "target", optional "goal": "at_most"
@@ -113,6 +116,85 @@ static func picked_character(db: GameData, data: Dictionary) -> String:
 		return last
 	var owned := owned_characters(db, data)
 	return owned[0].id if not owned.is_empty() else ""
+
+
+## Character select stat bars: the stats shown, in order, with their labels.
+const SHOWN_STATS := [["max_hp", "HP"], ["move_speed", "SPEED"], ["damage", "DAMAGE"], ["pickup_range", "MAGNET"]]
+const PIPS := 5
+
+
+## 2..PIPS for a character's stat, relative to the lowest and highest among
+## all characters (3 when they're all equal), so the bars show differences.
+static func stat_pips(db: GameData, character: String, stat: String) -> int:
+	var vals := db.all("characters").map(func(c: Dictionary) -> float: return float(c.stats.get(stat, StatBlock.DEFAULTS.get(stat, 0.0))))
+	var lo: float = vals.min()
+	var hi: float = vals.max()
+	var v := float(db.get_entry("characters", character).stats.get(stat, StatBlock.DEFAULTS.get(stat, 0.0)))
+	if is_equal_approx(lo, hi):
+		return 3
+	return 2 + roundi((PIPS - 2) * (v - lo) / (hi - lo))
+
+
+## Maps in unlock order: each one after the map whose boss opens it.
+static func maps(db: GameData) -> Array:
+	var out := []
+	var depth := {}
+	for m: Dictionary in db.all("maps"):
+		var d := 0
+		var at: Dictionary = m
+		while at.has("unlock_after") and d < 99:
+			at = db.get_entry("maps", at.unlock_after)
+			d += 1
+		depth[m.id] = d
+		out.append(m)
+	out.sort_custom(func(a: Dictionary, b: Dictionary) -> bool:
+		return depth[a.id] < depth[b.id] or (depth[a.id] == depth[b.id] and a.id < b.id))
+	return out
+
+
+## "open" (playable), "locked" (boss of the map before not defeated yet) or
+## "soon" (a planned map whose turn has come: not playable yet).
+static func map_state(db: GameData, data: Dictionary, id: String) -> String:
+	var m := db.get_entry("maps", id)
+	var status: String = m.get("status", "start")
+	var prev_done: bool = data.get("maps_cleared", {}).has(m.get("unlock_after", ""))
+	if status == "planned":
+		return "soon" if prev_done else "locked"
+	return "open" if status == "start" or prev_done else "locked"
+
+
+## Boss summoned on the map (its altar's "boss"), by name; "" if none.
+static func map_boss_name(db: GameData, id: String) -> String:
+	for it: Dictionary in db.get_entry("maps", id).get("interactables", []):
+		var boss: String = db.get_entry("interactables", it.get("id", "")).get("boss", "")
+		if boss != "":
+			return db.get_entry("enemies", boss).get("name", "")
+	return ""
+
+
+## What a locked map card says.
+static func map_hint(db: GameData, data: Dictionary, id: String) -> String:
+	match map_state(db, data, id):
+		"soon":
+			return "COMING SOON"
+		"locked":
+			var prev: String = db.get_entry("maps", id).get("unlock_after", "")
+			var boss := map_boss_name(db, prev)
+			if map_state(db, data, prev) == "open" and boss != "":
+				return "DEFEAT %s" % boss
+			return "???"
+	return ""
+
+
+## The save's last map if still open, else the first open map.
+static func picked_map(db: GameData, data: Dictionary) -> String:
+	var last: String = data.get("map", "")
+	if last != "" and not db.get_entry("maps", last).is_empty() and map_state(db, data, last) == "open":
+		return last
+	for m: Dictionary in maps(db):
+		if map_state(db, data, m.id) == "open":
+			return m.id
+	return ""
 
 
 ## Bought unlocks (for the Toggler's "after 12 unlocks").
@@ -268,11 +350,13 @@ static func buy(db: GameData, data: Dictionary, id: String) -> bool:
 # --- Committing a run ---------------------------------------------------------
 
 ## Adds a finished run to the save: coins, runs played, the tracker totals,
-## best run values, and newly completed challenges (their rewards become
-## "available"). `run_stats` is Run.result.stats. Returns the ids of the
+## best run values, the map's boss cleared (`map`), and newly completed
+## challenges (their rewards become "available"). `run_stats` is Run.result.stats. Returns the ids of the
 ## challenges completed by this run. Doesn't write the file.
-static func commit_run(db: GameData, data: Dictionary, run_stats: Dictionary, character: String, coins: int) -> Array:
+static func commit_run(db: GameData, data: Dictionary, run_stats: Dictionary, character: String, coins: int, map := "") -> Array:
 	data.runs_played = int(data.runs_played) + 1
+	if map != "" and float(run_stats.get("boss_defeated", 0.0)) > 0.0:
+		data.maps_cleared[map] = true
 	data.coins = int(data.coins) + coins
 	var totals: Dictionary = data.stats
 	for key: String in run_stats:

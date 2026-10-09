@@ -33,6 +33,15 @@ const ICONS := {
 		"XX...XX",
 		"X.....X",
 	],
+	"pause": [  # two bars
+		"XX.XX",
+		"XX.XX",
+		"XX.XX",
+		"XX.XX",
+		"XX.XX",
+		"XX.XX",
+		"XX.XX",
+	],
 }
 
 @export var glyph := "reroll":
@@ -42,6 +51,11 @@ const ICONS := {
 var charges := 0:
 	set(v):
 		charges = v
+		queue_redraw()
+## False: just the glyph, centered (the HUD pause button).
+var show_count := true:
+	set(v):
+		show_count = v
 		queue_redraw()
 ## True: out of charges, show the ad tag.
 var ad := false:
@@ -63,11 +77,14 @@ func _draw() -> void:
 	var ink_c := Palette.color(Palette.SHADE if disabled else ink)
 	var top := y + (h - 7) / 2
 	var rows: Array = ICONS.get(glyph, [])
+	var left := 5 if show_count or rows.is_empty() else (int(size.x) - String(rows[0]).length()) / 2
 	for r in rows.size():
 		var row: String = rows[r]
 		for c in row.length():
 			if row[c] == "X":
-				draw_rect(Rect2i(5 + c, top + r, 1, 1), ink_c)
+				draw_rect(Rect2i(left + c, top + r, 1, 1), ink_c)
+	if not show_count:
+		return
 	var font := get_theme_default_font()
 	var fs := get_theme_default_font_size()
 	var text := "AD" if ad else "X%d" % charges

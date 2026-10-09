@@ -1,8 +1,7 @@
 extends Control
 ## Main menu: title, coin counter, PLAY / UNLOCKS / SHOP / SETTINGS.
 ## Settings toggles write straight to the save file. PLAY opens the hero
-## select when there's a choice to make (more than one owned character, or
-## the Toggler). UNLOCKS shows a red dot while something new is ready to buy.
+## select, then the map select (where the Toggler is). UNLOCKS shows a red dot while something new is ready to buy.
 ##
 ## Ads (scripts/autoload/ads.gd): the daily reward button shows while a
 ## rewarded ad can pay for it (once per day). The bottom banner shows on the
@@ -61,18 +60,13 @@ func _ready() -> void:
 	_shop_btn.label = "SHOP"
 	_shop_btn.face = Palette.SALMON
 	_shop_btn.pressed.connect(_open_screen.bind(ShopScreen))
-	# Notification dot: a 6x6 INK square with a 4x4 RED inside.
-	_dot = ColorRect.new()
-	_dot.color = Palette.color(Palette.INK)
-	_dot.size = Vector2(6, 6)
-	_dot.position = Vector2(_unlocks_btn.custom_minimum_size.x - 8, -2)
-	_dot.mouse_filter = Control.MOUSE_FILTER_IGNORE
-	var red := ColorRect.new()
-	red.color = Palette.color(Palette.RED)
-	red.position = Vector2(1, 1)
-	red.size = Vector2(4, 4)
-	red.mouse_filter = Control.MOUSE_FILTER_IGNORE
-	_dot.add_child(red)
+	# Notification dot: the UI kit's red dot on the button's top-right corner.
+	var dot := TextureRect.new()
+	dot.texture = UiArt.texture("dot")
+	dot.stretch_mode = TextureRect.STRETCH_KEEP
+	dot.position = Vector2(_unlocks_btn.custom_minimum_size.x - 9, -3)
+	dot.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	_dot = dot
 	_unlocks_btn.add_child(_dot)
 	_daily = AdButton.new()
 	_daily.name = "Daily"
@@ -82,6 +76,7 @@ func _ready() -> void:
 	$Frame/Buttons.add_child(_daily)
 	_settings_btn.pressed.connect(_open_settings)
 	_settings_back.pressed.connect(func() -> void: _settings.hide())
+	UiArt.ribbon_behind($SettingsPanel/Frame/Heading)
 	_build_toggles()
 	_settings.hide()
 	_refresh_wallet()
@@ -115,7 +110,7 @@ func _exit_tree() -> void:
 		_ads.set_banner(false)
 
 
-## "menu", "shop", "unlocks", "settings", "hero" or "toggler".
+## "menu", "shop", "unlocks", "settings", "hero", "map" or "toggler".
 func _current_screen() -> String:
 	var screens := get_children().filter(func(c: Node) -> bool: return c is MenuScreen and not c.is_queued_for_deletion())
 	if not screens.is_empty():
@@ -126,6 +121,8 @@ func _current_screen() -> String:
 			return "unlocks"
 		if top is TogglerScreen:
 			return "toggler"
+		if top is MapScreen:
+			return "map"
 		return "hero"
 	if _settings != null and _settings.visible:
 		return "settings"
@@ -180,19 +177,17 @@ func _open_screen(kind: GDScript) -> MenuScreen:
 	return screen
 
 
+## PLAY: character select, then map select (opened from the hero screen).
 func _on_play() -> void:
-	var db := GameData.shared()
-	if Meta.owned_characters(db, Save.data).size() > 1 or Meta.toggler_slots(db, Save.data) > 0:
-		var hero: HeroScreen = _open_screen(HeroScreen)
-		hero.picked.connect(_start_run)
-	else:
-		_start_run(Meta.picked_character(db, Save.data))
+	var hero: HeroScreen = _open_screen(HeroScreen)
+	hero.picked.connect(_start_run)
 
 
-func _start_run(character: String) -> void:
+func _start_run(character: String, map: String) -> void:
 	Save.data.character = character
+	Save.data.map = map
 	Save.save_game()
-	Run.next_options = {"character": character}
+	Run.next_options = {"character": character, "map": map}
 	get_tree().change_scene_to_file(RUN_SCENE)
 
 
@@ -228,5 +223,6 @@ func _sync_toggles() -> void:
 	for entry in SETTINGS:
 		var b: PixelButton = _toggles.get_node(entry[0])
 		var on: bool = Save.get_setting(entry[0])
-		b.label = "%s: %s" % [entry[1], "ON" if on else "OFF"]
-		b.face = Palette.GREEN if on else Palette.MIST
+		b.label = entry[1]
+		b.toggle = int(on)
+		b.face = Palette.MIST

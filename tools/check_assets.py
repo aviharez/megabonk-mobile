@@ -29,7 +29,9 @@ def upscale_factor(path):
             for oy in range(k):
                 b = a[oy:, ox:]
                 h, w = (b.shape[0] // k) * k, (b.shape[1] // k) * k
-                if h < k or w < k:
+                # At least 3 blocks a side: in a tiny sprite (a 9x9 pip) one or two blocks of flat
+                # fill at some offset would look "upscaled"; a real upscale repeats everywhere.
+                if h < 3 * k or w < 3 * k:
                     continue
                 b = b[:h, :w].reshape(h // k, k, w // k, k, 4)
                 if (b == b[:, :1, :, :1]).all():

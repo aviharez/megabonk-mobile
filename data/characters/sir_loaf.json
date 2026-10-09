@@ -2,6 +2,7 @@
 	"id": "sir_loaf",
 	"name": "SIR LOAF",
 	"desc": "A LOAF OF BREAD IN A KNIGHT'S HELMET",
+	"role": "TANK",
 	"status": "start",
 	"signature_weapon": "baguette",
 	"stats": {

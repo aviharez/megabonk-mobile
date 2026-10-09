@@ -1,0 +1,6 @@
+{
+	"id": "shopping_mall",
+	"name": "SHOPPING MALL",
+	"status": "planned",
+	"unlock_after": "farm"
+}

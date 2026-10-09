@@ -1,17 +1,27 @@
 class_name PixelPanel
 extends Control
-## Solid pixel box: notched 1px INK outline, palette fill, hard 2px shadow.
-## Opaque on purpose (no alpha overlays: blended colors would leave the palette).
+## Solid pixel box: a UI kit frame (UiArt `part`: "window" = riveted overlay
+## panel, "row" = the lighter list row), its inside recolored to `fill`, with a
+## hard 2px INK shadow; a notched 1px INK box when the panel is smaller than
+## the art. Opaque on purpose (no alpha overlays:
+## blended colors would leave the palette).
 
 @export var fill := Palette.NIGHT:
 	set(v):
 		fill = v
+		queue_redraw()
+@export var part := "window":
+	set(v):
+		part = v
 		queue_redraw()
 
 
 func _draw() -> void:
 	var w := int(size.x)
 	var h := int(size.y) - 2
+	if UiArt.fits(part, Vector2(w, h)):
+		UiArt.draw(self, part, Rect2(0, 0, w, h), -1, fill, 2)
+		return
 	var ink := Palette.color(Palette.INK)
 	_box(Rect2i(0, 2, w, h), ink, ink)
 	_box(Rect2i(0, 0, w, h), ink, Palette.color(fill))

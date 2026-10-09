@@ -39,6 +39,12 @@ var label_left := 0:
 	set(v):
 		label_left = v
 		queue_redraw()
+## A toggle switch (UiArt "toggle_on" / "toggle_off") on the right: -1 none,
+## 0 off, 1 on. The label is then centered in the space to its left.
+var toggle := -1:
+	set(v):
+		toggle = v
+		queue_redraw()
 ## Subclasses that draw their own label (AdButton) set this.
 var _own_label := false
 
@@ -59,14 +65,20 @@ func _draw() -> void:
 	var h := int(size.y) - SHADOW
 	var y := SHADOW if sunk else 0
 
-	if not sunk:
-		_box(Rect2i(0, SHADOW, w, h), Palette.color(Palette.INK), Palette.color(Palette.INK))
-	var fill := Palette.color(Palette.GRAY if off else face)
-	_box(Rect2i(0, y, w, h), Palette.color(Palette.INK), fill)
-	# 1px highlight under the top edge, 1px shade above the bottom edge.
-	if not off:
-		draw_rect(Rect2i(2, y + 1, w - 4, 1), _lighter(fill))
-		draw_rect(Rect2i(2, y + h - 2, w - 4, 1), _darker(fill))
+	# The UI kit's riveted button (UiArt), recolored to the face; the plain
+	# box when the button is smaller than the art.
+	var part := "button" if UiArt.fits("button", Vector2(w, h)) else ("button_small" if UiArt.fits("button_small", Vector2(w, h)) else "")
+	if part != "":
+		UiArt.draw(self, part, Rect2(0, y, w, h), Palette.GRAY if off else face, -1, 0 if sunk else SHADOW)
+	else:
+		if not sunk:
+			_box(Rect2i(0, SHADOW, w, h), Palette.color(Palette.INK), Palette.color(Palette.INK))
+		var fill := Palette.color(Palette.GRAY if off else face)
+		_box(Rect2i(0, y, w, h), Palette.color(Palette.INK), fill)
+		# 1px highlight under the top edge, 1px shade above the bottom edge.
+		if not off:
+			draw_rect(Rect2i(2, y + 1, w - 4, 1), _lighter(fill))
+			draw_rect(Rect2i(2, y + h - 2, w - 4, 1), _darker(fill))
 
 	var left := label_left
 	var text_top := y
@@ -84,6 +96,12 @@ func _draw() -> void:
 		else:
 			left = at.x + ContentIcon.SIZE + 1
 
+	var right := 0
+	if toggle >= 0:
+		var sw := "toggle_on" if toggle == 1 else "toggle_off"
+		var ts := UiArt.sprite_size(sw)
+		UiArt.sprite(self, sw, Vector2(w - 5 - ts.x, y + floorf((h - 3 - ts.y) / 2.0) + 1))
+		right = ts.x + 6
 	if _own_label:
 		return
 	# One centered line per "\n"-separated part of the label.
@@ -94,7 +112,7 @@ func _draw() -> void:
 	var top := text_top + floorf((text_h - lh * lines.size()) / 2.0) + font.get_ascent(fs)
 	for i in lines.size():
 		var tw := font.get_string_size(lines[i], HORIZONTAL_ALIGNMENT_LEFT, -1, fs).x
-		var pos := Vector2(left + floorf((w - left - tw) / 2.0), top + lh * i)
+		var pos := Vector2(left + floorf((w - right - left - tw) / 2.0), top + lh * i)
 		draw_string(font, pos, lines[i], HORIZONTAL_ALIGNMENT_LEFT, -1, fs, Palette.color(Palette.SHADE if off else ink))
 
 

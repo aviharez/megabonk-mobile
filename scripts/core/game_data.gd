@@ -16,7 +16,7 @@ const SCHEMA := {
 	"enemies": {"id": TYPE_STRING, "name": TYPE_STRING, "role": TYPE_STRING, "hp": TYPE_FLOAT, "speed": TYPE_FLOAT, "damage": TYPE_FLOAT, "radius": TYPE_FLOAT, "xp": TYPE_FLOAT, "shape": TYPE_STRING, "color": TYPE_STRING},
 	"tomes": {"id": TYPE_STRING, "name": TYPE_STRING, "status": TYPE_STRING, "group": TYPE_STRING, "desc": TYPE_STRING, "modifiers_per_level": TYPE_ARRAY},
 	"items": {"id": TYPE_STRING, "name": TYPE_STRING, "rarity": TYPE_STRING, "status": TYPE_STRING, "desc": TYPE_STRING},
-	"maps": {"id": TYPE_STRING, "size": TYPE_ARRAY, "spawns": TYPE_ARRAY},
+	"maps": {"id": TYPE_STRING, "name": TYPE_STRING},
 	"interactables": {"id": TYPE_STRING, "name": TYPE_STRING, "behavior": TYPE_STRING, "radius": TYPE_FLOAT, "shape": TYPE_STRING, "color": TYPE_STRING},
 	"rules": {"id": TYPE_STRING},
 	"challenges": {"id": TYPE_STRING, "tier": TYPE_STRING, "desc": TYPE_STRING, "stat": TYPE_STRING, "scope": TYPE_STRING, "target": TYPE_FLOAT, "requires": TYPE_STRING, "reward": TYPE_STRING, "price": TYPE_FLOAT},
@@ -45,6 +45,11 @@ const PASSIVES := {
 }
 const WEAPON_STATUSES := ["start", "unlock", "signature"]
 const CONTENT_STATUSES := ["start", "unlock"]
+## Maps: "start" (open), "unlock" (opens when the boss of its "unlock_after"
+## map is defeated), "planned" (shown locked on the map screen, not playable).
+const MAP_STATUSES := ["start", "unlock", "planned"]
+## Keys a playable (not planned) map needs on top of SCHEMA.maps.
+const PLAYABLE_MAP := {"size": TYPE_ARRAY, "spawns": TYPE_ARRAY}
 ## Animation clips a character sheet can have (data/characters/*.json "sheets").
 const CHARACTER_CLIPS := ["idle", "walk", "hit"]
 const TOME_GROUPS := ["offense", "defense", "utility", "risk"]
@@ -316,6 +321,8 @@ func _cross_check() -> void:
 	_late.clear()  # the closures hold this object: don't keep a cycle
 	_check_unlock_links()
 	for c: Dictionary in entries.characters.values():
+		if c.has("role") and typeof(c.role) != TYPE_STRING:
+			errors.append("%s: \"role\" must be text" % c._file)
 		if not entries.weapons.has(c.signature_weapon):
 			errors.append("%s: signature weapon \"%s\" not found in weapons/" % [c._file, c.signature_weapon])
 		# Stats a character leaves out start at StatBlock.DEFAULTS.
@@ -325,7 +332,16 @@ func _cross_check() -> void:
 			elif typeof(c.stats[stat]) != TYPE_FLOAT:
 				errors.append("%s: stat \"%s\" must be a number" % [c._file, stat])
 	for m: Dictionary in entries.maps.values():
-		_check_map(m)
+		_check_map_meta(m)
+		if m.get("status", "start") == "planned":
+			continue
+		var ok := true
+		for k: String in PLAYABLE_MAP:
+			if typeof(m.get(k)) != PLAYABLE_MAP[k]:
+				errors.append("%s: missing \"%s\" (only a \"planned\" map can leave it out)" % [m._file, k])
+				ok = false
+		if ok:
+			_check_map(m)
 	_check_ads(entries.rules.get("ads", {}))
 	_check_store(entries.rules.get("store", {}))
 	var bills: Dictionary = entries.rules.get("bills", {})
@@ -416,6 +432,20 @@ func _check_store(st: Dictionary) -> void:
 			errors.append("%s: product \"%s\" \"type\" must be \"non_consumable\" (the only kind Store handles)" % [f, key])
 		if key != "remove_ads":
 			errors.append("%s: unknown product \"%s\" (Store only knows what \"remove_ads\" grants)" % [f, key])
+
+
+## Map screen data: status, the map whose boss opens it, the thumbnail.
+func _check_map_meta(m: Dictionary) -> void:
+	var f: String = m._file
+	var status: String = str(m.get("status", "start"))
+	if not status in MAP_STATUSES:
+		errors.append("%s: unknown status \"%s\" (%s)" % [f, status, ", ".join(MAP_STATUSES)])
+	if m.has("unlock_after") or status != "start":
+		var prev: String = str(m.get("unlock_after", ""))
+		if not entries.maps.has(prev) or prev == m.id:
+			errors.append("%s: \"unlock_after\" must name another map" % f)
+	if m.has("thumb") and not (typeof(m.thumb) == TYPE_STRING and ResourceLoader.exists(m.thumb)):
+		errors.append("%s: thumbnail \"%s\" not found" % [f, m.thumb])
 
 
 func _check_map(m: Dictionary) -> void:

@@ -1,0 +1,14 @@
+[remap]
+
+importer="image"
+type="Image"
+uid="uid://blytfsrhtekyg"
+path="res://.godot/imported/toggle_off.png-80b84cb36554865d5ce1eb5b9dd477d4.image"
+
+[deps]
+
+source_file="res://assets/ui/toggle_off.png"
+dest_files=["res://.godot/imported/toggle_off.png-80b84cb36554865d5ce1eb5b9dd477d4.image"]
+
+[params]
+

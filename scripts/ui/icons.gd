@@ -83,8 +83,8 @@ static func tome(icon: Dictionary) -> Image:
 	return img
 
 
-## Top-centre 16x16 of the character's first idle frame (the head), or null.
-static func head(def: Dictionary) -> Image:
+## The character's first idle frame, or null without an idle sheet.
+static func idle_frame(def: Dictionary) -> Image:
 	var path: String = def.get("sheets", {}).get("idle", "")
 	var sh := EnemySystem.load_sheet({"sheet": path}) if path != "" else {}
 	if sh.is_empty():
@@ -94,7 +94,14 @@ static func head(def: Dictionary) -> Image:
 		return null
 	full.convert(Image.FORMAT_RGBA8)
 	var fw := int(full.get_width() / sh.frames)
-	var frame := full.get_region(Rect2i(0, 0, fw, full.get_height()))
+	return full.get_region(Rect2i(0, 0, fw, full.get_height()))
+
+
+## Top-centre 16x16 of the character's first idle frame (the head), or null.
+static func head(def: Dictionary) -> Image:
+	var frame := idle_frame(def)
+	if frame == null:
+		return null
 	var used := frame.get_used_rect()
 	if used.size == Vector2i.ZERO:
 		return null

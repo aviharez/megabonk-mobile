@@ -1,7 +1,8 @@
 extends Node
-## End-to-end check of the screens: menu -> PLAY -> run -> death -> game over
-## (with unlock progress) -> BACK TO MENU -> UNLOCKS and SHOP open and close ->
-## with Turbo Pigeon owned, PLAY opens the hero select and starts his run.
+## End-to-end check of the screens: menu -> PLAY -> hero select -> map
+## select -> run -> death -> game over (with unlock progress) -> BACK TO MENU
+## -> UNLOCKS and SHOP open and close -> with Turbo Pigeon owned, picking him
+## and the map starts his run there.
 ## Ads (FakeAdBackend / FakeStoreBackend, the desktop stand-ins): banner on
 ## the menu and never in the run, daily reward, revive, 2x coins, the
 ## interstitial on the way back to the menu, Remove Ads from the shop.
@@ -34,11 +35,10 @@ func _check() -> void:
 	tree.change_scene_to_file("res://scenes/main_menu.tscn")
 	await _frames(3)
 	await _ads_on_menu(tree, ads, save, fails)
-	tree.current_scene.get_node("Frame/Buttons/Play").pressed.emit()
-	await _frames(3)
+	await _play(tree.current_scene)
 	var run := tree.current_scene as Run
 	if run == null:
-		fails.append("PLAY did not open the run")
+		fails.append("PLAY > NEXT > GO! did not open the run")
 	else:
 		await _frames(30)
 		if run.elapsed <= 0.0:
@@ -91,8 +91,23 @@ func _check() -> void:
 	tree.quit(0 if fails.is_empty() else 1)
 
 
-## UNLOCKS and SHOP open and close; owning a second hero makes PLAY open the
-## hero select, and picking him starts his run.
+## PLAY, then NEXT on the hero select and GO! on the map select.
+func _play(menu: Node) -> void:
+	menu.get_node("Frame/Buttons/Play").pressed.emit()
+	await _frames(2)
+	var next := menu.find_child("Next", true, false)
+	if next == null:
+		return
+	next.pressed.emit()
+	await _frames(2)
+	var go := menu.find_child("Go", true, false)
+	if go != null:
+		go.pressed.emit()
+	await _frames(3)
+
+
+## UNLOCKS and SHOP open and close; PLAY opens the hero select, NEXT the
+## map select, and GO! starts the picked hero's run on the picked map.
 func _menu_screens(tree: SceneTree, save: Node, fails: Array) -> void:
 	var menu := tree.current_scene
 	for b: Array in [["Unlocks", "UnlocksScreen"], ["Shop", "ShopScreen"]]:
@@ -107,20 +122,31 @@ func _menu_screens(tree: SceneTree, save: Node, fails: Array) -> void:
 	save.data.unlocks["turbo_pigeon"] = "owned"
 	menu.get_node("Frame/Buttons/Play").pressed.emit()
 	await _frames(2)
-	var hero: Node = null
+	var hero: HeroScreen = null
 	for c in menu.get_children():
 		if c is HeroScreen:
 			hero = c
 	if hero == null:
-		fails.append("PLAY with two heroes did not open the hero select")
+		fails.append("PLAY did not open the hero select")
 		return
-	hero.picked.emit("turbo_pigeon")
+	hero.select("turbo_pigeon")
+	await _frames(2)
+	hero.find_child("Next", true, false).pressed.emit()
+	await _frames(2)
+	var maps: MapScreen = null
+	for c in hero.get_children():
+		if c is MapScreen:
+			maps = c
+	if maps == null:
+		fails.append("NEXT did not open the map select")
+		return
+	maps.find_child("Go", true, false).pressed.emit()
 	await _frames(3)
 	var run := tree.current_scene as Run
 	if run == null or run.char_def.id != "turbo_pigeon" or run.weapons[0].def.id != "sharp_feathers":
 		fails.append("picking Turbo Pigeon did not start his run with Sharp Feathers")
-	elif save.data.character != "turbo_pigeon":
-		fails.append("the pick was not remembered")
+	elif save.data.character != "turbo_pigeon" or save.data.map != "suburbia" or run.map_def.id != "suburbia":
+		fails.append("the picks were not remembered / the map was not used")
 	tree.paused = false
 
 

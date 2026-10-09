@@ -2,6 +2,7 @@
 	"id": "gary",
 	"name": "GARY THE INTERN",
 	"desc": "EXHAUSTED OFFICE INTERN",
+	"role": "SCALING",
 	"status": "unlock",
 	"signature_weapon": "stapler",
 	"stats": {

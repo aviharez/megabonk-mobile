@@ -115,6 +115,7 @@ var end_reason := ""
 var boss: MegaMole
 var boss_summoned := false
 var boss_defeated := false
+var _pause_btn: ActionButton
 ## Time the last _process (logic + render prep) took, for the stress test.
 var last_frame_usec := 0
 ## With options.profile: microseconds per section of the last frame.
@@ -1474,7 +1475,7 @@ func _end(reason: String) -> void:
 		"final_swarm_seconds": director.final_time, "boss_defeated": boss_defeated, "stats": run_stats.duplicate(),
 		"character": char_def.id, "completed": []}
 	if _save != null:
-		result.completed = Meta.commit_run(db, meta, result.stats, char_def.id, coins)
+		result.completed = Meta.commit_run(db, meta, result.stats, char_def.id, coins, map_def.id)
 		_save.save_game()
 	if ads != null:
 		ads.end_run()
@@ -1484,20 +1485,20 @@ func _end(reason: String) -> void:
 	_joystick.release()
 	get_tree().paused = true
 	var title := "TOASTED!"
-	var color := Palette.RED
+	var color := Palette.PAPER  # titles sit on the red ribbon
 	match reason:
 		"portal":
 			title = "ESCAPED!"
 			color = Palette.BUTTER
 		"bills":
 			title = "OVERDUE!"
-			color = Palette.PINK
+			color = Palette.PAPER
 		"gave_up":
 			title = "GAVE UP"
 		_:
 			if reached_final:
 				title = "SWARMED!"
-				color = Palette.PINK
+				color = Palette.PAPER
 	_over_title.text = title
 	_over_title.add_theme_color_override("font_color", Palette.color(color))
 	_over_text.text = _over_lines()
@@ -1959,6 +1960,21 @@ func _build_ui() -> void:
 	_hud = Hud.new()
 	_hud.world_zoom = float(world_scale) / float(ui_scale)
 	ui.add_child(_hud)
+	# Pause on screen (iOS has no back key), top right under the gold.
+	_pause_btn = ActionButton.new()
+	_pause_btn.name = "PauseButton"
+	_pause_btn.glyph = "pause"
+	_pause_btn.show_count = false
+	_pause_btn.face = Palette.MIST
+	_pause_btn.anchor_left = 1.0
+	_pause_btn.anchor_right = 1.0
+	_pause_btn.offset_left = -18
+	_pause_btn.offset_right = -2
+	_pause_btn.offset_top = 32
+	_pause_btn.offset_bottom = 50
+	_pause_btn.custom_minimum_size = Vector2(16, 18)
+	_pause_btn.pressed.connect(_pause.bind(true))
+	ui.add_child(_pause_btn)
 
 	# Level-up cards, with the Reroll / Skip / Banish actions under them.
 	_cards_panel = _panel(ui, Rect2(4, 36, 172, 258), Palette.NIGHT)
@@ -2036,7 +2052,7 @@ func _build_ui() -> void:
 
 	# Revive offer (rewarded ad) after a death.
 	_revive_panel = _panel(ui, Rect2(20, 100, 140, 112), Palette.NIGHT)
-	_title(_revive_panel, "TOASTED?", Palette.RED, 8)
+	_title(_revive_panel, "TOASTED?", Palette.PAPER, 8)  # on the red ribbon
 	var why := Label.new()
 	why.text = "WATCH AN AD\nTO GET BACK UP"
 	why.position = Vector2(0, 32)
@@ -2116,6 +2132,7 @@ func _title(parent: Control, text: String, color: int, y: int) -> Label:
 	l.add_theme_constant_override("shadow_offset_x", 0)
 	l.add_theme_constant_override("shadow_offset_y", 1)
 	parent.add_child(l)
+	UiArt.ribbon_behind(l)
 	return l
 
 

@@ -132,3 +132,17 @@ func test_blob_dies_in_one_hit_even_when_escalated(t) -> void:
 	run.hit_enemy(k, 1.0, Vector2.ZERO)
 	t.check(run.enemies.pool.is_alive(k), "skitters still use HP")
 	run.free()
+
+
+func test_pause_button_on_screen(t) -> void:
+	# iOS has no back key: the HUD's pause button pauses, RESUME continues.
+	var run := _start(t, {"invincible": true, "no_spawns": true})
+	await t.process_frame
+	var btn: ActionButton = run.find_child("PauseButton", true, false)
+	t.check(btn != null and btn.visible, "pause button in the run UI")
+	btn.pressed.emit()
+	t.check(run.state == "paused" and run.get_tree().paused, "it pauses the run (state=%s)" % run.state)
+	run._pause(false)
+	t.check(run.state == "live" and not run.get_tree().paused, "resume")
+	run.queue_free()
+	await t.process_frame

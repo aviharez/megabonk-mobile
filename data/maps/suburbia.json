@@ -1,6 +1,8 @@
 {
 	"id": "suburbia",
 	"name": "SUBURBIA",
+	"status": "start",
+	"thumb": "res://assets/maps/suburbia_thumb.png",
 	"size": [
 		1440,
 		1760

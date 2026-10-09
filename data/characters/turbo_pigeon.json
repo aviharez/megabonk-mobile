@@ -2,6 +2,7 @@
 	"id": "turbo_pigeon",
 	"name": "TURBO PIGEON",
 	"desc": "CITY PIGEON IN RUNNING SHOES",
+	"role": "SPEED",
 	"status": "unlock",
 	"signature_weapon": "sharp_feathers",
 	"stats": {

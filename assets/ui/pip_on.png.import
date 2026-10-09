@@ -1,0 +1,14 @@
+[remap]
+
+importer="image"
+type="Image"
+uid="uid://bs6s55kfy77hk"
+path="res://.godot/imported/pip_on.png-cb44514887a7734f40fc5cfc2472447e.image"
+
+[deps]
+
+source_file="res://assets/ui/pip_on.png"
+dest_files=["res://.godot/imported/pip_on.png-cb44514887a7734f40fc5cfc2472447e.image"]
+
+[params]
+

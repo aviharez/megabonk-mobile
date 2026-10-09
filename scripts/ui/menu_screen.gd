@@ -35,9 +35,19 @@ func _init(save_node: Node, title: String) -> void:
 	_title_label.add_theme_color_override("font_shadow_color", Palette.color(Palette.INK))
 	_title_label.add_theme_constant_override("shadow_offset_x", 0)
 	_title_label.add_theme_constant_override("shadow_offset_y", 1)
-	_coins = _centered(Label.new(), 30, 10)
-	_coins.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
+	UiArt.ribbon_behind(_title_label)
+	# Coin count: the kit's coin and the number, centered together.
+	var coin_row := _centered(HBoxContainer.new(), 28, 14) as HBoxContainer
+	coin_row.alignment = BoxContainer.ALIGNMENT_CENTER
+	coin_row.add_theme_constant_override("separation", 3)
+	coin_row.mouse_filter = MOUSE_FILTER_IGNORE
+	var coin := TextureRect.new()
+	coin.texture = UiArt.texture("coin")
+	coin.stretch_mode = TextureRect.STRETCH_KEEP
+	coin_row.add_child(coin)
+	_coins = Label.new()
 	_coins.add_theme_color_override("font_color", Palette.color(Palette.GOLD))
+	coin_row.add_child(_coins)
 
 	_scroll = ScrollContainer.new()
 	_scroll.anchor_left = 0.5
@@ -95,7 +105,7 @@ func close() -> void:
 
 ## Rebuilds the list. Subclasses add rows to `list` in _fill().
 func refresh() -> void:
-	_coins.text = "COINS %d" % int(save.data.coins)
+	_coins.text = "%d" % int(save.data.coins)
 	for c in list.get_children():
 		list.remove_child(c)
 		c.queue_free()
@@ -134,6 +144,7 @@ func _centered(c: Control, y: float, h: float) -> Control:
 func row(h: int, fill := Palette.DEEP_BLUE) -> PixelPanel:
 	var p := PixelPanel.new()
 	p.fill = fill
+	p.part = "row"
 	p.custom_minimum_size = Vector2(W, h)
 	list.add_child(p)
 	return p

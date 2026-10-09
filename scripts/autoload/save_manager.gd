@@ -48,6 +48,9 @@ static func default_data() -> Dictionary:
 		"toggled_off": {},
 		# Character picked last ("" = none yet: Meta.picked_character decides).
 		"character": "",
+		# Map picked last, and maps whose boss was defeated (see meta.gd).
+		"map": "",
+		"maps_cleared": {},
 		# Ad pacing, daily reward, Remove Ads (phase 5; see scripts/autoload/ads.gd).
 		"ads": {
 			# Remove Ads bought (no interstitials, no banners; rewarded ads stay).

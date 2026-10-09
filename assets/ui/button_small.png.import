@@ -1,0 +1,14 @@
+[remap]
+
+importer="image"
+type="Image"
+uid="uid://bf71qioaklwjt"
+path="res://.godot/imported/button_small.png-e7fdafca4be324fa0c7cbf50f5f76960.image"
+
+[deps]
+
+source_file="res://assets/ui/button_small.png"
+dest_files=["res://.godot/imported/button_small.png-e7fdafca4be324fa0c7cbf50f5f76960.image"]
+
+[params]
+
