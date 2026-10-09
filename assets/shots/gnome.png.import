@@ -1,0 +1,14 @@
+[remap]
+
+importer="image"
+type="Image"
+uid="uid://b4so5iqxdrjde"
+path="res://.godot/imported/gnome.png-a932aa0a3b893eb7d05b3e8b40a8b240.image"
+
+[deps]
+
+source_file="res://assets/shots/gnome.png"
+dest_files=["res://.godot/imported/gnome.png-a932aa0a3b893eb7d05b3e8b40a8b240.image"]
+
+[params]
+

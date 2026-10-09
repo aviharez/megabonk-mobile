@@ -4,6 +4,7 @@
 	"behavior": "charge_shrine",
 	"radius": 18,
 	"shape": "shrine",
+	"sprite": "res://assets/props/shrine_charge.png",
 	"color": "SKY",
 	"arrow": "SKY",
 	"charge_time": 3.0,

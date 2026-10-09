@@ -97,8 +97,13 @@ func in_air() -> int:
 
 
 func draw(canvas: CanvasItem, _origin: Vector2) -> void:
-	var tex := PlaceholderArt.texture("rocket", Palette.RED)
-	var half := (tex.get_size() / 2.0).floor()
+	# "shot_sprite": a strip of "shot_turns" frames turned to the flight path.
+	var tex := Art.texture(def.get("shot_sprite", ""))
+	var turns := int(def.get("shot_turns", 1)) if tex != null else 1
+	if tex == null:
+		tex = PlaceholderArt.texture("rocket", Palette.RED)
+	var fw := tex.get_width() / turns
+	var half := (Vector2(fw, tex.get_height()) / 2.0).floor()
 	var spark := Palette.color(Palette.BUTTER)
 	var ink := Palette.color(Palette.INK)
 	for i in MAX_ROCKETS:
@@ -119,4 +124,5 @@ func draw(canvas: CanvasItem, _origin: Vector2) -> void:
 		var back := (_from[i] - _to[i]).normalized()
 		for k in range(1, 4):
 			canvas.draw_rect(Rect2((p + back * (k * 3.0)).round(), Vector2.ONE), spark)
-		canvas.draw_texture(tex, p.round() - half)
+		var src := Rect2(Art.turn_frame(-back, turns) * fw, 0, fw, tex.get_height())
+		canvas.draw_texture_rect_region(tex, Rect2(p.round() - half, src.size), src)

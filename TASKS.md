@@ -364,10 +364,12 @@ Same as phase 4 (330.8 / 242.0 / 2.15 ms uncapped): the Ads and Store autoloads 
 - [ ] Enemy sheets from assets/creatures/ for every role (elites = scaled + recolored)
 - [ ] Placeholder inventory: list every code-drawn / placeholder asset and replace it
   - Audit 2026-10-09 (`PlaceholderArt` shapes still in use; mask sizes in brackets):
-    - Map objects, `data/interactables/*.json` (already take a "sprite", like boss_altar): chest x3 colours paid WOOD / elite BLUE / boss PURPLE [11x9], pot [7x8], shrine x3 colours charge SKY / risk RED / challenge GOLD [9x12], pigeon cage [11x12], cage key [11x5], portal [11x11], merchant [11x12]
-    - Weapon projectiles, hard-coded in `scripts/run/weapons/*.gd`: feather (homing_shot), staple (rapid_shot), duck (bounce_shot), cup (puddle), rocket (rockets), bullet (projectile_system default) [3-8px]; need a data field per weapon for a shot sprite
-    - Enemy shots: bullet (`enemy_shots.gd`, shooters), rock (`mega_mole.gd`) [3x3, 5x5]
-    - XP gems, `data/rules/run.json` "gem_tiers": gem_small / gem_mid / gem_big [3x4, 5x5, 6x6]; owner: too small and hard to see, make them bigger and clearer
+    - [x] Map objects, `data/interactables/*.json` "sprite": chest x3 colours [16x14], pot [11x11], shrine x3 colours [10x18], pigeon cage [12x18], cage key [11x6], portal [14x18], merchant [17x18] (SpriteCook sheets D + E, colour variants recolored offline; 2026-10-09)
+    - [x] Weapon projectiles: weapon "shot_sprite" / "shot_turns" (feather, staple, rocket as 16-direction strips; duck from its icon; cup), run.json "default_shot_sprite" (pellet) (sheet F; 2026-10-09)
+    - [x] Enemy shots: spitter "shot" and mole "rocks" take a "sprite" (`assets/shots/enemy/`, reserved magenta + INK outline, 6x6 / 7x6; `tools/check_assets.py` allows index 31 only there)
+    - [x] Weapon objects drawn with `draw_rect` (missed by the `PlaceholderArt` grep): Baguette "swing_sprite" (32 turns x 7 blade lengths, RotSprite-style turn of the paid 32px icon), garden gnomes "orbit_sprite" (icon gnome 7x11). Leaf blower leaves, socks aura and toaster sparks are VFX (phase 7)
+    - [x] XP gems: "gem_tiers" "sprite": drop 7x9 SKY, square-cut 10x10 PINK, faceted 11x12 RED (were 3x4 / 5x5 / 6x6); three shapes as well as three colours
+    - [x] Phone check of the new run art: owner played it on the phone and approved (2026-10-09); review render: `godot --path . -s res://tools/render_objects.gd`
     - Enemies on shapes: bloater, gnat, spitter, bill (need the owner's creature exports)
     - Keep: hit particles "dot" (VFX, phase 7), HUD edge arrows (any angle), hero fallback
   - Owner (2026-10-09): projectiles and gems via SpriteCook too, not hand-pixelled
@@ -393,4 +395,4 @@ Same as phase 4 (330.8 / 242.0 / 2.15 ms uncapped): the Ads and Store autoloads 
 | Same, Gary, heroes at ~22px | 75.0 (display cap) | 66.6 | 3.59 | 299.8 |
 | 270x480 view, 1440x1760 textured map | 75.0 (display cap) | 68.6 | 3.37 | 299.5 |
 
-SpriteCook: 560 credits spent, 240 left.
+SpriteCook: 635 credits spent, 165 left (2026-10-09, after the run-art sheets D, E, F).

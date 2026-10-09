@@ -1,0 +1,14 @@
+[remap]
+
+importer="image"
+type="Image"
+uid="uid://dwi0o74x4u1f3"
+path="res://.godot/imported/key.png-b7510f0ea3530251a8d5f412afc88d8e.image"
+
+[deps]
+
+source_file="res://assets/props/key.png"
+dest_files=["res://.godot/imported/key.png-b7510f0ea3530251a8d5f412afc88d8e.image"]
+
+[params]
+

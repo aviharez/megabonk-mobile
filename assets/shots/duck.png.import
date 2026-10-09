@@ -1,0 +1,14 @@
+[remap]
+
+importer="image"
+type="Image"
+uid="uid://bo8a3spj01x6w"
+path="res://.godot/imported/duck.png-c3a6000d26a9fd64334f5ed519e73341.image"
+
+[deps]
+
+source_file="res://assets/shots/duck.png"
+dest_files=["res://.godot/imported/duck.png-c3a6000d26a9fd64334f5ed519e73341.image"]
+
+[params]
+

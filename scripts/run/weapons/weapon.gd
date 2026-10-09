@@ -70,6 +70,14 @@ func amount(run: Node, key := "count") -> int:
 	return int(stats()[key]) + int(run.stat("projectiles"))
 
 
+## `shot` with this weapon's "shot_sprite" / "shot_turns" from its data, for
+## run.fire_shot(); without them the shot keeps its PlaceholderArt shape.
+func with_art(shot: Dictionary) -> Dictionary:
+	shot.sprite = def.get("shot_sprite", "")
+	shot.turns = int(def.get("shot_turns", 1))
+	return shot
+
+
 ## A per-weapon int per enemy slot (e.g. "last tick that hit it"). Weapons
 ## other than the Baguette keep their own marks instead of using
 ## EnemySystem.last_hit, which a swing relies on while it lasts.

@@ -4,6 +4,7 @@
 	"behavior": "key",
 	"radius": 6,
 	"shape": "key",
+	"sprite": "res://assets/props/key.png",
 	"color": "GOLD",
 	"arrow": "GOLD"
 }

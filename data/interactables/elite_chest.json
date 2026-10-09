@@ -4,6 +4,7 @@
 	"behavior": "free_chest",
 	"radius": 7,
 	"shape": "chest",
+	"sprite": "res://assets/props/chest_elite.png",
 	"color": "BLUE",
 	"arrow": "BLUE",
 	"chest": "elite"

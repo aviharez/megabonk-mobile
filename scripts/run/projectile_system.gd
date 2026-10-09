@@ -13,7 +13,11 @@ extends Node2D
 ##   bounce_range            how far a bounce looks for the next enemy (60)
 ##   homing                  turn rate toward the nearest enemy, rad/s (0)
 ##   knockback               push on hit (30)
-##   shape, color            PlaceholderArt shape name, palette index
+##   sprite, turns           the weapon's "shot_sprite" (a strip of `turns`
+##                           frames, frame k pointing at k * TAU / turns,
+##                           drawn along the velocity); "" for none
+##   shape, color            PlaceholderArt shape name, palette index, used
+##                           when there is no sprite
 ##   source                  weapon id, passed to the hit callback
 
 ## Called as hit_fn.call(enemy_slot, damage, push, source) for every hit.
@@ -30,6 +34,11 @@ var bounce_range := PackedFloat32Array()
 var homing := PackedFloat32Array()
 var knockback := PackedFloat32Array()
 var look := PackedInt32Array()
+## Frames in each look's strip (1 = drawn the same way in every direction).
+var _turns := PackedInt32Array()
+## Sprite for shots that name neither a sprite nor a shape (run.json
+## "default_shot_sprite").
+var default_sprite := ""
 var source := PackedStringArray()
 var _last_enemy := PackedInt32Array()
 ## The enemy hit before _last_enemy, so a bounce doesn't go straight back.
@@ -69,7 +78,7 @@ func fire(shot: Dictionary) -> int:
 	bounce_range[s] = shot.get("bounce_range", 60.0)
 	homing[s] = shot.get("homing", 0.0)
 	knockback[s] = shot.get("knockback", 30.0)
-	look[s] = _look_index(shot.get("shape", "bullet"), int(shot.get("color", Palette.BUTTER)))
+	look[s] = _look_index(shot.get("sprite", ""), int(shot.get("turns", 1)), shot.get("shape", ""), int(shot.get("color", Palette.BUTTER)))
 	source[s] = shot.get("source", "")
 	_last_enemy[s] = -1
 	_prev_enemy[s] = -1
@@ -143,17 +152,25 @@ func render() -> void:
 	for b in _batches:
 		b.begin()
 	for s in pool.active:
-		_batches[look[s]].push(pos[s])
+		var l := look[s]
+		_batches[l].push(pos[s], false, false, Art.turn_frame(vel[s], _turns[l]))
 	for b in _batches:
 		b.commit()
 
 
-func _look_index(shape: String, color: int) -> int:
-	var key := "%s:%d" % [shape, color]
+func _look_index(sprite: String, turns: int, shape: String, color: int) -> int:
+	if sprite == "" and shape == "":
+		sprite = default_sprite
+	var key := "%s:%d:%s:%d" % [sprite, turns, shape, color]
 	if not _looks.has(key):
+		var tex := Art.texture(sprite)
+		if tex == null:
+			tex = PlaceholderArt.texture(shape if shape != "" else "bullet", color)
+			turns = 1
 		var b := SpriteBatch.new()
-		b.setup(PlaceholderArt.texture(shape, color), pool.capacity)
+		b.setup(tex, pool.capacity, turns)
 		add_child(b)
 		_batches.append(b)
+		_turns.append(maxi(1, turns))
 		_looks[key] = _batches.size() - 1
 	return _looks[key]

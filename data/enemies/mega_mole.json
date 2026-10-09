@@ -18,7 +18,7 @@
 		"hit_anim_gap": 1.5,
 		"patterns": ["burrow", "rocks", "summon"],
 		"burrow": {"dig_time": 0.5, "chase_time": 1.8, "chase_speed": 70, "warn": 0.7, "radius": 22, "damage": 22, "up_time": 0.4},
-		"rocks": {"count": 18, "gap": 3, "speed": 55, "damage": 12, "radius": 3, "life": 4.0, "rings": 2, "ring_delay": 0.6},
+		"rocks": {"count": 18, "gap": 3, "speed": 55, "damage": 12, "radius": 3, "life": 4.0, "rings": 2, "ring_delay": 0.6, "sprite": "res://assets/shots/enemy/rock.png"},
 		"summon": {"enemy": "blob", "count": 6, "distance": 26}
 	}
 }

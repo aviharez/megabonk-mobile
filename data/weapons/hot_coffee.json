@@ -3,6 +3,7 @@
 	"name": "HOT COFFEE",
 	"desc": "LEAVES A SCALDING PUDDLE",
 	"pattern": "puddle",
+	"shot_sprite": "res://assets/shots/cup.png",
 	"status": "start",
 	"levels": [
 		{"damage": 4, "cooldown": 2.6, "count": 1, "radius": 14, "duration": 3, "tick": 0.5, "throw_range": 80, "desc": "SCALDING PUDDLE"},

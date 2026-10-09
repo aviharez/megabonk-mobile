@@ -8,6 +8,8 @@ extends Weapon
 ## (orbit), size (gnome hit radius), speed (rad/s), knockback.
 ## Player stats: damage, area (orbit and gnome size), cooldown, and
 ## projectiles (each extra projectile is one more gnome).
+## Art (optional): "orbit_sprite", one gnome; without it a gnome is drawn
+## from rectangles.
 
 const LEVEL_KEYS := ["damage", "cooldown", "count", "radius", "size", "speed", "knockback"]
 const MAX_GNOMES := 12
@@ -67,10 +69,14 @@ func draw(canvas: CanvasItem, origin: Vector2) -> void:
 	var face := Palette.color(Palette.DOUGH)
 	var beard := Palette.color(Palette.WHITE)
 	var coat := Palette.color(Palette.BLUE)
+	var tex := Art.texture(def.get("orbit_sprite", ""))
 	for g in _count:
 		var p := (o + Vector2.from_angle(_angle + g * TAU / _count) * _radius).round()
 		# Bob up and down a pixel while walking around.
 		p.y += 1.0 if int(_time * 8.0 + g) % 2 == 0 else 0.0
+		if tex != null:
+			canvas.draw_texture(tex, p - (tex.get_size() / 2.0).floor())
+			continue
 		# 5x9 gnome: pointy red hat, face, white beard, blue coat, outlined.
 		canvas.draw_rect(Rect2(p + Vector2(-3, -4), Vector2(7, 9)), ink)
 		canvas.draw_rect(Rect2(p + Vector2(-1, -5), Vector2(3, 1)), ink)

@@ -3,6 +3,7 @@
 	"name": "RUBBER DUCK",
 	"desc": "BOUNCES FROM FOE TO FOE",
 	"pattern": "bounce_shot",
+	"shot_sprite": "res://assets/shots/duck.png",
 	"status": "start",
 	"levels": [
 		{"damage": 7, "cooldown": 1.5, "count": 1, "bounces": 2, "speed": 120, "bounce_range": 70, "desc": "BOUNCES 2 TIMES"},

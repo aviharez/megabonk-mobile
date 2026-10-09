@@ -11,5 +11,5 @@
 	"shape": "spitter",
 	"color": "TEAL",
 	"keep_distance": [60, 90],
-	"shot": {"every": 2.4, "speed": 48, "damage": 7, "radius": 2, "life": 4.5, "range": 130}
+	"shot": {"every": 2.4, "speed": 48, "damage": 7, "radius": 2, "life": 4.5, "range": 130, "sprite": "res://assets/shots/enemy/bullet.png"}
 }

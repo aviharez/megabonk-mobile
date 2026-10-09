@@ -1,0 +1,14 @@
+[remap]
+
+importer="image"
+type="Image"
+uid="uid://bxps2il5m5b5f"
+path="res://.godot/imported/pellet.png-18668dd298d6305543247b524e0fbe0f.image"
+
+[deps]
+
+source_file="res://assets/shots/pellet.png"
+dest_files=["res://.godot/imported/pellet.png-18668dd298d6305543247b524e0fbe0f.image"]
+
+[params]
+

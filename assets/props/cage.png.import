@@ -1,0 +1,14 @@
+[remap]
+
+importer="image"
+type="Image"
+uid="uid://bf0hlepoui6a4"
+path="res://.godot/imported/cage.png-f0f801243d505098b5d9097d0105edb0.image"
+
+[deps]
+
+source_file="res://assets/props/cage.png"
+dest_files=["res://.godot/imported/cage.png-f0f801243d505098b5d9097d0105edb0.image"]
+
+[params]
+

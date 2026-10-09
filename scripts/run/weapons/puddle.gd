@@ -156,7 +156,9 @@ func draw(canvas: CanvasItem, _origin: Vector2) -> void:
 			var phase := fposmod(_time * 0.9 + k * 0.33, 1.0)
 			var sx := o.x + roundf((float(k) - 1.0) * r * 0.5) + (1.0 if phase > 0.5 else 0.0)
 			canvas.draw_rect(Rect2(Vector2(sx, o.y - roundf(phase * 10.0)), Vector2.ONE), steam)
-	var cup := PlaceholderArt.texture("cup", Palette.PAPER)
+	var cup := Art.texture(def.get("shot_sprite", ""))
+	if cup == null:
+		cup = PlaceholderArt.texture("cup", Palette.PAPER)
 	var half := (cup.get_size() / 2.0).floor()
 	for i in MAX_CUPS:
 		if _cup_t[i] < 0.0:

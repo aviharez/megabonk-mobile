@@ -16,10 +16,11 @@
 	"xp_curve": {"base": 5, "growth": 4.0, "exponent": 1.35},
 	"coins": {"per_minute": 4, "per_kill": 0.02, "death_multiplier": 0.6},
 	"gem_tiers": [
-		{"min_value": 1, "shape": "gem_small", "color": "SKY"},
-		{"min_value": 5, "shape": "gem_mid", "color": "PINK"},
-		{"min_value": 20, "shape": "gem_big", "color": "RED"}
+		{"min_value": 1, "shape": "gem_small", "color": "SKY", "sprite": "res://assets/gems/gem_small.png"},
+		{"min_value": 5, "shape": "gem_mid", "color": "PINK", "sprite": "res://assets/gems/gem_mid.png"},
+		{"min_value": 20, "shape": "gem_big", "color": "RED", "sprite": "res://assets/gems/gem_big.png"}
 	],
+	"default_shot_sprite": "res://assets/shots/pellet.png",
 	"magnet": {"start_speed": 40, "accel": 420, "collect_radius": 5},
 	"gold": {"kill_chance": 0.08, "kill_amount": 1},
 	"shield": {"delay": 4.0, "refill_per_sec": 0.5},

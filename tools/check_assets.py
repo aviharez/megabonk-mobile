@@ -2,7 +2,8 @@
 """Palette + grid check on every PNG in assets/ (the phase 6 gate).
 
 Per file: every opaque pixel is a palette colour, alpha is binary, index 31 (enemy projectile
-magenta) is unused (all three via tools/palette_snap.py), and the image is not an upscale (every
+magenta) is unused except in assets/shots/enemy/ (enemy projectiles, its only use; all three via
+tools/palette_snap.py), and the image is not an upscale (every
 pixel an NxN block, N = 2..4, at any offset), which would put it off the game's pixel grid.
 assets/palette.png is skipped; launcher icons (assets/icon/) are whole-number upscales on purpose
 and only get the palette check.
@@ -47,7 +48,8 @@ def main():
         rel = os.path.relpath(f, REPO)
         if rel == os.path.join("assets", "palette.png"):
             continue
-        ok = palette_snap.check_file(f, palette, set(palette_snap.RESERVED))
+        enemy_shot = rel.startswith(os.path.join("assets", "shots", "enemy") + os.sep)
+        ok = palette_snap.check_file(f, palette, set(palette_snap.RESERVED), allow_reserved=enemy_shot)
         k = 0 if rel.startswith(os.path.join("assets", "icon") + os.sep) else upscale_factor(f)
         if k:
             print(f"FAIL {rel}: every pixel is a {k}x{k} block (upscaled, off the pixel grid)")

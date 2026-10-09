@@ -30,11 +30,11 @@ func update(delta: float, run: Node) -> void:
 	var bounces := int(st.bounces)
 	for i in n:
 		var a := base + (i - (n - 1) * 0.5) * FAN
-		run.fire_shot({
+		run.fire_shot(with_art({
 			"pos": from, "vel": Vector2.from_angle(a) * float(st.speed),
 			"damage": dmg(run), "radius": SHOT_RADIUS * run.stat("area"),
 			# Long enough to fly out and use every bounce.
 			"life": 1.2 + 0.5 * bounces,
 			"bounces": bounces, "bounce_range": area(run, "bounce_range"),
 			"knockback": KNOCKBACK, "shape": "duck", "color": Palette.BUTTER, "source": id(),
-		})
+		}))

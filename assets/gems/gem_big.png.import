@@ -1,0 +1,14 @@
+[remap]
+
+importer="image"
+type="Image"
+uid="uid://bqrjr71i68wg0"
+path="res://.godot/imported/gem_big.png-9d1433ebdcc58792c5e43ce73b9740b1.image"
+
+[deps]
+
+source_file="res://assets/gems/gem_big.png"
+dest_files=["res://.godot/imported/gem_big.png-9d1433ebdcc58792c5e43ce73b9740b1.image"]
+
+[params]
+

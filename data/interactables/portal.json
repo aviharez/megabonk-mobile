@@ -4,6 +4,7 @@
 	"behavior": "portal",
 	"radius": 10,
 	"shape": "portal",
+	"sprite": "res://assets/props/portal.png",
 	"color": "PURPLE",
 	"arrow": "PURPLE"
 }

@@ -912,7 +912,7 @@ func _on_enemy_event(kind: int, slot: int, dir: Vector2) -> void:
 	match kind:
 		EnemySystem.EV_SHOOT:
 			var sh: Dictionary = def.shot
-			enemy_shots.fire(at + dir * enemies.radius[slot], dir * float(sh.speed), float(sh.damage) * power, float(sh.radius), float(sh.life), "bullet", def.id)
+			enemy_shots.fire(at + dir * enemies.radius[slot], dir * float(sh.speed), float(sh.damage) * power, float(sh.radius), float(sh.life), sh.get("sprite", "bullet"), def.id)
 		EnemySystem.EV_SWELL:
 			var ex: Dictionary = def.explode
 			danger.disc(at, float(ex.radius), Palette.RED, float(ex.fuse))
@@ -1849,6 +1849,7 @@ func _build_world() -> void:
 	world_viewport.add_child(enemies)
 	projectiles = ProjectileSystem.new()
 	projectiles.setup(256)
+	projectiles.default_sprite = rules.get("default_shot_sprite", "")
 	projectiles.hit_fn = hit_enemy
 	world_viewport.add_child(projectiles)
 	enemy_shots = EnemyShots.new()

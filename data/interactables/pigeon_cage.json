@@ -4,6 +4,7 @@
 	"behavior": "cage",
 	"radius": 8,
 	"shape": "cage",
+	"sprite": "res://assets/props/cage.png",
 	"color": "GRAY",
 	"arrow": "MIST",
 	"stat_event": "pigeon_cage_opened"

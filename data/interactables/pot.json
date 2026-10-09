@@ -4,6 +4,7 @@
 	"behavior": "pot",
 	"radius": 5,
 	"shape": "pot",
+	"sprite": "res://assets/props/pot.png",
 	"color": "CRUST",
 	"gold": [2, 6]
 }

@@ -163,7 +163,7 @@ func _ring(fast: float) -> void:
 		if (i - skip + n) % n < gap:
 			continue
 		var dir := Vector2.from_angle(TAU * i / n + 0.1)
-		run.enemy_shots.fire(at + dir * run.enemies.radius[slot], dir * float(r.speed) * fast, float(r.damage), float(r.radius), float(r.life), "rock", "mega_mole")
+		run.enemy_shots.fire(at + dir * run.enemies.radius[slot], dir * float(r.speed) * fast, float(r.damage), float(r.radius), float(r.life), r.get("sprite", "rock"), "mega_mole")
 
 
 func _rest_time() -> float:

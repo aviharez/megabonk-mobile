@@ -1,0 +1,14 @@
+[remap]
+
+importer="image"
+type="Image"
+uid="uid://bg3xwn22rc0wy"
+path="res://.godot/imported/rock.png-dc23e73e4a7f809610e28a8e6670ab86.image"
+
+[deps]
+
+source_file="res://assets/shots/enemy/rock.png"
+dest_files=["res://.godot/imported/rock.png-dc23e73e4a7f809610e28a8e6670ab86.image"]
+
+[params]
+

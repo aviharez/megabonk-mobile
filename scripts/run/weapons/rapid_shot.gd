@@ -29,9 +29,9 @@ func update(delta: float, run: Node) -> void:
 	var from: Vector2 = run.player_pos()
 	for i in n:
 		var a := base + (i - (n - 1) * 0.5) * step
-		run.fire_shot({
+		run.fire_shot(with_art({
 			"pos": from, "vel": Vector2.from_angle(a) * float(st.speed),
 			"damage": dmg(run), "radius": SHOT_RADIUS * run.stat("area"), "life": LIFE,
 			"pierce": int(st.pierce), "knockback": KNOCKBACK,
 			"shape": "staple", "color": Palette.MIST, "source": id(),
-		})
+		}))

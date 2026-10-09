@@ -3,6 +3,8 @@
 	"name": "FIREWORKS",
 	"desc": "RANDOM BLASTS ON SCREEN",
 	"pattern": "rockets",
+	"shot_sprite": "res://assets/shots/rocket.png",
+	"shot_turns": 16,
 	"status": "unlock",
 	"levels": [
 		{"damage": 14, "cooldown": 2.2, "count": 2, "radius": 18, "knockback": 50, "flight": 0.5, "desc": "TWO ROCKETS"},

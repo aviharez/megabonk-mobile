@@ -3,6 +3,9 @@
 	"name": "BAGUETTE",
 	"desc": "SPINNING SWING AROUND YOU",
 	"pattern": "spin_swing",
+	"swing_sprite": "res://assets/shots/baguette_swing.png",
+	"swing_turns": 32,
+	"swing_lengths": [16, 20, 24, 28, 32, 36, 40],
 	"status": "signature",
 	"character": "sir_loaf",
 	"levels": [

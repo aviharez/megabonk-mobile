@@ -83,8 +83,9 @@ def snap_colors(rgb, palette, allowed):
     return targets[d.argmin(1)][inv.reshape(-1)]
 
 
-def verify(png_path, palette, exclude, meta=None):
-    """Returns a list of problems (empty when the sheet is valid)."""
+def verify(png_path, palette, exclude, meta=None, allow_reserved=False):
+    """Returns a list of problems (empty when the sheet is valid). allow_reserved: the file may use
+    the reserved colours (enemy projectile art, their only use)."""
     problems = []
     im = Image.open(png_path)
     if im.mode != "RGBA":
@@ -98,6 +99,9 @@ def verify(png_path, palette, exclude, meta=None):
     allowed = allowed_indices(palette, exclude)
     allowed_set = {tuple(palette[i]) for i in allowed}
     reserved_set = {tuple(palette[i]) for i in RESERVED} | {tuple(palette[i]) for i in exclude if i < len(palette)}
+    if allow_reserved:
+        allowed_set |= {tuple(palette[i]) for i in RESERVED}
+        reserved_set -= {tuple(palette[i]) for i in RESERVED}
     uniq = {tuple(c) for c in np.unique(opaque, axis=0)} if opaque.size else set()
     off = [c for c in uniq if c not in allowed_set]
     reserved_hits = [c for c in off if c in reserved_set]
@@ -124,7 +128,7 @@ def sidecar_path(png):
     return os.path.splitext(png)[0] + ".json"
 
 
-def check_file(path, palette, exclude):
+def check_file(path, palette, exclude, allow_reserved=False):
     meta = None
     sc = sidecar_path(path)
     if os.path.exists(sc):
@@ -132,7 +136,7 @@ def check_file(path, palette, exclude):
             meta = json.load(f)
         if meta.get("format") != "game.sheet":
             meta = None
-    problems, ncol = verify(path, palette, exclude, meta)
+    problems, ncol = verify(path, palette, exclude, meta, allow_reserved)
     w, h = Image.open(path).size
     if problems:
         print(f"FAIL {path}")
@@ -140,7 +144,7 @@ def check_file(path, palette, exclude):
             print("  - " + p)
         return False
     desc = f"{meta['frames']} frames of {meta['frame_w']}x{meta['frame_h']}" if meta else f"{w}x{h} (no game.sheet sidecar)"
-    print(f"OK   {path}: {desc}, {ncol} palette colours, alpha binary, index 31 unused")
+    print(f"OK   {path}: {desc}, {ncol} palette colours, alpha binary, index 31 {'allowed' if allow_reserved else 'unused'}")
     return True
 
 

@@ -1,0 +1,14 @@
+[remap]
+
+importer="image"
+type="Image"
+uid="uid://cr0l77lal645v"
+path="res://.godot/imported/chest.png-48413dd82f236f3355a71cc65214c799.image"
+
+[deps]
+
+source_file="res://assets/props/chest.png"
+dest_files=["res://.godot/imported/chest.png-48413dd82f236f3355a71cc65214c799.image"]
+
+[params]
+

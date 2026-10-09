@@ -223,5 +223,20 @@
 		"asset_id": "7b7b8904-045d-42f7-806f-d9310542cccb",
 		"sha12": "788b111365bd",
 		"label": "UI kit 2 component sheet (2048x2048): bars + fills, name plate, banner, cards, NEW badge, action buttons, pause, joystick, arrow, icons; tools/art/ui_kit.py (second sheet argument) -> assets/ui/"
+	},
+	"map_objects_d": {
+		"asset_id": "95528589-6582-486e-af45-f84a750a4d0d",
+		"sha12": "3c8af0f0ce8c",
+		"label": "Map object sheet D (2x2, 68x66): chest, pot, shrine, pigeon cage; tools/art/run_art.py (mapD.png) -> assets/props/"
+	},
+	"map_objects_e": {
+		"asset_id": "6024107d-6a7e-487c-8b21-a592585a55eb",
+		"sha12": "7f8e02eeffd2",
+		"label": "Map object sheet E (2x2, 68x68): portal, merchant, cage key, mole rock; tools/art/run_art.py (mapE.png) -> assets/props/, assets/shots/enemy/rock.png"
+	},
+	"small_parts_f": {
+		"asset_id": "aec24acf-f40c-4d82-9692-5f94f9bf2901",
+		"sha12": "b7be43f135ea",
+		"label": "Small parts sheet F (3x3, 68x68): 3 XP gems, feather, staple, rocket, spit bullet, pellet, cup; tools/art/run_art.py (smallF.png) -> assets/gems/, assets/shots/"
 	}
 }

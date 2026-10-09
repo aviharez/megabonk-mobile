@@ -173,6 +173,8 @@ func _check_entry(category: String, e: Dictionary) -> void:
 				errors.append("%s: \"keep_distance\" must be [near, far]" % file)
 			if e.role == "boss" and e.get("boss") is Dictionary:
 				_check_boss(file, e.boss)
+			if e.get("shot") is Dictionary:
+				_check_art(file, e.shot, ["sprite"])
 		"interactables":
 			if not e.behavior in Interactables.BEHAVIORS:
 				errors.append("%s: unknown behavior \"%s\"" % [file, e.behavior])
@@ -232,6 +234,11 @@ func _check_entry(category: String, e: Dictionary) -> void:
 			for k: String in ["name", "desc"]:
 				if typeof(e.passive.get(k)) != TYPE_STRING:
 					errors.append("%s: passive needs a \"%s\" text" % [file, k])
+		"rules":
+			_check_art(file, e, ["default_shot_sprite"])
+			for t in e.get("gem_tiers", []):
+				if t is Dictionary:
+					_check_art(file, t, ["sprite"])
 		"challenges":
 			_check_challenge(e)
 		"shop":
@@ -249,6 +256,9 @@ func _check_weapon(e: Dictionary) -> void:
 		errors.append("%s: a signature weapon needs \"character\"" % file)
 	if e.levels.is_empty():
 		errors.append("%s: needs at least one level" % file)
+	_check_art(file, e, ["shot_sprite", "swing_sprite", "orbit_sprite"])
+	if e.has("swing_sprite") and not (_is_num(e.get("swing_turns")) and e.get("swing_lengths") is Array):
+		errors.append("%s: \"swing_sprite\" needs \"swing_turns\" and \"swing_lengths\"" % file)
 	# Each pattern script lists the level keys it reads in LEVEL_KEYS.
 	var keys: Array = load(Weapon.PATTERNS[e.pattern]).get_script_constant_map().get("LEVEL_KEYS", [])
 	for i in e.levels.size():
@@ -635,11 +645,20 @@ func _check_boss(f: String, b: Dictionary) -> void:
 		for k: String in BOSS_PATTERNS[p]:
 			if not _is_num(b[p].get(k)):
 				errors.append("%s: boss \"%s\" needs a number \"%s\"" % [f, p, k])
+		_check_art(f, b[p], ["sprite"])
 	if b.get("summon") is Dictionary:
 		# Checked after loading, when every enemy is known.
 		_late.append(func() -> void:
 			if not entries.enemies.has(b.summon.get("enemy", "")):
 				errors.append("%s: boss summons unknown enemy \"%s\"" % [f, b.summon.get("enemy", "")]))
+
+
+## Optional sprite paths: each of `keys` that `d` has must name an existing
+## PNG (the code falls back to its PlaceholderArt shape when a key is absent).
+func _check_art(f: String, d: Dictionary, keys: Array) -> void:
+	for k: String in keys:
+		if d.has(k) and (typeof(d[k]) != TYPE_STRING or not ResourceLoader.exists(d[k])):
+			errors.append("%s: %s \"%s\" not found" % [f, k, d[k]])
 
 
 ## An animated sheet: the PNG plus its sidecar (tools/palette_snap.py), with

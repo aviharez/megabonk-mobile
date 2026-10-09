@@ -4,6 +4,7 @@
 	"behavior": "free_chest",
 	"radius": 8,
 	"shape": "chest",
+	"sprite": "res://assets/props/chest_boss.png",
 	"color": "PURPLE",
 	"arrow": "PURPLE",
 	"chest": "boss"

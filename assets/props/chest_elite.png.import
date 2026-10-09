@@ -1,0 +1,14 @@
+[remap]
+
+importer="image"
+type="Image"
+uid="uid://cb8m3g14dqaqv"
+path="res://.godot/imported/chest_elite.png-400c590dc3f1b3a6171c32eae5f47204.image"
+
+[deps]
+
+source_file="res://assets/props/chest_elite.png"
+dest_files=["res://.godot/imported/chest_elite.png-400c590dc3f1b3a6171c32eae5f47204.image"]
+
+[params]
+

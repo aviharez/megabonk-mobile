@@ -4,6 +4,11 @@ extends Weapon
 ## as the blade passes them. Uses level keys: damage, radius, cooldown,
 ## swing_time, swings, knockback. Player stats: damage, area, cooldown, and
 ## projectiles (each extra projectile is one more swing per attack).
+## Art (optional): "swing_sprite", a sheet with one row per blade length in
+## "swing_lengths" (px, shortest first) and "swing_turns" square frames per
+## row, frame k pointing outward at k * TAU / turns. The row closest to the
+## swing's reach is drawn with its tip on the swing radius. Without it the
+## blade is drawn as a line of squares.
 
 const LEVEL_KEYS := ["damage", "radius", "cooldown", "swing_time", "swings", "knockback"]
 ## Blades closer than this always hit (the blade covers the player's body).
@@ -90,6 +95,10 @@ func draw(canvas: CanvasItem, origin: Vector2) -> void:
 			break
 		var tp := (o + Vector2.from_angle(a) * (_radius - 1.0)).round()
 		canvas.draw_rect(Rect2(tp, Vector2.ONE), trail_c)
+	var tex := Art.texture(def.get("swing_sprite", ""))
+	if tex != null:
+		_draw_sprite(canvas, o, dir, tex)
+		return
 	# Blade: 2x2 squares along the line, outlined crust with a dough center.
 	var r := INNER
 	while r <= _radius:
@@ -101,3 +110,16 @@ func draw(canvas: CanvasItem, origin: Vector2) -> void:
 		var p := (o + dir * r).round()
 		canvas.draw_rect(Rect2(p, Vector2(1, 1)), dough if int(r) % 6 == 0 else crust)
 		r += 1.0
+
+
+func _draw_sprite(canvas: CanvasItem, o: Vector2, dir: Vector2, tex: Texture2D) -> void:
+	var lengths: Array = def.swing_lengths
+	var turns := int(def.swing_turns)
+	var cell := float(tex.get_height() / lengths.size())
+	var row := 0
+	for i in lengths.size():
+		if absf(float(lengths[i]) - (_radius - INNER)) < absf(float(lengths[row]) - (_radius - INNER)):
+			row = i
+	var at := (o + dir * (_radius - float(lengths[row]) / 2.0)).round() - Vector2(floorf(cell / 2.0), floorf(cell / 2.0))
+	var src := Rect2(Art.turn_frame(dir, turns) * cell, row * cell, cell, cell)
+	canvas.draw_texture_rect_region(tex, Rect2(at, src.size), src)

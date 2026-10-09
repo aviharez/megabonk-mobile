@@ -3,6 +3,7 @@
 	"name": "GARDEN GNOMES",
 	"desc": "GNOMES CIRCLE AROUND YOU",
 	"pattern": "orbit",
+	"orbit_sprite": "res://assets/shots/gnome.png",
 	"status": "start",
 	"levels": [
 		{"damage": 8, "cooldown": 0.5, "count": 2, "radius": 26, "size": 5, "speed": 3, "knockback": 30, "desc": "TWO GNOMES ON PATROL"},

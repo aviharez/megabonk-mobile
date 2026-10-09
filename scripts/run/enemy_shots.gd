@@ -29,7 +29,8 @@ func count() -> int:
 	return pool.count()
 
 
-## Fires one shot. shape: a PlaceholderArt shape ("bullet", "rock").
+## Fires one shot. look: a sprite path from data (the enemy's "shot" or the
+## boss pattern's "sprite") or a PlaceholderArt shape ("bullet", "rock").
 func fire(at: Vector2, velocity: Vector2, dmg: float, r: float, seconds: float, shape := "bullet", from := "") -> int:
 	var s := pool.acquire()
 	if s < 0:
@@ -80,7 +81,8 @@ func render() -> void:
 func _look_index(shape: String) -> int:
 	if not _looks.has(shape):
 		var b := SpriteBatch.new()
-		b.setup(PlaceholderArt.texture(shape, Palette.ENEMY_SHOT), pool.capacity)
+		var tex := Art.texture(shape) if shape.begins_with("res://") else null
+		b.setup(tex if tex != null else PlaceholderArt.texture(shape, Palette.ENEMY_SHOT), pool.capacity)
 		add_child(b)
 		_batches.append(b)
 		_looks[shape] = _batches.size() - 1

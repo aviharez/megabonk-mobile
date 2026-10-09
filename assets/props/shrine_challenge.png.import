@@ -1,0 +1,14 @@
+[remap]
+
+importer="image"
+type="Image"
+uid="uid://cyn4nfoi4cum0"
+path="res://.godot/imported/shrine_challenge.png-db5526be11a963ad4c01f24c0b3dcab4.image"
+
+[deps]
+
+source_file="res://assets/props/shrine_challenge.png"
+dest_files=["res://.godot/imported/shrine_challenge.png-db5526be11a963ad4c01f24c0b3dcab4.image"]
+
+[params]
+

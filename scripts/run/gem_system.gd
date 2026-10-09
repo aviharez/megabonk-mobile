@@ -6,7 +6,8 @@ extends Node2D
 ## Merging looks up the last gem dropped in the same or a neighbouring
 ## MERGE_CELL square (a full scan only when there is none): a big blast with
 ## a full pool used to scan every gem once per kill.
-## Gem looks (tiers by value) come from data/rules/run.json "gem_tiers".
+## Gem looks (tiers by value) come from data/rules/run.json "gem_tiers": a
+## "sprite", or else a PlaceholderArt "shape" in "color".
 ## Every gem also counts how many dropped gems it holds (merges add up), so
 ## `collected` is the number of gems picked up ("collect 3,000 XP gems").
 
@@ -46,7 +47,8 @@ func setup(rules: Dictionary) -> void:
 	_tiers = rules.gem_tiers
 	for t: Dictionary in _tiers:
 		var b := SpriteBatch.new()
-		b.setup(PlaceholderArt.texture(t.shape, Palette.index_of(t.color)), cap)
+		var tex := Art.texture(t.get("sprite", ""))
+		b.setup(tex if tex != null else PlaceholderArt.texture(t.shape, Palette.index_of(t.color)), cap)
 		add_child(b)
 		_batches.append(b)
 

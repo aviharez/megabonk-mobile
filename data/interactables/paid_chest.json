@@ -4,6 +4,7 @@
 	"behavior": "paid_chest",
 	"radius": 7,
 	"shape": "chest",
+	"sprite": "res://assets/props/chest.png",
 	"color": "WOOD",
 	"arrow": "GOLD",
 	"chest": "paid",

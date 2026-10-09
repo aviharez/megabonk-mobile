@@ -1,0 +1,14 @@
+[remap]
+
+importer="image"
+type="Image"
+uid="uid://dxpj242jwrq7u"
+path="res://.godot/imported/pot.png-e1d9d11f3bc1a211cca66d91cce4f64c.image"
+
+[deps]
+
+source_file="res://assets/props/pot.png"
+dest_files=["res://.godot/imported/pot.png-e1d9d11f3bc1a211cca66d91cce4f64c.image"]
+
+[params]
+

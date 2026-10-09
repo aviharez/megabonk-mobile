@@ -4,6 +4,7 @@
 	"behavior": "merchant",
 	"radius": 10,
 	"shape": "merchant",
+	"sprite": "res://assets/props/merchant.png",
 	"color": "PURPLE",
 	"arrow": "BUTTER",
 	"chest": "merchant",
