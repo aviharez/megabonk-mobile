@@ -10,5 +10,6 @@
 		{"damage": 8, "cooldown": 1.55, "jumps": 5, "range": 62, "desc": "MORE CHAIN JUMPS"},
 		{"damage": 9, "cooldown": 1.5, "jumps": 6, "range": 64, "desc": "MORE CHAIN JUMPS"},
 		{"damage": 10, "cooldown": 1.5, "jumps": 8, "range": 66, "desc": "MANY MORE CHAIN JUMPS"}
-	]
+	],
+	"hit_fx": {"kind": "sparks", "color": "SKY", "r": 6}
 }

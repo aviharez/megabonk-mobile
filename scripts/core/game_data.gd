@@ -360,6 +360,8 @@ func _cross_check() -> void:
 		if not ok or hp_bar.height < 3.0 or hp_bar.width < 3.0:
 			errors.append("%s: \"player_hp_bar\" needs numbers \"width\" and \"height\" (3 or more) and \"gap\"" % entries.rules.run._file)
 	_check_ads(entries.rules.get("ads", {}))
+	_check_audio(entries.rules.get("audio", {}))
+	_check_fx(entries.rules.get("fx", {}))
 	_check_store(entries.rules.get("store", {}))
 	var bills: Dictionary = entries.rules.get("bills", {})
 	if not bills.is_empty():
@@ -385,6 +387,82 @@ func _cross_check() -> void:
 			errors.append("%s: chest kind \"%s\" not in rules/loot.json" % [e._file, e.chest])
 		if e.has("reward_chest") and not entries.interactables.has(e.reward_chest + "_chest"):
 			errors.append("%s: no interactable \"%s_chest\"" % [e._file, e.reward_chest])
+
+
+## Sound ids the run and menus play by name (scripts/run/run.gd, juice.gd,
+## interactables.gd, mega_mole.gd, ui). Each must be in data/rules/audio.json.
+const AUDIO_EVENTS := ["hit", "crit", "kill", "hurt", "dodge", "gem", "level_up", "card", "click",
+	"chest", "beam", "gold", "pot", "shrine", "key", "cage", "merchant", "buy", "portal", "boom", "zap",
+	"boss_roar", "boss_dig", "boss_slam", "rocks", "boss_down", "elite", "alarm", "final", "bills",
+	"death", "revive", "heartbeat", "escape", "pop"]
+const MUSIC_TRACKS := ["menu", "gameplay", "boss"]
+const HIT_FX_KINDS := ["puff", "star", "sparks"]
+
+
+## data/rules/audio.json: the one list of audio files (scripts/autoload/audio.gd),
+## and every sound named by weapons ("sfx") and enemies ("sfx").
+func _check_audio(a: Dictionary) -> void:
+	if a.is_empty():
+		return
+	var f: String = a._file
+	if not _is_num(a.get("voices")) or a.voices < 1.0:
+		errors.append("%s: \"voices\" must be 1 or more" % f)
+	var sfx: Variant = a.get("sfx")
+	if not sfx is Dictionary:
+		errors.append("%s: \"sfx\" must be an object of sounds" % f)
+		sfx = {}
+	for id: String in sfx:
+		var d: Variant = sfx[id]
+		if not d is Dictionary or typeof(d.get("file")) != TYPE_STRING or not ResourceLoader.exists(d.file):
+			errors.append("%s: sound \"%s\" needs a \"file\" that exists" % [f, id])
+			continue
+		for k: String in ["db", "pitch", "max", "gap", "priority"]:
+			if not _is_num(d.get(k)):
+				errors.append("%s: sound \"%s\" needs a number \"%s\"" % [f, id, k])
+	for id: String in AUDIO_EVENTS:
+		if not sfx.has(id):
+			errors.append("%s: missing sound \"%s\" (the game plays it)" % [f, id])
+	for t: String in MUSIC_TRACKS:
+		var path: Variant = a.get("music", {}).get(t)
+		if typeof(path) != TYPE_STRING or not ResourceLoader.exists(path):
+			errors.append("%s: music \"%s\" needs a file that exists" % [f, t])
+	for cat: String in ["weapons", "enemies"]:
+		for e: Dictionary in entries.get(cat, {}).values():
+			var es: Variant = e.get("sfx", {})
+			if not es is Dictionary:
+				errors.append("%s: \"sfx\" must be an object" % e._file)
+				continue
+			for k: String in es:
+				if typeof(es[k]) != TYPE_STRING or (es[k] != "" and not sfx.has(es[k])):
+					errors.append("%s: sfx \"%s\" names an unknown sound \"%s\" (see rules/audio.json)" % [e._file, k, es[k]])
+	for w: Dictionary in entries.get("weapons", {}).values():
+		var hf: Variant = w.get("hit_fx", {})
+		if not hf is Dictionary or (not hf.is_empty() and (not hf.get("kind") in HIT_FX_KINDS or Palette.index_of(str(hf.get("color", ""))) < 0)):
+			errors.append("%s: \"hit_fx\" needs a \"kind\" (%s) and a palette \"color\"" % [w._file, ", ".join(HIT_FX_KINDS)])
+
+
+## data/rules/fx.json: juice numbers and the Final Swarm palette map.
+func _check_fx(x: Dictionary) -> void:
+	if x.is_empty():
+		return
+	var f: String = x._file
+	var groups := {"hitstop": ["big_crit", "big_crit_frac", "boss_hit", "boss_gap", "boss_down", "max"],
+		"shake": ["hurt", "explode", "boss_slam", "boss_down", "death", "decay", "max"],
+		"low_hp": ["below", "band", "beat_sec"], "chest_beam": ["time", "height"], "gem": ["trail_max", "sparkle_every"]}
+	for g: String in groups:
+		for k: String in groups[g]:
+			if not _is_num(x.get(g, {}).get(k)):
+				errors.append("%s: %s needs a number \"%s\"" % [f, g, k])
+	for k: String in ["level_up_burst", "death_particles", "hit_fx_gap"]:
+		if not _is_num(x.get(k)):
+			errors.append("%s: needs a number \"%s\"" % [f, k])
+	var m: Variant = x.get("final_tint", {}).get("map", {})
+	if not m is Dictionary:
+		m = {}
+		errors.append("%s: final_tint \"map\" must be an object" % f)
+	for from: String in m:
+		if Palette.index_of(from) < 0 or typeof(m[from]) != TYPE_STRING or Palette.index_of(m[from]) < 0:
+			errors.append("%s: final_tint maps \"%s\" -> \"%s\": both must be palette colors" % [f, from, m[from]])
 
 
 ## data/rules/ads.json: ad units, rewarded placement limits, revive, daily,

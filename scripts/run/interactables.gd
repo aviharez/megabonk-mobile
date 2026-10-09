@@ -112,6 +112,7 @@ func update(delta: float) -> void:
 			o.left -= delta
 			if o.left <= 0.0:
 				run.toast("THE MERCHANT LEFT", "MIST")
+				run.fx.puff(o.pos, 8.0, Palette.MIST, 0.4)
 				remove(o)
 				continue
 		if o.used:
@@ -141,18 +142,20 @@ func _touch(o: Dictionary) -> void:
 				run.spend_gold(price)
 				paid_opened += 1
 				remove(o)
-				run.open_chest(def.chest)
+				run.open_chest(def.chest, o.pos)
 			else:
 				run.toast("NEED G %d" % price, "GOLD")
 		"free_chest":
 			remove(o)
-			run.open_chest(def.chest)
+			run.open_chest(def.chest, o.pos)
 		"pot":
 			var g: Array = def.get("gold", [1, 3])
 			var amount: int = run.rng.randi_range(int(g[0]), int(g[1]))
 			run.add_gold(amount)
 			run.numbers.show_text(o.pos, "+%dG" % amount, Palette.GOLD)
 			run.fx.ring(o.pos, 6.0, Palette.CRUST)
+			run.fx.puff(o.pos, 6.0, Palette.CRUST, 0.3)
+			run.juice.sfx("pot")
 			run.record("pots_broken")
 			remove(o)
 		"merchant":
@@ -164,6 +167,8 @@ func _touch(o: Dictionary) -> void:
 				run.record(def.get("stat_event", "pigeon_cage_opened"))
 				run.toast("PIGEON FREED!", "BUTTER")
 				run.fx.ring(o.pos, 14.0, Palette.BUTTER)
+				run.fx.sparks(o.pos, 14.0, Palette.BUTTER)
+				run.juice.sfx("cage")
 			else:
 				run.toast("THE CAGE NEEDS A KEY", "MIST")
 		"key":
@@ -171,6 +176,8 @@ func _touch(o: Dictionary) -> void:
 			remove(o)
 			run.record("keys_found")
 			run.toast("GOT A KEY!", "GOLD")
+			run.fx.star(o.pos, 5.0, Palette.GOLD, 0.3)
+			run.juice.sfx("key")
 		"portal":
 			run.escape()
 
@@ -193,6 +200,7 @@ func _activate(o: Dictionary) -> void:
 				run.stats.set_modifier(m.stat, src, float(m.get("flat", 0.0)), float(m.get("pct", 0.0)))
 			risks.append({"left": float(def.duration), "src": src, "def": def})
 			run.toast("RISK! FOES +, LOOT +", "RED")
+			run.juice.shake("explode")
 		"challenge_shrine":
 			challenges.append({"left": float(def.time), "need": int(def.kills), "start_kills": run.kills, "def": def})
 			run.toast("KILL %d IN %dS!" % [int(def.kills), int(def.time)], "GOLD")

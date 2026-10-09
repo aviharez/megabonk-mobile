@@ -62,4 +62,7 @@ SpriteCook credits (Starter plan, 800 per month). Ask before every generation. N
 | 2026-10-05 | `assets/creatures/skitter.png` (Skitter walk, 4 frames 18x15) | procedural-pixel-creatures, arthropod/spider seed 28, palette-snapped; owner-approved |
 | 2026-10-05 | `assets/creatures/chomper.png` (Chomper walk, 4 frames 28x20) | procedural-pixel-creatures, quadruped/beast seed 5, palette-snapped; owner-approved |
 
+| 2026-10-09 | `assets/audio/sfx/*.wav` (48 sound effects, 22050 Hz mono) | sfxr-style generator `tools/audio/sfxr.py`, recipes in `tools/audio/sfx.json`; no credits |
+| 2026-10-09 | `assets/audio/music/{menu,gameplay,boss}.ogg` (placeholder chiptune loops, 37 / 42 / 35 s) | `tools/audio/chiptune.py` (numpy + ffmpeg libvorbis); to be replaced by licensed music with the same file names |
+
 2026-10-09: both heroes re-shrunk to ~22px tall (scale 0.67) from the downloaded SpriteCook sheets on owner request; no new generations.

@@ -10,5 +10,6 @@
 	"xp": 3,
 	"shape": "bloater",
 	"color": "LIME",
-	"explode": {"trigger_range": 22, "fuse": 1.0, "radius": 28, "damage": 20}
+	"explode": {"trigger_range": 22, "fuse": 1.0, "radius": 28, "damage": 20},
+	"sfx": {"swell": "fuse", "explode": "pop"}
 }

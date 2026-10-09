@@ -41,7 +41,7 @@ const SaveManager := preload("res://scripts/autoload/save_manager.gd")
 ## Spawns appear this far outside the visible area.
 const SPAWN_MARGIN := Vector2(10, 10)
 const RECYCLE_EVERY := 0.25
-const PARTICLES := 16
+const DITHER_FADE := preload("res://assets/shaders/dither_fade.gdshader")
 
 ## Options for the next run, set before switching to the run scene (bots,
 ## stress test). Copied into `options` and cleared on _ready.
@@ -63,6 +63,7 @@ static var next_options := {}
 ## bot_boss_min: the bot walks to the altar from this minute (-1 = never).
 ## bot_portal: the bot takes the portal once it's open.
 ## no_spawns: the director spawns nothing (tests).
+## pin_hp: hold HP at this fraction of max (stress: low-HP effects on).
 ## character: who plays (default: the save's last pick, if owned).
 ## save: a save node to read meta progress from and commit the result to
 ##   (tests). Without it the Save autoload is used, or, with no_save, a blank
@@ -70,6 +71,8 @@ static var next_options := {}
 ## charges: overrides for the level-up action charges {"reroll": n, ...}.
 ## ads: an Ads service node (tests). Without it the Ads autoload is used
 ##   when the run uses the Save autoload (the real game), never in bot runs.
+## audio: an audio node with play(id) / play_music(id) (tests). Without it
+##   the Audio autoload is used (if there is one).
 var options := {}
 var db: GameData
 var rules: Dictionary
@@ -131,6 +134,9 @@ var projectiles: ProjectileSystem
 var interactables: Interactables
 var numbers: DamageNumbers
 var fx: Fx
+## Sounds, shake, hit-stop, vignette, Final Swarm tint, level-up burst.
+var juice: Juice
+var fx_rules: Dictionary
 ## Enemy telegraphs (red zones, charge lines). Never turned off.
 var danger: Fx
 
@@ -178,6 +184,12 @@ var world_scale := 1
 var ui_scale := 1
 var _particles: NodePool
 var _reduce_fx := false
+## Per hit source (weapon id): {"fx": hit_fx, "sfx": hit sound, "attack":
+## attack sound, "at": run time of its last hit effect}.
+var _hit_style := {}
+## Things to do a little later in run time: [[at, Callable], ...].
+var _later := []
+var _particle_tex := {}
 var _hud: Hud
 var _joystick: ThumbStick
 var _cards_panel: Control
@@ -252,6 +264,10 @@ func _ready() -> void:
 		if e.has("pack_size"):
 			_pack_sizes[e.id] = e.pack_size
 	_reduce_fx = _setting("reduce_effects", false)
+	fx_rules = db.get_entry("rules", "fx")
+	juice = Juice.new()
+	juice.setup(fx_rules, options.get("audio", get_node_or_null("/root/Audio")), _setting("screen_shake", true), _reduce_fx)
+	add_child(juice)
 	_profiling = options.get("profile", false)
 	elapsed = float(options.get("start_at", 0.0))
 	var m: Dictionary = map_def.get("merchant", {})
@@ -266,12 +282,15 @@ func _ready() -> void:
 		ads.begin_run()
 		ads.set_banner(false)  # never during gameplay
 		ads.ready_changed.connect(_refresh_ad_buttons)
+	_music("gameplay")
 	_render()
 
 
 func _process(delta: float) -> void:
 	var t0 := Time.get_ticks_usec()
-	tick(delta)
+	# Hit-stop: the game holds still for a moment, the picture keeps drawing.
+	if not juice.hold(delta):
+		tick(delta)
 	_render()
 	_mark("render")
 	last_frame_usec = Time.get_ticks_usec() - t0
@@ -317,6 +336,8 @@ func tick(delta: float) -> void:
 	_update_passive(minute)
 	hp = minf(hp + stat("regen") * delta, stat("max_hp"))
 	_update_shield(delta)
+	if options.has("pin_hp"):
+		hp = stat("max_hp") * float(options.pin_hp)
 	items.update(delta)
 	_mark("player")
 
@@ -347,6 +368,7 @@ func tick(delta: float) -> void:
 
 	var got := gems.update(delta, _pos, stat("pickup_range"))  # counts gems.collected
 	if got > 0.0:
+		juice.sfx("gem")
 		add_xp(got)
 	_mark("gems")
 	interactables.update(delta)
@@ -356,6 +378,8 @@ func tick(delta: float) -> void:
 	numbers.update(delta)
 	fx.update(delta)
 	danger.update(delta)
+	juice.update(delta, hp / maxf(1.0, stat("max_hp")))
+	_tick_later()
 	_mark("fx")
 	var every: float = options.get("chest_every", 0.0)
 	if every > 0.0:
@@ -416,6 +440,7 @@ func add_xp(amount: float) -> void:
 		xp -= need
 		level += 1
 		pending_levels += 1
+		juice.sfx("level_up")
 		on_level_up.emit(level)
 		if items.listens("on_level_up"):
 			items.emit("on_level_up", {"level": level, "pos": _pos})
@@ -442,9 +467,11 @@ func hit_enemy(slot: int, amount: float, push: Vector2, source := "", procs := t
 		if crit:
 			amount *= stat("crit_damage")
 	numbers.show_number(enemies.pos[slot], amount, crit)
+	_hit_feedback(slot, amount, crit, source)
 	var died := enemies.hurt(slot, amount, push)
 	if not died and boss != null and slot == boss.slot:
 		boss.on_hit()
+		juice.boss_hit(elapsed)
 	if procs:
 		on_hit.emit(slot, amount, crit, source)
 		if items.listens("on_hit"):
@@ -452,6 +479,32 @@ func hit_enemy(slot: int, amount: float, push: Vector2, source := "", procs := t
 	# An on_hit effect may already have killed it.
 	if died and enemies.pool.is_alive(slot):
 		_kill(slot, source)
+
+
+## Sound and effect of a hit (before it lands, so max HP is the enemy's):
+## the weapon's "hit_fx" and hit sound (data/weapons/*.json "sfx": {"hit"}),
+## at most one effect per weapon every fx.json "hit_fx_gap" seconds; a crit
+## sound, and a hit-stop for a big crit.
+func _hit_feedback(slot: int, amount: float, crit: bool, source: String) -> void:
+	if not _hit_style.has(source):
+		_hit_feedback_style(source)
+	var st: Dictionary = _hit_style[source]
+	if crit:
+		juice.sfx("crit")
+		juice.crit(amount, enemies.max_hp[slot], enemies.elite[slot] == 1)
+	else:
+		juice.sfx(st.sfx)
+	var hf: Dictionary = st.fx
+	if hf.is_empty() or elapsed - float(st.at) < float(fx_rules.get("hit_fx_gap", 0.05)):
+		return
+	st.at = elapsed
+	var at := enemies.pos[slot]
+	var c := Palette.index_of(hf.get("color", "PAPER"))
+	var r := float(hf.get("r", 3.0))
+	match hf.get("kind", ""):
+		"puff": fx.puff(at, r, c)
+		"star": fx.star(at, r, c)
+		"sparks": fx.sparks(at, r, c, 0.25)
 
 
 ## The one way the player takes damage: enemy contact, enemy shots,
@@ -466,6 +519,8 @@ func damage_player(amount: float, source: String, contact := false, pierce := fa
 	_iframes = rules.player_iframes
 	if rng.randf() < stat("evasion"):
 		numbers.show_text(_pos, "MISS")
+		juice.sfx("dodge")
+		fx.star(_pos, 4.0, Palette.WHITE)
 		return false
 	_hit_at = elapsed
 	var dmg := amount * Passives.damage_taken_mult(char_def.passive, elapsed / 60.0)
@@ -476,9 +531,13 @@ func damage_player(amount: float, source: String, contact := false, pierce := fa
 	_shield_idle = 0.0
 	_swarm_hit = true
 	last_damage_source = source
+	var absorbed := 0.0 if pierce else minf(shield, dmg)
+	# Feedback first: an invincible test hero still flinches and shakes.
+	juice.sfx("hurt")
+	juice.shake("hurt")
+	fx.puff(_pos, 6.0, Palette.RED if absorbed < dmg else Palette.SKY)
 	if options.get("invincible", false):
 		return true
-	var absorbed := 0.0 if pierce else minf(shield, dmg)
 	shield -= absorbed
 	hp -= dmg - absorbed
 	record("damage_taken", dmg - absorbed)
@@ -507,6 +566,7 @@ func blast(at: Vector2, r: float, dmg: float, knockback: float, source: String, 
 	fx.ring(at, r, c)
 	if r >= 60.0:
 		fx.disc(at, r, c)
+	juice.sfx("boom")
 
 
 ## Lightning that jumps from `from` to the nearest enemy, then on to the
@@ -519,6 +579,7 @@ func chain_zap(from: Vector2, dmg: float, jumps: int, reach: float, source: Stri
 	var at := from
 	var n := 0
 	var c := Palette.index_of(color)
+	juice.sfx("zap")
 	for j in jumps:
 		var e := _nearest_not_in(at, reach, hit)
 		if e < 0:
@@ -570,8 +631,22 @@ func duplicate_shot(shot: Dictionary, spread: float) -> void:
 	projectiles.fire(copy)
 
 
+## Cached per hit source: the weapon's "hit_fx" and "sfx" {"hit", "attack"}.
+## Burns and item effects make no hit sound of their own (a blast booms, a
+## zap crackles).
+func _hit_feedback_style(source: String) -> void:
+	var w := db.get_entry("weapons", source)
+	var hit: String = w.get("sfx", {}).get("hit", "hit")
+	if source == "burn" or source.begins_with("item:"):
+		hit = ""
+	_hit_style[source] = {"fx": w.get("hit_fx", {}), "sfx": hit, "attack": w.get("sfx", {}).get("attack", ""), "at": -INF}
+
+
 ## Weapons call this once per attack (via Weapon.attacked()).
 func weapon_attacked(weapon_id: String) -> void:
+	if not _hit_style.has(weapon_id):
+		_hit_feedback_style(weapon_id)
+	juice.sfx(_hit_style[weapon_id].attack)
 	on_attack.emit(weapon_id)
 	if items.listens("on_attack"):
 		items.emit("on_attack", {"weapon": weapon_id, "pos": _pos})
@@ -608,20 +683,36 @@ func give_item(id: String) -> void:
 ## Opens a chest of `kind` ("paid", "elite", "boss"): rolls an item with
 ## the player's luck and gives it. Returns the item id ("" = nothing left
 ## to give; the chest pays out gold instead). Map chests, elite drops and the
-## boss chest all come through here.
-func open_chest(kind: String) -> String:
+## boss chest all come through here. `at` = where the chest stood (default:
+## the player): a beam in the item's rarity color rises there first, then
+## the chest pops and the item's name shows (the item is given at once).
+func open_chest(kind: String, at := Vector2.INF) -> String:
+	if at == Vector2.INF:
+		at = _pos
 	var id := Loot.roll(rng, db, kind, stat("luck"), items.stacks, pool)
+	var cb: Dictionary = fx_rules.get("chest_beam", {})
+	var wait := float(cb.get("time", 0.5))
+	var color := "GOLD"
+	var text := "+GOLD"
 	if id == "":
 		add_gold(db.get_entry("rules", "loot").get("empty_chest_gold", 0.0))
-		toast("+GOLD", "GOLD")
 	else:
 		give_item(id)
 		var def := db.get_entry("items", id)
 		var loot := db.get_entry("rules", "loot")
-		toast(def.name, loot.rarity_colors[def.rarity])
+		color = loot.rarity_colors[def.rarity]
+		text = def.name
 		record("chests_opened")
 		if kind == "paid" and def.rarity == "epic":
 			record("epic_from_paid_chest")
+	var ci := Palette.index_of(color)
+	fx.beam(at, float(cb.get("height", 44.0)), ci, wait)
+	juice.sfx("beam")
+	later(wait, func() -> void:
+		fx.sparks(at, 14.0, ci, 0.45)
+		fx.ring(at, 10.0, ci)
+		juice.sfx("chest")
+		toast(text, color))
 	on_chest_opened.emit(kind, id)
 	if items.listens("on_chest_opened"):
 		items.emit("on_chest_opened", {"kind": kind, "item": id, "pos": _pos})
@@ -631,6 +722,9 @@ func open_chest(kind: String) -> String:
 ## Shrines call this when they activate.
 func shrine_activated(shrine_id: String) -> void:
 	record("shrines_activated")
+	juice.sfx("shrine")
+	fx.ring(_pos, 16.0, Palette.SKY, 0.4)
+	fx.sparks(_pos, 12.0, Palette.SKY)
 	on_shrine_activated.emit(shrine_id)
 	if items.listens("on_shrine_activated"):
 		items.emit("on_shrine_activated", {"shrine": shrine_id, "pos": _pos})
@@ -690,12 +784,18 @@ func summon_boss(id: String, at: Vector2) -> bool:
 	record("boss_summoned")
 	_hud.banner(String(enemies.types[enemies.type_of[slot]].name) + "!", Palette.RED)
 	fx.ring(at, 30.0, Palette.RED)
+	fx.sparks(at + Vector2(0, -24), 20.0, Palette.CRUST, 0.5)
+	juice.sfx("boss_roar")
+	juice.shake("boss_slam")
+	_music("boss")
 	return true
 
 
 ## The portal calls this: the run ends as an escape.
 func escape() -> void:
 	if state == "live":
+		juice.sfx("escape")
+		fx.ring(_pos, 20.0, Palette.PURPLE, 0.4)
 		_end("portal")
 
 
@@ -748,6 +848,8 @@ func _spawn_group(req: Dictionary) -> void:
 		var s := enemies.spawn(type_id, at.clamp(bounds.position, bounds.end), growth * director.hp_mult() * stat("enemy_hp"), director.damage_mult() * stat("enemy_damage"), director.speed_mult(), req.reserve)
 		if s >= 0 and req.elite != "":
 			enemies.make_elite(s, req.elite, elite_rules)
+			juice.sfx("elite")
+			fx.ring(enemies.pos[s], 12.0, enemies.outline[s], 0.4)
 		elif s < 0 and is_bill(req.enemy):
 			director.refund_bill()
 
@@ -769,6 +871,7 @@ func _director_events() -> void:
 		match ev:
 			"swarm_warning":
 				_hud.banner("SWARM INCOMING!", Palette.RED)
+				juice.sfx("alarm")
 			"swarm_start":
 				_swarm_hit = false
 				record("swarms_started")
@@ -776,13 +879,21 @@ func _director_events() -> void:
 				if not _swarm_hit and hp > 0.0:
 					record("swarm_survived_no_damage")
 				toast("SWARM OVER", "LIME")
+				juice.sfx("shrine")
+				fx.ring(_pos, 24.0, Palette.LIME, 0.4)
 			"final_start":
 				_hud.banner("FINAL SWARM!", Palette.PINK)
 				record("final_swarm_reached")
+				juice.sfx("final")
+				juice.shake("boss_slam")
+				juice.start_final_tint()
+				_music("boss")
 			"bills_start":
 				_hud.banner("BILLS ARE DUE!", Palette.PAPER)
+				juice.sfx("bills")
 			"bills_faster":
 				toast("THE BILLS GROW IMPATIENT", "PAPER")
+				juice.sfx("bills")
 
 
 ## Stress test: keep the enemy count at the cap and every enemy on screen.
@@ -863,6 +974,8 @@ func _fit_world_view() -> void:
 	_world_rect.scale = Vector2.ONE * float(world_scale) / float(ui_scale)
 	if _hud != null:
 		_hud.world_zoom = float(world_scale) / float(ui_scale)
+	if juice != null:
+		juice.resize(Vector2(world_viewport.size))
 
 
 ## The visible area in world pixels (centered on the player).
@@ -911,16 +1024,23 @@ func _on_enemy_event(kind: int, slot: int, dir: Vector2) -> void:
 	var power := enemies.damage[slot] / maxf(float(def.damage), 0.01)
 	match kind:
 		EnemySystem.EV_SHOOT:
+			juice.sfx(_enemy_sfx(def, "shoot"))
+			fx.puff(at + dir * enemies.radius[slot], 2.0, Palette.index_of(def.color), 0.15)
 			var sh: Dictionary = def.shot
 			enemy_shots.fire(at + dir * enemies.radius[slot], dir * float(sh.speed), float(sh.damage) * power, float(sh.radius), float(sh.life), sh.get("sprite", "bullet"), def.id)
 		EnemySystem.EV_SWELL:
 			var ex: Dictionary = def.explode
+			juice.sfx(_enemy_sfx(def, "swell"))
 			danger.disc(at, float(ex.radius), Palette.RED, float(ex.fuse))
 			danger.ring(at, float(ex.radius), Palette.RED, float(ex.fuse))
 		EnemySystem.EV_EXPLODE:
 			var ex: Dictionary = def.explode
 			fx.ring(at, float(ex.radius), Palette.ORANGE)
 			fx.disc(at, float(ex.radius), Palette.ORANGE)
+			fx.sparks(at, float(ex.radius), Palette.LIME)
+			juice.sfx(_enemy_sfx(def, "explode"))
+			if at.distance_to(_pos) <= float(ex.radius) * 3.0:
+				juice.shake("explode")
 			var was_elite := enemies.elite[slot] == 1
 			var splits := enemies.split[slot]
 			enemies.remove(slot)
@@ -933,6 +1053,13 @@ func _on_enemy_event(kind: int, slot: int, dir: Vector2) -> void:
 			var c: Dictionary = def.charge
 			var reach := float(c.speed) * float(c.time)
 			danger.line(at, at + dir * reach, Palette.RED, float(c.windup))
+			juice.sfx(_enemy_sfx(def, "windup"))
+
+
+## An enemy's sound for `event` (enemy data "sfx": {"shoot", "swell",
+## "explode", "windup", "death"}); "" = none.
+func _enemy_sfx(def: Dictionary, event: String) -> String:
+	return def.get("sfx", {}).get(event, "")
 
 
 ## Shield (Tin Foil Hat): refills after rules.shield.delay seconds without
@@ -978,13 +1105,13 @@ func _kill(slot: int, source := "") -> void:
 		gems.drop(at, xp_val)
 	if rng.randf() < rules.gold.kill_chance:
 		add_gold(rules.gold.kill_amount)
-	if not _reduce_fx:
-		var p: CPUParticles2D = _particles.take()
-		p.position = at.round()
-		var tex := PlaceholderArt.texture("dot", Palette.index_of(def.color))
-		if p.texture != tex:
-			p.texture = tex
-		p.restart()
+		numbers.show_text(at + Vector2(0, -4), "+G", Palette.GOLD)
+		juice.sfx("gold")
+	_death_particles(at, Palette.index_of(def.color))
+	juice.sfx(_enemy_sfx(def, "death") if def.get("sfx", {}).has("death") else "kill")
+	if elite:
+		fx.sparks(at, 16.0, enemies.outline[slot], 0.5)
+		juice.sfx("pop")
 	kills += 1
 	if source != "":
 		var k: String = _kill_keys.get(source, "")
@@ -1039,10 +1166,23 @@ func _boss_killed(at: Vector2) -> void:
 	if final_swarm():
 		record("boss_defeated_in_final_swarm")
 	interactables.add("boss_chest", free_spot_near(at))
-	interactables.add("portal", free_spot_near(at + Vector2(0, 20)))
+	var portal := free_spot_near(at + Vector2(0, 20))
+	interactables.add("portal", portal)
 	enemy_shots.clear()
 	_hud.banner("PORTAL OPEN!", Palette.PURPLE)
 	boss = null
+	var h: Dictionary = fx_rules.get("hitstop", {})
+	juice.hitstop(float(h.get("boss_down", 0.12)))
+	juice.shake("boss_down")
+	juice.sfx("boss_down")
+	fx.sparks(at, 26.0, Palette.CRUST, 0.7)
+	fx.sparks(at, 18.0, Palette.BUTTER, 0.6)
+	fx.ring(at, 40.0, Palette.BUTTER, 0.5)
+	later(0.8, func() -> void:
+		juice.sfx("portal")
+		fx.ring(portal, 14.0, Palette.PURPLE, 0.5))
+	if not final_swarm():
+		_music("gameplay")
 
 
 func _tick_merchant() -> void:
@@ -1060,6 +1200,9 @@ func _tick_merchant() -> void:
 			break
 	interactables.add(m.id, at)
 	toast("A MERCHANT APPEARED!", "BUTTER", 2.5)
+	juice.sfx("merchant")
+	fx.puff(at, 8.0, Palette.MIST, 0.4)
+	fx.sparks(at, 10.0, Palette.BUTTER)
 
 
 ## First run: if the boss isn't summoned by the map's hint minute, the
@@ -1098,12 +1241,26 @@ func _open_level_up() -> void:
 		if not _cards.is_empty():
 			apply_card(_cards[0])
 		return
+	var chained := state == "level_up"
 	state = "level_up"
 	_banish_mode = false
 	_joystick.release()
 	get_tree().paused = true
 	_show_cards()
-	_cards_panel.show()
+	if chained:
+		# Several levels at once: the next cards straight away, no second burst.
+		_cards_panel.show()
+		return
+	# The light burst plays over the frozen world first, then the cards show.
+	juice.level_burst(_screen_pos(_pos), func() -> void:
+		if state == "level_up":
+			_cards_panel.show())
+
+
+## A world point in UI pixels (where it is on screen).
+func _screen_pos(world: Vector2) -> Vector2:
+	var center := _camera.get_screen_center_position() if _camera.is_inside_tree() else _pos
+	return (world - center) * float(world_scale) / float(ui_scale) + get_viewport_rect().size / 2.0
 
 
 func _show_cards() -> void:
@@ -1137,6 +1294,7 @@ func _on_card(i: int) -> void:
 	if _banish_mode:
 		banish_card(i)
 		return
+	juice.sfx("card")
 	apply_card(_cards[i])
 	_level_done()
 
@@ -1224,6 +1382,9 @@ func _refresh_ad_buttons() -> void:
 ## The player's HP hit 0. A death that isn't the Final Swarm's bills can be
 ## undone once per run by a rewarded ad: the run waits on the revive offer.
 func _die() -> void:
+	juice.sfx("death")
+	juice.shake("death")
+	fx.sparks(_pos, 20.0, Palette.RED, 0.6)
 	var reason := "bills" if is_bill(last_damage_source) else "died"
 	if reason == "died" and _ad_offer("revive"):
 		state = "dying"
@@ -1280,6 +1441,9 @@ func revive() -> void:
 	state = "live"
 	get_tree().paused = false
 	toast("BACK FOR SECONDS!", "LIME")
+	juice.sfx("revive")
+	fx.ring(_pos, r, Palette.LIME, 0.4)
+	fx.sparks(_pos, 16.0, Palette.LIME)
 
 
 ## Level-up actions (coin shop charges). Each returns true if it did
@@ -1383,6 +1547,8 @@ func open_merchant(o: Dictionary) -> void:
 		st.sold = true
 		give_item(st.item)
 		record("items_bought")
+		juice.sfx("buy")
+		fx.sparks(_pos, 10.0, Palette.GOLD)
 		toast(db.get_entry("items", st.item).name, loot.rarity_colors[db.get_entry("items", st.item).rarity])
 		_set_choice_options(refresh.call())
 		return false)
@@ -1759,6 +1925,28 @@ func _bot_goal() -> Vector2:
 	return best
 
 
+## Runs `fn` after `sec` seconds of run time (pauses with the run).
+func later(sec: float, fn: Callable) -> void:
+	_later.append([elapsed + sec, fn])
+
+
+func _tick_later() -> void:
+	if _later.is_empty():
+		return
+	var due := []
+	for e: Array in _later:
+		if elapsed >= e[0]:
+			due.append(e)
+	for e: Array in due:
+		_later.erase(e)
+		e[1].call()
+
+
+func _music(id: String) -> void:
+	if juice.audio != null and juice.audio.has_method("play_music"):
+		juice.audio.play_music(id)
+
+
 func _setting(key: String, fallback: Variant) -> Variant:
 	var save := get_node_or_null("/root/Save")
 	return save.get_setting(key) if save != null else fallback
@@ -1777,6 +1965,7 @@ func _render() -> void:
 	if boss != null or _boss_view.visible:
 		_boss_view.queue_redraw()
 	_camera.position = _pos.round()
+	_camera.offset = juice.offset
 	_hud.hp = hp
 	_hud.hp_max = stat("max_hp")
 	_hud.shield = shield
@@ -1840,6 +2029,7 @@ func _build_world() -> void:
 
 	gems = GemSystem.new()
 	gems.setup(rules)
+	gems.setup_effects(fx_rules, not _reduce_fx)
 	world_viewport.add_child(gems)
 	enemies = EnemySystem.new()
 	enemies.setup(db.all("enemies"), int(rules.enemy_cap), bounds, int(rules.get("enemy_reserve", 48)))
@@ -1867,9 +2057,9 @@ func _build_world() -> void:
 
 	var particle_root := Node2D.new()
 	world_viewport.add_child(particle_root)
-	_particles = NodePool.new(particle_root, PARTICLES, _make_particles)
+	_particles = NodePool.new(particle_root, int(fx_rules.get("death_particles", 24)), _make_particles)
 	fx = Fx.new()
-	fx.enabled = not _reduce_fx
+	fx.reduced = _reduce_fx
 	world_viewport.add_child(fx)
 	danger = Fx.new()
 	world_viewport.add_child(danger)
@@ -1877,6 +2067,7 @@ func _build_world() -> void:
 	numbers.enabled = _setting("damage_numbers", true)
 	world_viewport.add_child(numbers)
 
+	juice.build_overlays(world_viewport)
 	interactables.place_from_map(map_def, map, rng, _pos)
 
 	_camera = Camera2D.new()
@@ -1888,21 +2079,43 @@ func _build_world() -> void:
 	_camera.make_current()
 
 
+## Enemy death: a pooled burst of palette pixels in the enemy's color that
+## fades by dithering (assets/shaders/dither_fade.gdshader). Fewer pixels
+## with "reduce effects".
 func _make_particles() -> CPUParticles2D:
 	var p := CPUParticles2D.new()
 	p.emitting = false
 	p.one_shot = true
-	p.amount = 6
-	p.lifetime = 0.3
+	p.amount = 4 if _reduce_fx else 8
+	p.lifetime = 0.4
 	p.explosiveness = 1.0
 	p.spread = 180.0
-	p.gravity = Vector2.ZERO
-	p.initial_velocity_min = 20.0
-	p.initial_velocity_max = 45.0
+	p.gravity = Vector2(0, 60)
+	p.initial_velocity_min = 25.0
+	p.initial_velocity_max = 55.0
 	p.damping_min = 60.0
-	p.damping_max = 80.0
+	p.damping_max = 90.0
 	p.local_coords = false
+	var fade := Gradient.new()
+	fade.set_color(0, Color(1, 1, 1, 1))
+	fade.set_color(1, Color(1, 1, 1, 0))
+	p.color_ramp = fade
+	var m := ShaderMaterial.new()
+	m.shader = DITHER_FADE
+	p.material = m
 	return p
+
+
+func _death_particles(at: Vector2, color: int) -> void:
+	var p: CPUParticles2D = _particles.take()
+	p.position = at.round()
+	var tex: Texture2D = _particle_tex.get(color)
+	if tex == null:
+		tex = PlaceholderArt.texture("dot", color)
+		_particle_tex[color] = tex
+	if p.texture != tex:
+		p.texture = tex
+	p.restart()
 
 
 func _draw_player() -> void:
@@ -1984,6 +2197,7 @@ func _build_ui() -> void:
 	_hud = Hud.new()
 	_hud.world_zoom = float(world_scale) / float(ui_scale)
 	ui.add_child(_hud)
+	juice.build_burst(ui)
 	# Pause on screen (iOS has no back key), top right under the HUD rows.
 	_pause_btn = SpriteButton.new()
 	_pause_btn.name = "PauseButton"
@@ -2019,6 +2233,7 @@ func _build_ui() -> void:
 		b.art_above = true
 		b.frame = "card"
 		b.pressed_frame = "card_gold"
+		b.sound = ""  # _on_card plays "card"
 		b.ink = Palette.PAPER
 		b.pressed.connect(_on_card.bind(i))
 		_cards_panel.add_child(b)

@@ -194,3 +194,12 @@ static func _image(part: String) -> Image:
 				img.convert(Image.FORMAT_RGBA8)
 		_images[part] = img
 	return _images[part]
+
+
+## A button's press sound through the Audio autoload (none in the editor).
+static func click(from: Node, sound: String) -> void:
+	if sound == "" or Engine.is_editor_hint() or not from.is_inside_tree():
+		return
+	var audio := from.get_node_or_null("/root/Audio")
+	if audio != null:
+		audio.play(sound)

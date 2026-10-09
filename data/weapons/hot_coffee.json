@@ -11,5 +11,7 @@
 		{"damage": 5, "cooldown": 2.6, "count": 1, "radius": 20, "duration": 3, "tick": 0.5, "throw_range": 85, "desc": "BIGGER PUDDLE, MORE DAMAGE"},
 		{"damage": 5, "cooldown": 2.5, "count": 1, "radius": 23, "duration": 3.5, "tick": 0.5, "throw_range": 85, "desc": "BIGGER, LONGER PUDDLE"},
 		{"damage": 6, "cooldown": 2.5, "count": 2, "radius": 27, "duration": 3.5, "tick": 0.5, "throw_range": 90, "desc": "BIGGER PUDDLE, +1 CUP"}
-	]
+	],
+	"sfx": {"attack": "throw", "land": "splash"},
+	"hit_fx": {"kind": "puff", "color": "MIST", "r": 3}
 }

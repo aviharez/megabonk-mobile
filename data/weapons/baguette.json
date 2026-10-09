@@ -14,5 +14,7 @@
 		{"damage": 16, "radius": 31, "cooldown": 1.10, "swing_time": 0.28, "swings": 1, "knockback": 48, "desc": "BIGGER SWING"},
 		{"damage": 20, "radius": 31, "cooldown": 1.00, "swing_time": 0.28, "swings": 1, "knockback": 52, "desc": "MORE DAMAGE, FASTER"},
 		{"damage": 24, "radius": 35, "cooldown": 1.00, "swing_time": 0.28, "swings": 2, "knockback": 56, "desc": "DOUBLE SWING!"}
-	]
+	],
+	"sfx": {"attack": "swing"},
+	"hit_fx": {"kind": "puff", "color": "DOUGH", "r": 4}
 }

@@ -10,5 +10,7 @@
 		{"damage": 9, "cooldown": 1.25, "count": 1, "range": 46, "angle": 70, "knockback": 220, "desc": "WIDER CONE, STRONGER PUSH"},
 		{"damage": 10, "cooldown": 1.2, "count": 1, "range": 48, "angle": 85, "knockback": 250, "desc": "WIDER CONE, STRONGER PUSH"},
 		{"damage": 12, "cooldown": 1.2, "count": 1, "range": 50, "angle": 100, "knockback": 290, "desc": "HUGE CONE, HUGE PUSH"}
-	]
+	],
+	"sfx": {"attack": "gust"},
+	"hit_fx": {"kind": "puff", "color": "ORANGE", "r": 3}
 }

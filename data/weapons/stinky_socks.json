@@ -10,5 +10,7 @@
 		{"damage": 4, "cooldown": 0.5, "radius": 30, "knockback": 10, "desc": "BIGGER RADIUS, MORE DAMAGE"},
 		{"damage": 4, "cooldown": 0.5, "radius": 34, "knockback": 10, "desc": "BIGGER RADIUS"},
 		{"damage": 5, "cooldown": 0.45, "radius": 38, "knockback": 12, "desc": "BIGGER RADIUS, MORE DAMAGE"}
-	]
+	],
+	"sfx": {"attack": "stink", "hit": ""},
+	"hit_fx": {"kind": "puff", "color": "LIME", "r": 3}
 }

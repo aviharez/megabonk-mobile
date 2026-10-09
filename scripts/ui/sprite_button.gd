@@ -14,6 +14,10 @@ func _ready() -> void:
 	focus_mode = Control.FOCUS_NONE
 
 
+func _pressed() -> void:
+	UiArt.click(self, "click")
+
+
 func _draw() -> void:
 	var mode := get_draw_mode()
 	var down := mode == DRAW_PRESSED or mode == DRAW_HOVER_PRESSED

@@ -50,6 +50,9 @@ func _ready() -> void:
 	_subtitle.add_theme_color_override("font_color", Palette.color(Palette.MIST))
 	_version.add_theme_color_override("font_color", Palette.color(Palette.GRAY))
 	_version.text = "V" + str(ProjectSettings.get_setting("application/config/version"))
+	var audio := get_node_or_null("/root/Audio")
+	if audio != null:
+		audio.play_music("menu")
 
 	_play.pressed.connect(_on_play)
 	_unlocks_btn.disabled = false

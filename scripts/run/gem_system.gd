@@ -10,6 +10,9 @@ extends Node2D
 ## "sprite", or else a PlaceholderArt "shape" in "color".
 ## Every gem also counts how many dropped gems it holds (merges add up), so
 ## `collected` is the number of gems picked up ("collect 3,000 XP gems").
+## Effects (off with "reduce effects"): gems twinkle now and then (a white
+## plus on a few gems at a time) and pulled gems leave a short dithered trail
+## in their tier color (at most "trail_max" trails, data/rules/fx.json "gem").
 
 var pool: SlotPool
 var pos := PackedVector2Array()
@@ -31,6 +34,13 @@ var _batches: Array[SpriteBatch] = []
 var _start_speed := 40.0
 var _accel := 420.0
 var _collect_r := 5.0
+var effects := true
+var _trail_max := 48
+var _sparkle_every := 29
+var _target := Vector2.ZERO
+var _time := 0.0
+var _tier_color := PackedInt32Array()
+var _overlay: Node2D
 
 
 func setup(rules: Dictionary) -> void:
@@ -51,6 +61,18 @@ func setup(rules: Dictionary) -> void:
 		b.setup(tex if tex != null else PlaceholderArt.texture(t.shape, Palette.index_of(t.color)), cap)
 		add_child(b)
 		_batches.append(b)
+		_tier_color.append(maxi(0, Palette.index_of(t.get("color", "SKY"))))
+	_overlay = Node2D.new()
+	_overlay.draw.connect(_draw_effects)
+	add_child(_overlay)
+
+
+## data/rules/fx.json "gem": trail_max, sparkle_every.
+func setup_effects(fx_rules: Dictionary, on: bool) -> void:
+	effects = on
+	var g: Dictionary = fx_rules.get("gem", {})
+	_trail_max = int(g.get("trail_max", 48))
+	_sparkle_every = maxi(2, int(g.get("sparkle_every", 29)))
 
 
 func count() -> int:
@@ -77,6 +99,8 @@ func _key(at: Vector2, dx: int, dy: int) -> int:
 ## Moves pulled gems and returns the XP collected this frame.
 func update(delta: float, target: Vector2, pickup_range: float) -> float:
 	var got := 0.0
+	_target = target
+	_time += delta
 	var r2 := pickup_range * pickup_range
 	var c2 := _collect_r * _collect_r
 	var i := pool.active.size() - 1
@@ -117,6 +141,31 @@ func render() -> void:
 		_batches[_tier_of(value[s])].push(pos[s])
 	for b in _batches:
 		b.commit()
+	if effects:
+		_overlay.queue_redraw()
+
+
+## Twinkles and trails, drawn over the gems.
+func _draw_effects() -> void:
+	if not effects:
+		return
+	var white := Palette.color(Palette.WHITE)
+	var tick := int(_time * 12.0)
+	var trails := 0
+	for s in pool.active:
+		var p := pos[s].round()
+		if pulled[s] == 1 and trails < _trail_max:
+			trails += 1
+			var back := (p - _target).normalized()
+			var c := Palette.color(_tier_color[_tier_of(value[s])])
+			for k in range(1, 5):
+				var q := (p + back * (2.0 + k * 2.0)).round()
+				if Fx.dither(q, 1.0 - k * 0.22):
+					_overlay.draw_rect(Rect2(q, Vector2.ONE), c)
+		elif (s * 7 + tick) % _sparkle_every == 0:
+			var q := p + Vector2(-2, -3)
+			_overlay.draw_rect(Rect2(q - Vector2(1, 0), Vector2(3, 1)), white)
+			_overlay.draw_rect(Rect2(q - Vector2(0, 1), Vector2(1, 3)), white)
 
 
 func _tier_of(v: float) -> int:

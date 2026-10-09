@@ -192,6 +192,34 @@ func test_phase5_bad_data_is_caught(t) -> void:
 		t.check(all.contains(c[2]), "%s: expected an error with '%s', got:\n%s" % [c[0], c[2], all])
 
 
+func test_phase7_bad_audio_and_fx_are_caught(t) -> void:
+	var cases := [
+		["rules/audio.json", func(d: Dictionary) -> void: d.sfx.hit.file = "res://nope.wav", "sound \"hit\" needs a \"file\" that exists"],
+		["rules/audio.json", func(d: Dictionary) -> void: d.sfx.erase("level_up"), "missing sound \"level_up\""],
+		["rules/audio.json", func(d: Dictionary) -> void: d.sfx.kill.erase("gap"), "sound \"kill\" needs a number \"gap\""],
+		["rules/audio.json", func(d: Dictionary) -> void: d.music.boss = "res://nope.ogg", "music \"boss\" needs a file that exists"],
+		["rules/audio.json", func(d: Dictionary) -> void: d.voices = 0, "\"voices\" must be 1 or more"],
+		["weapons/stapler.json", func(d: Dictionary) -> void: d.sfx.attack = "kaboom", "sfx \"attack\" names an unknown sound \"kaboom\""],
+		["enemies/spitter.json", func(d: Dictionary) -> void: d.sfx.shoot = "ptooey", "sfx \"shoot\" names an unknown sound \"ptooey\""],
+		["weapons/stapler.json", func(d: Dictionary) -> void: d.hit_fx.kind = "confetti", "\"hit_fx\" needs a \"kind\""],
+		["weapons/stapler.json", func(d: Dictionary) -> void: d.hit_fx.color = "ENEMY_SHOT", "\"hit_fx\" needs a \"kind\""],
+		["rules/fx.json", func(d: Dictionary) -> void: d.final_tint.map.GREEN = "ENEMY_SHOT", "final_tint maps \"GREEN\" -> \"ENEMY_SHOT\""],
+		["rules/fx.json", func(d: Dictionary) -> void: d.shake.erase("hurt"), "shake needs a number \"hurt\""],
+		["rules/fx.json", func(d: Dictionary) -> void: d.erase("level_up_burst"), "needs a number \"level_up_burst\""],
+	]
+	for c: Array in cases:
+		_wipe(BAD)
+		_copy_tree(GameData.ROOT, BAD)
+		var path := BAD.path_join(c[0])
+		var d: Dictionary = JSON.parse_string(FileAccess.get_file_as_string(path))
+		c[1].call(d)
+		var f := FileAccess.open(path, FileAccess.WRITE)
+		f.store_string(JSON.stringify(d))
+		f.close()
+		var all := "\n".join(GameData.load_from(BAD).errors)
+		t.check(all.contains(c[2]), "%s: expected an error with '%s', got:\n%s" % [c[0], c[2], all])
+
+
 func test_phase6_bad_icons_and_prop_art_are_caught(t) -> void:
 	var cases := [
 		["tomes/think_big.json", func(d: Dictionary) -> void: d.icon.cover = ["PINK"], "icon \"cover\" must be [light, dark]"],

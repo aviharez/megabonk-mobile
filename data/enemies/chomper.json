@@ -11,5 +11,6 @@
 	"sheet": "res://assets/creatures/chomper.png",
 	"shape": "chomper",
 	"color": "RUST",
-	"charge": {"range": 85, "windup": 0.7, "speed": 140, "time": 0.6, "recover": 0.7}
+	"charge": {"range": 85, "windup": 0.7, "speed": 140, "time": 0.6, "recover": 0.7},
+	"sfx": {"windup": "windup"}
 }

@@ -47,6 +47,8 @@ func update(delta: float, run: Node) -> void:
 			_t[i] = -1.0
 			var st := stats()
 			run.blast(_to[i], area(run), dmg(run), float(st.knockback), id(), COLORS[_color[i]], true)
+			# The firework itself: white-hot sparks in the rocket's color.
+			run.fx.sparks(_to[i], area(run) * 1.3, COLOR_IDS[_color[i]], 0.55)
 	_cooldown -= delta
 	if _cooldown > 0.0:
 		return

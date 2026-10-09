@@ -13,5 +13,7 @@
 		{"damage": 8, "cooldown": 1.1, "count": 3, "speed": 115, "homing": 5.5, "pierce": 0, "desc": "+1 FEATHER"},
 		{"damage": 10, "cooldown": 0.95, "count": 3, "speed": 120, "homing": 6, "pierce": 0, "desc": "MORE DAMAGE, FASTER"},
 		{"damage": 12, "cooldown": 0.95, "count": 4, "speed": 120, "homing": 6, "pierce": 1, "desc": "+1 FEATHER, PIERCE 1"}
-	]
+	],
+	"sfx": {"attack": "feather"},
+	"hit_fx": {"kind": "puff", "color": "PAPER", "r": 3}
 }

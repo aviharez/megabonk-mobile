@@ -103,6 +103,8 @@ func _land(run: Node, at: Vector2) -> void:
 	_pud_r[slot] = area(run)
 	_pud_left[slot] = float(stats().duration)
 	run.fx.ring(at, _pud_r[slot], Palette.DOUGH, 0.15)
+	run.fx.puff(at, _pud_r[slot] * 0.6, Palette.MIST, 0.35)
+	run.juice.sfx(def.get("sfx", {}).get("land", ""))
 
 
 ## One damage tick: every enemy in a puddle is hit once.

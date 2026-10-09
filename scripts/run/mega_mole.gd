@@ -58,6 +58,8 @@ func update(delta: float) -> void:
 	if not rage and hp_frac() < float(cfg.get("rage_below", 0.5)):
 		rage = true
 		run.toast("MEGA MOLE IS ANGRY!", "RED")
+		run.juice.sfx("boss_roar")
+		run.juice.shake("explode")
 	var fast := 1.0 / float(cfg.get("rage_speedup", 0.65)) if rage else 1.0
 	var dt := delta * fast
 	var player: Vector2 = run.player_pos()
@@ -97,6 +99,9 @@ func update(delta: float) -> void:
 				e.pos[slot] = shadow
 				e.play(slot, "burrow", true)
 				run.fx.ring(shadow, float(b.radius), Palette.CRUST)
+				run.fx.puff(shadow, float(b.radius) * 0.6, Palette.CRUST, 0.4)
+				run.juice.sfx("boss_slam")
+				run.juice.shake("boss_slam")
 				if player.distance_to(shadow) <= float(b.radius) + run.player_radius():
 					run.damage_player(float(b.damage) * e.damage[slot] / float(run.enemies.types[e.type_of[slot]].damage), "mega_mole")
 				phase = "rest"
@@ -105,6 +110,7 @@ func update(delta: float) -> void:
 			t -= dt
 			if t <= 0.0:
 				_ring(fast)
+				run.juice.sfx("rocks")
 				run.enemies.play(slot, "attack")
 				_rings_left -= 1
 				if _rings_left > 0:
@@ -124,6 +130,7 @@ func _start_next() -> void:
 			t = float(cfg.burrow.get("dig_time", 0.0))
 			run.enemies.play(slot, "burrow")
 			run.fx.ring(run.enemies.pos[slot], run.enemies.radius[slot], Palette.CRUST)
+			run.juice.sfx("boss_dig")
 		"rocks":
 			phase = "rocks"
 			t = 0.0
@@ -135,6 +142,7 @@ func _start_next() -> void:
 				var at: Vector2 = run.enemies.pos[slot] + Vector2.from_angle(TAU * i / n) * float(sm.distance)
 				run.spawn_enemy(sm.enemy, at)
 			run.fx.ring(run.enemies.pos[slot], float(sm.distance), Palette.PURPLE)
+			run.juice.sfx("elite")
 			run.enemies.play(slot, "attack")
 			phase = "rest"
 			t = _rest_time()

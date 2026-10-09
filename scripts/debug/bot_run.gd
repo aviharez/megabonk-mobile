@@ -21,6 +21,9 @@ extends Node
 ## --start=S starts the clock at S seconds. --map=ID plays another map.
 ## --character=ID plays another character (sims use a blank save, so nothing
 ## else from meta progression applies).
+## --low_hp (stress) holds the hero at 20% HP, so the low-HP vignette and
+## heartbeat run too (with --final the Final Swarm tint is on as well: every
+## effect at once). The RESULT line reports which effects were active.
 ## --profile (stress) times each part of the frame and reports where the
 ## slow frames (over 2x the median logic time) spend it. Results print as one JSON line starting with "RESULT "
 ## and are written to user://bot_run_<mode>.json.
@@ -51,7 +54,7 @@ func _ready() -> void:
 		var kv := a.trim_prefix("--").split("=", true, 1)
 		_args[kv[0]] = kv[1] if kv.size() > 1 else "true"
 	if OS.has_feature("stress"):
-		_args.merge({"mode": "stress", "seconds": "30", "then_uncapped": "true", "build": "full", "final": "true"})
+		_args.merge({"mode": "stress", "seconds": "30", "then_uncapped": "true", "build": "full", "final": "true", "low_hp": "true"})
 	_mode = _args.get("mode", "stress")
 	_measure = float(_args.get("seconds", "20"))
 	_warmup = float(_args.get("warmup", "3"))
@@ -85,6 +88,8 @@ func _ready() -> void:
 		opts.character = _args.character
 	if _args.has("profile"):
 		opts.profile = true
+	if _args.has("low_hp"):
+		opts.pin_hp = 0.2
 	if _args.has("chests"):
 		opts.chest_every = float(_args.chests)
 	if _args.get("build", "") == "full":
@@ -219,7 +224,27 @@ func _stress_frame(delta: float) -> void:
 			"enemy_shots": _run.enemy_shots.count(),
 			"final": _args.has("final"),
 			"build": _args.get("build", "starter"),
+			"fx": _fx_report(),
 		})
+
+
+## Which effects were on during the measurement (all should be, for the
+## "all effects on" number).
+func _fx_report() -> Dictionary:
+	var j: Juice = _run.juice
+	var added := 0
+	for k in _run.fx.added:
+		added += int(_run.fx.added[k])
+	var cues := 0
+	for k in j.cues:
+		cues += int(j.cues[k])
+	var audio := get_node_or_null("/root/Audio")
+	return {
+		"reduce_effects": _run.fx.reduced, "damage_numbers": _run.numbers.enabled, "screen_shake": j.shake_on,
+		"final_tint": j.tint, "vignette": j.vignette_strength, "gem_effects": _run.gems.effects,
+		"fx_added": added, "sfx_cues": cues, "audio_voices": audio.voice_cap() if audio != null else 0,
+		"audio_dropped": audio.dropped if audio != null else 0,
+	}
 
 
 func _finish(r: Dictionary) -> void:

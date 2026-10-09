@@ -396,3 +396,53 @@ Same as phase 4 (330.8 / 242.0 / 2.15 ms uncapped): the Ads and Store autoloads 
 | 270x480 view, 1440x1760 textured map | 75.0 (display cap) | 68.6 | 3.37 | 299.5 |
 
 SpriteCook: 635 credits spent, 165 left (2026-10-09, after the run-art sheets D, E, F).
+
+## Phase 7: Audio and VFX
+
+Scope from docs/BRIEF.md "Audio" and "VFX": sfxr-style SFX generator (WAV), three placeholder chiptune tracks (OGG), one audio manager with a voice cap, every VFX in the table, settings for damage numbers, screen shake and reduce effects. Done = every key event has a sound and an effect, 300-enemy stress with all effects on stays above 50 fps.
+
+- [x] SFX generator `tools/audio/sfxr.py`: port of the sfxr synth + its presets (pickup, laser, explosion, powerup, hit, jump, blip); recipes in `tools/audio/sfx.json` (seeded, same file in = same WAVs out); 48 sounds -> `assets/audio/sfx/*.wav` (22050 Hz mono, 752 KB)
+- [x] Music `tools/audio/chiptune.py`: 2 pulse + stepped triangle + noise drums, seeded melody phrases over a chord progression, tails wrapped for a seamless loop; menu 37 s, gameplay 42 s, boss / Final Swarm 35 s -> `assets/audio/music/*.ogg` (ffmpeg libvorbis q3, 1 MB total)
+- [x] Audio manager: autoload `Audio` (`scripts/autoload/audio.gd`), file list only in `data/rules/audio.json`. 12-voice SFX pool, per-sound "gap", "max" and "priority" (a full pool only steals from equal or lower priority), random pitch per play, Music/SFX buses follow the settings, music crossfades and loops; headless sends nothing to the dummy driver (bookkeeping still runs)
+- [x] Sounds wired: every run event (hits, crits, kills, hurt, dodge, gems, gold, level-up, cards, chests, shrines, pots, key, cage, merchant, buy, boss summon / dig / slam / rocks / rage / down, portal, escape, elites, swarm warning / end, Final Swarm, bills, enemy shoot / swell / burst / windup, death, revive, low-HP heartbeat), weapon attack sounds from weapon data, every button press (`PixelButton.sound`, `SpriteButton`); music: menu, gameplay, boss on summon and in the Final Swarm
+- [x] VFX table:
+  - [x] Hit flash (existing shader), damage numbers (setting), death particles now fade by Bayer dithering (`assets/shaders/dither_fade.gdshader`, 24 pooled CPUParticles2D), hit-stop on big crits (half the enemy's HP, or any crit on an elite), boss hits (at most every 0.35 s) and the boss's death, screen shake (setting) on hurt, nearby explosions, boss slams, boss death, player death
+  - [x] Gems twinkle and pulled gems trail (dithered, tier color); level-up light burst plays over the frozen run before the cards show (`LevelBurst`); a beam in the item's rarity color rises from the chest, then it pops (sparks) and the name shows
+  - [x] Weapons: coffee steam + splash puff, wavy green sock aura, toaster lightning (now with a white core line + spark hits), firework explosions (white-hot spark bursts in the rocket's color); weapon "hit_fx" for the rest: Baguette crumbs, Stapler glints, Feather fluff, Duck stars, Gnome bonk stars, Leaf Blower leaf puffs
+  - [x] Elite outlines (existing), red telegraphs (existing), dithered red vignette under 30% HP that thumps with the heartbeat (`assets/shaders/vignette.gdshader`), Final Swarm palette shift (`assets/shaders/palette_shift.gdshader`: every world pixel swapped through a palette->palette map from `data/rules/fx.json`, dithered in over 1.2 s, enemy shots stay magenta)
+  - All numbers in `data/rules/fx.json`; run-wide feedback in `scripts/run/juice.gd`; new `Fx` kinds sparks, beam, puff, star
+- [x] Settings: damage numbers, screen shake and reduce effects (existing toggles) now all do something. Reduce effects: no sparks / puffs / stars / dithered discs / gem trails and twinkles / hit-stop, fewer death pixels; rings, bolts, beams, telegraphs, vignette and tint stay (they carry information)
+- [x] Data validation: `GameData` checks audio.json (files exist, numbers, every sound the code plays, music), weapon / enemy "sfx" names, weapon "hit_fx", fx.json numbers and the tint map (palette names, never ENEMY_SHOT)
+- [x] Tests: `tests/test_audio_fx.gd` (files load; voice cap, priority, gap; settings mute the buses; 29 key events each make a sound and an effect; every weapon has a signature; settings turn effects off; hit-stop; burst before cards; tint LUT on the palette; dither), `test_data.gd::test_phase7_bad_audio_and_fx_are_caught` (12 cases). 1957 checks pass, FLOW OK (headless), `tools/check_assets.py` 123 assets, 0 failed
+- [x] Stress test: `--low_hp` holds the hero at 20% HP so the vignette and heartbeat run; RESULT now has an "fx" block showing which effects were active; the Android Stress preset turns it on. An invincible hero still gets hurt feedback
+- [ ] Owner listen-through: SFX and the three tracks were checked by numbers only (length, peak, loop length), not by ear
+- [ ] Owner look at the Final Swarm palette shift and the low-HP vignette on the phone
+- [x] Phone stress test with all effects (2026-10-09, `Android Stress` preset, results below). 1% low just under 50 on the phone, as before phase 7
+
+### Phase 7 results (2026-10-09, same desktop, windowed, 20 s, full build, Final Swarm density, all effects active)
+
+`godot --path . res://scenes/debug/bot_run.tscn -- --mode=stress --seconds=20 --build=full --final --low_hp [--uncapped]`. Effects active per the RESULT "fx" block: reduce_effects false, damage numbers, shake, gem effects on, final_tint 1.0, vignette 0.88, ~1,100 fx and ~5,000 sound cues (12 voices; ~3,460 plays skipped by gap / max / full pool).
+
+| Stress test, 300 enemies | Avg fps | 1% low fps | Logic ms/frame | Avg on screen |
+| --- | --- | --- | --- | --- |
+| Windowed, vsync on | 75.0 (display cap) | 66.8 | 3.36 | 304.2 |
+| Windowed, uncapped | 338.6 | 188.6 | 1.68 | 306.3 |
+| Before phase 7 (commit 3cb1d0b), uncapped, same flags minus --low_hp | 275.8 | 196.8 | 2.37 | 312.5 |
+
+The effects cost is within run-to-run noise on this desktop.
+
+| Phone: Xiaomi 15T, 60 Hz, vsync (Android keeps vsync on in the "uncapped" pass), Final Swarm, full build, all effects | Avg fps | 1% low fps | Logic ms/frame | Logic p99 ms | Avg on screen |
+| --- | --- | --- | --- | --- | --- |
+| Phase 7, run 1 (30 s) | 60.0 | 48.6 | 5.80 | 9.65 | 310.1 |
+| Phase 7, run 2 (30 s) | 60.1 | 49.5 | 6.76 | 10.78 | 334.0 |
+| Before phase 7 (3cb1d0b), run 1 | 59.9 | 47.2 | 7.08 | 10.59 | 316.9 |
+| Before phase 7 (3cb1d0b), run 2 | 43.4 | 39.1 | 7.82 | 14.97 | 338.6 |
+
+The "before" build ran right after the phase 7 runs, on a warm phone, so its second pass is probably throttled. Phase 7 effects didn't lower the phone numbers. The 1% lows sit just under 50 on both builds, so they don't come from the effects.
+
+## Found during phase 7
+
+- Windowed runs that quit while sounds play (bot_run) print "N resources still in use at exit": AudioStreamPlayback objects the audio thread still holds at quit. Exit-only; headless tests are clean (Audio sends nothing to the dummy driver). Not fixed
+- `scenes/debug/flow_check.tscn` must run `--headless`: windowed, the fake ad backend shows its visual test ad and waits for a click, so the check fails (as documented in its header; not a bug)
+- The first-run hint toast "STAND ON THE ALTAR TO CALL THE BOSS" is wider than the 180px view and gets cut off at both sides (seen in a stress screenshot; older than phase 7)
+- Phone 1% low fps is ~47-50 at Final Swarm density with a full build (before and after phase 7), while logic p99 is ~10 ms of the 16.6 ms budget: the dips are probably render-side or GC spikes. Worth a `--profile` run on the phone before release

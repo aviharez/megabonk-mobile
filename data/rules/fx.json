@@ -1,0 +1,16 @@
+{
+	"id": "fx",
+	"_doc": "Juice and VFX tuning (scripts/run/run.gd, fx.gd, juice.gd). Times in seconds, sizes in world pixels, colors are palette names.",
+	"hitstop": {"big_crit": 0.05, "big_crit_frac": 0.5, "boss_hit": 0.03, "boss_gap": 0.35, "boss_down": 0.12, "max": 0.12},
+	"shake": {"hurt": 2.5, "explode": 2.0, "boss_slam": 3.5, "boss_down": 5.0, "death": 4.0, "decay": 9.0, "max": 5.0},
+	"low_hp": {"below": 0.3, "band": 30, "beat_sec": 0.85},
+	"final_tint": {
+		"fade_sec": 1.2,
+		"map": {"DEEP_GREEN": "DEEP_BLUE", "LEAF": "OCEAN", "GREEN": "TEAL", "GRAY": "PLUM", "SHADE": "NIGHT", "BARK": "WINE", "WOOD": "RUST"}
+	},
+	"level_up_burst": 0.4,
+	"chest_beam": {"time": 0.5, "height": 44},
+	"death_particles": 24,
+	"gem": {"trail_max": 48, "sparkle_every": 29},
+	"hit_fx_gap": 0.05
+}

@@ -63,6 +63,8 @@ var badge := "":
 		queue_redraw()
 ## Subclasses that draw their own label (AdButton) set this.
 var _own_label := false
+## Sound played on press (data/rules/audio.json id; "" = none).
+var sound := "click"
 
 
 func _ready() -> void:
@@ -71,6 +73,10 @@ func _ready() -> void:
 	focus_mode = Control.FOCUS_NONE
 	if custom_minimum_size == Vector2.ZERO:
 		custom_minimum_size = Vector2(96, 18)
+
+
+func _pressed() -> void:
+	UiArt.click(self, sound)
 
 
 func _draw() -> void:

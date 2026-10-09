@@ -13,5 +13,7 @@
 		{"damage": 6, "cooldown": 0.4, "count": 2, "speed": 170, "pierce": 0, "spread": 10, "desc": "+1 STAPLE"},
 		{"damage": 7, "cooldown": 0.33, "count": 2, "speed": 180, "pierce": 1, "spread": 10, "desc": "FASTER, PIERCE 1"},
 		{"damage": 8, "cooldown": 0.33, "count": 3, "speed": 180, "pierce": 1, "spread": 10, "desc": "+1 STAPLE, MORE DAMAGE"}
-	]
+	],
+	"sfx": {"attack": "staple"},
+	"hit_fx": {"kind": "star", "color": "MIST", "r": 2}
 }

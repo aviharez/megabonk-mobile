@@ -11,5 +11,7 @@
 		{"damage": 9, "cooldown": 0.5, "count": 4, "radius": 28, "size": 5, "speed": 3.2, "knockback": 32, "desc": "+1 GNOME"},
 		{"damage": 10, "cooldown": 0.5, "count": 5, "radius": 28, "size": 6, "speed": 3.2, "knockback": 34, "desc": "+1 GNOME, MORE DAMAGE"},
 		{"damage": 11, "cooldown": 0.45, "count": 6, "radius": 30, "size": 6, "speed": 3.4, "knockback": 36, "desc": "+1 GNOME, MORE DAMAGE"}
-	]
+	],
+	"sfx": {"hit": "bonk"},
+	"hit_fx": {"kind": "star", "color": "BUTTER", "r": 3}
 }
