@@ -26,13 +26,13 @@ const KINDS := {
 	# Street furniture is walk-past decoration: solid posts along every
 	# sidewalk snagged the player and boxed fights into corridors.
 	# Same for bushes; trees block only their trunk cell (see _block).
-	"bench": false, "mailbox": false, "lamp": false, "bush": false,
+	"bench": false, "mailbox": false, "lamp": false, "bush": false, "planter": false,
 }
 ## Ground kinds in draw order (later ones cover earlier ones). Every other
 ## kind, solid or not, is drawn on top of the ground.
 const GROUND := ["yard", "field", "garden", "path", "sand", "sidewalk", "driveway", "road", "crosswalk"]
 ## Solid kinds that cast a shadow.
-const SHADOWED := ["house", "shed", "tree", "bush", "car", "hedge", "bench", "swing", "lamp", "mailbox"]
+const SHADOWED := ["house", "shed", "tree", "bush", "car", "hedge", "bench", "swing", "lamp", "mailbox", "planter"]
 ## Darker and lighter palette neighbours for roofs, cars and the like.
 const SHADE_OF := {"RED": "BLOOD", "BLUE": "OCEAN", "PURPLE": "PLUM", "WOOD": "BARK", "TEAL": "OCEAN", "GREEN": "LEAF",
 	"SKY": "BLUE", "ORANGE": "RUST", "CRUST": "WOOD", "GRAY": "SHADE", "PINK": "PURPLE", "GOLD": "RUST", "PAPER": "MIST", "MIST": "GRAY", "LEAF": "DEEP_GREEN"}
@@ -53,6 +53,8 @@ var _rng := RandomNumberGenerator.new()
 ## kind -> {"image": Image, "ramp": [palette indices], "colors": {name: [indices]},
 ## "variants": {name: Image}}
 var _art := {}
+## Ground kind -> texture path (map "ground_textures"); "lawn" is the base.
+var _ground_textures := {}
 
 
 func setup(map_def: Dictionary) -> void:
@@ -61,6 +63,7 @@ func setup(map_def: Dictionary) -> void:
 	var cols_def: Array = map_def.get("ground_colors", ["LEAF", "DEEP_GREEN", "GREEN"])
 	_lawn_colors = cols_def.map(func(c: String) -> int: return Palette.index_of(c))
 	_art = {}
+	_ground_textures = map_def.get("ground_textures", {})
 	var art_def: Dictionary = map_def.get("prop_art", {})
 	for kind: String in art_def:
 		var a: Dictionary = art_def[kind]
@@ -79,7 +82,8 @@ func setup(map_def: Dictionary) -> void:
 				push_error("MapLayout: prop_art variant \"%s\" of \"%s\" not found" % [c, kind])
 			else:
 				variants[c] = v
-		_art[kind] = {"image": img, "ramp": to_idx.call(a.get("ramp", [])), "colors": colors, "variants": variants}
+		_art[kind] = {"image": img, "ramp": to_idx.call(a.get("ramp", [])), "colors": colors, "variants": variants,
+			"repeat": a.get("repeat", false)}
 	cols = int(ceil(bounds.size.x / CELL))
 	rows = int(ceil(bounds.size.y / CELL))
 	blocked.resize(cols * rows)
@@ -221,7 +225,8 @@ func _draw_prop(p: Dictionary) -> void:
 	_rng.seed = int(r.position.x * 131.0 + r.position.y * 7.0)
 	if _art.has(p.kind):
 		var img := _sprite_for(p)
-		_img.blend_rect(img, Rect2i(Vector2i.ZERO, img.get_size()), _sprite_pos(r, img))
+		for at in _sprite_spots(p, r, img):
+			_img.blend_rect(img, Rect2i(Vector2i.ZERO, img.get_size()), at)
 		return
 	match p.kind:
 		"yard": _yard(r)
@@ -246,6 +251,7 @@ func _draw_prop(p: Dictionary) -> void:
 		"swing": _swing(r)
 		"mailbox": _mailbox(r, p.get("color", "BLUE"))
 		"lamp": _lamp(r)
+		"planter": _bush(r, p.get("color", "PINK"))
 
 
 ## The kind's sprite for this prop. A "color" listed in the art's "variants"
@@ -274,6 +280,19 @@ func _sprite_for(p: Dictionary) -> Image:
 	return a[key]
 
 
+## Where the prop's sprite goes: once, or with the art's "repeat": true as
+## many copies side by side as fit the rect's width (a hedge row), centred.
+func _sprite_spots(p: Dictionary, r: Rect2, img: Image) -> Array:
+	if not _art[p.kind].get("repeat", false) or r.size.x <= img.get_width():
+		return [_sprite_pos(r, img)]
+	var n := int(r.size.x) / img.get_width()
+	var x0 := int(floorf(r.get_center().x)) - n * img.get_width() / 2
+	var out := []
+	for i in n:
+		out.append(Vector2i(x0 + i * img.get_width(), int(r.end.y) - img.get_height()))
+	return out
+
+
 ## Sprites stand on the prop: bottom centre of the sprite on the bottom
 ## centre of the rect (the rect stays the solid footprint).
 static func _sprite_pos(r: Rect2, img: Image) -> Vector2i:
@@ -290,6 +309,46 @@ static func _load_image(path: String) -> Image:
 	img = img.duplicate() as Image
 	img.convert(Image.FORMAT_RGBA8)
 	return img
+
+
+## The map's texture for a ground kind (map "ground_textures"), or null.
+func _tex(kind: String) -> Image:
+	if not _ground_textures.has(kind):
+		return null
+	var key := "_tex_" + kind
+	if not _art.has(key):
+		_art[key] = _load_image(_ground_textures[kind])
+	return _art[key]
+
+
+## Fills a rect (or the ellipse in it) with a tiling texture, aligned to the
+## map so neighbouring props of one kind join seamlessly.
+func _fill_tex(r: Rect2, tex: Image, ellipse := false) -> void:
+	var tw := tex.get_width()
+	var th := tex.get_height()
+	if not ellipse:
+		# Whole texture rows and columns at once (blit), clipped to the rect.
+		var area := Rect2i(r.position.floor(), Vector2i(r.end.ceil()) - Vector2i(r.position.floor())).intersection(Rect2i(Vector2i.ZERO, _img.get_size()))
+		var y := area.position.y
+		while y < area.end.y:
+			var sy := y % th
+			var h := mini(th - sy, area.end.y - y)
+			var x := area.position.x
+			while x < area.end.x:
+				var sx := x % tw
+				var w := mini(tw - sx, area.end.x - x)
+				_img.blit_rect(tex, Rect2i(sx, sy, w, h), Vector2i(x, y))
+				x += w
+			y += h
+		return
+	var c := r.get_center()
+	for y in range(maxi(0, int(r.position.y)), mini(_img.get_height(), int(ceil(r.end.y)))):
+		for x in range(maxi(0, int(r.position.x)), mini(_img.get_width(), int(ceil(r.end.x)))):
+			if ellipse:
+				var d := (Vector2(x + 0.5, y + 0.5) - c) / (r.size / 2.0)
+				if d.length_squared() > 1.0:
+					continue
+			_img.set_pixel(x, y, tex.get_pixel(x % tw, y % th))
 
 
 # Pixel helpers. All clip to the map.
@@ -364,13 +423,14 @@ func _shadow(p: Dictionary) -> void:
 	if _art.has(p.kind):
 		# The sprite's own outline, 3 px down-right, dithered.
 		var img := _sprite_for(p)
-		var at := _sprite_pos(r, img) + Vector2i(3, 3)
 		var ink := Palette.color(Palette.INK)
-		for y in img.get_height():
-			for x in img.get_width():
-				var m := at + Vector2i(x, y)
-				if (m.x + m.y) % 2 == 0 and img.get_pixel(x, y).a > 0.0 and Rect2i(Vector2i.ZERO, _img.get_size()).has_point(m):
-					_img.set_pixelv(m, ink)
+		for spot in _sprite_spots(p, r, img):
+			var at: Vector2i = spot + Vector2i(3, 3)
+			for y in img.get_height():
+				for x in img.get_width():
+					var m := at + Vector2i(x, y)
+					if (m.x + m.y) % 2 == 0 and img.get_pixel(x, y).a > 0.0 and Rect2i(Vector2i.ZERO, _img.get_size()).has_point(m):
+						_img.set_pixelv(m, ink)
 		return
 	match p.kind:
 		"tree":
@@ -402,6 +462,8 @@ func _dither_ellipse(r: Rect2) -> void:
 # Ground.
 
 func _yard(r: Rect2) -> void:
+	if _tex("lawn") != null:
+		return  # the textured lawn needs no stripes
 	# Mowed stripes: every other 8px band gets a light dither.
 	for y in range(int(r.position.y), int(r.end.y), 16):
 		_dither(Rect2(r.position.x, y, r.size.x, mini(8, int(r.end.y) - y)), _lawn_colors[2], 4)
@@ -433,6 +495,13 @@ func _field(r: Rect2) -> void:
 
 
 func _garden(r: Rect2) -> void:
+	var soil := _tex("garden")
+	if soil != null:
+		_rect(r.grow(2), Palette.INK)
+		_rect(r.grow(1), Palette.WOOD)
+		_rect(Rect2(r.position.x - 1, r.position.y - 1, r.size.x + 2, 1), Palette.CRUST)
+		_fill_tex(r, soil)
+		return
 	_rect(r.grow(1), Palette.WOOD)
 	_rect(r, Palette.BARK)
 	var flowers := [Palette.PINK, Palette.BUTTER, Palette.SALMON, Palette.PAPER, Palette.SKY]
@@ -446,6 +515,13 @@ func _garden(r: Rect2) -> void:
 
 
 func _path(r: Rect2, ellipse: bool) -> void:
+	var sand := _tex("path")
+	if sand != null:
+		_fill_tex(r, sand, ellipse)
+		if ellipse:
+			# A ring: the middle is lawn again (whatever covers it, e.g. a pond).
+			_fill_tex(r.grow(-10), _lawn(), true)
+		return
 	var dough := _c(Palette.DOUGH)
 	if ellipse:
 		_ellipse(r, Palette.DOUGH)
@@ -463,12 +539,18 @@ func _path(r: Rect2, ellipse: bool) -> void:
 func _sand(r: Rect2) -> void:
 	_rect(r.grow(2), Palette.WOOD)
 	_rect(r.grow(1), Palette.BARK)
+	if _tex("sand") != null:
+		_fill_tex(r, _tex("sand"))
+		return
 	_rect(r, Palette.BUTTER)
 	for i in int(r.get_area() / 14.0):
 		_px(_rng.randf_range(r.position.x, r.end.x), _rng.randf_range(r.position.y, r.end.y), Palette.DOUGH)
 
 
 func _sidewalk(r: Rect2) -> void:
+	if _tex("sidewalk") != null:
+		_fill_tex(r, _tex("sidewalk"))
+		return
 	_rect(r, Palette.MIST)
 	if r.size.x >= r.size.y:
 		for x in range(int(r.position.x) + 7, int(r.end.x), 8):
@@ -479,6 +561,10 @@ func _sidewalk(r: Rect2) -> void:
 
 
 func _driveway(r: Rect2) -> void:
+	if _tex("driveway") != null:
+		_rect(r.grow(1), Palette.GRAY)
+		_fill_tex(r, _tex("driveway"))
+		return
 	_rect(r, Palette.GRAY)
 	for i in int(r.get_area() / 40.0):
 		_px(_rng.randf_range(r.position.x, r.end.x), _rng.randf_range(r.position.y, r.end.y), Palette.MIST)
@@ -486,11 +572,13 @@ func _driveway(r: Rect2) -> void:
 
 func _road(r: Rect2, ellipse: bool, lines: bool) -> void:
 	var asphalt := _c(Palette.SHADE)
-	if ellipse:
+	if _tex("road") != null:
+		_fill_tex(r, _tex("road"), ellipse)
+	elif ellipse:
 		_ellipse(r, Palette.SHADE)
 	else:
 		_rect(r, Palette.SHADE)
-	for i in int(r.get_area() / 25.0):
+	for i in int(r.get_area() / 25.0) if _tex("road") == null else 0:
 		var x := _rng.randf_range(r.position.x, r.end.x)
 		var y := _rng.randf_range(r.position.y, r.end.y)
 		if _pixel_at(x, y) == asphalt:
@@ -741,6 +829,9 @@ func _lamp(r: Rect2) -> void:
 ## Lawn texture (64x64, tiles seamlessly): base color plus scattered tufts in
 ## a darker and a lighter shade and a few tiny flowers, from a fixed seed.
 func _lawn() -> Image:
+	var tex := _load_image(_ground_textures.get("lawn", ""))
+	if tex != null:
+		return tex
 	var img := Image.create_empty(64, 64, false, Image.FORMAT_RGBA8)
 	img.fill(Palette.color(_lawn_colors[0]))
 	var r := RandomNumberGenerator.new()

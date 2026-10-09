@@ -1,0 +1,14 @@
+[remap]
+
+importer="image"
+type="Image"
+uid="uid://d2uogodjhp7xm"
+path="res://.godot/imported/paving.png-f4b4cea1b3b50495fe34e2064375b2b5.image"
+
+[deps]
+
+source_file="res://assets/tiles/paving.png"
+dest_files=["res://.godot/imported/paving.png-f4b4cea1b3b50495fe34e2064375b2b5.image"]
+
+[params]
+

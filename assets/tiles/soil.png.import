@@ -1,0 +1,14 @@
+[remap]
+
+importer="image"
+type="Image"
+uid="uid://d0abjt2n1o2cl"
+path="res://.godot/imported/soil.png-98e1d66457bc8450db3cd218f127f434.image"
+
+[deps]
+
+source_file="res://assets/tiles/soil.png"
+dest_files=["res://.godot/imported/soil.png-98e1d66457bc8450db3cd218f127f434.image"]
+
+[params]
+

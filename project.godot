@@ -54,8 +54,8 @@ Store="*res://scripts/autoload/store.gd"
 
 [display]
 
-window/size/viewport_width=180
-window/size/viewport_height=320
+window/size/viewport_width=270
+window/size/viewport_height=480
 window/size/window_width_override=540
 window/size/window_height_override=960
 window/stretch/mode="viewport"

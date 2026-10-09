@@ -1,0 +1,14 @@
+[remap]
+
+importer="image"
+type="Image"
+uid="uid://b43aovnpg102u"
+path="res://.godot/imported/lamp.png-509af2669c4fe55ccef171492eeb7a71.image"
+
+[deps]
+
+source_file="res://assets/props/lamp.png"
+dest_files=["res://.godot/imported/lamp.png-509af2669c4fe55ccef171492eeb7a71.image"]
+
+[params]
+

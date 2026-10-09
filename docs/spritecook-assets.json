@@ -148,5 +148,40 @@
 		"asset_id": "a88bfb87-04f5-4bbb-9274-8ad98494d4e4",
 		"sha12": "27d817458738",
 		"label": "Prop sheet B (2x2, 68x68, same refs): bench, swing set, pine, apple tree"
+	},
+	"texture_grass": {
+		"asset_id": "dc787505-8802-4124-ab6b-12366b560b12",
+		"sha12": "590761a3a4b3",
+		"label": "Grass texture (68x68 tileable, texture mode, NB2.1 1K); assets/tiles/grass.png"
+	},
+	"texture_asphalt": {
+		"asset_id": "9ced01f9-0a09-4612-9d62-364dfb25bd43",
+		"sha12": "8e42c2a1c24f",
+		"label": "Asphalt texture (68x68, texture mode); lightened one palette step by tools/art/textures.py"
+	},
+	"texture_paving": {
+		"asset_id": "cd34b910-e3d8-414d-99b6-8c5498c439df",
+		"sha12": "308d1ca61758",
+		"label": "Sidewalk paving texture (68x66, texture mode); sidewalks and driveways"
+	},
+	"texture_sand": {
+		"asset_id": "2261c3bc-7522-4cd3-a287-c1486ae96410",
+		"sha12": "592de5e30688",
+		"label": "Sand/dirt texture (68x68, texture mode); PAPER bands mapped to DOUGH by tools/art/textures.py"
+	},
+	"texture_soil": {
+		"asset_id": "01485b4d-bb6a-433e-b303-afd452ba7cc5",
+		"sha12": "faebff92f8e9",
+		"label": "Garden soil texture (68x68, texture mode); garden beds"
+	},
+	"props_sheet_c": {
+		"asset_id": "ee14ea4d-277a-4393-8988-a91f53174b90",
+		"sha12": "c9befbc5d733",
+		"label": "Prop sheet C (2x2, 69x67, NB2.1 1K, style refs sheets A + B + house): mailbox, lamp, hedge, planter"
+	},
+	"boss_altar": {
+		"asset_id": "10ff3aff-c52b-45fd-bd61-5fb4c9837279",
+		"sha12": "a50c9540e074",
+		"label": "Boss altar (32x32, NB2.1 1K, style refs sheet A + Mega Mole + house); assets/props/altar.png"
 	}
 }

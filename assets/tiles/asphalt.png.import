@@ -1,0 +1,14 @@
+[remap]
+
+importer="image"
+type="Image"
+uid="uid://bj23d0787f2pg"
+path="res://.godot/imported/asphalt.png-dadc213f5f39dfdd149841745fbf6130.image"
+
+[deps]
+
+source_file="res://assets/tiles/asphalt.png"
+dest_files=["res://.godot/imported/asphalt.png-dadc213f5f39dfdd149841745fbf6130.image"]
+
+[params]
+

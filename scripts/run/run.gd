@@ -818,7 +818,9 @@ const STALL_SEC := 3.0
 
 
 func _recycle_far_enemies() -> void:
-	var far: float = map_def.get("despawn_distance", 260.0)
+	# Never closer than the view's corners (plus a margin): a wide or tall
+	# screen must not see enemies vanish.
+	var far: float = maxf(map_def.get("despawn_distance", 260.0), _half_view().length() + SPAWN_MARGIN.length() * 2.0)
 	var far2 := far * far
 	var b := _boss_slot()
 	var view := view_rect().grow(8.0)
@@ -830,7 +832,7 @@ func _recycle_far_enemies() -> void:
 			enemies.move_to(s, _spawn_point(enemies.flags[s] & (EnemySystem.F_FLY | EnemySystem.F_GHOST) != 0))
 
 
-## Half the visible area in world pixels. The view is at least 180x320 and
+## Half the visible area in world pixels. The view is at least 270x480 and
 ## grows on taller or wider screens (stretch aspect "expand").
 func _half_view() -> Vector2:
 	return get_viewport_rect().size / 2.0
@@ -2037,7 +2039,7 @@ func _build_ui() -> void:
 	_pause_panel.add_child(quit)
 
 
-## A hidden panel. `rect` is in the 180x320 design frame; the panel is
+## A hidden panel. `rect` is in a 180x320 design frame; the panel is
 ## anchored to the screen center so it stays centered on taller screens.
 func _panel(parent: Node, rect: Rect2, fill: int) -> PixelPanel:
 	var p := PixelPanel.new()

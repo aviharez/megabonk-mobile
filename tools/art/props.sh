@@ -1,7 +1,8 @@
 #!/usr/bin/env bash
 # Rebuild assets/props/ from the downloaded SpriteCook prop images (asset ids in
 # docs/spritecook-assets.json). Usage: tools/art/props.sh RAW_DIR
-# RAW_DIR holds house2.png (the front-facing house), propsA.png and propsB.png (2x2 sheets) as
+# RAW_DIR holds house2.png (the front-facing house), propsA.png, propsB.png, propsC.png (2x2 sheets)
+# and altar.png as
 # downloaded. Each prop is cut from its cell and shrunk so its longer side is --size.
 set -euo pipefail
 R=${1:?raw dir}
@@ -18,4 +19,9 @@ shrink "$R/propsB.png" --grid 2 --size 18 --out $P/bench.png - - -
 shrink "$R/propsB.png" --grid 2 --size 26 --out - $P/swing.png - -
 shrink "$R/propsB.png" --grid 2 --size 24 --out - - $P/pine.png -
 shrink "$R/propsB.png" --grid 2 --size 22 --out - - - $P/apple_tree.png
+shrink "$R/propsC.png" --grid 2 --size 12 --out $P/mailbox.png - - -
+shrink "$R/propsC.png" --grid 2 --size 20 --out - $P/lamp.png - -
+shrink "$R/propsC.png" --grid 2 --size 20 --out - - $P/hedge.png -
+shrink "$R/propsC.png" --grid 2 --size 20 --out - - - $P/planter.png
+shrink "$R/altar.png" --size 24 --out $P/altar.png
 python3 tools/palette_snap.py --check $P/*.png

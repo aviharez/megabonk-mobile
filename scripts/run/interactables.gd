@@ -29,6 +29,7 @@ var risks: Array[Dictionary] = []
 var challenges: Array[Dictionary] = []
 ## Set by Run on a first run when the boss wasn't summoned in time.
 var altar_pulse := false
+static var _sprites := {}  # sprite path -> ImageTexture (null when missing)
 var _time := 0.0
 var _risk_n := 0
 
@@ -282,7 +283,7 @@ func arrow_targets(view: Rect2) -> Array:
 func _draw() -> void:
 	for o in list:
 		var def: Dictionary = o.def
-		var tex := PlaceholderArt.texture(def.shape, Palette.index_of(def.color))
+		var tex := sprite_of(def)
 		var at: Vector2 = o.pos
 		if def.behavior in STAND:
 			_draw_circle(at, float(def.radius), Palette.index_of(def.color), o.progress / float(def.get("charge_time", 2.0)), o.used)
@@ -299,6 +300,19 @@ func _draw() -> void:
 		for r in risks:
 			left = maxf(left, r.left)
 		_label(run.player_pos() + Vector2(0, -16), "RISK %d" % ceili(left), Palette.RED)
+
+
+## The object's picture: its "sprite" (an Image-imported PNG) if it has one,
+## else its placeholder "shape" in its color.
+static func sprite_of(def: Dictionary) -> Texture2D:
+	var path: String = def.get("sprite", "")
+	if path != "":
+		if not _sprites.has(path):
+			var img = load(path) if ResourceLoader.exists(path) else null
+			_sprites[path] = ImageTexture.create_from_image(img) if img is Image else null
+		if _sprites[path] != null:
+			return _sprites[path]
+	return PlaceholderArt.texture(def.shape, Palette.index_of(def.color))
 
 
 ## Dotted circle with the charge progress drawn solid over it.

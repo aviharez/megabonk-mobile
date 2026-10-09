@@ -1,0 +1,14 @@
+[remap]
+
+importer="image"
+type="Image"
+uid="uid://bpbfcfac6ofwk"
+path="res://.godot/imported/sand.png-641512a9e3faeb90db8c59d3e1b47140.image"
+
+[deps]
+
+source_file="res://assets/tiles/sand.png"
+dest_files=["res://.godot/imported/sand.png-641512a9e3faeb90db8c59d3e1b47140.image"]
+
+[params]
+

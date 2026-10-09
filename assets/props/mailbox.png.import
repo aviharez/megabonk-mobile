@@ -1,0 +1,14 @@
+[remap]
+
+importer="image"
+type="Image"
+uid="uid://bhkqkhxuvfxuh"
+path="res://.godot/imported/mailbox.png-3083f61ca684dd1882689fff643e2faf.image"
+
+[deps]
+
+source_file="res://assets/props/mailbox.png"
+dest_files=["res://.godot/imported/mailbox.png-3083f61ca684dd1882689fff643e2faf.image"]
+
+[params]
+

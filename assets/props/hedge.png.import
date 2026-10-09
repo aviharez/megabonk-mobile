@@ -1,0 +1,14 @@
+[remap]
+
+importer="image"
+type="Image"
+uid="uid://b6ofox0grrtd0"
+path="res://.godot/imported/hedge.png-386baa29ecb5834ee65f25b21b696085.image"
+
+[deps]
+
+source_file="res://assets/props/hedge.png"
+dest_files=["res://.godot/imported/hedge.png-386baa29ecb5834ee65f25b21b696085.image"]
+
+[params]
+

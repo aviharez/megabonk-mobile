@@ -4,6 +4,7 @@
 	"behavior": "altar",
 	"radius": 20,
 	"shape": "altar",
+	"sprite": "res://assets/props/altar.png",
 	"color": "BLOOD",
 	"arrow": "RED",
 	"charge_time": 2.5,

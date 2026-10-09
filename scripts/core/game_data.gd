@@ -176,6 +176,8 @@ func _check_entry(category: String, e: Dictionary) -> void:
 			for c in [e.color, e.get("arrow", "INK")]:
 				if Palette.index_of(c) < 0:
 					errors.append("%s: unknown palette color \"%s\"" % [file, c])
+			if e.has("sprite") and (typeof(e.sprite) != TYPE_STRING or not ResourceLoader.exists(e.sprite)):
+				errors.append("%s: sprite \"%s\" not found" % [file, e.sprite])
 			var need: Array = {"paid_chest": ["chest", "price"], "free_chest": ["chest"], "pot": ["gold"],
 				"charge_shrine": ["charge_time", "choices"], "risk_shrine": ["charge_time", "duration", "modifiers"],
 				"challenge_shrine": ["charge_time", "kills", "time"], "merchant": ["chest", "prices"],

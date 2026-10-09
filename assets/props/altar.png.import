@@ -1,0 +1,14 @@
+[remap]
+
+importer="image"
+type="Image"
+uid="uid://dp88msa2euvhs"
+path="res://.godot/imported/altar.png-59330fc7fe3b88ed8018b71aae019f98.image"
+
+[deps]
+
+source_file="res://assets/props/altar.png"
+dest_files=["res://.godot/imported/altar.png-59330fc7fe3b88ed8018b71aae019f98.image"]
+
+[params]
+

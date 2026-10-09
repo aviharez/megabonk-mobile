@@ -1,235 +1,6771 @@
 {
 	"id": "suburbia",
 	"name": "SUBURBIA",
-	"size": [720, 880],
-	"ground_colors": ["LEAF", "DEEP_GREEN", "GREEN"],
-	"despawn_distance": 260,
+	"size": [
+		1440,
+		1760
+	],
+	"ground_colors": [
+		"LEAF",
+		"DEEP_GREEN",
+		"GREEN"
+	],
+	"despawn_distance": 360,
 	"escalation_per_blocked_spawn": 0.002,
 	"escalation_speed_cap": 1.5,
 	"start_clear_radius": 60,
+	"ground_textures": {
+		"lawn": "res://assets/tiles/grass.png",
+		"road": "res://assets/tiles/asphalt.png",
+		"sidewalk": "res://assets/tiles/paving.png",
+		"driveway": "res://assets/tiles/paving.png",
+		"path": "res://assets/tiles/sand.png",
+		"sand": "res://assets/tiles/sand.png",
+		"garden": "res://assets/tiles/soil.png"
+	},
 	"prop_art": {
 		"house": {
 			"sprite": "res://assets/props/house.png",
-			"ramp": ["SALMON", "RED", "BLOOD", "WINE"],
+			"ramp": [
+				"SALMON",
+				"RED",
+				"BLOOD",
+				"WINE"
+			],
 			"colors": {
-				"BLUE": ["SKY", "BLUE", "OCEAN", "DEEP_BLUE"],
-				"PURPLE": ["PINK", "PURPLE", "PLUM", "NIGHT"],
-				"TEAL": ["SKY", "TEAL", "OCEAN", "DEEP_BLUE"],
-				"WOOD": ["CRUST", "WOOD", "BARK", "INK"]
+				"BLUE": [
+					"SKY",
+					"BLUE",
+					"OCEAN",
+					"DEEP_BLUE"
+				],
+				"PURPLE": [
+					"PINK",
+					"PURPLE",
+					"PLUM",
+					"NIGHT"
+				],
+				"TEAL": [
+					"SKY",
+					"TEAL",
+					"OCEAN",
+					"DEEP_BLUE"
+				],
+				"WOOD": [
+					"CRUST",
+					"WOOD",
+					"BARK",
+					"INK"
+				]
 			}
 		},
-		"tree": {"sprite": "res://assets/props/tree.png", "variants": {"GREEN": "res://assets/props/pine.png", "RED": "res://assets/props/apple_tree.png"}},
-		"bush": {"sprite": "res://assets/props/bush.png", "ramp": ["PINK"], "colors": {"BUTTER": ["BUTTER"], "SKY": ["SKY"]}},
+		"tree": {
+			"sprite": "res://assets/props/tree.png",
+			"variants": {
+				"GREEN": "res://assets/props/pine.png",
+				"RED": "res://assets/props/apple_tree.png"
+			}
+		},
+		"bush": {
+			"sprite": "res://assets/props/bush.png",
+			"ramp": [
+				"PINK"
+			],
+			"colors": {
+				"BUTTER": [
+					"BUTTER"
+				],
+				"SKY": [
+					"SKY"
+				]
+			}
+		},
 		"shed": {
 			"sprite": "res://assets/props/shed.png",
-			"ramp": ["CRUST", "WOOD", "RUST"],
+			"ramp": [
+				"CRUST",
+				"WOOD",
+				"RUST"
+			],
 			"colors": {
-				"RED": ["SALMON", "RED", "BLOOD"],
-				"BLUE": ["SKY", "BLUE", "OCEAN"],
-				"PURPLE": ["PINK", "PURPLE", "PLUM"],
-				"SKY": ["WHITE", "SKY", "BLUE"]
+				"RED": [
+					"SALMON",
+					"RED",
+					"BLOOD"
+				],
+				"BLUE": [
+					"SKY",
+					"BLUE",
+					"OCEAN"
+				],
+				"PURPLE": [
+					"PINK",
+					"PURPLE",
+					"PLUM"
+				],
+				"SKY": [
+					"WHITE",
+					"SKY",
+					"BLUE"
+				]
 			}
 		},
-		"car": {"sprite": "res://assets/props/car.png", "ramp": ["SALMON", "RED", "BLOOD"], "colors": {"GOLD": ["BUTTER", "GOLD", "RUST"], "PAPER": ["WHITE", "PAPER", "MIST"]}},
-		"bench": {"sprite": "res://assets/props/bench.png"},
-		"swing": {"sprite": "res://assets/props/swing.png"}
+		"car": {
+			"sprite": "res://assets/props/car.png",
+			"ramp": [
+				"SALMON",
+				"RED",
+				"BLOOD"
+			],
+			"colors": {
+				"GOLD": [
+					"BUTTER",
+					"GOLD",
+					"RUST"
+				],
+				"PAPER": [
+					"WHITE",
+					"PAPER",
+					"MIST"
+				]
+			}
+		},
+		"bench": {
+			"sprite": "res://assets/props/bench.png"
+		},
+		"swing": {
+			"sprite": "res://assets/props/swing.png"
+		},
+		"mailbox": {
+			"sprite": "res://assets/props/mailbox.png",
+			"ramp": [
+				"BLUE",
+				"OCEAN",
+				"DEEP_BLUE"
+			],
+			"colors": {
+				"RED": [
+					"SALMON",
+					"RED",
+					"BLOOD"
+				],
+				"GOLD": [
+					"BUTTER",
+					"GOLD",
+					"RUST"
+				]
+			}
+		},
+		"lamp": {
+			"sprite": "res://assets/props/lamp.png"
+		},
+		"hedge": {
+			"sprite": "res://assets/props/hedge.png",
+			"repeat": true
+		},
+		"planter": {
+			"sprite": "res://assets/props/planter.png",
+			"ramp": [
+				"PINK"
+			],
+			"colors": {
+				"BUTTER": [
+					"BUTTER"
+				],
+				"SKY": [
+					"SKY"
+				]
+			}
+		}
 	},
 	"props": [
-		{"kind": "sidewalk", "rect": [0, 404, 720, 8]},
-		{"kind": "sidewalk", "rect": [0, 444, 720, 8]},
-		{"kind": "sidewalk", "rect": [336, 0, 8, 880]},
-		{"kind": "sidewalk", "rect": [376, 0, 8, 880]},
-		{"kind": "sidewalk", "rect": [0, 692, 720, 8]},
-		{"kind": "sidewalk", "rect": [0, 728, 720, 8]},
-		{"kind": "road", "rect": [0, 412, 720, 32], "lines": true},
-		{"kind": "road", "rect": [344, 0, 32, 880], "lines": true},
-		{"kind": "road", "rect": [0, 700, 720, 28], "lines": true},
-		{"kind": "road", "rect": [96, 170, 248, 26]},
-		{"kind": "road", "rect": [52, 146, 76, 72], "shape": "ellipse"},
-		{"kind": "crosswalk", "rect": [322, 412, 12, 32]},
-		{"kind": "crosswalk", "rect": [386, 412, 12, 32]},
-		{"kind": "crosswalk", "rect": [344, 390, 32, 12]},
-		{"kind": "crosswalk", "rect": [344, 454, 32, 12]},
-		{"kind": "crosswalk", "rect": [322, 700, 12, 28]},
-		{"kind": "crosswalk", "rect": [386, 700, 12, 28]},
-		{"kind": "yard", "rect": [124, 88, 212, 82]},
-		{"kind": "garden", "rect": [130, 24, 40, 16]},
-		{"kind": "house", "rect": [139, 124, 30, 26], "color": "RED"},
-		{"kind": "driveway", "rect": [151, 152, 7, 18]},
-		{"kind": "mailbox", "rect": [161, 162, 3, 7], "color": "BLUE"},
-		{"kind": "driveway", "rect": [194, 132, 12, 38]},
-		{"kind": "house", "rect": [220, 124, 30, 26], "color": "BLUE"},
-		{"kind": "driveway", "rect": [232, 152, 7, 18]},
-		{"kind": "mailbox", "rect": [242, 162, 3, 7], "color": "RED"},
-		{"kind": "house", "rect": [297, 124, 30, 26], "color": "PURPLE"},
-		{"kind": "driveway", "rect": [309, 152, 7, 18]},
-		{"kind": "mailbox", "rect": [319, 162, 3, 7], "color": "BLUE"},
-		{"kind": "pool", "rect": [214, 36, 46, 30]},
-		{"kind": "shed", "rect": [298, 38, 22, 14], "color": "WOOD"},
-		{"kind": "tree", "rect": [150, 56, 12, 12], "color": "RED"},
-		{"kind": "tree", "rect": [96, 40, 12, 12], "color": "RED"},
-		{"kind": "tree", "rect": [20, 40, 12, 12]},
-		{"kind": "tree", "rect": [60, 72, 12, 12], "color": "GREEN"},
-		{"kind": "tree", "rect": [24, 112, 12, 12], "color": "RED"},
-		{"kind": "bush", "rect": [178, 70, 12, 9], "color": "BUTTER"},
-		{"kind": "yard", "rect": [4, 140, 52, 70]},
-		{"kind": "house", "rect": [15, 164, 30, 26], "color": "TEAL"},
-		{"kind": "driveway", "rect": [52, 176, 6, 10]},
-		{"kind": "mailbox", "rect": [44, 196, 3, 7], "color": "GOLD"},
-		{"kind": "yard", "rect": [8, 310, 328, 94]},
-		{"kind": "house", "rect": [27, 346, 30, 26], "color": "BLUE"},
-		{"kind": "driveway", "rect": [39, 374, 7, 30]},
-		{"kind": "mailbox", "rect": [49, 396, 3, 7], "color": "BLUE"},
-		{"kind": "house", "rect": [108, 346, 30, 26], "color": "RED"},
-		{"kind": "driveway", "rect": [120, 374, 7, 30]},
-		{"kind": "mailbox", "rect": [130, 396, 3, 7], "color": "BLUE"},
-		{"kind": "driveway", "rect": [160, 354, 12, 50]},
-		{"kind": "house", "rect": [189, 346, 30, 26], "color": "WOOD"},
-		{"kind": "driveway", "rect": [201, 374, 7, 30]},
-		{"kind": "mailbox", "rect": [211, 396, 3, 7], "color": "RED"},
-		{"kind": "house", "rect": [270, 346, 30, 26], "color": "PURPLE"},
-		{"kind": "driveway", "rect": [282, 374, 7, 30]},
-		{"kind": "mailbox", "rect": [292, 396, 3, 7], "color": "BLUE"},
-		{"kind": "tree", "rect": [40, 240, 12, 12]},
-		{"kind": "tree", "rect": [150, 252, 12, 12], "color": "RED"},
-		{"kind": "tree", "rect": [240, 236, 12, 12], "color": "GREEN"},
-		{"kind": "tree", "rect": [306, 262, 12, 12], "color": "RED"},
-		{"kind": "shed", "rect": [111, 270, 22, 14], "color": "RED"},
-		{"kind": "garden", "rect": [190, 272, 44, 16]},
-		{"kind": "bush", "rect": [60, 292, 12, 9]},
-		{"kind": "bush", "rect": [214, 300, 12, 9], "color": "SKY"},
-		{"kind": "path", "rect": [472, 118, 176, 126], "shape": "ellipse"},
-		{"kind": "pond", "rect": [505, 143, 110, 76]},
-		{"kind": "path", "rect": [384, 176, 92, 10]},
-		{"kind": "path", "rect": [552, 240, 10, 164]},
-		{"kind": "path", "rect": [552, 0, 10, 122]},
-		{"kind": "sand", "rect": [600, 300, 90, 66]},
-		{"kind": "swing", "rect": [618, 316, 26, 10]},
-		{"kind": "bench", "rect": [400, 160, 14, 5]},
-		{"kind": "bench", "rect": [470, 290, 14, 5]},
-		{"kind": "bench", "rect": [640, 86, 14, 5]},
-		{"kind": "bench", "rect": [496, 40, 14, 5]},
-		{"kind": "garden", "rect": [400, 30, 56, 18]},
-		{"kind": "garden", "rect": [652, 30, 56, 22]},
-		{"kind": "garden", "rect": [400, 300, 60, 18]},
-		{"kind": "tree", "rect": [392, 70, 12, 12]},
-		{"kind": "tree", "rect": [410, 112, 12, 12], "color": "GREEN"},
-		{"kind": "tree", "rect": [395, 232, 12, 12]},
-		{"kind": "tree", "rect": [420, 262, 12, 12], "color": "RED"},
-		{"kind": "tree", "rect": [470, 330, 12, 12], "color": "GREEN"},
-		{"kind": "tree", "rect": [506, 360, 12, 12]},
-		{"kind": "tree", "rect": [430, 370, 12, 12]},
-		{"kind": "tree", "rect": [686, 120, 12, 12]},
-		{"kind": "tree", "rect": [700, 184, 12, 12], "color": "GREEN"},
-		{"kind": "tree", "rect": [690, 252, 12, 12], "color": "RED"},
-		{"kind": "tree", "rect": [705, 70, 12, 12], "color": "RED"},
-		{"kind": "tree", "rect": [600, 46, 12, 12], "color": "RED"},
-		{"kind": "tree", "rect": [700, 374, 12, 12], "color": "GREEN"},
-		{"kind": "tree", "rect": [600, 380, 12, 12], "color": "RED"},
-		{"kind": "bush", "rect": [470, 60, 12, 9]},
-		{"kind": "bush", "rect": [642, 270, 12, 9], "color": "BUTTER"},
-		{"kind": "bush", "rect": [520, 300, 12, 9]},
-		{"kind": "hedge", "rect": [384, 394, 36, 6]},
-		{"kind": "hedge", "rect": [456, 394, 36, 6]},
-		{"kind": "hedge", "rect": [566, 394, 36, 6]},
-		{"kind": "hedge", "rect": [638, 394, 36, 6]},
-		{"kind": "yard", "rect": [6, 586, 330, 106]},
-		{"kind": "house", "rect": [25, 622, 30, 26], "color": "RED"},
-		{"kind": "driveway", "rect": [37, 650, 7, 42]},
-		{"kind": "mailbox", "rect": [47, 684, 3, 7], "color": "BLUE"},
-		{"kind": "driveway", "rect": [78, 630, 12, 62]},
-		{"kind": "house", "rect": [106, 622, 30, 26], "color": "TEAL"},
-		{"kind": "driveway", "rect": [118, 650, 7, 42]},
-		{"kind": "mailbox", "rect": [128, 684, 3, 7], "color": "RED"},
-		{"kind": "house", "rect": [187, 622, 30, 26], "color": "BLUE"},
-		{"kind": "driveway", "rect": [199, 650, 7, 42]},
-		{"kind": "mailbox", "rect": [209, 684, 3, 7], "color": "BLUE"},
-		{"kind": "driveway", "rect": [242, 630, 12, 62]},
-		{"kind": "house", "rect": [268, 622, 30, 26], "color": "WOOD"},
-		{"kind": "driveway", "rect": [280, 650, 7, 42]},
-		{"kind": "mailbox", "rect": [290, 684, 3, 7], "color": "BLUE"},
-		{"kind": "pool", "rect": [180, 494, 52, 32]},
-		{"kind": "shed", "rect": [24, 526, 22, 14], "color": "BLUE"},
-		{"kind": "tree", "rect": [110, 500, 12, 12]},
-		{"kind": "tree", "rect": [300, 490, 12, 12], "color": "GREEN"},
-		{"kind": "tree", "rect": [266, 552, 12, 12]},
-		{"kind": "tree", "rect": [70, 562, 12, 12]},
-		{"kind": "garden", "rect": [100, 544, 44, 18]},
-		{"kind": "bush", "rect": [150, 478, 12, 9], "color": "BUTTER"},
-		{"kind": "field", "rect": [22, 756, 292, 108]},
-		{"kind": "bench", "rect": [100, 742, 30, 5]},
-		{"kind": "bench", "rect": [200, 742, 30, 5]},
-		{"kind": "tree", "rect": [324, 790, 12, 12], "color": "RED"},
-		{"kind": "tree", "rect": [326, 850, 12, 12], "color": "GREEN"},
-		{"kind": "yard", "rect": [392, 586, 328, 106]},
-		{"kind": "house", "rect": [417, 622, 30, 26], "color": "PURPLE"},
-		{"kind": "driveway", "rect": [429, 650, 7, 42]},
-		{"kind": "mailbox", "rect": [439, 684, 3, 7], "color": "BLUE"},
-		{"kind": "driveway", "rect": [474, 630, 12, 62]},
-		{"kind": "house", "rect": [502, 622, 30, 26], "color": "RED"},
-		{"kind": "driveway", "rect": [514, 650, 7, 42]},
-		{"kind": "mailbox", "rect": [524, 684, 3, 7], "color": "GOLD"},
-		{"kind": "house", "rect": [589, 622, 30, 26], "color": "BLUE"},
-		{"kind": "driveway", "rect": [601, 650, 7, 42]},
-		{"kind": "mailbox", "rect": [611, 684, 3, 7], "color": "BLUE"},
-		{"kind": "driveway", "rect": [660, 630, 12, 62]},
-		{"kind": "shed", "rect": [615, 512, 22, 14], "color": "PURPLE"},
-		{"kind": "tree", "rect": [420, 490, 12, 12], "color": "RED"},
-		{"kind": "tree", "rect": [470, 520, 12, 12], "color": "GREEN"},
-		{"kind": "tree", "rect": [680, 520, 12, 12]},
-		{"kind": "tree", "rect": [560, 556, 12, 12]},
-		{"kind": "garden", "rect": [436, 546, 56, 18]},
-		{"kind": "bush", "rect": [650, 478, 12, 9]},
-		{"kind": "garden", "rect": [404, 756, 60, 14]},
-		{"kind": "garden", "rect": [404, 780, 60, 14]},
-		{"kind": "garden", "rect": [404, 804, 60, 14]},
-		{"kind": "garden", "rect": [480, 756, 60, 14]},
-		{"kind": "garden", "rect": [480, 780, 60, 14]},
-		{"kind": "garden", "rect": [480, 804, 60, 14]},
-		{"kind": "shed", "rect": [595, 778, 22, 14], "color": "SKY"},
-		{"kind": "path", "rect": [384, 836, 190, 8]},
-		{"kind": "bench", "rect": [590, 812, 14, 5]},
-		{"kind": "tree", "rect": [664, 762, 12, 12]},
-		{"kind": "tree", "rect": [694, 830, 12, 12], "color": "GREEN"},
-		{"kind": "tree", "rect": [610, 846, 12, 12]},
-		{"kind": "tree", "rect": [420, 850, 12, 12], "color": "RED"},
-		{"kind": "lamp", "rect": [40, 405, 3, 3]},
-		{"kind": "lamp", "rect": [220, 405, 3, 3]},
-		{"kind": "lamp", "rect": [460, 405, 3, 3]},
-		{"kind": "lamp", "rect": [660, 405, 3, 3]},
-		{"kind": "lamp", "rect": [70, 446, 3, 3]},
-		{"kind": "lamp", "rect": [260, 446, 3, 3]},
-		{"kind": "lamp", "rect": [450, 446, 3, 3]},
-		{"kind": "lamp", "rect": [650, 446, 3, 3]},
-		{"kind": "lamp", "rect": [120, 694, 3, 3]},
-		{"kind": "lamp", "rect": [300, 694, 3, 3]},
-		{"kind": "lamp", "rect": [470, 694, 3, 3]},
-		{"kind": "lamp", "rect": [640, 694, 3, 3]},
-		{"kind": "car", "rect": [60, 706, 18, 10], "color": "GOLD"},
-		{"kind": "car", "rect": [248, 175, 18, 10], "color": "PAPER"}
+		{
+			"kind": "sidewalk",
+			"rect": [
+				696,
+				0,
+				8,
+				1760
+			]
+		},
+		{
+			"kind": "sidewalk",
+			"rect": [
+				736,
+				0,
+				8,
+				1760
+			]
+		},
+		{
+			"kind": "sidewalk",
+			"rect": [
+				0,
+				864,
+				1440,
+				8
+			]
+		},
+		{
+			"kind": "sidewalk",
+			"rect": [
+				0,
+				904,
+				1440,
+				8
+			]
+		},
+		{
+			"kind": "road",
+			"rect": [
+				704,
+				0,
+				32,
+				1760
+			],
+			"lines": true
+		},
+		{
+			"kind": "road",
+			"rect": [
+				0,
+				872,
+				1440,
+				32
+			],
+			"lines": true
+		},
+		{
+			"kind": "sidewalk",
+			"rect": [
+				0,
+				404,
+				720,
+				8
+			]
+		},
+		{
+			"kind": "sidewalk",
+			"rect": [
+				0,
+				444,
+				720,
+				8
+			]
+		},
+		{
+			"kind": "sidewalk",
+			"rect": [
+				336,
+				0,
+				8,
+				880
+			]
+		},
+		{
+			"kind": "sidewalk",
+			"rect": [
+				376,
+				0,
+				8,
+				880
+			]
+		},
+		{
+			"kind": "sidewalk",
+			"rect": [
+				0,
+				692,
+				720,
+				8
+			]
+		},
+		{
+			"kind": "sidewalk",
+			"rect": [
+				0,
+				728,
+				720,
+				8
+			]
+		},
+		{
+			"kind": "road",
+			"rect": [
+				0,
+				412,
+				720,
+				32
+			],
+			"lines": true
+		},
+		{
+			"kind": "road",
+			"rect": [
+				344,
+				0,
+				32,
+				880
+			],
+			"lines": true
+		},
+		{
+			"kind": "road",
+			"rect": [
+				0,
+				700,
+				720,
+				28
+			],
+			"lines": true
+		},
+		{
+			"kind": "road",
+			"rect": [
+				96,
+				170,
+				248,
+				26
+			]
+		},
+		{
+			"kind": "road",
+			"rect": [
+				52,
+				146,
+				76,
+				72
+			],
+			"shape": "ellipse"
+		},
+		{
+			"kind": "crosswalk",
+			"rect": [
+				322,
+				412,
+				12,
+				32
+			]
+		},
+		{
+			"kind": "crosswalk",
+			"rect": [
+				386,
+				412,
+				12,
+				32
+			]
+		},
+		{
+			"kind": "crosswalk",
+			"rect": [
+				344,
+				390,
+				32,
+				12
+			]
+		},
+		{
+			"kind": "crosswalk",
+			"rect": [
+				344,
+				454,
+				32,
+				12
+			]
+		},
+		{
+			"kind": "crosswalk",
+			"rect": [
+				322,
+				700,
+				12,
+				28
+			]
+		},
+		{
+			"kind": "crosswalk",
+			"rect": [
+				386,
+				700,
+				12,
+				28
+			]
+		},
+		{
+			"kind": "yard",
+			"rect": [
+				124,
+				88,
+				212,
+				82
+			]
+		},
+		{
+			"kind": "garden",
+			"rect": [
+				130,
+				24,
+				40,
+				16
+			]
+		},
+		{
+			"kind": "house",
+			"rect": [
+				139,
+				124,
+				30,
+				26
+			],
+			"color": "RED"
+		},
+		{
+			"kind": "planter",
+			"rect": [
+				117,
+				144,
+				20,
+				6
+			],
+			"color": "PINK"
+		},
+		{
+			"kind": "driveway",
+			"rect": [
+				151,
+				152,
+				7,
+				18
+			]
+		},
+		{
+			"kind": "mailbox",
+			"rect": [
+				161,
+				162,
+				3,
+				7
+			],
+			"color": "BLUE"
+		},
+		{
+			"kind": "house",
+			"rect": [
+				220,
+				124,
+				30,
+				26
+			],
+			"color": "BLUE"
+		},
+		{
+			"kind": "driveway",
+			"rect": [
+				232,
+				152,
+				7,
+				18
+			]
+		},
+		{
+			"kind": "mailbox",
+			"rect": [
+				242,
+				162,
+				3,
+				7
+			],
+			"color": "RED"
+		},
+		{
+			"kind": "house",
+			"rect": [
+				297,
+				124,
+				30,
+				26
+			],
+			"color": "PURPLE"
+		},
+		{
+			"kind": "planter",
+			"rect": [
+				275,
+				144,
+				20,
+				6
+			],
+			"color": "BUTTER"
+		},
+		{
+			"kind": "driveway",
+			"rect": [
+				309,
+				152,
+				7,
+				18
+			]
+		},
+		{
+			"kind": "mailbox",
+			"rect": [
+				319,
+				162,
+				3,
+				7
+			],
+			"color": "BLUE"
+		},
+		{
+			"kind": "pool",
+			"rect": [
+				214,
+				36,
+				46,
+				30
+			]
+		},
+		{
+			"kind": "shed",
+			"rect": [
+				298,
+				38,
+				22,
+				14
+			],
+			"color": "WOOD"
+		},
+		{
+			"kind": "tree",
+			"rect": [
+				150,
+				56,
+				12,
+				12
+			],
+			"color": "RED"
+		},
+		{
+			"kind": "tree",
+			"rect": [
+				96,
+				40,
+				12,
+				12
+			],
+			"color": "RED"
+		},
+		{
+			"kind": "tree",
+			"rect": [
+				20,
+				40,
+				12,
+				12
+			]
+		},
+		{
+			"kind": "tree",
+			"rect": [
+				60,
+				72,
+				12,
+				12
+			],
+			"color": "GREEN"
+		},
+		{
+			"kind": "tree",
+			"rect": [
+				24,
+				112,
+				12,
+				12
+			],
+			"color": "RED"
+		},
+		{
+			"kind": "bush",
+			"rect": [
+				178,
+				70,
+				12,
+				9
+			],
+			"color": "BUTTER"
+		},
+		{
+			"kind": "yard",
+			"rect": [
+				4,
+				140,
+				52,
+				70
+			]
+		},
+		{
+			"kind": "house",
+			"rect": [
+				15,
+				164,
+				30,
+				26
+			],
+			"color": "TEAL"
+		},
+		{
+			"kind": "mailbox",
+			"rect": [
+				44,
+				196,
+				3,
+				7
+			],
+			"color": "GOLD"
+		},
+		{
+			"kind": "yard",
+			"rect": [
+				8,
+				310,
+				328,
+				94
+			]
+		},
+		{
+			"kind": "house",
+			"rect": [
+				27,
+				346,
+				30,
+				26
+			],
+			"color": "BLUE"
+		},
+		{
+			"kind": "planter",
+			"rect": [
+				5,
+				366,
+				20,
+				6
+			],
+			"color": "SKY"
+		},
+		{
+			"kind": "driveway",
+			"rect": [
+				39,
+				374,
+				7,
+				30
+			]
+		},
+		{
+			"kind": "mailbox",
+			"rect": [
+				49,
+				396,
+				3,
+				7
+			],
+			"color": "BLUE"
+		},
+		{
+			"kind": "house",
+			"rect": [
+				108,
+				346,
+				30,
+				26
+			],
+			"color": "RED"
+		},
+		{
+			"kind": "driveway",
+			"rect": [
+				120,
+				374,
+				7,
+				30
+			]
+		},
+		{
+			"kind": "mailbox",
+			"rect": [
+				130,
+				396,
+				3,
+				7
+			],
+			"color": "BLUE"
+		},
+		{
+			"kind": "house",
+			"rect": [
+				189,
+				346,
+				30,
+				26
+			],
+			"color": "WOOD"
+		},
+		{
+			"kind": "planter",
+			"rect": [
+				167,
+				366,
+				20,
+				6
+			],
+			"color": "PINK"
+		},
+		{
+			"kind": "driveway",
+			"rect": [
+				201,
+				374,
+				7,
+				30
+			]
+		},
+		{
+			"kind": "mailbox",
+			"rect": [
+				211,
+				396,
+				3,
+				7
+			],
+			"color": "RED"
+		},
+		{
+			"kind": "house",
+			"rect": [
+				270,
+				346,
+				30,
+				26
+			],
+			"color": "PURPLE"
+		},
+		{
+			"kind": "driveway",
+			"rect": [
+				282,
+				374,
+				7,
+				30
+			]
+		},
+		{
+			"kind": "mailbox",
+			"rect": [
+				292,
+				396,
+				3,
+				7
+			],
+			"color": "BLUE"
+		},
+		{
+			"kind": "tree",
+			"rect": [
+				40,
+				240,
+				12,
+				12
+			]
+		},
+		{
+			"kind": "tree",
+			"rect": [
+				150,
+				252,
+				12,
+				12
+			],
+			"color": "RED"
+		},
+		{
+			"kind": "tree",
+			"rect": [
+				240,
+				236,
+				12,
+				12
+			],
+			"color": "GREEN"
+		},
+		{
+			"kind": "tree",
+			"rect": [
+				306,
+				262,
+				12,
+				12
+			],
+			"color": "RED"
+		},
+		{
+			"kind": "shed",
+			"rect": [
+				111,
+				270,
+				22,
+				14
+			],
+			"color": "RED"
+		},
+		{
+			"kind": "garden",
+			"rect": [
+				190,
+				272,
+				44,
+				16
+			]
+		},
+		{
+			"kind": "bush",
+			"rect": [
+				60,
+				292,
+				12,
+				9
+			]
+		},
+		{
+			"kind": "bush",
+			"rect": [
+				214,
+				300,
+				12,
+				9
+			],
+			"color": "SKY"
+		},
+		{
+			"kind": "path",
+			"rect": [
+				472,
+				118,
+				176,
+				126
+			],
+			"shape": "ellipse"
+		},
+		{
+			"kind": "pond",
+			"rect": [
+				505,
+				143,
+				110,
+				76
+			]
+		},
+		{
+			"kind": "path",
+			"rect": [
+				384,
+				176,
+				92,
+				10
+			]
+		},
+		{
+			"kind": "path",
+			"rect": [
+				552,
+				240,
+				10,
+				164
+			]
+		},
+		{
+			"kind": "path",
+			"rect": [
+				552,
+				0,
+				10,
+				122
+			]
+		},
+		{
+			"kind": "sand",
+			"rect": [
+				600,
+				300,
+				90,
+				66
+			]
+		},
+		{
+			"kind": "swing",
+			"rect": [
+				618,
+				316,
+				26,
+				10
+			]
+		},
+		{
+			"kind": "bench",
+			"rect": [
+				400,
+				160,
+				14,
+				5
+			]
+		},
+		{
+			"kind": "bench",
+			"rect": [
+				470,
+				290,
+				14,
+				5
+			]
+		},
+		{
+			"kind": "bench",
+			"rect": [
+				640,
+				86,
+				14,
+				5
+			]
+		},
+		{
+			"kind": "bench",
+			"rect": [
+				496,
+				40,
+				14,
+				5
+			]
+		},
+		{
+			"kind": "garden",
+			"rect": [
+				400,
+				30,
+				56,
+				18
+			]
+		},
+		{
+			"kind": "garden",
+			"rect": [
+				652,
+				30,
+				44,
+				22
+			]
+		},
+		{
+			"kind": "garden",
+			"rect": [
+				400,
+				300,
+				60,
+				18
+			]
+		},
+		{
+			"kind": "tree",
+			"rect": [
+				392,
+				70,
+				12,
+				12
+			]
+		},
+		{
+			"kind": "tree",
+			"rect": [
+				410,
+				112,
+				12,
+				12
+			],
+			"color": "GREEN"
+		},
+		{
+			"kind": "tree",
+			"rect": [
+				395,
+				232,
+				12,
+				12
+			]
+		},
+		{
+			"kind": "tree",
+			"rect": [
+				420,
+				262,
+				12,
+				12
+			],
+			"color": "RED"
+		},
+		{
+			"kind": "tree",
+			"rect": [
+				470,
+				330,
+				12,
+				12
+			],
+			"color": "GREEN"
+		},
+		{
+			"kind": "tree",
+			"rect": [
+				506,
+				360,
+				12,
+				12
+			]
+		},
+		{
+			"kind": "tree",
+			"rect": [
+				430,
+				370,
+				12,
+				12
+			]
+		},
+		{
+			"kind": "tree",
+			"rect": [
+				600,
+				46,
+				12,
+				12
+			],
+			"color": "RED"
+		},
+		{
+			"kind": "tree",
+			"rect": [
+				600,
+				380,
+				12,
+				12
+			],
+			"color": "RED"
+		},
+		{
+			"kind": "bush",
+			"rect": [
+				470,
+				60,
+				12,
+				9
+			]
+		},
+		{
+			"kind": "bush",
+			"rect": [
+				642,
+				270,
+				12,
+				9
+			],
+			"color": "BUTTER"
+		},
+		{
+			"kind": "bush",
+			"rect": [
+				520,
+				300,
+				12,
+				9
+			]
+		},
+		{
+			"kind": "hedge",
+			"rect": [
+				382,
+				394,
+				40,
+				6
+			]
+		},
+		{
+			"kind": "hedge",
+			"rect": [
+				454,
+				394,
+				40,
+				6
+			]
+		},
+		{
+			"kind": "hedge",
+			"rect": [
+				564,
+				394,
+				40,
+				6
+			]
+		},
+		{
+			"kind": "hedge",
+			"rect": [
+				636,
+				394,
+				40,
+				6
+			]
+		},
+		{
+			"kind": "yard",
+			"rect": [
+				6,
+				586,
+				330,
+				106
+			]
+		},
+		{
+			"kind": "house",
+			"rect": [
+				25,
+				622,
+				30,
+				26
+			],
+			"color": "RED"
+		},
+		{
+			"kind": "planter",
+			"rect": [
+				3,
+				642,
+				20,
+				6
+			],
+			"color": "BUTTER"
+		},
+		{
+			"kind": "driveway",
+			"rect": [
+				37,
+				650,
+				7,
+				42
+			]
+		},
+		{
+			"kind": "mailbox",
+			"rect": [
+				47,
+				684,
+				3,
+				7
+			],
+			"color": "BLUE"
+		},
+		{
+			"kind": "house",
+			"rect": [
+				106,
+				622,
+				30,
+				26
+			],
+			"color": "TEAL"
+		},
+		{
+			"kind": "driveway",
+			"rect": [
+				118,
+				650,
+				7,
+				42
+			]
+		},
+		{
+			"kind": "mailbox",
+			"rect": [
+				128,
+				684,
+				3,
+				7
+			],
+			"color": "RED"
+		},
+		{
+			"kind": "house",
+			"rect": [
+				187,
+				622,
+				30,
+				26
+			],
+			"color": "BLUE"
+		},
+		{
+			"kind": "planter",
+			"rect": [
+				165,
+				642,
+				20,
+				6
+			],
+			"color": "SKY"
+		},
+		{
+			"kind": "driveway",
+			"rect": [
+				199,
+				650,
+				7,
+				42
+			]
+		},
+		{
+			"kind": "mailbox",
+			"rect": [
+				209,
+				684,
+				3,
+				7
+			],
+			"color": "BLUE"
+		},
+		{
+			"kind": "house",
+			"rect": [
+				268,
+				622,
+				30,
+				26
+			],
+			"color": "WOOD"
+		},
+		{
+			"kind": "driveway",
+			"rect": [
+				280,
+				650,
+				7,
+				42
+			]
+		},
+		{
+			"kind": "mailbox",
+			"rect": [
+				290,
+				684,
+				3,
+				7
+			],
+			"color": "BLUE"
+		},
+		{
+			"kind": "pool",
+			"rect": [
+				180,
+				494,
+				52,
+				32
+			]
+		},
+		{
+			"kind": "shed",
+			"rect": [
+				24,
+				526,
+				22,
+				14
+			],
+			"color": "BLUE"
+		},
+		{
+			"kind": "tree",
+			"rect": [
+				110,
+				500,
+				12,
+				12
+			]
+		},
+		{
+			"kind": "tree",
+			"rect": [
+				300,
+				490,
+				12,
+				12
+			],
+			"color": "GREEN"
+		},
+		{
+			"kind": "tree",
+			"rect": [
+				266,
+				552,
+				12,
+				12
+			]
+		},
+		{
+			"kind": "tree",
+			"rect": [
+				70,
+				562,
+				12,
+				12
+			]
+		},
+		{
+			"kind": "garden",
+			"rect": [
+				100,
+				544,
+				44,
+				18
+			]
+		},
+		{
+			"kind": "bush",
+			"rect": [
+				150,
+				478,
+				12,
+				9
+			],
+			"color": "BUTTER"
+		},
+		{
+			"kind": "field",
+			"rect": [
+				22,
+				756,
+				292,
+				108
+			]
+		},
+		{
+			"kind": "bench",
+			"rect": [
+				100,
+				742,
+				30,
+				5
+			]
+		},
+		{
+			"kind": "bench",
+			"rect": [
+				200,
+				742,
+				30,
+				5
+			]
+		},
+		{
+			"kind": "tree",
+			"rect": [
+				324,
+				790,
+				12,
+				12
+			],
+			"color": "RED"
+		},
+		{
+			"kind": "tree",
+			"rect": [
+				326,
+				850,
+				12,
+				12
+			],
+			"color": "GREEN"
+		},
+		{
+			"kind": "yard",
+			"rect": [
+				392,
+				586,
+				304,
+				106
+			]
+		},
+		{
+			"kind": "house",
+			"rect": [
+				417,
+				622,
+				30,
+				26
+			],
+			"color": "PURPLE"
+		},
+		{
+			"kind": "planter",
+			"rect": [
+				395,
+				642,
+				20,
+				6
+			],
+			"color": "PINK"
+		},
+		{
+			"kind": "driveway",
+			"rect": [
+				429,
+				650,
+				7,
+				42
+			]
+		},
+		{
+			"kind": "mailbox",
+			"rect": [
+				439,
+				684,
+				3,
+				7
+			],
+			"color": "BLUE"
+		},
+		{
+			"kind": "house",
+			"rect": [
+				502,
+				622,
+				30,
+				26
+			],
+			"color": "RED"
+		},
+		{
+			"kind": "driveway",
+			"rect": [
+				514,
+				650,
+				7,
+				42
+			]
+		},
+		{
+			"kind": "mailbox",
+			"rect": [
+				524,
+				684,
+				3,
+				7
+			],
+			"color": "GOLD"
+		},
+		{
+			"kind": "house",
+			"rect": [
+				589,
+				622,
+				30,
+				26
+			],
+			"color": "BLUE"
+		},
+		{
+			"kind": "planter",
+			"rect": [
+				567,
+				642,
+				20,
+				6
+			],
+			"color": "BUTTER"
+		},
+		{
+			"kind": "driveway",
+			"rect": [
+				601,
+				650,
+				7,
+				42
+			]
+		},
+		{
+			"kind": "mailbox",
+			"rect": [
+				611,
+				684,
+				3,
+				7
+			],
+			"color": "BLUE"
+		},
+		{
+			"kind": "shed",
+			"rect": [
+				615,
+				512,
+				22,
+				14
+			],
+			"color": "PURPLE"
+		},
+		{
+			"kind": "tree",
+			"rect": [
+				420,
+				490,
+				12,
+				12
+			],
+			"color": "RED"
+		},
+		{
+			"kind": "tree",
+			"rect": [
+				470,
+				520,
+				12,
+				12
+			],
+			"color": "GREEN"
+		},
+		{
+			"kind": "tree",
+			"rect": [
+				680,
+				520,
+				12,
+				12
+			]
+		},
+		{
+			"kind": "tree",
+			"rect": [
+				560,
+				556,
+				12,
+				12
+			]
+		},
+		{
+			"kind": "garden",
+			"rect": [
+				436,
+				546,
+				56,
+				18
+			]
+		},
+		{
+			"kind": "bush",
+			"rect": [
+				650,
+				478,
+				12,
+				9
+			]
+		},
+		{
+			"kind": "garden",
+			"rect": [
+				404,
+				756,
+				60,
+				14
+			]
+		},
+		{
+			"kind": "garden",
+			"rect": [
+				404,
+				780,
+				60,
+				14
+			]
+		},
+		{
+			"kind": "garden",
+			"rect": [
+				404,
+				804,
+				60,
+				14
+			]
+		},
+		{
+			"kind": "garden",
+			"rect": [
+				480,
+				756,
+				60,
+				14
+			]
+		},
+		{
+			"kind": "garden",
+			"rect": [
+				480,
+				780,
+				60,
+				14
+			]
+		},
+		{
+			"kind": "garden",
+			"rect": [
+				480,
+				804,
+				60,
+				14
+			]
+		},
+		{
+			"kind": "shed",
+			"rect": [
+				595,
+				778,
+				22,
+				14
+			],
+			"color": "SKY"
+		},
+		{
+			"kind": "path",
+			"rect": [
+				384,
+				836,
+				190,
+				8
+			]
+		},
+		{
+			"kind": "bench",
+			"rect": [
+				590,
+				812,
+				14,
+				5
+			]
+		},
+		{
+			"kind": "tree",
+			"rect": [
+				664,
+				762,
+				12,
+				12
+			]
+		},
+		{
+			"kind": "tree",
+			"rect": [
+				610,
+				846,
+				12,
+				12
+			]
+		},
+		{
+			"kind": "tree",
+			"rect": [
+				420,
+				850,
+				12,
+				12
+			],
+			"color": "RED"
+		},
+		{
+			"kind": "lamp",
+			"rect": [
+				40,
+				405,
+				3,
+				3
+			]
+		},
+		{
+			"kind": "lamp",
+			"rect": [
+				220,
+				405,
+				3,
+				3
+			]
+		},
+		{
+			"kind": "lamp",
+			"rect": [
+				460,
+				405,
+				3,
+				3
+			]
+		},
+		{
+			"kind": "lamp",
+			"rect": [
+				660,
+				405,
+				3,
+				3
+			]
+		},
+		{
+			"kind": "lamp",
+			"rect": [
+				70,
+				446,
+				3,
+				3
+			]
+		},
+		{
+			"kind": "lamp",
+			"rect": [
+				260,
+				446,
+				3,
+				3
+			]
+		},
+		{
+			"kind": "lamp",
+			"rect": [
+				450,
+				446,
+				3,
+				3
+			]
+		},
+		{
+			"kind": "lamp",
+			"rect": [
+				650,
+				446,
+				3,
+				3
+			]
+		},
+		{
+			"kind": "lamp",
+			"rect": [
+				120,
+				694,
+				3,
+				3
+			]
+		},
+		{
+			"kind": "lamp",
+			"rect": [
+				300,
+				694,
+				3,
+				3
+			]
+		},
+		{
+			"kind": "lamp",
+			"rect": [
+				470,
+				694,
+				3,
+				3
+			]
+		},
+		{
+			"kind": "lamp",
+			"rect": [
+				640,
+				694,
+				3,
+				3
+			]
+		},
+		{
+			"kind": "car",
+			"rect": [
+				60,
+				706,
+				18,
+				10
+			],
+			"color": "GOLD"
+		},
+		{
+			"kind": "car",
+			"rect": [
+				248,
+				175,
+				18,
+				10
+			],
+			"color": "PAPER"
+		},
+		{
+			"kind": "sidewalk",
+			"rect": [
+				720,
+				404,
+				720,
+				8
+			]
+		},
+		{
+			"kind": "sidewalk",
+			"rect": [
+				720,
+				444,
+				720,
+				8
+			]
+		},
+		{
+			"kind": "sidewalk",
+			"rect": [
+				1096,
+				0,
+				8,
+				880
+			]
+		},
+		{
+			"kind": "sidewalk",
+			"rect": [
+				1056,
+				0,
+				8,
+				880
+			]
+		},
+		{
+			"kind": "sidewalk",
+			"rect": [
+				720,
+				692,
+				720,
+				8
+			]
+		},
+		{
+			"kind": "sidewalk",
+			"rect": [
+				720,
+				728,
+				720,
+				8
+			]
+		},
+		{
+			"kind": "road",
+			"rect": [
+				720,
+				412,
+				720,
+				32
+			],
+			"lines": true
+		},
+		{
+			"kind": "road",
+			"rect": [
+				1064,
+				0,
+				32,
+				880
+			],
+			"lines": true
+		},
+		{
+			"kind": "road",
+			"rect": [
+				720,
+				700,
+				720,
+				28
+			],
+			"lines": true
+		},
+		{
+			"kind": "road",
+			"rect": [
+				1096,
+				170,
+				248,
+				26
+			]
+		},
+		{
+			"kind": "road",
+			"rect": [
+				1312,
+				146,
+				76,
+				72
+			],
+			"shape": "ellipse"
+		},
+		{
+			"kind": "crosswalk",
+			"rect": [
+				1106,
+				412,
+				12,
+				32
+			]
+		},
+		{
+			"kind": "crosswalk",
+			"rect": [
+				1042,
+				412,
+				12,
+				32
+			]
+		},
+		{
+			"kind": "crosswalk",
+			"rect": [
+				1064,
+				390,
+				32,
+				12
+			]
+		},
+		{
+			"kind": "crosswalk",
+			"rect": [
+				1064,
+				454,
+				32,
+				12
+			]
+		},
+		{
+			"kind": "crosswalk",
+			"rect": [
+				1106,
+				700,
+				12,
+				28
+			]
+		},
+		{
+			"kind": "crosswalk",
+			"rect": [
+				1042,
+				700,
+				12,
+				28
+			]
+		},
+		{
+			"kind": "yard",
+			"rect": [
+				1104,
+				88,
+				212,
+				82
+			]
+		},
+		{
+			"kind": "garden",
+			"rect": [
+				1270,
+				24,
+				40,
+				16
+			]
+		},
+		{
+			"kind": "house",
+			"rect": [
+				1271,
+				124,
+				30,
+				26
+			],
+			"color": "WOOD"
+		},
+		{
+			"kind": "planter",
+			"rect": [
+				1303,
+				144,
+				20,
+				6
+			],
+			"color": "PINK"
+		},
+		{
+			"kind": "driveway",
+			"rect": [
+				1282,
+				152,
+				7,
+				18
+			]
+		},
+		{
+			"kind": "mailbox",
+			"rect": [
+				1276,
+				162,
+				3,
+				7
+			],
+			"color": "GOLD"
+		},
+		{
+			"kind": "house",
+			"rect": [
+				1190,
+				124,
+				30,
+				26
+			],
+			"color": "PURPLE"
+		},
+		{
+			"kind": "driveway",
+			"rect": [
+				1201,
+				152,
+				7,
+				18
+			]
+		},
+		{
+			"kind": "mailbox",
+			"rect": [
+				1195,
+				162,
+				3,
+				7
+			],
+			"color": "BLUE"
+		},
+		{
+			"kind": "house",
+			"rect": [
+				1113,
+				124,
+				30,
+				26
+			],
+			"color": "RED"
+		},
+		{
+			"kind": "planter",
+			"rect": [
+				1145,
+				144,
+				20,
+				6
+			],
+			"color": "PINK"
+		},
+		{
+			"kind": "driveway",
+			"rect": [
+				1124,
+				152,
+				7,
+				18
+			]
+		},
+		{
+			"kind": "mailbox",
+			"rect": [
+				1118,
+				162,
+				3,
+				7
+			],
+			"color": "GOLD"
+		},
+		{
+			"kind": "pool",
+			"rect": [
+				1180,
+				36,
+				46,
+				30
+			]
+		},
+		{
+			"kind": "shed",
+			"rect": [
+				1120,
+				38,
+				22,
+				14
+			],
+			"color": "BLUE"
+		},
+		{
+			"kind": "tree",
+			"rect": [
+				1278,
+				56,
+				12,
+				12
+			]
+		},
+		{
+			"kind": "tree",
+			"rect": [
+				1332,
+				40,
+				12,
+				12
+			]
+		},
+		{
+			"kind": "tree",
+			"rect": [
+				1408,
+				40,
+				12,
+				12
+			]
+		},
+		{
+			"kind": "tree",
+			"rect": [
+				1368,
+				72,
+				12,
+				12
+			],
+			"color": "GREEN"
+		},
+		{
+			"kind": "tree",
+			"rect": [
+				1404,
+				112,
+				12,
+				12
+			]
+		},
+		{
+			"kind": "bush",
+			"rect": [
+				1250,
+				70,
+				12,
+				9
+			],
+			"color": "SKY"
+		},
+		{
+			"kind": "yard",
+			"rect": [
+				1384,
+				140,
+				52,
+				70
+			]
+		},
+		{
+			"kind": "house",
+			"rect": [
+				1395,
+				164,
+				30,
+				26
+			],
+			"color": "TEAL"
+		},
+		{
+			"kind": "mailbox",
+			"rect": [
+				1393,
+				196,
+				3,
+				7
+			],
+			"color": "BLUE"
+		},
+		{
+			"kind": "yard",
+			"rect": [
+				1104,
+				310,
+				328,
+				94
+			]
+		},
+		{
+			"kind": "house",
+			"rect": [
+				1383,
+				346,
+				30,
+				26
+			],
+			"color": "BLUE"
+		},
+		{
+			"kind": "planter",
+			"rect": [
+				1415,
+				366,
+				20,
+				6
+			],
+			"color": "SKY"
+		},
+		{
+			"kind": "driveway",
+			"rect": [
+				1394,
+				374,
+				7,
+				30
+			]
+		},
+		{
+			"kind": "mailbox",
+			"rect": [
+				1388,
+				396,
+				3,
+				7
+			],
+			"color": "RED"
+		},
+		{
+			"kind": "house",
+			"rect": [
+				1302,
+				346,
+				30,
+				26
+			],
+			"color": "WOOD"
+		},
+		{
+			"kind": "driveway",
+			"rect": [
+				1313,
+				374,
+				7,
+				30
+			]
+		},
+		{
+			"kind": "mailbox",
+			"rect": [
+				1307,
+				396,
+				3,
+				7
+			],
+			"color": "BLUE"
+		},
+		{
+			"kind": "house",
+			"rect": [
+				1221,
+				346,
+				30,
+				26
+			],
+			"color": "TEAL"
+		},
+		{
+			"kind": "planter",
+			"rect": [
+				1253,
+				366,
+				20,
+				6
+			],
+			"color": "BUTTER"
+		},
+		{
+			"kind": "driveway",
+			"rect": [
+				1232,
+				374,
+				7,
+				30
+			]
+		},
+		{
+			"kind": "mailbox",
+			"rect": [
+				1226,
+				396,
+				3,
+				7
+			],
+			"color": "BLUE"
+		},
+		{
+			"kind": "house",
+			"rect": [
+				1140,
+				346,
+				30,
+				26
+			],
+			"color": "PURPLE"
+		},
+		{
+			"kind": "driveway",
+			"rect": [
+				1151,
+				374,
+				7,
+				30
+			]
+		},
+		{
+			"kind": "mailbox",
+			"rect": [
+				1145,
+				396,
+				3,
+				7
+			],
+			"color": "GOLD"
+		},
+		{
+			"kind": "tree",
+			"rect": [
+				1388,
+				240,
+				12,
+				12
+			]
+		},
+		{
+			"kind": "tree",
+			"rect": [
+				1278,
+				252,
+				12,
+				12
+			],
+			"color": "GREEN"
+		},
+		{
+			"kind": "tree",
+			"rect": [
+				1188,
+				236,
+				12,
+				12
+			]
+		},
+		{
+			"kind": "tree",
+			"rect": [
+				1122,
+				262,
+				12,
+				12
+			]
+		},
+		{
+			"kind": "shed",
+			"rect": [
+				1307,
+				270,
+				22,
+				14
+			],
+			"color": "BLUE"
+		},
+		{
+			"kind": "garden",
+			"rect": [
+				1206,
+				272,
+				44,
+				16
+			]
+		},
+		{
+			"kind": "bush",
+			"rect": [
+				1368,
+				292,
+				12,
+				9
+			]
+		},
+		{
+			"kind": "bush",
+			"rect": [
+				1214,
+				300,
+				12,
+				9
+			]
+		},
+		{
+			"kind": "path",
+			"rect": [
+				792,
+				118,
+				176,
+				126
+			],
+			"shape": "ellipse"
+		},
+		{
+			"kind": "pond",
+			"rect": [
+				825,
+				143,
+				110,
+				76
+			]
+		},
+		{
+			"kind": "path",
+			"rect": [
+				964,
+				176,
+				92,
+				10
+			]
+		},
+		{
+			"kind": "path",
+			"rect": [
+				878,
+				240,
+				10,
+				164
+			]
+		},
+		{
+			"kind": "path",
+			"rect": [
+				878,
+				0,
+				10,
+				122
+			]
+		},
+		{
+			"kind": "sand",
+			"rect": [
+				750,
+				300,
+				90,
+				66
+			]
+		},
+		{
+			"kind": "swing",
+			"rect": [
+				796,
+				316,
+				26,
+				10
+			]
+		},
+		{
+			"kind": "bench",
+			"rect": [
+				1026,
+				160,
+				14,
+				5
+			]
+		},
+		{
+			"kind": "bench",
+			"rect": [
+				956,
+				290,
+				14,
+				5
+			]
+		},
+		{
+			"kind": "bench",
+			"rect": [
+				786,
+				86,
+				14,
+				5
+			]
+		},
+		{
+			"kind": "bench",
+			"rect": [
+				930,
+				40,
+				14,
+				5
+			]
+		},
+		{
+			"kind": "garden",
+			"rect": [
+				984,
+				30,
+				56,
+				18
+			]
+		},
+		{
+			"kind": "garden",
+			"rect": [
+				744,
+				30,
+				44,
+				22
+			]
+		},
+		{
+			"kind": "garden",
+			"rect": [
+				980,
+				300,
+				60,
+				18
+			]
+		},
+		{
+			"kind": "tree",
+			"rect": [
+				1036,
+				70,
+				12,
+				12
+			],
+			"color": "RED"
+		},
+		{
+			"kind": "tree",
+			"rect": [
+				1018,
+				112,
+				12,
+				12
+			]
+		},
+		{
+			"kind": "tree",
+			"rect": [
+				1033,
+				232,
+				12,
+				12
+			]
+		},
+		{
+			"kind": "tree",
+			"rect": [
+				1008,
+				262,
+				12,
+				12
+			],
+			"color": "GREEN"
+		},
+		{
+			"kind": "tree",
+			"rect": [
+				958,
+				330,
+				12,
+				12
+			]
+		},
+		{
+			"kind": "tree",
+			"rect": [
+				922,
+				360,
+				12,
+				12
+			],
+			"color": "RED"
+		},
+		{
+			"kind": "tree",
+			"rect": [
+				998,
+				370,
+				12,
+				12
+			],
+			"color": "RED"
+		},
+		{
+			"kind": "tree",
+			"rect": [
+				828,
+				46,
+				12,
+				12
+			],
+			"color": "RED"
+		},
+		{
+			"kind": "tree",
+			"rect": [
+				828,
+				380,
+				12,
+				12
+			]
+		},
+		{
+			"kind": "bush",
+			"rect": [
+				958,
+				60,
+				12,
+				9
+			],
+			"color": "BUTTER"
+		},
+		{
+			"kind": "bush",
+			"rect": [
+				786,
+				270,
+				12,
+				9
+			],
+			"color": "SKY"
+		},
+		{
+			"kind": "bush",
+			"rect": [
+				908,
+				300,
+				12,
+				9
+			]
+		},
+		{
+			"kind": "hedge",
+			"rect": [
+				1018,
+				394,
+				40,
+				6
+			]
+		},
+		{
+			"kind": "hedge",
+			"rect": [
+				946,
+				394,
+				40,
+				6
+			]
+		},
+		{
+			"kind": "hedge",
+			"rect": [
+				836,
+				394,
+				40,
+				6
+			]
+		},
+		{
+			"kind": "hedge",
+			"rect": [
+				764,
+				394,
+				40,
+				6
+			]
+		},
+		{
+			"kind": "yard",
+			"rect": [
+				1104,
+				586,
+				330,
+				106
+			]
+		},
+		{
+			"kind": "house",
+			"rect": [
+				1385,
+				622,
+				30,
+				26
+			],
+			"color": "RED"
+		},
+		{
+			"kind": "planter",
+			"rect": [
+				1417,
+				642,
+				20,
+				6
+			],
+			"color": "SKY"
+		},
+		{
+			"kind": "driveway",
+			"rect": [
+				1396,
+				650,
+				7,
+				42
+			]
+		},
+		{
+			"kind": "mailbox",
+			"rect": [
+				1390,
+				684,
+				3,
+				7
+			],
+			"color": "BLUE"
+		},
+		{
+			"kind": "house",
+			"rect": [
+				1304,
+				622,
+				30,
+				26
+			],
+			"color": "RED"
+		},
+		{
+			"kind": "driveway",
+			"rect": [
+				1315,
+				650,
+				7,
+				42
+			]
+		},
+		{
+			"kind": "mailbox",
+			"rect": [
+				1309,
+				684,
+				3,
+				7
+			],
+			"color": "RED"
+		},
+		{
+			"kind": "house",
+			"rect": [
+				1223,
+				622,
+				30,
+				26
+			],
+			"color": "PURPLE"
+		},
+		{
+			"kind": "planter",
+			"rect": [
+				1255,
+				642,
+				20,
+				6
+			],
+			"color": "SKY"
+		},
+		{
+			"kind": "driveway",
+			"rect": [
+				1234,
+				650,
+				7,
+				42
+			]
+		},
+		{
+			"kind": "mailbox",
+			"rect": [
+				1228,
+				684,
+				3,
+				7
+			],
+			"color": "BLUE"
+		},
+		{
+			"kind": "house",
+			"rect": [
+				1142,
+				622,
+				30,
+				26
+			],
+			"color": "TEAL"
+		},
+		{
+			"kind": "driveway",
+			"rect": [
+				1153,
+				650,
+				7,
+				42
+			]
+		},
+		{
+			"kind": "mailbox",
+			"rect": [
+				1147,
+				684,
+				3,
+				7
+			],
+			"color": "GOLD"
+		},
+		{
+			"kind": "pool",
+			"rect": [
+				1208,
+				494,
+				52,
+				32
+			]
+		},
+		{
+			"kind": "shed",
+			"rect": [
+				1394,
+				526,
+				22,
+				14
+			],
+			"color": "RED"
+		},
+		{
+			"kind": "tree",
+			"rect": [
+				1318,
+				500,
+				12,
+				12
+			]
+		},
+		{
+			"kind": "tree",
+			"rect": [
+				1128,
+				490,
+				12,
+				12
+			],
+			"color": "RED"
+		},
+		{
+			"kind": "tree",
+			"rect": [
+				1162,
+				552,
+				12,
+				12
+			]
+		},
+		{
+			"kind": "tree",
+			"rect": [
+				1358,
+				562,
+				12,
+				12
+			],
+			"color": "RED"
+		},
+		{
+			"kind": "garden",
+			"rect": [
+				1296,
+				544,
+				44,
+				18
+			]
+		},
+		{
+			"kind": "bush",
+			"rect": [
+				1278,
+				478,
+				12,
+				9
+			]
+		},
+		{
+			"kind": "field",
+			"rect": [
+				1126,
+				756,
+				292,
+				108
+			]
+		},
+		{
+			"kind": "bench",
+			"rect": [
+				1310,
+				742,
+				30,
+				5
+			]
+		},
+		{
+			"kind": "bench",
+			"rect": [
+				1210,
+				742,
+				30,
+				5
+			]
+		},
+		{
+			"kind": "tree",
+			"rect": [
+				1104,
+				790,
+				12,
+				12
+			]
+		},
+		{
+			"kind": "tree",
+			"rect": [
+				1102,
+				850,
+				12,
+				12
+			]
+		},
+		{
+			"kind": "yard",
+			"rect": [
+				744,
+				586,
+				304,
+				106
+			]
+		},
+		{
+			"kind": "house",
+			"rect": [
+				993,
+				622,
+				30,
+				26
+			],
+			"color": "RED"
+		},
+		{
+			"kind": "planter",
+			"rect": [
+				1025,
+				642,
+				20,
+				6
+			],
+			"color": "SKY"
+		},
+		{
+			"kind": "driveway",
+			"rect": [
+				1004,
+				650,
+				7,
+				42
+			]
+		},
+		{
+			"kind": "mailbox",
+			"rect": [
+				998,
+				684,
+				3,
+				7
+			],
+			"color": "RED"
+		},
+		{
+			"kind": "house",
+			"rect": [
+				908,
+				622,
+				30,
+				26
+			],
+			"color": "WOOD"
+		},
+		{
+			"kind": "driveway",
+			"rect": [
+				919,
+				650,
+				7,
+				42
+			]
+		},
+		{
+			"kind": "mailbox",
+			"rect": [
+				913,
+				684,
+				3,
+				7
+			],
+			"color": "RED"
+		},
+		{
+			"kind": "house",
+			"rect": [
+				821,
+				622,
+				30,
+				26
+			],
+			"color": "PURPLE"
+		},
+		{
+			"kind": "planter",
+			"rect": [
+				853,
+				642,
+				20,
+				6
+			],
+			"color": "BUTTER"
+		},
+		{
+			"kind": "driveway",
+			"rect": [
+				832,
+				650,
+				7,
+				42
+			]
+		},
+		{
+			"kind": "mailbox",
+			"rect": [
+				826,
+				684,
+				3,
+				7
+			],
+			"color": "GOLD"
+		},
+		{
+			"kind": "shed",
+			"rect": [
+				803,
+				512,
+				22,
+				14
+			],
+			"color": "BLUE"
+		},
+		{
+			"kind": "tree",
+			"rect": [
+				1008,
+				490,
+				12,
+				12
+			]
+		},
+		{
+			"kind": "tree",
+			"rect": [
+				958,
+				520,
+				12,
+				12
+			],
+			"color": "GREEN"
+		},
+		{
+			"kind": "tree",
+			"rect": [
+				748,
+				520,
+				12,
+				12
+			]
+		},
+		{
+			"kind": "tree",
+			"rect": [
+				868,
+				556,
+				12,
+				12
+			]
+		},
+		{
+			"kind": "garden",
+			"rect": [
+				948,
+				546,
+				56,
+				18
+			]
+		},
+		{
+			"kind": "bush",
+			"rect": [
+				778,
+				478,
+				12,
+				9
+			],
+			"color": "BUTTER"
+		},
+		{
+			"kind": "garden",
+			"rect": [
+				976,
+				756,
+				60,
+				14
+			]
+		},
+		{
+			"kind": "garden",
+			"rect": [
+				976,
+				780,
+				60,
+				14
+			]
+		},
+		{
+			"kind": "garden",
+			"rect": [
+				976,
+				804,
+				60,
+				14
+			]
+		},
+		{
+			"kind": "garden",
+			"rect": [
+				900,
+				756,
+				60,
+				14
+			]
+		},
+		{
+			"kind": "garden",
+			"rect": [
+				900,
+				780,
+				60,
+				14
+			]
+		},
+		{
+			"kind": "garden",
+			"rect": [
+				900,
+				804,
+				60,
+				14
+			]
+		},
+		{
+			"kind": "shed",
+			"rect": [
+				823,
+				778,
+				22,
+				14
+			],
+			"color": "SKY"
+		},
+		{
+			"kind": "path",
+			"rect": [
+				866,
+				836,
+				190,
+				8
+			]
+		},
+		{
+			"kind": "bench",
+			"rect": [
+				836,
+				812,
+				14,
+				5
+			]
+		},
+		{
+			"kind": "tree",
+			"rect": [
+				764,
+				762,
+				12,
+				12
+			],
+			"color": "GREEN"
+		},
+		{
+			"kind": "tree",
+			"rect": [
+				818,
+				846,
+				12,
+				12
+			],
+			"color": "GREEN"
+		},
+		{
+			"kind": "tree",
+			"rect": [
+				1008,
+				850,
+				12,
+				12
+			]
+		},
+		{
+			"kind": "lamp",
+			"rect": [
+				1397,
+				405,
+				3,
+				3
+			]
+		},
+		{
+			"kind": "lamp",
+			"rect": [
+				1217,
+				405,
+				3,
+				3
+			]
+		},
+		{
+			"kind": "lamp",
+			"rect": [
+				977,
+				405,
+				3,
+				3
+			]
+		},
+		{
+			"kind": "lamp",
+			"rect": [
+				777,
+				405,
+				3,
+				3
+			]
+		},
+		{
+			"kind": "lamp",
+			"rect": [
+				1367,
+				446,
+				3,
+				3
+			]
+		},
+		{
+			"kind": "lamp",
+			"rect": [
+				1177,
+				446,
+				3,
+				3
+			]
+		},
+		{
+			"kind": "lamp",
+			"rect": [
+				987,
+				446,
+				3,
+				3
+			]
+		},
+		{
+			"kind": "lamp",
+			"rect": [
+				787,
+				446,
+				3,
+				3
+			]
+		},
+		{
+			"kind": "lamp",
+			"rect": [
+				1317,
+				694,
+				3,
+				3
+			]
+		},
+		{
+			"kind": "lamp",
+			"rect": [
+				1137,
+				694,
+				3,
+				3
+			]
+		},
+		{
+			"kind": "lamp",
+			"rect": [
+				967,
+				694,
+				3,
+				3
+			]
+		},
+		{
+			"kind": "lamp",
+			"rect": [
+				797,
+				694,
+				3,
+				3
+			]
+		},
+		{
+			"kind": "car",
+			"rect": [
+				1362,
+				706,
+				18,
+				10
+			]
+		},
+		{
+			"kind": "car",
+			"rect": [
+				1174,
+				175,
+				18,
+				10
+			],
+			"color": "PAPER"
+		},
+		{
+			"kind": "sidewalk",
+			"rect": [
+				0,
+				1284,
+				720,
+				8
+			]
+		},
+		{
+			"kind": "sidewalk",
+			"rect": [
+				0,
+				1324,
+				720,
+				8
+			]
+		},
+		{
+			"kind": "sidewalk",
+			"rect": [
+				376,
+				880,
+				8,
+				880
+			]
+		},
+		{
+			"kind": "sidewalk",
+			"rect": [
+				336,
+				880,
+				8,
+				880
+			]
+		},
+		{
+			"kind": "sidewalk",
+			"rect": [
+				0,
+				1572,
+				720,
+				8
+			]
+		},
+		{
+			"kind": "sidewalk",
+			"rect": [
+				0,
+				1608,
+				720,
+				8
+			]
+		},
+		{
+			"kind": "road",
+			"rect": [
+				0,
+				1292,
+				720,
+				32
+			],
+			"lines": true
+		},
+		{
+			"kind": "road",
+			"rect": [
+				344,
+				880,
+				32,
+				880
+			],
+			"lines": true
+		},
+		{
+			"kind": "road",
+			"rect": [
+				0,
+				1580,
+				720,
+				28
+			],
+			"lines": true
+		},
+		{
+			"kind": "road",
+			"rect": [
+				376,
+				1050,
+				248,
+				26
+			]
+		},
+		{
+			"kind": "road",
+			"rect": [
+				592,
+				1026,
+				76,
+				72
+			],
+			"shape": "ellipse"
+		},
+		{
+			"kind": "crosswalk",
+			"rect": [
+				386,
+				1292,
+				12,
+				32
+			]
+		},
+		{
+			"kind": "crosswalk",
+			"rect": [
+				322,
+				1292,
+				12,
+				32
+			]
+		},
+		{
+			"kind": "crosswalk",
+			"rect": [
+				344,
+				1270,
+				32,
+				12
+			]
+		},
+		{
+			"kind": "crosswalk",
+			"rect": [
+				344,
+				1334,
+				32,
+				12
+			]
+		},
+		{
+			"kind": "crosswalk",
+			"rect": [
+				386,
+				1580,
+				12,
+				28
+			]
+		},
+		{
+			"kind": "crosswalk",
+			"rect": [
+				322,
+				1580,
+				12,
+				28
+			]
+		},
+		{
+			"kind": "yard",
+			"rect": [
+				384,
+				968,
+				212,
+				82
+			]
+		},
+		{
+			"kind": "garden",
+			"rect": [
+				550,
+				912,
+				40,
+				8
+			]
+		},
+		{
+			"kind": "house",
+			"rect": [
+				551,
+				1004,
+				30,
+				26
+			],
+			"color": "TEAL"
+		},
+		{
+			"kind": "planter",
+			"rect": [
+				583,
+				1024,
+				20,
+				6
+			],
+			"color": "BUTTER"
+		},
+		{
+			"kind": "driveway",
+			"rect": [
+				562,
+				1032,
+				7,
+				18
+			]
+		},
+		{
+			"kind": "mailbox",
+			"rect": [
+				556,
+				1042,
+				3,
+				7
+			],
+			"color": "GOLD"
+		},
+		{
+			"kind": "house",
+			"rect": [
+				470,
+				1004,
+				30,
+				26
+			],
+			"color": "RED"
+		},
+		{
+			"kind": "driveway",
+			"rect": [
+				481,
+				1032,
+				7,
+				18
+			]
+		},
+		{
+			"kind": "mailbox",
+			"rect": [
+				475,
+				1042,
+				3,
+				7
+			],
+			"color": "GOLD"
+		},
+		{
+			"kind": "house",
+			"rect": [
+				393,
+				1004,
+				30,
+				26
+			],
+			"color": "TEAL"
+		},
+		{
+			"kind": "planter",
+			"rect": [
+				425,
+				1024,
+				20,
+				6
+			],
+			"color": "BUTTER"
+		},
+		{
+			"kind": "driveway",
+			"rect": [
+				404,
+				1032,
+				7,
+				18
+			]
+		},
+		{
+			"kind": "mailbox",
+			"rect": [
+				398,
+				1042,
+				3,
+				7
+			],
+			"color": "GOLD"
+		},
+		{
+			"kind": "pool",
+			"rect": [
+				460,
+				916,
+				46,
+				30
+			]
+		},
+		{
+			"kind": "shed",
+			"rect": [
+				400,
+				918,
+				22,
+				14
+			],
+			"color": "WOOD"
+		},
+		{
+			"kind": "tree",
+			"rect": [
+				558,
+				936,
+				12,
+				12
+			]
+		},
+		{
+			"kind": "tree",
+			"rect": [
+				612,
+				920,
+				12,
+				12
+			]
+		},
+		{
+			"kind": "tree",
+			"rect": [
+				648,
+				952,
+				12,
+				12
+			],
+			"color": "GREEN"
+		},
+		{
+			"kind": "tree",
+			"rect": [
+				684,
+				992,
+				12,
+				12
+			]
+		},
+		{
+			"kind": "bush",
+			"rect": [
+				530,
+				950,
+				12,
+				9
+			]
+		},
+		{
+			"kind": "yard",
+			"rect": [
+				664,
+				1020,
+				32,
+				70
+			]
+		},
+		{
+			"kind": "mailbox",
+			"rect": [
+				673,
+				1076,
+				3,
+				7
+			],
+			"color": "BLUE"
+		},
+		{
+			"kind": "yard",
+			"rect": [
+				384,
+				1190,
+				312,
+				94
+			]
+		},
+		{
+			"kind": "house",
+			"rect": [
+				663,
+				1226,
+				30,
+				26
+			],
+			"color": "PURPLE"
+		},
+		{
+			"kind": "driveway",
+			"rect": [
+				674,
+				1254,
+				7,
+				30
+			]
+		},
+		{
+			"kind": "mailbox",
+			"rect": [
+				668,
+				1276,
+				3,
+				7
+			],
+			"color": "RED"
+		},
+		{
+			"kind": "house",
+			"rect": [
+				582,
+				1226,
+				30,
+				26
+			],
+			"color": "BLUE"
+		},
+		{
+			"kind": "driveway",
+			"rect": [
+				593,
+				1254,
+				7,
+				30
+			]
+		},
+		{
+			"kind": "mailbox",
+			"rect": [
+				587,
+				1276,
+				3,
+				7
+			],
+			"color": "RED"
+		},
+		{
+			"kind": "house",
+			"rect": [
+				501,
+				1226,
+				30,
+				26
+			],
+			"color": "WOOD"
+		},
+		{
+			"kind": "planter",
+			"rect": [
+				533,
+				1246,
+				20,
+				6
+			],
+			"color": "BUTTER"
+		},
+		{
+			"kind": "driveway",
+			"rect": [
+				512,
+				1254,
+				7,
+				30
+			]
+		},
+		{
+			"kind": "mailbox",
+			"rect": [
+				506,
+				1276,
+				3,
+				7
+			],
+			"color": "RED"
+		},
+		{
+			"kind": "house",
+			"rect": [
+				420,
+				1226,
+				30,
+				26
+			],
+			"color": "WOOD"
+		},
+		{
+			"kind": "driveway",
+			"rect": [
+				431,
+				1254,
+				7,
+				30
+			]
+		},
+		{
+			"kind": "mailbox",
+			"rect": [
+				425,
+				1276,
+				3,
+				7
+			],
+			"color": "RED"
+		},
+		{
+			"kind": "tree",
+			"rect": [
+				668,
+				1120,
+				12,
+				12
+			],
+			"color": "GREEN"
+		},
+		{
+			"kind": "tree",
+			"rect": [
+				558,
+				1132,
+				12,
+				12
+			],
+			"color": "GREEN"
+		},
+		{
+			"kind": "tree",
+			"rect": [
+				468,
+				1116,
+				12,
+				12
+			],
+			"color": "RED"
+		},
+		{
+			"kind": "tree",
+			"rect": [
+				402,
+				1142,
+				12,
+				12
+			],
+			"color": "GREEN"
+		},
+		{
+			"kind": "shed",
+			"rect": [
+				587,
+				1150,
+				22,
+				14
+			],
+			"color": "BLUE"
+		},
+		{
+			"kind": "garden",
+			"rect": [
+				486,
+				1152,
+				44,
+				16
+			]
+		},
+		{
+			"kind": "bush",
+			"rect": [
+				648,
+				1172,
+				12,
+				9
+			],
+			"color": "SKY"
+		},
+		{
+			"kind": "bush",
+			"rect": [
+				494,
+				1180,
+				12,
+				9
+			],
+			"color": "BUTTER"
+		},
+		{
+			"kind": "path",
+			"rect": [
+				72,
+				998,
+				176,
+				126
+			],
+			"shape": "ellipse"
+		},
+		{
+			"kind": "pond",
+			"rect": [
+				105,
+				1023,
+				110,
+				76
+			]
+		},
+		{
+			"kind": "path",
+			"rect": [
+				244,
+				1056,
+				92,
+				10
+			]
+		},
+		{
+			"kind": "path",
+			"rect": [
+				158,
+				1120,
+				10,
+				164
+			]
+		},
+		{
+			"kind": "path",
+			"rect": [
+				158,
+				912,
+				10,
+				90
+			]
+		},
+		{
+			"kind": "sand",
+			"rect": [
+				30,
+				1180,
+				90,
+				66
+			]
+		},
+		{
+			"kind": "swing",
+			"rect": [
+				76,
+				1196,
+				26,
+				10
+			]
+		},
+		{
+			"kind": "bench",
+			"rect": [
+				306,
+				1040,
+				14,
+				5
+			]
+		},
+		{
+			"kind": "bench",
+			"rect": [
+				236,
+				1170,
+				14,
+				5
+			]
+		},
+		{
+			"kind": "bench",
+			"rect": [
+				66,
+				966,
+				14,
+				5
+			]
+		},
+		{
+			"kind": "bench",
+			"rect": [
+				210,
+				920,
+				14,
+				5
+			]
+		},
+		{
+			"kind": "garden",
+			"rect": [
+				264,
+				912,
+				56,
+				16
+			]
+		},
+		{
+			"kind": "garden",
+			"rect": [
+				12,
+				912,
+				56,
+				20
+			]
+		},
+		{
+			"kind": "garden",
+			"rect": [
+				260,
+				1180,
+				60,
+				18
+			]
+		},
+		{
+			"kind": "tree",
+			"rect": [
+				316,
+				950,
+				12,
+				12
+			],
+			"color": "GREEN"
+		},
+		{
+			"kind": "tree",
+			"rect": [
+				298,
+				992,
+				12,
+				12
+			],
+			"color": "GREEN"
+		},
+		{
+			"kind": "tree",
+			"rect": [
+				313,
+				1112,
+				12,
+				12
+			]
+		},
+		{
+			"kind": "tree",
+			"rect": [
+				288,
+				1142,
+				12,
+				12
+			],
+			"color": "GREEN"
+		},
+		{
+			"kind": "tree",
+			"rect": [
+				238,
+				1210,
+				12,
+				12
+			],
+			"color": "GREEN"
+		},
+		{
+			"kind": "tree",
+			"rect": [
+				202,
+				1240,
+				12,
+				12
+			]
+		},
+		{
+			"kind": "tree",
+			"rect": [
+				278,
+				1250,
+				12,
+				12
+			],
+			"color": "GREEN"
+		},
+		{
+			"kind": "tree",
+			"rect": [
+				22,
+				1000,
+				12,
+				12
+			]
+		},
+		{
+			"kind": "tree",
+			"rect": [
+				8,
+				1064,
+				12,
+				12
+			]
+		},
+		{
+			"kind": "tree",
+			"rect": [
+				18,
+				1132,
+				12,
+				12
+			]
+		},
+		{
+			"kind": "tree",
+			"rect": [
+				3,
+				950,
+				12,
+				12
+			],
+			"color": "RED"
+		},
+		{
+			"kind": "tree",
+			"rect": [
+				108,
+				926,
+				12,
+				12
+			],
+			"color": "GREEN"
+		},
+		{
+			"kind": "tree",
+			"rect": [
+				8,
+				1254,
+				12,
+				12
+			],
+			"color": "RED"
+		},
+		{
+			"kind": "tree",
+			"rect": [
+				108,
+				1260,
+				12,
+				12
+			]
+		},
+		{
+			"kind": "bush",
+			"rect": [
+				238,
+				940,
+				12,
+				9
+			],
+			"color": "BUTTER"
+		},
+		{
+			"kind": "bush",
+			"rect": [
+				66,
+				1150,
+				12,
+				9
+			],
+			"color": "SKY"
+		},
+		{
+			"kind": "bush",
+			"rect": [
+				188,
+				1180,
+				12,
+				9
+			],
+			"color": "BUTTER"
+		},
+		{
+			"kind": "hedge",
+			"rect": [
+				298,
+				1274,
+				40,
+				6
+			]
+		},
+		{
+			"kind": "hedge",
+			"rect": [
+				226,
+				1274,
+				40,
+				6
+			]
+		},
+		{
+			"kind": "hedge",
+			"rect": [
+				116,
+				1274,
+				40,
+				6
+			]
+		},
+		{
+			"kind": "hedge",
+			"rect": [
+				44,
+				1274,
+				40,
+				6
+			]
+		},
+		{
+			"kind": "yard",
+			"rect": [
+				384,
+				1466,
+				312,
+				106
+			]
+		},
+		{
+			"kind": "house",
+			"rect": [
+				665,
+				1502,
+				30,
+				26
+			],
+			"color": "TEAL"
+		},
+		{
+			"kind": "driveway",
+			"rect": [
+				676,
+				1530,
+				7,
+				42
+			]
+		},
+		{
+			"kind": "mailbox",
+			"rect": [
+				670,
+				1564,
+				3,
+				7
+			],
+			"color": "BLUE"
+		},
+		{
+			"kind": "house",
+			"rect": [
+				584,
+				1502,
+				30,
+				26
+			],
+			"color": "PURPLE"
+		},
+		{
+			"kind": "driveway",
+			"rect": [
+				595,
+				1530,
+				7,
+				42
+			]
+		},
+		{
+			"kind": "mailbox",
+			"rect": [
+				589,
+				1564,
+				3,
+				7
+			],
+			"color": "BLUE"
+		},
+		{
+			"kind": "house",
+			"rect": [
+				503,
+				1502,
+				30,
+				26
+			],
+			"color": "WOOD"
+		},
+		{
+			"kind": "planter",
+			"rect": [
+				535,
+				1522,
+				20,
+				6
+			],
+			"color": "BUTTER"
+		},
+		{
+			"kind": "driveway",
+			"rect": [
+				514,
+				1530,
+				7,
+				42
+			]
+		},
+		{
+			"kind": "mailbox",
+			"rect": [
+				508,
+				1564,
+				3,
+				7
+			],
+			"color": "BLUE"
+		},
+		{
+			"kind": "house",
+			"rect": [
+				422,
+				1502,
+				30,
+				26
+			],
+			"color": "BLUE"
+		},
+		{
+			"kind": "driveway",
+			"rect": [
+				433,
+				1530,
+				7,
+				42
+			]
+		},
+		{
+			"kind": "mailbox",
+			"rect": [
+				427,
+				1564,
+				3,
+				7
+			],
+			"color": "BLUE"
+		},
+		{
+			"kind": "pool",
+			"rect": [
+				488,
+				1374,
+				52,
+				32
+			]
+		},
+		{
+			"kind": "shed",
+			"rect": [
+				674,
+				1406,
+				22,
+				14
+			],
+			"color": "SKY"
+		},
+		{
+			"kind": "tree",
+			"rect": [
+				598,
+				1380,
+				12,
+				12
+			],
+			"color": "RED"
+		},
+		{
+			"kind": "tree",
+			"rect": [
+				408,
+				1370,
+				12,
+				12
+			]
+		},
+		{
+			"kind": "tree",
+			"rect": [
+				442,
+				1432,
+				12,
+				12
+			]
+		},
+		{
+			"kind": "tree",
+			"rect": [
+				638,
+				1442,
+				12,
+				12
+			]
+		},
+		{
+			"kind": "garden",
+			"rect": [
+				576,
+				1424,
+				44,
+				18
+			]
+		},
+		{
+			"kind": "bush",
+			"rect": [
+				558,
+				1358,
+				12,
+				9
+			],
+			"color": "BUTTER"
+		},
+		{
+			"kind": "field",
+			"rect": [
+				406,
+				1636,
+				290,
+				108
+			]
+		},
+		{
+			"kind": "bench",
+			"rect": [
+				590,
+				1622,
+				30,
+				5
+			]
+		},
+		{
+			"kind": "bench",
+			"rect": [
+				490,
+				1622,
+				30,
+				5
+			]
+		},
+		{
+			"kind": "tree",
+			"rect": [
+				384,
+				1670,
+				12,
+				12
+			],
+			"color": "RED"
+		},
+		{
+			"kind": "tree",
+			"rect": [
+				382,
+				1730,
+				12,
+				12
+			]
+		},
+		{
+			"kind": "yard",
+			"rect": [
+				0,
+				1466,
+				328,
+				106
+			]
+		},
+		{
+			"kind": "house",
+			"rect": [
+				273,
+				1502,
+				30,
+				26
+			],
+			"color": "BLUE"
+		},
+		{
+			"kind": "planter",
+			"rect": [
+				305,
+				1522,
+				20,
+				6
+			],
+			"color": "PINK"
+		},
+		{
+			"kind": "driveway",
+			"rect": [
+				284,
+				1530,
+				7,
+				42
+			]
+		},
+		{
+			"kind": "mailbox",
+			"rect": [
+				278,
+				1564,
+				3,
+				7
+			],
+			"color": "RED"
+		},
+		{
+			"kind": "house",
+			"rect": [
+				188,
+				1502,
+				30,
+				26
+			],
+			"color": "WOOD"
+		},
+		{
+			"kind": "driveway",
+			"rect": [
+				199,
+				1530,
+				7,
+				42
+			]
+		},
+		{
+			"kind": "mailbox",
+			"rect": [
+				193,
+				1564,
+				3,
+				7
+			],
+			"color": "BLUE"
+		},
+		{
+			"kind": "house",
+			"rect": [
+				101,
+				1502,
+				30,
+				26
+			],
+			"color": "TEAL"
+		},
+		{
+			"kind": "planter",
+			"rect": [
+				133,
+				1522,
+				20,
+				6
+			],
+			"color": "SKY"
+		},
+		{
+			"kind": "driveway",
+			"rect": [
+				112,
+				1530,
+				7,
+				42
+			]
+		},
+		{
+			"kind": "mailbox",
+			"rect": [
+				106,
+				1564,
+				3,
+				7
+			],
+			"color": "GOLD"
+		},
+		{
+			"kind": "shed",
+			"rect": [
+				83,
+				1392,
+				22,
+				14
+			],
+			"color": "WOOD"
+		},
+		{
+			"kind": "tree",
+			"rect": [
+				288,
+				1370,
+				12,
+				12
+			],
+			"color": "GREEN"
+		},
+		{
+			"kind": "tree",
+			"rect": [
+				238,
+				1400,
+				12,
+				12
+			]
+		},
+		{
+			"kind": "tree",
+			"rect": [
+				28,
+				1400,
+				12,
+				12
+			]
+		},
+		{
+			"kind": "tree",
+			"rect": [
+				148,
+				1436,
+				12,
+				12
+			]
+		},
+		{
+			"kind": "garden",
+			"rect": [
+				228,
+				1426,
+				56,
+				18
+			]
+		},
+		{
+			"kind": "bush",
+			"rect": [
+				58,
+				1358,
+				12,
+				9
+			],
+			"color": "BUTTER"
+		},
+		{
+			"kind": "garden",
+			"rect": [
+				256,
+				1636,
+				60,
+				14
+			]
+		},
+		{
+			"kind": "garden",
+			"rect": [
+				256,
+				1660,
+				60,
+				14
+			]
+		},
+		{
+			"kind": "garden",
+			"rect": [
+				256,
+				1684,
+				60,
+				14
+			]
+		},
+		{
+			"kind": "garden",
+			"rect": [
+				180,
+				1636,
+				60,
+				14
+			]
+		},
+		{
+			"kind": "garden",
+			"rect": [
+				180,
+				1660,
+				60,
+				14
+			]
+		},
+		{
+			"kind": "garden",
+			"rect": [
+				180,
+				1684,
+				60,
+				14
+			]
+		},
+		{
+			"kind": "shed",
+			"rect": [
+				103,
+				1658,
+				22,
+				14
+			],
+			"color": "RED"
+		},
+		{
+			"kind": "path",
+			"rect": [
+				146,
+				1716,
+				190,
+				8
+			]
+		},
+		{
+			"kind": "bench",
+			"rect": [
+				116,
+				1692,
+				14,
+				5
+			]
+		},
+		{
+			"kind": "tree",
+			"rect": [
+				44,
+				1642,
+				12,
+				12
+			]
+		},
+		{
+			"kind": "tree",
+			"rect": [
+				14,
+				1710,
+				12,
+				12
+			],
+			"color": "RED"
+		},
+		{
+			"kind": "tree",
+			"rect": [
+				98,
+				1726,
+				12,
+				12
+			]
+		},
+		{
+			"kind": "tree",
+			"rect": [
+				288,
+				1730,
+				12,
+				12
+			]
+		},
+		{
+			"kind": "lamp",
+			"rect": [
+				677,
+				1285,
+				3,
+				3
+			]
+		},
+		{
+			"kind": "lamp",
+			"rect": [
+				497,
+				1285,
+				3,
+				3
+			]
+		},
+		{
+			"kind": "lamp",
+			"rect": [
+				257,
+				1285,
+				3,
+				3
+			]
+		},
+		{
+			"kind": "lamp",
+			"rect": [
+				57,
+				1285,
+				3,
+				3
+			]
+		},
+		{
+			"kind": "lamp",
+			"rect": [
+				647,
+				1326,
+				3,
+				3
+			]
+		},
+		{
+			"kind": "lamp",
+			"rect": [
+				457,
+				1326,
+				3,
+				3
+			]
+		},
+		{
+			"kind": "lamp",
+			"rect": [
+				267,
+				1326,
+				3,
+				3
+			]
+		},
+		{
+			"kind": "lamp",
+			"rect": [
+				67,
+				1326,
+				3,
+				3
+			]
+		},
+		{
+			"kind": "lamp",
+			"rect": [
+				597,
+				1574,
+				3,
+				3
+			]
+		},
+		{
+			"kind": "lamp",
+			"rect": [
+				417,
+				1574,
+				3,
+				3
+			]
+		},
+		{
+			"kind": "lamp",
+			"rect": [
+				247,
+				1574,
+				3,
+				3
+			]
+		},
+		{
+			"kind": "lamp",
+			"rect": [
+				77,
+				1574,
+				3,
+				3
+			]
+		},
+		{
+			"kind": "car",
+			"rect": [
+				642,
+				1586,
+				18,
+				10
+			]
+		},
+		{
+			"kind": "car",
+			"rect": [
+				454,
+				1055,
+				18,
+				10
+			],
+			"color": "PAPER"
+		},
+		{
+			"kind": "sidewalk",
+			"rect": [
+				720,
+				1284,
+				720,
+				8
+			]
+		},
+		{
+			"kind": "sidewalk",
+			"rect": [
+				720,
+				1324,
+				720,
+				8
+			]
+		},
+		{
+			"kind": "sidewalk",
+			"rect": [
+				1056,
+				880,
+				8,
+				880
+			]
+		},
+		{
+			"kind": "sidewalk",
+			"rect": [
+				1096,
+				880,
+				8,
+				880
+			]
+		},
+		{
+			"kind": "sidewalk",
+			"rect": [
+				720,
+				1572,
+				720,
+				8
+			]
+		},
+		{
+			"kind": "sidewalk",
+			"rect": [
+				720,
+				1608,
+				720,
+				8
+			]
+		},
+		{
+			"kind": "road",
+			"rect": [
+				720,
+				1292,
+				720,
+				32
+			],
+			"lines": true
+		},
+		{
+			"kind": "road",
+			"rect": [
+				1064,
+				880,
+				32,
+				880
+			],
+			"lines": true
+		},
+		{
+			"kind": "road",
+			"rect": [
+				720,
+				1580,
+				720,
+				28
+			],
+			"lines": true
+		},
+		{
+			"kind": "road",
+			"rect": [
+				816,
+				1050,
+				248,
+				26
+			]
+		},
+		{
+			"kind": "road",
+			"rect": [
+				772,
+				1026,
+				76,
+				72
+			],
+			"shape": "ellipse"
+		},
+		{
+			"kind": "crosswalk",
+			"rect": [
+				1042,
+				1292,
+				12,
+				32
+			]
+		},
+		{
+			"kind": "crosswalk",
+			"rect": [
+				1106,
+				1292,
+				12,
+				32
+			]
+		},
+		{
+			"kind": "crosswalk",
+			"rect": [
+				1064,
+				1270,
+				32,
+				12
+			]
+		},
+		{
+			"kind": "crosswalk",
+			"rect": [
+				1064,
+				1334,
+				32,
+				12
+			]
+		},
+		{
+			"kind": "crosswalk",
+			"rect": [
+				1042,
+				1580,
+				12,
+				28
+			]
+		},
+		{
+			"kind": "crosswalk",
+			"rect": [
+				1106,
+				1580,
+				12,
+				28
+			]
+		},
+		{
+			"kind": "yard",
+			"rect": [
+				844,
+				968,
+				212,
+				82
+			]
+		},
+		{
+			"kind": "garden",
+			"rect": [
+				850,
+				912,
+				40,
+				8
+			]
+		},
+		{
+			"kind": "house",
+			"rect": [
+				859,
+				1004,
+				30,
+				26
+			],
+			"color": "RED"
+		},
+		{
+			"kind": "planter",
+			"rect": [
+				837,
+				1024,
+				20,
+				6
+			],
+			"color": "SKY"
+		},
+		{
+			"kind": "driveway",
+			"rect": [
+				871,
+				1032,
+				7,
+				18
+			]
+		},
+		{
+			"kind": "mailbox",
+			"rect": [
+				881,
+				1042,
+				3,
+				7
+			],
+			"color": "BLUE"
+		},
+		{
+			"kind": "house",
+			"rect": [
+				940,
+				1004,
+				30,
+				26
+			],
+			"color": "RED"
+		},
+		{
+			"kind": "driveway",
+			"rect": [
+				952,
+				1032,
+				7,
+				18
+			]
+		},
+		{
+			"kind": "mailbox",
+			"rect": [
+				962,
+				1042,
+				3,
+				7
+			],
+			"color": "GOLD"
+		},
+		{
+			"kind": "house",
+			"rect": [
+				1017,
+				1004,
+				30,
+				26
+			],
+			"color": "TEAL"
+		},
+		{
+			"kind": "planter",
+			"rect": [
+				995,
+				1024,
+				20,
+				6
+			],
+			"color": "SKY"
+		},
+		{
+			"kind": "driveway",
+			"rect": [
+				1029,
+				1032,
+				7,
+				18
+			]
+		},
+		{
+			"kind": "mailbox",
+			"rect": [
+				1039,
+				1042,
+				3,
+				7
+			],
+			"color": "BLUE"
+		},
+		{
+			"kind": "pool",
+			"rect": [
+				934,
+				916,
+				46,
+				30
+			]
+		},
+		{
+			"kind": "shed",
+			"rect": [
+				1018,
+				918,
+				22,
+				14
+			],
+			"color": "WOOD"
+		},
+		{
+			"kind": "tree",
+			"rect": [
+				870,
+				936,
+				12,
+				12
+			],
+			"color": "RED"
+		},
+		{
+			"kind": "tree",
+			"rect": [
+				816,
+				920,
+				12,
+				12
+			]
+		},
+		{
+			"kind": "tree",
+			"rect": [
+				780,
+				952,
+				12,
+				12
+			]
+		},
+		{
+			"kind": "tree",
+			"rect": [
+				744,
+				992,
+				12,
+				12
+			]
+		},
+		{
+			"kind": "bush",
+			"rect": [
+				898,
+				950,
+				12,
+				9
+			],
+			"color": "SKY"
+		},
+		{
+			"kind": "yard",
+			"rect": [
+				744,
+				1020,
+				32,
+				70
+			]
+		},
+		{
+			"kind": "mailbox",
+			"rect": [
+				764,
+				1076,
+				3,
+				7
+			],
+			"color": "GOLD"
+		},
+		{
+			"kind": "yard",
+			"rect": [
+				744,
+				1190,
+				312,
+				94
+			]
+		},
+		{
+			"kind": "house",
+			"rect": [
+				747,
+				1226,
+				30,
+				26
+			],
+			"color": "TEAL"
+		},
+		{
+			"kind": "driveway",
+			"rect": [
+				759,
+				1254,
+				7,
+				30
+			]
+		},
+		{
+			"kind": "mailbox",
+			"rect": [
+				769,
+				1276,
+				3,
+				7
+			],
+			"color": "BLUE"
+		},
+		{
+			"kind": "house",
+			"rect": [
+				828,
+				1226,
+				30,
+				26
+			],
+			"color": "BLUE"
+		},
+		{
+			"kind": "driveway",
+			"rect": [
+				840,
+				1254,
+				7,
+				30
+			]
+		},
+		{
+			"kind": "mailbox",
+			"rect": [
+				850,
+				1276,
+				3,
+				7
+			],
+			"color": "BLUE"
+		},
+		{
+			"kind": "house",
+			"rect": [
+				909,
+				1226,
+				30,
+				26
+			],
+			"color": "TEAL"
+		},
+		{
+			"kind": "planter",
+			"rect": [
+				887,
+				1246,
+				20,
+				6
+			],
+			"color": "BUTTER"
+		},
+		{
+			"kind": "driveway",
+			"rect": [
+				921,
+				1254,
+				7,
+				30
+			]
+		},
+		{
+			"kind": "mailbox",
+			"rect": [
+				931,
+				1276,
+				3,
+				7
+			],
+			"color": "GOLD"
+		},
+		{
+			"kind": "house",
+			"rect": [
+				990,
+				1226,
+				30,
+				26
+			],
+			"color": "TEAL"
+		},
+		{
+			"kind": "driveway",
+			"rect": [
+				1002,
+				1254,
+				7,
+				30
+			]
+		},
+		{
+			"kind": "mailbox",
+			"rect": [
+				1012,
+				1276,
+				3,
+				7
+			],
+			"color": "RED"
+		},
+		{
+			"kind": "tree",
+			"rect": [
+				760,
+				1120,
+				12,
+				12
+			],
+			"color": "GREEN"
+		},
+		{
+			"kind": "tree",
+			"rect": [
+				870,
+				1132,
+				12,
+				12
+			],
+			"color": "RED"
+		},
+		{
+			"kind": "tree",
+			"rect": [
+				960,
+				1116,
+				12,
+				12
+			]
+		},
+		{
+			"kind": "tree",
+			"rect": [
+				1026,
+				1142,
+				12,
+				12
+			]
+		},
+		{
+			"kind": "shed",
+			"rect": [
+				831,
+				1150,
+				22,
+				14
+			],
+			"color": "BLUE"
+		},
+		{
+			"kind": "garden",
+			"rect": [
+				910,
+				1152,
+				44,
+				16
+			]
+		},
+		{
+			"kind": "bush",
+			"rect": [
+				780,
+				1172,
+				12,
+				9
+			],
+			"color": "BUTTER"
+		},
+		{
+			"kind": "bush",
+			"rect": [
+				934,
+				1180,
+				12,
+				9
+			],
+			"color": "BUTTER"
+		},
+		{
+			"kind": "path",
+			"rect": [
+				1192,
+				998,
+				176,
+				126
+			],
+			"shape": "ellipse"
+		},
+		{
+			"kind": "pond",
+			"rect": [
+				1225,
+				1023,
+				110,
+				76
+			]
+		},
+		{
+			"kind": "path",
+			"rect": [
+				1104,
+				1056,
+				92,
+				10
+			]
+		},
+		{
+			"kind": "path",
+			"rect": [
+				1272,
+				1120,
+				10,
+				164
+			]
+		},
+		{
+			"kind": "path",
+			"rect": [
+				1272,
+				912,
+				10,
+				90
+			]
+		},
+		{
+			"kind": "sand",
+			"rect": [
+				1320,
+				1180,
+				90,
+				66
+			]
+		},
+		{
+			"kind": "swing",
+			"rect": [
+				1338,
+				1196,
+				26,
+				10
+			]
+		},
+		{
+			"kind": "bench",
+			"rect": [
+				1120,
+				1040,
+				14,
+				5
+			]
+		},
+		{
+			"kind": "bench",
+			"rect": [
+				1190,
+				1170,
+				14,
+				5
+			]
+		},
+		{
+			"kind": "bench",
+			"rect": [
+				1360,
+				966,
+				14,
+				5
+			]
+		},
+		{
+			"kind": "bench",
+			"rect": [
+				1216,
+				920,
+				14,
+				5
+			]
+		},
+		{
+			"kind": "garden",
+			"rect": [
+				1120,
+				912,
+				56,
+				16
+			]
+		},
+		{
+			"kind": "garden",
+			"rect": [
+				1372,
+				912,
+				56,
+				20
+			]
+		},
+		{
+			"kind": "garden",
+			"rect": [
+				1120,
+				1180,
+				60,
+				18
+			]
+		},
+		{
+			"kind": "tree",
+			"rect": [
+				1112,
+				950,
+				12,
+				12
+			]
+		},
+		{
+			"kind": "tree",
+			"rect": [
+				1130,
+				992,
+				12,
+				12
+			]
+		},
+		{
+			"kind": "tree",
+			"rect": [
+				1115,
+				1112,
+				12,
+				12
+			],
+			"color": "RED"
+		},
+		{
+			"kind": "tree",
+			"rect": [
+				1140,
+				1142,
+				12,
+				12
+			]
+		},
+		{
+			"kind": "tree",
+			"rect": [
+				1190,
+				1210,
+				12,
+				12
+			]
+		},
+		{
+			"kind": "tree",
+			"rect": [
+				1226,
+				1240,
+				12,
+				12
+			]
+		},
+		{
+			"kind": "tree",
+			"rect": [
+				1150,
+				1250,
+				12,
+				12
+			],
+			"color": "GREEN"
+		},
+		{
+			"kind": "tree",
+			"rect": [
+				1406,
+				1000,
+				12,
+				12
+			],
+			"color": "GREEN"
+		},
+		{
+			"kind": "tree",
+			"rect": [
+				1420,
+				1064,
+				12,
+				12
+			],
+			"color": "GREEN"
+		},
+		{
+			"kind": "tree",
+			"rect": [
+				1410,
+				1132,
+				12,
+				12
+			]
+		},
+		{
+			"kind": "tree",
+			"rect": [
+				1425,
+				950,
+				12,
+				12
+			]
+		},
+		{
+			"kind": "tree",
+			"rect": [
+				1320,
+				926,
+				12,
+				12
+			]
+		},
+		{
+			"kind": "tree",
+			"rect": [
+				1420,
+				1254,
+				12,
+				12
+			]
+		},
+		{
+			"kind": "tree",
+			"rect": [
+				1320,
+				1260,
+				12,
+				12
+			],
+			"color": "RED"
+		},
+		{
+			"kind": "bush",
+			"rect": [
+				1190,
+				940,
+				12,
+				9
+			],
+			"color": "SKY"
+		},
+		{
+			"kind": "bush",
+			"rect": [
+				1362,
+				1150,
+				12,
+				9
+			]
+		},
+		{
+			"kind": "bush",
+			"rect": [
+				1240,
+				1180,
+				12,
+				9
+			],
+			"color": "SKY"
+		},
+		{
+			"kind": "hedge",
+			"rect": [
+				1102,
+				1274,
+				40,
+				6
+			]
+		},
+		{
+			"kind": "hedge",
+			"rect": [
+				1174,
+				1274,
+				40,
+				6
+			]
+		},
+		{
+			"kind": "hedge",
+			"rect": [
+				1284,
+				1274,
+				40,
+				6
+			]
+		},
+		{
+			"kind": "hedge",
+			"rect": [
+				1356,
+				1274,
+				40,
+				6
+			]
+		},
+		{
+			"kind": "yard",
+			"rect": [
+				744,
+				1466,
+				312,
+				106
+			]
+		},
+		{
+			"kind": "house",
+			"rect": [
+				745,
+				1502,
+				30,
+				26
+			],
+			"color": "RED"
+		},
+		{
+			"kind": "driveway",
+			"rect": [
+				757,
+				1530,
+				7,
+				42
+			]
+		},
+		{
+			"kind": "mailbox",
+			"rect": [
+				767,
+				1564,
+				3,
+				7
+			],
+			"color": "BLUE"
+		},
+		{
+			"kind": "house",
+			"rect": [
+				826,
+				1502,
+				30,
+				26
+			],
+			"color": "PURPLE"
+		},
+		{
+			"kind": "driveway",
+			"rect": [
+				838,
+				1530,
+				7,
+				42
+			]
+		},
+		{
+			"kind": "mailbox",
+			"rect": [
+				848,
+				1564,
+				3,
+				7
+			],
+			"color": "RED"
+		},
+		{
+			"kind": "house",
+			"rect": [
+				907,
+				1502,
+				30,
+				26
+			],
+			"color": "RED"
+		},
+		{
+			"kind": "planter",
+			"rect": [
+				885,
+				1522,
+				20,
+				6
+			],
+			"color": "PINK"
+		},
+		{
+			"kind": "driveway",
+			"rect": [
+				919,
+				1530,
+				7,
+				42
+			]
+		},
+		{
+			"kind": "mailbox",
+			"rect": [
+				929,
+				1564,
+				3,
+				7
+			],
+			"color": "BLUE"
+		},
+		{
+			"kind": "house",
+			"rect": [
+				988,
+				1502,
+				30,
+				26
+			],
+			"color": "TEAL"
+		},
+		{
+			"kind": "driveway",
+			"rect": [
+				1000,
+				1530,
+				7,
+				42
+			]
+		},
+		{
+			"kind": "mailbox",
+			"rect": [
+				1010,
+				1564,
+				3,
+				7
+			],
+			"color": "RED"
+		},
+		{
+			"kind": "pool",
+			"rect": [
+				900,
+				1374,
+				52,
+				32
+			]
+		},
+		{
+			"kind": "shed",
+			"rect": [
+				744,
+				1406,
+				22,
+				14
+			],
+			"color": "WOOD"
+		},
+		{
+			"kind": "tree",
+			"rect": [
+				830,
+				1380,
+				12,
+				12
+			]
+		},
+		{
+			"kind": "tree",
+			"rect": [
+				1020,
+				1370,
+				12,
+				12
+			]
+		},
+		{
+			"kind": "tree",
+			"rect": [
+				986,
+				1432,
+				12,
+				12
+			],
+			"color": "GREEN"
+		},
+		{
+			"kind": "tree",
+			"rect": [
+				790,
+				1442,
+				12,
+				12
+			],
+			"color": "RED"
+		},
+		{
+			"kind": "garden",
+			"rect": [
+				820,
+				1424,
+				44,
+				18
+			]
+		},
+		{
+			"kind": "bush",
+			"rect": [
+				870,
+				1358,
+				12,
+				9
+			]
+		},
+		{
+			"kind": "field",
+			"rect": [
+				744,
+				1636,
+				290,
+				108
+			]
+		},
+		{
+			"kind": "bench",
+			"rect": [
+				820,
+				1622,
+				30,
+				5
+			]
+		},
+		{
+			"kind": "bench",
+			"rect": [
+				920,
+				1622,
+				30,
+				5
+			]
+		},
+		{
+			"kind": "tree",
+			"rect": [
+				1044,
+				1670,
+				12,
+				12
+			],
+			"color": "GREEN"
+		},
+		{
+			"kind": "tree",
+			"rect": [
+				1046,
+				1730,
+				12,
+				12
+			],
+			"color": "GREEN"
+		},
+		{
+			"kind": "yard",
+			"rect": [
+				1112,
+				1466,
+				328,
+				106
+			]
+		},
+		{
+			"kind": "house",
+			"rect": [
+				1137,
+				1502,
+				30,
+				26
+			],
+			"color": "RED"
+		},
+		{
+			"kind": "planter",
+			"rect": [
+				1115,
+				1522,
+				20,
+				6
+			],
+			"color": "PINK"
+		},
+		{
+			"kind": "driveway",
+			"rect": [
+				1149,
+				1530,
+				7,
+				42
+			]
+		},
+		{
+			"kind": "mailbox",
+			"rect": [
+				1159,
+				1564,
+				3,
+				7
+			],
+			"color": "BLUE"
+		},
+		{
+			"kind": "house",
+			"rect": [
+				1222,
+				1502,
+				30,
+				26
+			],
+			"color": "PURPLE"
+		},
+		{
+			"kind": "driveway",
+			"rect": [
+				1234,
+				1530,
+				7,
+				42
+			]
+		},
+		{
+			"kind": "mailbox",
+			"rect": [
+				1244,
+				1564,
+				3,
+				7
+			],
+			"color": "BLUE"
+		},
+		{
+			"kind": "house",
+			"rect": [
+				1309,
+				1502,
+				30,
+				26
+			],
+			"color": "BLUE"
+		},
+		{
+			"kind": "planter",
+			"rect": [
+				1287,
+				1522,
+				20,
+				6
+			],
+			"color": "SKY"
+		},
+		{
+			"kind": "driveway",
+			"rect": [
+				1321,
+				1530,
+				7,
+				42
+			]
+		},
+		{
+			"kind": "mailbox",
+			"rect": [
+				1331,
+				1564,
+				3,
+				7
+			],
+			"color": "BLUE"
+		},
+		{
+			"kind": "shed",
+			"rect": [
+				1335,
+				1392,
+				22,
+				14
+			],
+			"color": "RED"
+		},
+		{
+			"kind": "tree",
+			"rect": [
+				1140,
+				1370,
+				12,
+				12
+			]
+		},
+		{
+			"kind": "tree",
+			"rect": [
+				1190,
+				1400,
+				12,
+				12
+			]
+		},
+		{
+			"kind": "tree",
+			"rect": [
+				1400,
+				1400,
+				12,
+				12
+			],
+			"color": "RED"
+		},
+		{
+			"kind": "tree",
+			"rect": [
+				1280,
+				1436,
+				12,
+				12
+			],
+			"color": "RED"
+		},
+		{
+			"kind": "garden",
+			"rect": [
+				1156,
+				1426,
+				56,
+				18
+			]
+		},
+		{
+			"kind": "bush",
+			"rect": [
+				1370,
+				1358,
+				12,
+				9
+			],
+			"color": "BUTTER"
+		},
+		{
+			"kind": "garden",
+			"rect": [
+				1124,
+				1636,
+				60,
+				14
+			]
+		},
+		{
+			"kind": "garden",
+			"rect": [
+				1124,
+				1660,
+				60,
+				14
+			]
+		},
+		{
+			"kind": "garden",
+			"rect": [
+				1124,
+				1684,
+				60,
+				14
+			]
+		},
+		{
+			"kind": "garden",
+			"rect": [
+				1200,
+				1636,
+				60,
+				14
+			]
+		},
+		{
+			"kind": "garden",
+			"rect": [
+				1200,
+				1660,
+				60,
+				14
+			]
+		},
+		{
+			"kind": "garden",
+			"rect": [
+				1200,
+				1684,
+				60,
+				14
+			]
+		},
+		{
+			"kind": "shed",
+			"rect": [
+				1315,
+				1658,
+				22,
+				14
+			],
+			"color": "RED"
+		},
+		{
+			"kind": "path",
+			"rect": [
+				1104,
+				1716,
+				190,
+				8
+			]
+		},
+		{
+			"kind": "bench",
+			"rect": [
+				1310,
+				1692,
+				14,
+				5
+			]
+		},
+		{
+			"kind": "tree",
+			"rect": [
+				1384,
+				1642,
+				12,
+				12
+			]
+		},
+		{
+			"kind": "tree",
+			"rect": [
+				1414,
+				1710,
+				12,
+				12
+			],
+			"color": "RED"
+		},
+		{
+			"kind": "tree",
+			"rect": [
+				1330,
+				1726,
+				12,
+				12
+			]
+		},
+		{
+			"kind": "tree",
+			"rect": [
+				1140,
+				1730,
+				12,
+				12
+			],
+			"color": "GREEN"
+		},
+		{
+			"kind": "lamp",
+			"rect": [
+				760,
+				1285,
+				3,
+				3
+			]
+		},
+		{
+			"kind": "lamp",
+			"rect": [
+				940,
+				1285,
+				3,
+				3
+			]
+		},
+		{
+			"kind": "lamp",
+			"rect": [
+				1180,
+				1285,
+				3,
+				3
+			]
+		},
+		{
+			"kind": "lamp",
+			"rect": [
+				1380,
+				1285,
+				3,
+				3
+			]
+		},
+		{
+			"kind": "lamp",
+			"rect": [
+				790,
+				1326,
+				3,
+				3
+			]
+		},
+		{
+			"kind": "lamp",
+			"rect": [
+				980,
+				1326,
+				3,
+				3
+			]
+		},
+		{
+			"kind": "lamp",
+			"rect": [
+				1170,
+				1326,
+				3,
+				3
+			]
+		},
+		{
+			"kind": "lamp",
+			"rect": [
+				1370,
+				1326,
+				3,
+				3
+			]
+		},
+		{
+			"kind": "lamp",
+			"rect": [
+				840,
+				1574,
+				3,
+				3
+			]
+		},
+		{
+			"kind": "lamp",
+			"rect": [
+				1020,
+				1574,
+				3,
+				3
+			]
+		},
+		{
+			"kind": "lamp",
+			"rect": [
+				1190,
+				1574,
+				3,
+				3
+			]
+		},
+		{
+			"kind": "lamp",
+			"rect": [
+				1360,
+				1574,
+				3,
+				3
+			]
+		},
+		{
+			"kind": "car",
+			"rect": [
+				780,
+				1586,
+				18,
+				10
+			],
+			"color": "PAPER"
+		},
+		{
+			"kind": "car",
+			"rect": [
+				968,
+				1055,
+				18,
+				10
+			]
+		}
 	],
 	"interactables": [
-		{"id": "boss_altar", "count": 1, "at": [168, 810]},
-		{"id": "pigeon_cage", "count": 1, "at": [532, 520]},
-		{"id": "paid_chest", "count": 6},
-		{"id": "charge_shrine", "count": 2},
-		{"id": "risk_shrine", "count": 1},
-		{"id": "challenge_shrine", "count": 1},
-		{"id": "pot", "count": 26}
+		{
+			"id": "boss_altar",
+			"count": 1,
+			"at": [
+				168,
+				810
+			]
+		},
+		{
+			"id": "pigeon_cage",
+			"count": 1,
+			"at": [
+				532,
+				520
+			]
+		},
+		{
+			"id": "paid_chest",
+			"count": 18
+		},
+		{
+			"id": "charge_shrine",
+			"count": 6
+		},
+		{
+			"id": "risk_shrine",
+			"count": 3
+		},
+		{
+			"id": "challenge_shrine",
+			"count": 3
+		},
+		{
+			"id": "pot",
+			"count": 78
+		}
 	],
-	"merchant": {"id": "merchant", "first_sec": 100, "every_sec": 150},
+	"merchant": {
+		"id": "merchant",
+		"first_sec": 100,
+		"every_sec": 150
+	},
 	"spawns": [
-		{"enemy": "blob", "from_min": 0, "to_min": 8, "per_sec": [1.2, 11.0]},
-		{"enemy": "skitter", "from_min": 0.25, "to_min": 8, "per_sec": [0.2, 1.0]},
-		{"enemy": "spitter", "from_min": 2, "to_min": 8, "per_sec": [0.15, 0.6]},
-		{"enemy": "bloater", "from_min": 2, "to_min": 8, "per_sec": [0.12, 0.45]},
-		{"enemy": "chomper", "from_min": 4, "to_min": 8, "per_sec": [0.15, 0.55]}
+		{
+			"enemy": "blob",
+			"from_min": 0,
+			"to_min": 8,
+			"per_sec": [
+				1.2,
+				11.0
+			]
+		},
+		{
+			"enemy": "skitter",
+			"from_min": 0.25,
+			"to_min": 8,
+			"per_sec": [
+				0.2,
+				1.0
+			]
+		},
+		{
+			"enemy": "spitter",
+			"from_min": 2,
+			"to_min": 8,
+			"per_sec": [
+				0.15,
+				0.6
+			]
+		},
+		{
+			"enemy": "bloater",
+			"from_min": 2,
+			"to_min": 8,
+			"per_sec": [
+				0.12,
+				0.45
+			]
+		},
+		{
+			"enemy": "chomper",
+			"from_min": 4,
+			"to_min": 8,
+			"per_sec": [
+				0.15,
+				0.55
+			]
+		}
 	],
 	"swarms": [
-		{"at_min": 3.0, "duration": 25, "warn_sec": 3, "regular_mult": 0.4, "spawns": [{"enemy": "gnat", "per_sec": [18, 30]}]},
-		{"at_min": 5.0, "duration": 28, "warn_sec": 3, "regular_mult": 0.4, "spawns": [{"enemy": "gnat", "per_sec": [24, 40]}, {"enemy": "skitter", "per_sec": [0.6, 1.0]}]}
+		{
+			"at_min": 3.0,
+			"duration": 25,
+			"warn_sec": 3,
+			"regular_mult": 0.4,
+			"spawns": [
+				{
+					"enemy": "gnat",
+					"per_sec": [
+						18,
+						30
+					]
+				}
+			]
+		},
+		{
+			"at_min": 5.0,
+			"duration": 28,
+			"warn_sec": 3,
+			"regular_mult": 0.4,
+			"spawns": [
+				{
+					"enemy": "gnat",
+					"per_sec": [
+						24,
+						40
+					]
+				},
+				{
+					"enemy": "skitter",
+					"per_sec": [
+						0.6,
+						1.0
+					]
+				}
+			]
+		}
 	],
-	"elites": {"first_sec": 60, "every_sec": [60, 90], "from": ["blob", "skitter", "spitter", "bloater", "chomper"], "traits": ["fast", "shielded", "splitting", "vicious"]},
-	"boss": {"hint_at_min": 5},
-	"final_swarm": {"escalation_per_sec": 0.01, "coin_mult_per_min": 0.5, "spawns": [{"enemy": "blob", "from_min": 0, "to_min": 999, "per_sec": [11, 11], "growth_per_min": 3}, {"enemy": "skitter", "from_min": 0, "to_min": 999, "per_sec": [1.2, 1.2], "growth_per_min": 0.3}, {"enemy": "spitter", "from_min": 0, "to_min": 999, "per_sec": [0.6, 0.6], "growth_per_min": 0.15}, {"enemy": "bloater", "from_min": 0, "to_min": 999, "per_sec": [0.5, 0.5], "growth_per_min": 0.1}, {"enemy": "chomper", "from_min": 0, "to_min": 999, "per_sec": [0.6, 0.6], "growth_per_min": 0.15}], "bills": true}
+	"elites": {
+		"first_sec": 60,
+		"every_sec": [
+			60,
+			90
+		],
+		"from": [
+			"blob",
+			"skitter",
+			"spitter",
+			"bloater",
+			"chomper"
+		],
+		"traits": [
+			"fast",
+			"shielded",
+			"splitting",
+			"vicious"
+		]
+	},
+	"boss": {
+		"hint_at_min": 5
+	},
+	"final_swarm": {
+		"escalation_per_sec": 0.01,
+		"coin_mult_per_min": 0.5,
+		"spawns": [
+			{
+				"enemy": "blob",
+				"from_min": 0,
+				"to_min": 999,
+				"per_sec": [
+					11,
+					11
+				],
+				"growth_per_min": 3
+			},
+			{
+				"enemy": "skitter",
+				"from_min": 0,
+				"to_min": 999,
+				"per_sec": [
+					1.2,
+					1.2
+				],
+				"growth_per_min": 0.3
+			},
+			{
+				"enemy": "spitter",
+				"from_min": 0,
+				"to_min": 999,
+				"per_sec": [
+					0.6,
+					0.6
+				],
+				"growth_per_min": 0.15
+			},
+			{
+				"enemy": "bloater",
+				"from_min": 0,
+				"to_min": 999,
+				"per_sec": [
+					0.5,
+					0.5
+				],
+				"growth_per_min": 0.1
+			},
+			{
+				"enemy": "chomper",
+				"from_min": 0,
+				"to_min": 999,
+				"per_sec": [
+					0.6,
+					0.6
+				],
+				"growth_per_min": 0.15
+			}
+		],
+		"bills": true
+	}
 }

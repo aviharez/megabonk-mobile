@@ -687,7 +687,7 @@ func test_wedged_walkers_off_screen_are_moved_back(t) -> void:
 	var run := _start(t)
 	run.weapons.clear()
 	var e := run.enemies
-	var off := _spawn(run, "blob", run.player_pos() + Vector2(0, 230), 0.0)
+	var off := _spawn(run, "blob", run.player_pos() + Vector2(0, run._half_view().y + 30.0), 0.0)
 	var on := _spawn(run, "blob", run.player_pos() + Vector2(40, 0), 0.0)
 	var off_at := e.pos[off]
 	var on_at := e.pos[on]

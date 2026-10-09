@@ -1,11 +1,11 @@
 extends SceneTree
 ## Renders the content-icon screens to PNGs for review: unlocks, hero select,
-## toggler and the level-up cards, at the 180x320 base view, on a throwaway
+## toggler and the level-up cards, at the 270x480 base view, on a throwaway
 ## save with some content owned. Needs a window (not --headless):
 ##   godot --path . -s res://tools/render_ui.gd -- [--out=user://ui] [--scroll=0]
 
 const SAVE := "user://render_ui_save.json"
-const VIEW := Vector2i(180, 320)
+const VIEW := Vector2i(270, 480)
 
 
 func _initialize() -> void:

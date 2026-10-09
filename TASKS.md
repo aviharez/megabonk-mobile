@@ -341,7 +341,9 @@ Same as phase 4 (330.8 / 242.0 / 2.15 ms uncapped): the Ads and Store autoloads 
   - Plan (owner-approved 2026-10-09): ground, roads, sidewalks, driveways, yards, gardens, pond, pool, hedges, fence, mailbox, lamp stay code-drawn (sizes vary per prop / too small for SpriteCook); SpriteCook for house, tree, bush, shed, car, bench, swing set
   - [x] House (2026-10-09; 24 credits: the isometric first try isn't used). 34x34 front-facing, `assets/props/house.png`; map JSON "prop_art" names the sprite and the roof ramp per prop color (`MapLayout._sprite_for`, validated by GameData); sprite shadow follows its outline; the 15 house rects shrunk to 30x26 (same bottom centre). Test: `test_icons.gd::test_map_house_sprite_and_roof_colors`
   - [x] Sheets A (tree, bush, shed, car) and B (bench, swing set, pine, apple tree) (2026-10-09; 24 credits; owner approved). `tools/art/props.sh`; prop_art "variants" (GREEN tree = pine, RED tree = apple tree) and "colors" recolors (bush flowers, sheds, cars); shed rects 22x14, swing 26x10
-  - [ ] Owner: "the other things are bad" (code-drawn ground). Plan approved: SpriteCook textures (grass test first, then asphalt, paving, dirt/sand, garden soil), prop sheet C (mailbox, lamp, hedge, planter), boss altar sprite; free layout fixes (orphan driveways, yard stripes)
+  - [x] Owner: "the other things are bad" (code-drawn ground). Done 2026-10-09 (84 credits): SpriteCook textures (grass, asphalt, paving, sand, soil; `tools/art/textures.py`) filled by map "ground_textures"; prop sheet C (mailbox, lamp, hedge repeated along rows, planter = new walk-through kind, one by every other house); boss altar sprite (interactables "sprite"); 7 driveways that led nowhere removed, yard and pitch stripes dropped. Bake 16 -> 27 ms on desktop. Test: `test_icons.gd::test_map_ground_textures_and_altar_sprite`
+  - [x] Owner follow-up (2026-10-09, no credits): grass toned down (`tools/art/textures.py`: flowers, LIME and lone GREEN tufts -> LEAF); view 180x320 -> 270x480 (project.godot, CLAUDE.md, BRIEF; despawn distance never inside the view corners); map 720x880 -> 1440x1760 built by `tools/maps/build_suburbia.py` from the block `tools/maps/suburbia_block.json` (4 copies, 2 mirrored, seam streets, re-rolled colors per copy, interactables x3, one altar and cage). Rect texture fills blit whole tiles (bake 110 -> 58 ms on desktop)
+  - [ ] Owner review of the wide view and the big map; pond and pool still code-drawn; the copies are mirrored (a hand-designed second block would hide it)
 - [ ] UI (CC0 pack or code), remapped to the palette
 - [ ] Enemy sheets from assets/creatures/ for every role (elites = scaled + recolored)
 - [ ] Placeholder inventory: list every code-drawn / placeholder asset and replace it
@@ -363,5 +365,6 @@ Same as phase 4 (330.8 / 242.0 / 2.15 ms uncapped): the Ads and Store autoloads 
 | Windowed, vsync on | 75.0 (display cap) | 66.6 | 2.98 | 299.3 |
 | Same, Turbo Pigeon | 75.0 (display cap) | 66.2 | 3.26 | 299.6 |
 | Same, Gary, heroes at ~22px | 75.0 (display cap) | 66.6 | 3.59 | 299.8 |
+| 270x480 view, 1440x1760 textured map | 75.0 (display cap) | 68.6 | 3.37 | 299.5 |
 
-SpriteCook: 464 credits spent, 336 left.
+SpriteCook: 548 credits spent, 252 left.

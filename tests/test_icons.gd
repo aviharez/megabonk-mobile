@@ -134,3 +134,25 @@ func test_map_house_sprite_and_roof_colors(t) -> void:
 	for kind: String in ["tree", "bush", "shed", "car", "bench", "swing"]:
 		t.check(ml._art.has(kind), "%s has prop art" % kind)
 	ml.free()
+
+
+func test_map_ground_textures_and_altar_sprite(t) -> void:
+	var map_def := db.get_entry("maps", "suburbia")
+	for kind: String in map_def.get("ground_textures", {}):
+		var img: Image = load(map_def.ground_textures[kind])
+		t.check(img != null and _on_palette(img), "%s texture loads and is on the palette" % kind)
+	var ml := MapLayout.new()
+	var t0 := Time.get_ticks_msec()
+	ml.setup(map_def)
+	var ms := Time.get_ticks_msec() - t0
+	t.check(ms < 3000, "map builds in %d ms" % ms)
+	# A sidewalk pixel comes from the paving texture, not the flat code color.
+	var paving: Image = load(map_def.ground_textures.sidewalk)
+	var sw: Array = map_def.props.filter(func(p: Dictionary) -> bool: return p.kind == "sidewalk")[0].rect
+	var at := Vector2i(int(sw[0]) + 3, int(sw[1]) + 3)
+	t.check(ml._img.get_pixelv(at) == paving.get_pixel(at.x % paving.get_width(), at.y % paving.get_height()), "sidewalk is textured")
+	ml.free()
+	var altar := db.get_entry("interactables", "boss_altar")
+	var tex := Interactables.sprite_of(altar)
+	t.check(tex != null and tex.get_size() == Vector2(24, 22), "boss altar uses its sprite (%s)" % (tex.get_size() if tex else null))
+	t.check(Interactables.sprite_of({"shape": "altar", "color": "BLOOD"}) != null, "no sprite: placeholder shape")
