@@ -156,3 +156,25 @@ func test_map_ground_textures_and_altar_sprite(t) -> void:
 	var tex := Interactables.sprite_of(altar)
 	t.check(tex != null and tex.get_size() == Vector2(24, 22), "boss altar uses its sprite (%s)" % (tex.get_size() if tex else null))
 	t.check(Interactables.sprite_of({"shape": "altar", "color": "BLOOD"}) != null, "no sprite: placeholder shape")
+
+
+func test_map_pool_slice_and_pond_decor(t) -> void:
+	var map_def := db.get_entry("maps", "suburbia")
+	var ml := MapLayout.new()
+	ml.setup(map_def)
+	var pool := MapLayout._load_image(map_def.prop_art.pool.sprite)
+	var sl: Array = map_def.prop_art.pool.slice
+	t.check(_on_palette(pool) and pool.get_width() > sl[0] + sl[2] and pool.get_height() > sl[1] + sl[3], "pool template on the palette, bigger than its slice")
+	var pools: Array = map_def.props.filter(func(p: Dictionary) -> bool: return p.kind == "pool")
+	var big: Dictionary = pools.reduce(func(a: Dictionary, p: Dictionary) -> Dictionary: return p if p.rect[2] > a.rect[2] else a)
+	var r: Array = big.rect
+	var corner := Vector2i(int(r[0]) + 2, int(r[1]) + 2)
+	t.check(ml._img.get_pixelv(corner) == pool.get_pixel(2, 2), "pool corner drawn from the template")
+	var br := Vector2i(int(r[0] + r[2]) - 3, int(r[1] + r[3]) - 3)
+	t.check(ml._img.get_pixelv(br) == pool.get_pixel(pool.get_width() - 3, pool.get_height() - 3), "far corner too (%s)" % [r])
+	t.check(ml._img.get_pixel(int(r[0] + r[2] / 2), int(r[1] + r[3] / 2)) == Palette.color(Palette.BLUE), "middle is water")
+	t.check(ml._decor.get("pond", {}).size() == 2, "pond decor (lily pads, reeds) loaded")
+	var pond: Array = map_def.props.filter(func(p: Dictionary) -> bool: return p.kind == "pond")[0].rect
+	var lip := ml._img.get_pixel(int(pond[0] + pond[2] / 2), int(pond[1] + pond[3]) + 3)
+	t.check(lip == Palette.color(Palette.BARK), "pond shore has the dark lip at the bottom")
+	ml.free()

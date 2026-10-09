@@ -45,7 +45,17 @@
 		"mailbox": {"sprite": "res://assets/props/mailbox.png", "ramp": ["BLUE", "OCEAN", "DEEP_BLUE"], "colors": {"RED": ["SALMON", "RED", "BLOOD"], "GOLD": ["BUTTER", "GOLD", "RUST"]}},
 		"lamp": {"sprite": "res://assets/props/lamp.png"},
 		"hedge": {"sprite": "res://assets/props/hedge.png", "repeat": true},
-		"planter": {"sprite": "res://assets/props/planter.png", "ramp": ["PINK"], "colors": {"BUTTER": ["BUTTER"], "SKY": ["SKY"]}}
+		"planter": {"sprite": "res://assets/props/planter.png", "ramp": ["PINK"], "colors": {"BUTTER": ["BUTTER"], "SKY": ["SKY"]}},
+		"pool": {
+			"sprite": "res://assets/props/pool.png",
+			"slice": [14, 13, 14, 11]
+		},
+		"pond": {
+			"decor": {
+				"water": "res://assets/props/lily.png",
+				"shore": "res://assets/props/reeds.png"
+			}
+		}
 	},
 	"props": [
 		{"kind": "sidewalk", "rect": [0, 404, 720, 8]},

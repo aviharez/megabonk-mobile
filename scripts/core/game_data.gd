@@ -469,7 +469,9 @@ func _check_map(m: Dictionary) -> void:
 
 ## "prop_art": {kind: {"sprite": res path, "ramp": [palette colors in the
 ## sprite], "colors": {prop color: [as many palette colors as the ramp]},
-## "variants": {prop color: res path of another sprite}}}.
+## "variants": {prop color: res path of another sprite}, "slice": [left, top,
+## right, bottom] (9-slice), "decor": {spot: res path} (sprites stamped on a
+## code-drawn prop; "sprite" is then optional)}}.
 func _check_prop_art(f: String, art) -> void:
 	if not art is Dictionary:
 		errors.append("%s: \"prop_art\" must be an object" % f)
@@ -479,9 +481,19 @@ func _check_prop_art(f: String, art) -> void:
 		if not MapLayout.KINDS.has(kind) or not a is Dictionary:
 			errors.append("%s: prop_art \"%s\" must be a known prop kind with an object" % [f, kind])
 			continue
+		var decor = a.get("decor", {})
+		if not decor is Dictionary:
+			decor = {}
+			errors.append("%s: prop_art \"%s\" \"decor\" must be an object" % [f, kind])
+		for spot in decor:
+			if typeof(decor[spot]) != TYPE_STRING or not ResourceLoader.exists(decor[spot]):
+				errors.append("%s: prop_art \"%s\" decor \"%s\" sprite \"%s\" not found" % [f, kind, spot, decor[spot]])
 		var path = a.get("sprite")
-		if typeof(path) != TYPE_STRING or not ResourceLoader.exists(path):
+		if (path != null or decor.is_empty()) and (typeof(path) != TYPE_STRING or not ResourceLoader.exists(path)):
 			errors.append("%s: prop_art \"%s\" sprite \"%s\" not found" % [f, kind, path])
+		var sl = a.get("slice", [])
+		if not (sl is Array and (sl.is_empty() or (sl.size() == 4 and sl.all(func(v): return _is_num(v) and v >= 0)))):
+			errors.append("%s: prop_art \"%s\" \"slice\" must be [left, top, right, bottom]" % [f, kind])
 		var variants = a.get("variants", {})
 		if not variants is Dictionary:
 			variants = {}

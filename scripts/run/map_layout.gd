@@ -54,6 +54,9 @@ var _rng := RandomNumberGenerator.new()
 ## kind -> {"image": Image, "ramp": [palette indices], "colors": {name: [indices]},
 ## "variants": {name: Image}}
 var _art := {}
+## kind -> {spot: Image}: sprites stamped on a code-drawn prop (map "prop_art"
+## "decor", e.g. the pond's lily pads on the "water" and reeds on the "shore").
+var _decor := {}
 ## Ground kind -> texture path (map "ground_textures"); "lawn" is the base.
 var _ground_textures := {}
 
@@ -68,6 +71,17 @@ func setup(map_def: Dictionary) -> void:
 	var art_def: Dictionary = map_def.get("prop_art", {})
 	for kind: String in art_def:
 		var a: Dictionary = art_def[kind]
+		if a.has("decor"):
+			var decor := {}
+			for spot: String in a.decor:
+				var d := _load_image(a.decor[spot])
+				if d == null:
+					push_error("MapLayout: prop_art decor \"%s\" of \"%s\" not found" % [spot, kind])
+				else:
+					decor[spot] = d
+			_decor[kind] = decor
+			if not a.has("sprite"):
+				continue
 		var img := _load_image(a.get("sprite", ""))
 		if img == null:
 			push_error("MapLayout: prop_art sprite for \"%s\" not found" % kind)
@@ -84,7 +98,7 @@ func setup(map_def: Dictionary) -> void:
 			else:
 				variants[c] = v
 		_art[kind] = {"image": img, "ramp": to_idx.call(a.get("ramp", [])), "colors": colors, "variants": variants,
-			"repeat": a.get("repeat", false)}
+			"repeat": a.get("repeat", false), "slice": a.get("slice", [])}
 	cols = int(ceil(bounds.size.x / CELL))
 	rows = int(ceil(bounds.size.y / CELL))
 	blocked.resize(cols * rows)
@@ -226,6 +240,9 @@ func _draw_prop(p: Dictionary) -> void:
 	_rng.seed = int(r.position.x * 131.0 + r.position.y * 7.0)
 	if _art.has(p.kind):
 		var img := _sprite_for(p)
+		if not _art[p.kind].slice.is_empty():
+			_nine_slice(img, r, _art[p.kind].slice)
+			return
 		for at in _sprite_spots(p, r, img):
 			_img.blend_rect(img, Rect2i(Vector2i.ZERO, img.get_size()), at)
 		return
@@ -279,6 +296,25 @@ func _sprite_for(p: Dictionary) -> Image:
 					img.set_pixel(x, y, swap[c.to_rgba32()])
 		a[key] = img
 	return a[key]
+
+
+## Stretches a sprite over the whole rect without scaling a pixel (map
+## "prop_art" "slice": [left, top, right, bottom]): the corners are drawn once,
+## the middle column and row of the sprite repeat along the edges and inside.
+func _nine_slice(img: Image, r: Rect2, sl: Array) -> void:
+	var src_x := [0, int(sl[0]), img.get_width() - int(sl[2]), img.get_width()]
+	var src_y := [0, int(sl[1]), img.get_height() - int(sl[3]), img.get_height()]
+	var dst_x := [int(r.position.x), int(r.position.x) + int(sl[0]), int(r.end.x) - int(sl[2]), int(r.end.x)]
+	var dst_y := [int(r.position.y), int(r.position.y) + int(sl[1]), int(r.end.y) - int(sl[3]), int(r.end.y)]
+	for j in 3:
+		for i in 3:
+			var src := Rect2i(src_x[i], src_y[j], src_x[i + 1] - src_x[i], src_y[j + 1] - src_y[j])
+			if src.size.x <= 0 or src.size.y <= 0:
+				continue
+			for y in range(dst_y[j], dst_y[j + 1], src.size.y):
+				for x in range(dst_x[i], dst_x[i + 1], src.size.x):
+					var part := Rect2i(src.position, Vector2i(mini(src.size.x, dst_x[i + 1] - x), mini(src.size.y, dst_y[j + 1] - y)))
+					_img.blend_rect(img, part, Vector2i(x, y))
 
 
 ## Where the prop's sprite goes: once, or with the art's "repeat": true as
@@ -697,6 +733,57 @@ func _hedge(r: Rect2) -> void:
 
 
 func _pond(r: Rect2) -> void:
+	var decor: Dictionary = _decor.get("pond", {})
+	if decor.is_empty():
+		_pond_plain(r)
+		return
+	# Drawn in the layers of the SpriteCook pond (sheet "props_sheet_water"),
+	# since ponds come in many sizes: INK outline, sandy shore with a dark lip
+	# at the bottom, water with a dark top edge and a light rim, sparkles.
+	var shore := r.grow(4)
+	_ellipse(shore.grow(1), Palette.INK)
+	_ellipse(shore, Palette.BARK)
+	_ellipse(Rect2(shore.position, shore.size - Vector2(0, 2)), Palette.DOUGH)
+	for i in int(shore.get_area() / 14.0):
+		var at := Vector2(_rng.randf_range(shore.position.x, shore.end.x), _rng.randf_range(shore.position.y, shore.end.y))
+		if _pixel_at(at.x, at.y) == _c(Palette.DOUGH):
+			_px(at.x, at.y, Palette.CRUST)
+	_ellipse(r.grow(1), Palette.INK)
+	_ellipse(r, Palette.SKY)
+	_ellipse(Rect2(r.position + Vector2(1, 0), r.size - Vector2(2, 1)), Palette.OCEAN)
+	_ellipse(Rect2(r.position + Vector2(2, 3), r.size - Vector2(4, 5)), Palette.BLUE)
+	for i in int(r.get_area() / 300.0) + 2:
+		var at := (r.position + r.size * Vector2(_rng.randf_range(0.2, 0.75), _rng.randf_range(0.25, 0.75))).round()
+		_rect(Rect2(at, Vector2(2, 1)), Palette.SKY)
+		_px(at.x + 2, at.y + 1, Palette.SKY)
+	# Lily pads on the water, reeds on the shore (the back half, so they
+	# stand behind the water like the sprite's).
+	var inner := r.grow(-4)
+	if decor.has("water"):
+		var img: Image = decor.water
+		for i in int(r.get_area() / 1800.0) + 1:
+			for tries in 8:
+				var at := Vector2(_rng.randf_range(inner.position.x, inner.end.x - img.get_width()),
+					_rng.randf_range(inner.position.y, inner.end.y - img.get_height())).round()
+				if _in_ellipse(inner, at) and _in_ellipse(inner, at + Vector2(img.get_size())):
+					_img.blend_rect(img, Rect2i(Vector2i.ZERO, img.get_size()), Vector2i(at))
+					break
+	if decor.has("shore"):
+		var img: Image = decor.shore
+		var n := int((r.size.x + r.size.y) / 40.0) + 1
+		for i in n:
+			var a := PI + PI * (i + _rng.randf_range(0.2, 0.8)) / n
+			var foot := r.get_center() + Vector2(cos(a) * (r.size.x / 2.0 + 2.0), sin(a) * (r.size.y / 2.0 + 2.0))
+			var at := Vector2i(int(foot.x) - img.get_width() / 2, int(foot.y) - img.get_height() + 2)
+			_img.blend_rect(img, Rect2i(Vector2i.ZERO, img.get_size()), at)
+
+
+static func _in_ellipse(r: Rect2, p: Vector2) -> bool:
+	return ((p - r.get_center()) / (r.size / 2.0)).length_squared() <= 1.0
+
+
+## The pond without art: all code.
+func _pond_plain(r: Rect2) -> void:
 	_ellipse(r.grow(5), Palette.DOUGH)  # sandy shore
 	for i in 50:
 		var a := _rng.randf() * TAU

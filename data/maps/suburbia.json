@@ -176,6 +176,21 @@
 					"SKY"
 				]
 			}
+		},
+		"pool": {
+			"sprite": "res://assets/props/pool.png",
+			"slice": [
+				14,
+				13,
+				14,
+				11
+			]
+		},
+		"pond": {
+			"decor": {
+				"water": "res://assets/props/lily.png",
+				"shore": "res://assets/props/reeds.png"
+			}
 		}
 	},
 	"props": [

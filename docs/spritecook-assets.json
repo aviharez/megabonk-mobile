@@ -183,5 +183,10 @@
 		"asset_id": "10ff3aff-c52b-45fd-bd61-5fb4c9837279",
 		"sha12": "a50c9540e074",
 		"label": "Boss altar (32x32, NB2.1 1K, style refs sheet A + Mega Mole + house); assets/props/altar.png"
+	},
+	"props_sheet_water": {
+		"asset_id": "09762765-cb69-4972-8992-cad4e2270002",
+		"sha12": "a7e7fa318096",
+		"label": "Water sheet (2x2, 68x68, NB2.1 1K, style refs sheets A + C + house): pool (9-slice template via tools/art/water.py), pond (style for the code-drawn pond), lily pads, reeds"
 	}
 }

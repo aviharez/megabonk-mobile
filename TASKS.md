@@ -345,7 +345,8 @@ Same as phase 4 (330.8 / 242.0 / 2.15 ms uncapped): the Ads and Store autoloads 
   - [x] Owner follow-up (2026-10-09, no credits): grass toned down (`tools/art/textures.py`: flowers, LIME and lone GREEN tufts -> LEAF); view 180x320 -> 270x480 (reverted the same day: it shrank menus and HUD too); map 720x880 -> 1440x1760 built by `tools/maps/build_suburbia.py` from the block `tools/maps/suburbia_block.json` (4 copies, 2 mirrored, seam streets, re-rolled colors per copy, interactables x3, one altar and cage). Rect texture fills blit whole tiles (bake 110 -> 58 ms on desktop)
   - [x] Wider world only (owner, 2026-10-09): base back to 180x320, stretch mode canvas_items; the run draws its world in `Run.world_viewport` at world_scale = round(ui_scale / "world_view_scale") (1.5 first, owner chose 2.0: phone 1280x2772 UI 7x, world 4x; desktop 540x960 UI 3x, world 2x); HUD arrows use the zoom; despawn distance stays outside the view. Menus checked identical in look; test `test_map_flow.gd::test_world_view_is_wider_than_the_ui`
   - [x] Second hand-designed block (2026-10-09, no credits): `tools/maps/suburbia_block_b.json` (school sports ground with a running track around a pitch, playground and school garden; park with a paved public pool, tree-lined path and a small pond; parking lot; two short streets with 9 houses; main road off-centre at x 216). Map = A top-left + bottom-right, B top-right + bottom-left, none mirrored, so every vertical road meets the seam at a different x. Fields now draw after paths and sand (`MapLayout.GROUND`), so a pitch can sit inside a track. 1623 checks pass
-  - [ ] Owner review of the wider world view on the phone and the big map with block B; pond and pool still code-drawn
+  - [x] Pond and pool (2026-10-09; 12 credits; sheet `09762765`): `tools/art/water.py` cuts it. Pool = 9-slice template `assets/props/pool.png` (map prop_art "slice", `MapLayout._nine_slice`): ladder and sparkles once at any size. Pond stays code-drawn (sizes vary) but in the SpriteCook pond's layers, with its lily pads and reeds stamped on (prop_art "decor"; GameData checks both). Tests: `test_icons.gd::test_map_pool_slice_and_pond_decor`, 3 bad-data cases; 1635 checks pass. `tools/check_assets.py`: 64 assets, 0 failed
+  - [ ] Owner review of the wider world view on the phone, the big map with block B, and the pond and pool
 - [ ] UI (CC0 pack or code), remapped to the palette
 - [ ] Enemy sheets from assets/creatures/ for every role (elites = scaled + recolored)
 - [ ] Placeholder inventory: list every code-drawn / placeholder asset and replace it
@@ -371,4 +372,4 @@ Same as phase 4 (330.8 / 242.0 / 2.15 ms uncapped): the Ads and Store autoloads 
 | Same, Gary, heroes at ~22px | 75.0 (display cap) | 66.6 | 3.59 | 299.8 |
 | 270x480 view, 1440x1760 textured map | 75.0 (display cap) | 68.6 | 3.37 | 299.5 |
 
-SpriteCook: 548 credits spent, 252 left.
+SpriteCook: 560 credits spent, 240 left.

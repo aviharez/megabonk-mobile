@@ -198,6 +198,9 @@ func test_phase6_bad_icons_and_prop_art_are_caught(t) -> void:
 		["maps/suburbia.json", func(d: Dictionary) -> void: d.prop_art.castle = {}, "prop_art \"castle\" must be a known prop kind"],
 		["maps/suburbia.json", func(d: Dictionary) -> void: d.prop_art.house.colors.BLUE = ["SKY"], "color \"BLUE\" needs as many colors as \"ramp\""],
 		["maps/suburbia.json", func(d: Dictionary) -> void: d.prop_art.house.ramp[0] = "SALMONY", "unknown palette color \"SALMONY\""],
+		["maps/suburbia.json", func(d: Dictionary) -> void: d.prop_art.pool.slice = [14, 13], "\"slice\" must be [left, top, right, bottom]"],
+		["maps/suburbia.json", func(d: Dictionary) -> void: d.prop_art.pond.decor.water = "res://nope.png", "decor \"water\" sprite \"res://nope.png\" not found"],
+		["maps/suburbia.json", func(d: Dictionary) -> void: d.prop_art.pond = {}, "prop_art \"pond\" sprite \"<null>\" not found"],
 	]
 	for c: Array in cases:
 		_wipe(BAD)
