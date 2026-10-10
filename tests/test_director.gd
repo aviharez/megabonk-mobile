@@ -106,7 +106,9 @@ func test_final_swarm_escalation_never_stops(t) -> void:
 	var tl := _timeline(12.0)
 	var d: Director = tl.director
 	t.check(d.final_started and d.escalation() > 1.0, "escalation keeps rising in the Final Swarm (%s)" % d.escalation())
-	t.check(d.coin_mult() > 2.0, "coin multiplier rises (%s)" % d.coin_mult())
+	var rate: float = d.final_cfg.coin_mult_per_min
+	t.check(rate > 0.0 and is_equal_approx(d.coin_mult(), 1.0 + rate * d.final_time / 60.0) and d.coin_mult() > 1.5,
+		"coin multiplier rises with Final Swarm minutes (%s)" % d.coin_mult())
 	t.check(d.bill_speed_mult() > 1.5 and d.bill_damage_mult() > 2.0, "bills get faster and hit harder")
 
 

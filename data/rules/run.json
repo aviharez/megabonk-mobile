@@ -14,7 +14,7 @@
 	"player_iframes": 0.5,
 	"player_hp_bar": {"width": 16, "height": 4, "gap": 2},
 	"xp_curve": {"base": 5, "growth": 4.0, "exponent": 1.35},
-	"coins": {"per_minute": 4, "per_kill": 0.02, "death_multiplier": 0.6},
+	"coins": {"per_minute": 10, "per_kill": 0.003, "death_multiplier": 0.75},
 	"gem_tiers": [
 		{"min_value": 1, "shape": "gem_small", "color": "SKY", "sprite": "res://assets/gems/gem_small.png"},
 		{"min_value": 5, "shape": "gem_mid", "color": "PINK", "sprite": "res://assets/gems/gem_mid.png"},

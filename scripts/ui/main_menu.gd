@@ -104,6 +104,9 @@ func _build_top() -> void:
 	_top.offset_bottom = 24
 	_frame.add_child(_top)
 	_coins = CoinPlate.new()
+	# Coins pinned to the left edge and the gear to the right, both on the
+	# same 16 px row 4 px in from the corners.
+	_coins.align = 0.0
 	_coins.position = Vector2(4, 4)
 	_coins.size = Vector2(60, CoinPlate.H)
 	_top.add_child(_coins)
@@ -117,9 +120,9 @@ func _build_top() -> void:
 	_settings_btn.anchor_right = 1.0
 	_settings_btn.offset_left = -26
 	_settings_btn.offset_right = -4
-	_settings_btn.offset_top = 3
-	_settings_btn.offset_bottom = 23
-	_settings_btn.custom_minimum_size = Vector2(22, 20)
+	_settings_btn.offset_top = 4
+	_settings_btn.offset_bottom = 4 + CoinPlate.H
+	_settings_btn.custom_minimum_size = Vector2(22, CoinPlate.H)
 	_settings_btn.pressed.connect(_open_settings)
 	_top.add_child(_settings_btn)
 

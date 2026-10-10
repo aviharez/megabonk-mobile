@@ -95,6 +95,21 @@ func test_houses_block_walkers_not_ghosts(t) -> void:
 	_done(t, run)
 
 
+func test_plants_never_block(t) -> void:
+	# Trees and hedges are walk-through: a map of nothing but plants has no
+	# solid cell, and the player walks straight across a hedge.
+	var hedge := {"kind": "hedge", "rect": [40, 40, 48, 8]}
+	var ml := MapLayout.new()
+	ml.setup({"size": [160, 160], "props": [hedge, {"kind": "tree", "rect": [100, 90, 20, 24]},
+		{"kind": "bush", "rect": [20, 100, 12, 10]}, {"kind": "planter", "rect": [60, 120, 16, 8]}]})
+	t.check(ml.blocked.count(1) == 0, "no plant cell blocks (%d blocked)" % ml.blocked.count(1))
+	var p := Vector2(64, 60)
+	for i in 30:
+		p = ml.move(p, Vector2(0, -1), 4.0)
+	t.check(p.is_equal_approx(Vector2(64, 30)), "the player walks through the hedge (%s)" % p)
+	ml.free()
+
+
 func test_enemy_roles(t) -> void:
 	var run := _start(t)
 	run.weapons.clear()

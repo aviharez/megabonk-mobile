@@ -236,7 +236,7 @@ Same as phase 4 (330.8 / 242.0 / 2.15 ms uncapped): the Ads and Store autoloads 
 
 - [x] (owner, 2026-10-08: `"requires": "golden_toilet"` added, brief table updated) Lottery Tips ("Epic from a paid chest", Mid) can't be done before an Epic item is owned: all three Epics (Golden Toilet, Clone Machine, Angry Neighbor) are unlock content, and chests only roll what's in the pool. The earliest route is Golden Toilet (Mid). The brief lists no prerequisite; options: add `"requires": "golden_toilet"` so the screens say so, make one Epic start content, or accept the hidden order. Owner decision.
 - [ ] "10 elites in one run" (Mid): elites come every 60-90 s, so ~6 by 8:00; it needs Final Swarm time. Best bot run had 8 in 11 min. Watch in phase 8.
-- [ ] Coin income swings hugely with the Final Swarm multiplier (one sim earned 655, the others 4-48). Phase 8 should tune coins per minute/kill and the multiplier together with prices.
+- [x] ~~Coin income swings hugely with the Final Swarm multiplier~~ Tuned 2026-10-10 (phase 8 follow-up 5): 35-45 per early death, 137-225 in the Final Swarm.
 - [ ] "Finish 3 runs" counts runs that end by death, bills or the portal, not GIVE UP (so it can't be farmed by quitting at 0:01).
 - [ ] "Collect 3,000 XP gems" counts dropped gems picked up; a merged gem counts as all the gems in it. Gems left on the ground at the end don't count. One bot run collects 90-6,200.
 - [ ] A run only reaches the save when it ends. Closing the app mid-run loses that run's progress (the save on disk stays intact). Committing on app pause would double-count runs that are resumed.
@@ -550,6 +550,15 @@ Owner follow-up 4 (2026-10-10): "shrine" and "tome" too close to Megabonk; a mor
 - [x] Studio splash `scenes/splash.tscn` (`Splash`, now `run/main_scene`): code-drawn pixel badge (gold "A" on a blue plate) drops in with dust and a bounce ("bonk"), shine sweep, sparkles, AVIHAREZ pops in letter by letter (rising "gem" blips), STUDIO under it, name hops, dither wipe to the menu at 2.7 s; tap or back skips (after 0.3 s). INK background = the boot splash colour
 - [x] Tests: `tests/test_splash.gd` (first scene, badge on the palette, plays then a tap leaves); 2225 checks pass
 - [ ] Owner phone check: splash timing / sound, the new icon on the home screen (round mask and themed icon)
+
+Owner follow-up 5 (2026-10-10): plants shouldn't collide; unlock prices should make sense (Megabonk as reference) with coin income adjusted to match; coin plate and settings gear misaligned on the home screen.
+
+- [x] Plants never block: `tree` (was its trunk cell) and `hedge` (was solid) are walk-through like bushes and planters. Houses, fences, ponds, cars and swings still block. Test `test_plants_never_block` (mutation-checked: a solid hedge fails both checks)
+- [x] Coins: `per_minute` 4 -> 10, `per_kill` 0.02 -> 0.003, `death_multiplier` 0.6 -> 0.75, Final Swarm `coin_mult_per_min` 0.5 -> 0.15. Kills used to pay most of a run (~9,000 kills in a won run), so bot sims earned 30 for an early death and 300-718 in the Final Swarm (16x). Now 35-45 vs 137-225 (about 5x), same seeds
+- [x] Prices in the Megabonk mould (small numbers; Early costs about one run), measured against the ~40-coin early-death run a new player earns: Early 50 -> 30, Mid 150 -> 90 (Turbo Pigeon 225 -> 140), Hard 300 -> 220 (Gary 450 -> 350). All unlocks 3,775 -> 2,500. Shop: stats 20/45/80/130/200 -> 15/30/50/80/120; Reroll 25/60/120; Skip 20/50/100; Banish 40/90/160; Toggler 60/150 (Megabonk's is 50). Whole shop 3,770 -> 2,350. Daily ad reward stays 25 (about one early run)
+- [x] Home top bar: `CoinPlate.align` (0 = left); the plate is pinned 4 px from the left (it was centred in a 60 px box, so it floated ~20 px in) and the gear is on the same 4-20 px row (it was 3-23, 4 px taller). The gear is drawn as the plain pixel box at that height
+- [x] Tests: 2227 checks pass (Final Swarm multiplier test now reads the rate from data). Stress (desktop, full build, Final Swarm, vsync): 75.0 avg / 68.5 1% low, 307 on screen
+- [ ] Owner check: prices and coins by feel on the phone (bot sims only; a human's early runs are likely shorter than the bot's 4-6 min)
 
 ## Found during phase 8
 

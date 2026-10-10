@@ -8,5 +8,5 @@
 	"goal": "at_most",
 	"requires": "",
 	"reward": "angry_neighbor",
-	"price": 300
+	"price": 220
 }

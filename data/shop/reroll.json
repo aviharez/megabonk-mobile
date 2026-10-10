@@ -6,9 +6,9 @@
 	"icon": "ui/die",
 	"action": "reroll",
 	"prices": [
-		30,
-		80,
-		160
+		25,
+		60,
+		120
 	],
 	"charges": [
 		2,

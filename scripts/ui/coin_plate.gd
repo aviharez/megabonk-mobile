@@ -13,6 +13,8 @@ var value := 0:
 		_shown = v
 		_fit()
 var _shown := 0
+## Where the plate sits when the control is wider than it (0 left, 0.5 centre).
+var align := 0.5
 var _tween: Tween
 
 
@@ -51,7 +53,7 @@ func _fit() -> void:
 
 func _draw() -> void:
 	var w := floorf(size.x)
-	var r := Rect2(floorf((w - custom_minimum_size.x) / 2.0), 0, custom_minimum_size.x, H - 1)
+	var r := Rect2(floorf((w - custom_minimum_size.x) * align), 0, custom_minimum_size.x, H - 1)
 	# Plate: INK outline with clipped corners, NIGHT inside, 1px shadow.
 	var ink := Palette.color(Palette.INK)
 	draw_rect(Rect2(r.position.x + 1, r.position.y + 1, r.size.x - 2, r.size.y), ink)

@@ -18,14 +18,16 @@ const CELL := 8
 const KINDS := {
 	"yard": false, "field": false, "garden": false, "path": false, "sand": false,
 	"sidewalk": false, "driveway": false, "road": false, "crosswalk": false,
-	"house": true, "fence": true, "hedge": true, "pond": true, "tree": true,
+	"house": true, "fence": true, "pond": true,
 	"car": true, "swing": true,
+	# Plants never block: trunks and hedges snagged the player mid-kite.
+	"tree": false, "hedge": false,
 	# Sheds and backyard pools are walk-through too: with houses, fences and
 	# cars they left too little room to kite the horde.
 	"shed": false, "pool": false,
 	# Street furniture is walk-past decoration: solid posts along every
 	# sidewalk snagged the player and boxed fights into corridors.
-	# Same for bushes; trees block only their trunk cell (see _block).
+	# Same for bushes.
 	"bench": false, "mailbox": false, "lamp": false, "bush": false, "planter": false,
 }
 ## Ground kinds in draw order (later ones cover earlier ones). Every other
@@ -194,11 +196,6 @@ static func rect_of(p: Dictionary) -> Rect2:
 
 func _block(p: Dictionary) -> void:
 	var r := rect_of(p)
-	if p.kind == "tree":
-		# Only the trunk: one cell. Dozens of 2x2 blocks snagged every fight.
-		var t := Vector2(r.get_center().x, r.end.y - 3)
-		blocked[clampi(int(t.y / CELL), 0, rows - 1) * cols + clampi(int(t.x / CELL), 0, cols - 1)] = 1
-		return
 	var ellipse: bool = p.kind == "pond" or p.get("shape", "") == "ellipse"
 	for cy in range(maxi(0, int(r.position.y / CELL)), mini(rows, int(ceil(r.end.y / CELL)))):
 		for cx in range(maxi(0, int(r.position.x / CELL)), mini(cols, int(ceil(r.end.x / CELL)))):

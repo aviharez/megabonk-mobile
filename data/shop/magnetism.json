@@ -5,11 +5,11 @@
 	"kind": "stat",
 	"icon": "tomes/fridge_magnets",
 	"prices": [
-		20,
-		45,
+		15,
+		30,
+		50,
 		80,
-		130,
-		200
+		120
 	],
 	"modifiers_per_level": [
 		{

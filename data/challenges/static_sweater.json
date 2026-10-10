@@ -8,5 +8,5 @@
 	"target": 300,
 	"requires": "faulty_toaster",
 	"reward": "static_sweater",
-	"price": 300
+	"price": 220
 }
