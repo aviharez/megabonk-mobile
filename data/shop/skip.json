@@ -3,6 +3,7 @@
 	"name": "SKIP",
 	"desc": "SKIP A LEVEL-UP FOR GOLD",
 	"kind": "action",
+	"icon": "ui/ffwd",
 	"action": "skip",
 	"prices": [
 		25,

@@ -6,5 +6,6 @@
 	"shape": "key",
 	"sprite": "res://assets/props/key.png",
 	"color": "GOLD",
-	"arrow": "GOLD"
+	"arrow": "GOLD",
+	"beam": {"color": "GOLD", "height": 40}
 }

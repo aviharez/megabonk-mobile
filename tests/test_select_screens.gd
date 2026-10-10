@@ -71,7 +71,8 @@ func test_hero_select_grid_and_preview(t) -> void:
 	await t.process_frame
 	t.check(hero.find_child("Next", true, false).disabled, "NEXT is off for a locked hero")
 	var texts := hero.find_children("*", "Label", true, false).map(func(l: Label) -> String: return l.text)
-	t.check(texts.has(Meta.challenge_for(db, "gary").desc), "the locked preview shows the unlock challenge")
+	texts.append_array(hero.find_children("*", "ChallengeRow", true, false).map(func(r: ChallengeRow) -> String: return r.text))
+	t.check(texts.has(Meta.challenge_for(db, "gary").desc), "the locked preview shows the unlock challenge (with its progress)")
 	t.check(hero.find_children("*", "SheetView", true, false).is_empty(), "and no sprite colors (silhouette)")
 	hero.select("turbo_pigeon")
 	await t.process_frame

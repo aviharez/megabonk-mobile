@@ -28,6 +28,11 @@ var art: Texture2D:
 	set(v):
 		art = v
 		queue_redraw()
+## Draw `art` small and frameless, centered together with the label (price tags).
+var art_plain := false:
+	set(v):
+		art_plain = v
+		queue_redraw()
 ## Draw `art` centered above the label instead of on its left (tall buttons
 ## with long lines, like the level-up cards).
 var art_above := false:
@@ -60,6 +65,16 @@ var pressed_frame := "":
 var badge := "":
 	set(v):
 		badge = v
+		queue_redraw()
+## Every line in the small font (dense buttons).
+var small_text := false:
+	set(v):
+		small_text = v
+		queue_redraw()
+## Lines after the first in the small font (a bold name over its description).
+var small_rest := false:
+	set(v):
+		small_rest = v
 		queue_redraw()
 ## Subclasses that draw their own label (AdButton) set this.
 var _own_label := false
@@ -108,9 +123,19 @@ func _draw() -> void:
 			draw_rect(Rect2i(2, y + h - 2, w - 4, 1), _darker(fill))
 
 	var left := label_left
+	var plain_right := 0
 	var text_top := y
 	var text_h := h
-	if art != null:
+	if art != null and art_plain:
+		# A small icon with no frame, centered together with the label.
+		var asz := Vector2i(art.get_size())
+		var lw := int(Fonts.fitting(label, w - asz.x - 10).get_string_size(label, HORIZONTAL_ALIGNMENT_LEFT, -1, Fonts.SIZE).x)
+		var ax := (w - asz.x - 3 - lw) / 2
+		draw_texture(art, Vector2(ax, y + (h - 2 - asz.y) / 2))
+		# The label's centering span is exactly its width, right after the icon.
+		left = ax + asz.x + 3
+		plain_right = w - left - lw
+	elif art != null:
 		var at := Vector2i(5, y + (h - ContentIcon.SIZE) / 2)
 		if art_above:
 			at = Vector2i((w - ContentIcon.SIZE) / 2, y + 4)
@@ -130,7 +155,7 @@ func _draw() -> void:
 		var bx := w - bw - 3
 		UiArt.draw(self, "new_badge", Rect2(bx, y + 3, bw, 9))
 		draw_string(bf, Vector2(bx + 3, y + 4 + bf.get_ascent(bfs)), badge, HORIZONTAL_ALIGNMENT_LEFT, -1, bfs, Palette.color(Palette.PAPER))
-	var right := 0
+	var right := plain_right
 	if toggle >= 0:
 		var sw := "toggle_on" if toggle == 1 else "toggle_off"
 		var ts := UiArt.sprite_size(sw)
@@ -138,16 +163,25 @@ func _draw() -> void:
 		right = ts.x + 6
 	if _own_label:
 		return
-	# One centered line per "\n"-separated part of the label.
-	var font := get_theme_default_font()
-	var fs := get_theme_default_font_size()
+	# One centered line per "\n"-separated part of the label: the bold font
+	# when the line fits, the small one otherwise (long card descriptions).
+	var fs := Fonts.SIZE
 	var lines := label.split("\n")
-	var lh := font.get_height(fs)
-	var top := text_top + floorf((text_h - lh * lines.size()) / 2.0) + font.get_ascent(fs)
+	var lh := Fonts.BOLD.get_height(fs)
+	var top := text_top + floorf((text_h - lh * lines.size()) / 2.0) + Fonts.BOLD.get_ascent(fs)
+	var room := w - right - left - (0 if plain_right > 0 else 8)
+	var c := Palette.color(Palette.SHADE if off else ink)
+	# Light text gets a 1px INK shadow so it reads on any plate.
+	var shade := not off and c.get_luminance() > 0.5
 	for i in lines.size():
+		var font := Fonts.fitting(lines[i], room) if not small_text else Fonts.SMALL
+		if i > 0 and small_rest:
+			font = Fonts.SMALL
 		var tw := font.get_string_size(lines[i], HORIZONTAL_ALIGNMENT_LEFT, -1, fs).x
 		var pos := Vector2(left + floorf((w - right - left - tw) / 2.0), top + lh * i)
-		draw_string(font, pos, lines[i], HORIZONTAL_ALIGNMENT_LEFT, -1, fs, Palette.color(Palette.SHADE if off else ink))
+		if shade:
+			draw_string(font, pos + Vector2(0, 1), lines[i], HORIZONTAL_ALIGNMENT_LEFT, -1, fs, Palette.color(Palette.INK))
+		draw_string(font, pos, lines[i], HORIZONTAL_ALIGNMENT_LEFT, -1, fs, c)
 
 
 ## Filled rect with a 1px outline and the four corner pixels left empty.

@@ -1,6 +1,6 @@
 extends Node
 ## End-to-end check of the screens: menu -> PLAY -> hero select -> map
-## select -> run -> death -> game over (with unlock progress) -> BACK TO MENU
+## select -> run -> death -> game over (with unlock progress) -> MENU
 ## -> UNLOCKS and SHOP open and close -> with Turbo Pigeon owned, picking him
 ## and the map starts his run there.
 ## Ads (FakeAdBackend / FakeStoreBackend, the desktop stand-ins): banner on
@@ -55,7 +55,7 @@ func _check() -> void:
 			fails.append("runs_played not recorded (%s)" % save.data.runs_played)
 		var back: PixelButton = null
 		for n in run.find_children("*", "PixelButton", true, false):
-			if n.label == "BACK TO MENU":
+			if n.name == "Menu":
 				back = n
 		if not run.find_children("*", "ChallengeRow", true, false).size() in [2, 3]:
 			fails.append("game over doesn't show 2-3 closest unlocks")
@@ -77,7 +77,7 @@ func _check() -> void:
 		if fake.calls.count("show:interstitial") != shows + 1:
 			fails.append("no interstitial at the game over -> menu break")
 		if tree.current_scene == null or tree.current_scene.name != "MainMenu" or tree.paused:
-			fails.append("BACK TO MENU did not return to an unpaused menu")
+			fails.append("MENU did not return to an unpaused menu")
 		else:
 			await _ads_remove(tree, ads, fake, save, fails)
 			await _menu_screens(tree, save, fails)

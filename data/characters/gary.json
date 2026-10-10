@@ -8,7 +8,7 @@
 	"stats": {
 		"max_hp": 100,
 		"move_speed": 50,
-		"pickup_range": 22,
+		"pickup_range": 30,
 		"armor": 0,
 		"regen": 0,
 		"damage": 0.9,

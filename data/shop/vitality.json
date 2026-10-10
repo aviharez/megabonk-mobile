@@ -3,6 +3,7 @@
 	"name": "VITALITY",
 	"desc": "+6 MAX HP PER LEVEL",
 	"kind": "stat",
+	"icon": "tomes/grandmas_soup_recipes",
 	"prices": [
 		20,
 		45,

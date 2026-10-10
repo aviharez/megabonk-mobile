@@ -1,4 +1,6 @@
-# Game Brief: Swarm Survivor Pixel (working title)
+# Game Brief: Mobbed! Survive the swarm
+
+Title (owner, 2026-10-10): **Mobbed!**, subtitle **Survive the swarm**. Earlier working title: Swarm Survivor Pixel.
 
 Oct 5, 2026 · @Syifa
 
@@ -257,7 +259,7 @@ Every asset follows one locked palette (picked from Lospec), a 180×320 portrait
 | Weapon and item icons | SpriteCook | One style-reference icon first, the rest follow it |
 | Tome icons | SpriteCook + code | One book sprite, then 16 cover-color and symbol variants made in code |
 | Suburbia tiles and props | SpriteCook or drawn in code | Remapped to the palette |
-| UI | CC0 pack (for example, Kenney) or drawn in code | Remapped to the palette |
+| UI | SpriteCook UI kit (9-slice plates, icons) + drawn in code | Remapped to the palette. Fonts: "Bonk" bold (our own design, `tools/fonts/make_bonk.py`) for titles, buttons, headings and HUD numbers; the 5x7 small font for longer text |
 
 The procedural generator uses Godot 4.5.2 .NET and .NET 8, and has only been validated on Windows. Run it as a separate tool, not as part of the game project.
 
@@ -270,6 +272,18 @@ The procedural generator uses Godot 4.5.2 .NET and .NET 8, and has only been val
 
 Estimated MVP usage is about 600 credits, or 900–1,200 including regenerations.
 
+### UI and screens (owner direction 2026-10-09: "the core is good, the UI/UX is not")
+
+- **Safe area.** The Android build is immersive and draws under the camera cutout. HUD rows, the pause button, menu headers and every panel keep `SafeArea.top()` px clear at the top and `SafeArea.bottom()` px at the bottom; backgrounds still fill the screen.
+- **No alpha.** Modals dim the screen with an ordered-dither pattern of INK (`DitherDim`); scene changes wipe through the same dither (`Transition` autoload). Everything moves in whole pixels.
+- **Main menu.** A living title scene (night sky, the picked hero running from the swarm through Suburbia at 2x), the logo, a coin plate and a settings gear on top, a teaser for the next unlock (with its progress), a big PLAY, then UNLOCKS and SHOP side by side and the daily reward. Settings open as a window: music, sounds, vibration, damage numbers, screen shake, reduce effects.
+- **Logo.** "MOBBED!" in the Bonk font at 4x, letters overlapping their outlines and hopping one at a time, with "SURVIVE THE SWARM" on the red ribbon under it. No engine credit anywhere in the game.
+- **Menu screens** (heroes, maps, unlocks, shop, Toggler): bold title on the ribbon, then the content, and a fixed bottom bar with BACK and either the main action (NEXT, GO!) or the coin plate. Lists drag-scroll from anywhere, even starting on a button (`DragScroll`, with fling); a drag never presses the button it started on. No empty space: screens with little content fill the height (the hero preview grows; the map screen shows the run's goals under the cards).
+- **Unlocks and shop are grids.** A fixed detail panel on top shows the selected tile (icon at 2x, name or "??? WEAPON", what it does once known, the challenge with its bar, BUY / OWNED / why it's locked); under it a grid of 2x icon tiles grouped by tier (unlocks) or kind (shop). Locked tiles are silhouettes with a progress strip, ones ready to buy hop and sparkle with a NEW badge or red dot, owned ones get a tick, shop tiles show level pips. Shop entries name their picture in data ("icon": "tomes/muscle_magazine" or "ui/die"). Remove Ads stays a purple banner above the grid.
+- **HUD.** XP bar with the level on it, HP bar with a draining ghost, a big timer (SALMON in the last 30 s, PINK in the Final Swarm), gold and kills, toasts on a dark plate that wrap. Under the HP row, the **build strip**: an icon per weapon and tome with level pips (gold at max); a new one or a level-up flashes. The HP bar stops where the big timer starts. Items show as a small row of icons at the bottom-left (rarity-coloured corners, stack count), above the boss bar during the boss. A **pickup card** slides in for a few seconds whenever an item comes from a chest or the merchant (icon, rarity, name, what it does, stack count) or a shrine bonus is taken.
+- **Run panels.** Level-up cards show kind, icon, level pips (the new level blinks), the description, and the numbers that change in LIME ("DMG 10>14  CD 1.3>1.2", tomes "NOW +10% > +20%"); REROLL / SKIP / BANISH are labelled. The merchant's cards say what each item does. Pause fills the screen: the build (tap any weapon, tome or item to see its level, what it does now, and for weapons its damage and kills this run), stats, music/sound toggles, and GIVE UP asks for a second tap. Game over: reason line, the hero, stat tiles, coins rolling up, 2X COINS, the build you ended with, closest unlocks, PLAY AGAIN and MENU, after a short red death beat.
+- **First runs.** "SURVIVE!" at the start; for the first two runs a ghost joystick says "DRAG ANYWHERE TO MOVE" until the first touch.
+
 ### Audio
 
 - **SFX:** made by Claude Code with an sfxr-style generator script, rendered to WAV. Pitch is randomized slightly on each play, and simultaneous voices are capped.
@@ -280,9 +294,10 @@ Estimated MVP usage is about 600 credits, or 900–1,200 including regenerations
 
 | Group | Effects |
 | --- | --- |
-| Hit feedback | White hit flash (shader), damage numbers (can be turned off), pixel particles on enemy death, brief hit-stop on big crits and boss hits, light screen shake (can be turned off) |
-| Progress and rewards | Sparkling XP gems with a trail when pulled in, light burst on level-up, rarity-colored beam before a chest opens |
-| Weapons | Steam from coffee puddles, wavy green sock aura, toaster lightning lines, firework explosions, and a signature effect for every other weapon |
+| Hit feedback | White hit flash (shader), damage numbers (can be turned off; plain hits in a tiny 3x5 font so crowds stay readable, crits big and bold), pixel particles on enemy death, brief hit-stop on big crits and boss hits, light screen shake (can be turned off) |
+| Progress and rewards | Sparkling XP gems with a trail when pulled in, light burst on level-up, rarity-colored beam before a chest opens, double ring and sparks when it pops |
+| Findable things | Chests, shrines, the key, cage, altar, portal and merchant stand in a **pillar of light** in their colour with a pulsing glow on the ground, rising motes and twinkles (data "beam": {color, height}); pots twinkle gold now and then ("twinkle"). Chests always show their price (gold when you can pay). Shrine circles turn, light up inside as they charge, and fill with a thick ring |
+| Weapons | Baguette: a big crescent smear behind the blade (orange tail, gold, butter, white edge). Stinky Socks: a dithered stink cloud under the hero, a wobbling rim, outlined stink puffs drifting out and popping, swirling wisps, cartoon stink lines and a wave on every tick. Hot Coffee: cups fly with a shadow and steam, splash on landing, and leave glossy coffee puddles on the ground (lumpy, with a shine, popping bubbles, wavy steam) that shrink as they dry. Shots leave a short streak in their weapon's "trail" colour. toaster lightning lines, firework explosions |
 | World and danger | Elite outlines, red telegraph zones, red vignette at low HP, screen tint shift when the Final Swarm starts |
 
 VFX rules: particles use small pixel textures from the same palette, snap to the pixel grid, and fade with dithering, not smooth gradients. All enemy projectiles use one dedicated color (bright magenta) that appears nowhere else.

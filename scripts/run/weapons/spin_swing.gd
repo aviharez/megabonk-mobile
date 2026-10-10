@@ -84,22 +84,15 @@ func draw(canvas: CanvasItem, origin: Vector2) -> void:
 		return
 	var o := origin.round()
 	var dir := Vector2.from_angle(_angle)
-	var crust := Palette.color(Palette.CRUST)
-	var dough := Palette.color(Palette.DOUGH)
-	var ink := Palette.color(Palette.INK)
-	# Trail: a dotted arc behind the blade.
-	var trail_c := Palette.color(Palette.BUTTER)
-	for i in range(1, 7):
-		var a := _angle - i * 0.14
-		if _swept - i * 0.14 < 0.0:
-			break
-		var tp := (o + Vector2.from_angle(a) * (_radius - 1.0)).round()
-		canvas.draw_rect(Rect2(tp, Vector2.ONE), trail_c)
+	_draw_smear(canvas, o)
 	var tex := Art.texture(def.get("swing_sprite", ""))
 	if tex != null:
 		_draw_sprite(canvas, o, dir, tex)
 		return
 	# Blade: 2x2 squares along the line, outlined crust with a dough center.
+	var crust := Palette.color(Palette.CRUST)
+	var dough := Palette.color(Palette.DOUGH)
+	var ink := Palette.color(Palette.INK)
 	var r := INNER
 	while r <= _radius:
 		var p := (o + dir * r).round()
@@ -110,6 +103,57 @@ func draw(canvas: CanvasItem, origin: Vector2) -> void:
 		var p := (o + dir * r).round()
 		canvas.draw_rect(Rect2(p, Vector2(1, 1)), dough if int(r) % 6 == 0 else crust)
 		r += 1.0
+
+
+## The slash smear behind the blade: stacked crescents, widest and hottest
+## at the blade and tapering off behind it (orange tail, gold, butter, a
+## white leading edge), so the swing reads as one big bright arc.
+const SMEAR := [
+	# [share of the trail, inner radius at the blade as a share of the reach, palette color]
+	[1.0, 0.38, Palette.ORANGE],
+	[0.72, 0.52, Palette.GOLD],
+	[0.48, 0.70, Palette.BUTTER],
+	[0.22, 0.86, Palette.WHITE],
+]
+const TRAIL := 2.1  # radians of smear behind the blade
+
+
+func _draw_smear(canvas: CanvasItem, o: Vector2) -> void:
+	var trail := minf(_swept, TRAIL)
+	if trail < 0.05:
+		return
+	var outer := _radius + 1.0
+	for layer: Array in SMEAR:
+		var span: float = trail * float(layer[0])
+		var inner_head: float = outer * float(layer[1])
+		_arc_band(canvas, o, _angle - span, _angle, outer - 1.0, inner_head, outer, Palette.color(int(layer[2])))
+	# Speckles thrown off the outer edge along the tail.
+	var dough := Palette.color(Palette.BUTTER)
+	for k in 5:
+		var a := _angle - trail * (0.2 + 0.16 * k)
+		var p := (o + Vector2.from_angle(a) * (outer + 2.0 + float(k % 2) * 2.0)).round()
+		canvas.draw_rect(Rect2(p, Vector2.ONE), dough)
+
+
+## A crescent between angles a0 (tail) and a1 (head): outer edge at r_out,
+## inner edge going from r_in_tail to r_in_head. Drawn as one quad per
+## segment (no polygon triangulation to fail on rounded points).
+static func _arc_band(canvas: CanvasItem, o: Vector2, a0: float, a1: float, r_in_tail: float, r_in_head: float, r_out: float, c: Color) -> void:
+	var segs := maxi(4, int((a1 - a0) * r_out / 4.0))
+	var cols := PackedColorArray([c, c, c, c])
+	var prev_out := Vector2.ZERO
+	var prev_in := Vector2.ZERO
+	for i in segs + 1:
+		var f := float(i) / segs
+		var dir := Vector2.from_angle(lerpf(a0, a1, f))
+		# Ease so the band swells near the blade.
+		var rin := lerpf(r_in_tail, r_in_head, f * f * (3.0 - 2.0 * f))
+		var po := (o + dir * r_out).round()
+		var pi := (o + dir * rin).round()
+		if i > 0:
+			canvas.draw_primitive(PackedVector2Array([prev_out, po, pi, prev_in]), cols, PackedVector2Array())
+		prev_out = po
+		prev_in = pi
 
 
 func _draw_sprite(canvas: CanvasItem, o: Vector2, dir: Vector2, tex: Texture2D) -> void:

@@ -6,5 +6,6 @@
 	"shape": "pot",
 	"sprite": "res://assets/props/pot.png",
 	"color": "CRUST",
+	"twinkle": "GOLD",
 	"gold": [2, 6]
 }

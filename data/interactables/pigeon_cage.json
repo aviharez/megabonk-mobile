@@ -7,5 +7,6 @@
 	"sprite": "res://assets/props/cage.png",
 	"color": "GRAY",
 	"arrow": "MIST",
+	"beam": {"color": "MIST", "height": 30},
 	"stat_event": "pigeon_cage_opened"
 }

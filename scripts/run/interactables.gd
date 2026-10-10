@@ -289,18 +289,39 @@ func arrow_targets(view: Rect2) -> Array:
 # --- Drawing --------------------------------------------------------------
 
 func _draw() -> void:
+	# Pass 1: light under everything (glow on the ground, pillars of light),
+	# so chests and shrines read from across the screen.
+	# (Pillars carry information, so they stay with "reduce effects" on.)
+	var view: Rect2 = run.view_rect().grow(16.0) if run.has_method("view_rect") else Rect2(-1e9, -1e9, 2e9, 2e9)
+	for o in list:
+		if o.used:
+			continue
+		var beam: Dictionary = o.def.get("beam", {})
+		if beam.is_empty() or not view.grow_individual(0, float(beam.height), 0, 0).has_point(o.pos):
+			continue
+		var c := Palette.index_of(beam.color)
+		_draw_glow(o.pos, c, int(o.pos.x * 3.0 + o.pos.y))
+		_draw_pillar(o.pos, c, float(beam.height), int(o.pos.x + o.pos.y * 7.0))
 	for o in list:
 		var def: Dictionary = o.def
-		var tex := sprite_of(def)
 		var at: Vector2 = o.pos
+		if not view.has_point(at):
+			continue
+		var tex := sprite_of(def)
 		if def.behavior in STAND:
 			_draw_circle(at, float(def.radius), Palette.index_of(def.color), o.progress / float(def.get("charge_time", 2.0)), o.used)
 		var bob := 0.0
-		if def.behavior in ["key", "portal", "free_chest"]:
-			bob = float(int(_time * 3.0) % 2)
-		draw_texture(tex, (at - Vector2(floorf(tex.get_width() / 2.0), floorf(tex.get_height() / 2.0) + bob)).round())
-		if def.behavior == "paid_chest" and run.player_pos().distance_to(at) < 50.0:
-			_label(at + Vector2(0, -10), "G %d" % paid_price(def), Palette.GOLD)
+		if def.behavior in ["key", "portal", "free_chest", "paid_chest"] and not o.used:
+			bob = float(int(_time * 3.0 + at.x * 0.1) % 2)
+		var tp := (at - Vector2(floorf(tex.get_width() / 2.0), floorf(tex.get_height() / 2.0) + bob)).round()
+		draw_texture(tex, tp)
+		if not o.used and (def.has("beam") or def.has("twinkle")):
+			var tc := Palette.index_of(def.beam.color if def.has("beam") else def.twinkle)
+			_draw_twinkles(at, Vector2(tex.get_size()), tc, int(at.x * 5.0 + at.y), 1 if def.has("beam") else 0)
+		if def.behavior == "paid_chest":
+			var price := paid_price(def)
+			var can: bool = run.gold >= price
+			_price_tag(at + Vector2(0, -floorf(tex.get_height() / 2.0) - 9 - bob), price, can)
 		elif def.behavior == "merchant":
 			_label(at + Vector2(0, -12), "SHOP %d" % ceili(o.left), Palette.BUTTER)
 	if not risks.is_empty():
@@ -308,6 +329,112 @@ func _draw() -> void:
 		for r in risks:
 			left = maxf(left, r.left)
 		_label(run.player_pos() + Vector2(0, -16), "RISK %d" % ceili(left), Palette.RED)
+
+
+## Cached pillar textures: "color|height|phase" -> ImageTexture. A column of
+## light: a white core, solid colour round it, dithered edges that thin out
+## toward the top. Two phases swap so it shimmers.
+static var _pillars := {}
+
+
+static func pillar_texture(color: int, height: int, phase: int) -> Texture2D:
+	var key := "%d|%d|%d" % [color, height, phase]
+	if _pillars.has(key):
+		return _pillars[key]
+	var w := 11
+	var img := Image.create_empty(w, height, false, Image.FORMAT_RGBA8)
+	var c := Palette.color(color)
+	var white := Palette.color(Palette.WHITE)
+	for y in height:
+		var f := float(y) / float(height)  # 0 top, 1 foot
+		for x in w:
+			var dx := absf(x - 5)
+			var a := (1.0 - dx / 6.0) * (0.3 + 0.7 * f)
+			if dx == 0 and Fx.dither(Vector2(x, y + phase * 2), 0.25 + f):
+				img.set_pixel(x, y, white)
+			elif (dx <= 1 and Fx.dither(Vector2(x, y + phase), 0.4 + f)) or Fx.dither(Vector2(x + phase, y + phase * 2), a):
+				img.set_pixel(x, y, c)
+	var tex := ImageTexture.create_from_image(img)
+	_pillars[key] = tex
+	return tex
+
+
+func _draw_pillar(at: Vector2, color: int, height: float, seed_i: int) -> void:
+	var h := int(height)
+	var phase := int(_time * 5.0 + seed_i) % 2
+	draw_texture(pillar_texture(color, h, phase), (at - Vector2(5, h - 2)).round())
+	# Motes rising up the column.
+	var white := Palette.color(Palette.WHITE)
+	var c := Palette.color(color)
+	for k in 3:
+		var t := fposmod(_time * 0.5 + k * 0.33 + seed_i * 0.13, 1.0)
+		var p := (at + Vector2(((seed_i >> k) % 5) - 2, -2.0 - t * height)).round()
+		if Fx.dither(p, 1.0 - t):
+			draw_rect(Rect2(p, Vector2.ONE), white if k == 0 else c)
+
+
+## A flat pulsing oval of light on the ground under the object: four cached
+## sizes per colour, stepped with the pulse.
+static var _glows := {}
+
+
+static func glow_texture(color: int, step: int) -> Texture2D:
+	var key := "%d|%d" % [color, step]
+	if _glows.has(key):
+		return _glows[key]
+	var rx := 9.0 + step
+	var ry := rx * 0.45
+	var w := int(rx) * 2 + 1
+	var h := int(ry) * 2 + 1
+	var img := Image.create_empty(w, h, false, Image.FORMAT_RGBA8)
+	var c := Palette.color(color)
+	for y in h:
+		for x in w:
+			var d := Vector2((x - int(rx)) / rx, (y - int(ry)) / ry).length()
+			if d <= 1.0 and Fx.dither(Vector2(x, y), 0.25 + (1.0 - d) * 0.75):
+				img.set_pixel(x, y, c)
+	var tex := ImageTexture.create_from_image(img)
+	_glows[key] = tex
+	return tex
+
+
+func _draw_glow(at: Vector2, color: int, seed_i: int) -> void:
+	var step := clampi(int((0.5 + 0.5 * sin(_time * 3.0 + seed_i * 0.1)) * 4.0), 0, 3)
+	var tex := glow_texture(color, step)
+	draw_texture(tex, (at + Vector2(0, 4) - Vector2(tex.get_size() / 2).floor()).round())
+
+
+## Plus-shaped twinkles popping round the sprite in turn.
+func _draw_twinkles(at: Vector2, sprite_size: Vector2, color: int, seed_i: int, extra := 1) -> void:
+	var c := Palette.color(color)
+	var white := Palette.color(Palette.WHITE)
+	for k in 1 + extra:
+		var cycle := _time * 1.3 + k * 0.5 + seed_i * 0.07
+		var t := fposmod(cycle, 1.0)
+		var n := int(cycle) * 7 + k * 3 + seed_i
+		var off := Vector2(((n * 37) % 15) - 7, ((n * 53) % 13) - 9) * Vector2(sprite_size.x / 14.0, sprite_size.y / 14.0)
+		var p := (at + off).round()
+		var arm := roundf(2.0 * (1.0 - absf(t * 2.0 - 1.0)))
+		if arm < 1.0:
+			continue
+		draw_rect(Rect2(p.x - arm, p.y, arm * 2.0 + 1.0, 1), c)
+		draw_rect(Rect2(p.x, p.y - arm, 1, arm * 2.0 + 1.0), c)
+		draw_rect(Rect2(p, Vector2.ONE), white)
+
+
+## The chest's price on a small dark plate: coin + number, GOLD when the
+## player can pay, SALMON when not.
+func _price_tag(at: Vector2, price: int, can: bool) -> void:
+	var text := str(price)
+	var tw := FONT.get_string_size(text, HORIZONTAL_ALIGNMENT_LEFT, -1, 8).x
+	var w := tw + 9
+	var r := Rect2((at - Vector2(floorf(w / 2.0), 0)).round(), Vector2(w, 9))
+	draw_rect(r, Palette.color(Palette.INK))
+	draw_rect(r.grow(-1), Palette.color(Palette.NIGHT))
+	# A tiny coin: 4x4 gold with a dark middle.
+	draw_rect(Rect2(r.position + Vector2(2, 2), Vector2(4, 5)), Palette.color(Palette.GOLD))
+	draw_rect(Rect2(r.position + Vector2(3, 3), Vector2(2, 3)), Palette.color(Palette.ORANGE))
+	draw_string(FONT, r.position + Vector2(8, 8), text, HORIZONTAL_ALIGNMENT_LEFT, -1, 8, Palette.color(Palette.GOLD if can else Palette.SALMON))
 
 
 ## The object's picture: its "sprite" (an Image-imported PNG) if it has one,
@@ -323,14 +450,35 @@ static func sprite_of(def: Dictionary) -> Texture2D:
 	return PlaceholderArt.texture(def.shape, Palette.index_of(def.color))
 
 
-## Dotted circle with the charge progress drawn solid over it.
+## The stand-in circle: a dashed ring that turns slowly, a faint dither
+## inside, and the charge progress as a thick solid ring filling clockwise.
 func _draw_circle(at: Vector2, r: float, color: int, progress: float, used: bool) -> void:
 	var c := Palette.color(Palette.GRAY if used else color)
 	var steps := maxi(16, int(TAU * r / 3.0))
+	var spin := 0.0 if used else _time * 0.6
 	for i in steps:
 		var a := TAU * i / steps - PI / 2.0
-		if float(i) / steps < progress or i % 2 == 0:
-			draw_rect(Rect2((at + Vector2.from_angle(a) * r).round(), Vector2.ONE), c)
+		if i % 3 != 2:
+			draw_rect(Rect2((at + Vector2.from_angle(a + spin) * r).round(), Vector2.ONE), c)
+	if used:
+		return
+	if progress > 0.0:
+		# Inside lights up as it charges.
+		var ri := int(r) - 2
+		for y in range(-ri, ri + 1, 2):
+			for x in range(-ri + (y / 2) % 2, ri + 1, 2):
+				var p := at + Vector2(x, y)
+				if x * x + y * y <= ri * ri and Fx.dither(p, progress * 0.5):
+					draw_rect(Rect2(p.round(), Vector2.ONE), c)
+		var white := Palette.color(Palette.WHITE)
+		var n := int(steps * 1.5)
+		for i in n:
+			var f := float(i) / n
+			if f > progress:
+				break
+			var a := TAU * f - PI / 2.0
+			var p := (at + Vector2.from_angle(a) * r).round()
+			draw_rect(Rect2(p - Vector2(1, 1), Vector2(2, 2)), white if f > progress - 0.05 else c)
 
 
 func _label(at: Vector2, text: String, color: int) -> void:

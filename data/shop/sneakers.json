@@ -3,6 +3,7 @@
 	"name": "SNEAKERS",
 	"desc": "+2% SPEED PER LEVEL",
 	"kind": "stat",
+	"icon": "tomes/cardio_is_life",
 	"prices": [
 		20,
 		45,

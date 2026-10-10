@@ -446,3 +446,83 @@ The "before" build ran right after the phase 7 runs, on a warm phone, so its sec
 - `scenes/debug/flow_check.tscn` must run `--headless`: windowed, the fake ad backend shows its visual test ad and waits for a click, so the check fails (as documented in its header; not a bug)
 - The first-run hint toast "STAND ON THE ALTAR TO CALL THE BOSS" is wider than the 180px view and gets cut off at both sides (seen in a stress screenshot; older than phase 7)
 - Phone 1% low fps is ~47-50 at Final Swarm density with a full build (before and after phase 7), while logic p99 is ~10 ms of the 16.6 ms budget: the dips are probably render-side or GC spikes. Worth a `--profile` run on the phone before release
+
+## Phase 8: UI/UX polish for release (owner request 2026-10-09)
+
+Owner: "the current game core actually good, but the UI UX is bad". Free hand on every screen, UI and VFX; the brief gets updated where this changes it. Review renders: `godot --path . --resolution 540x1170 -s res://tools/shoot_screens.gd -- --notch=12` (every screen and run state, fake camera cutout).
+
+- [x] Safe area: HUD, pause button, menus and run panels keep clear of the camera cutout and gesture bar (`scripts/ui/safe_area.gd`; immersive mode draws under the cutout). Checked with a fake 10-14px cutout on desktop, not yet on a phone
+- [x] Font (owner request): "Bonk", our own bold pixel font (2px stems, clipped corners, 7px caps, tabular digits), `tools/fonts/make_bonk.py` -> `assets/fonts/bonk.fnt/png`; `Fonts.BOLD` for titles, buttons, headings, HUD numbers, damage numbers; the 5x7 font stays for long text (buttons fall back to it when a line doesn't fit)
+- [x] Shared parts: `DitherDim` (ordered-dither dim, no alpha), `PixelTitle` (outlined, banded, wavy big text), `UiFx` (slide-in, hop, blink, haptic buzz), `Transition` autoload (dithered scene wipe; instant headless), `CoinPlate` (count-up), `PatternBg`, `Glyphs` (tiny text-grid icons)
+- [x] Main menu: `TitleScene` (night sky, stars, moon, the picked hero running from blobs/skitters/chompers past scrolling props, gems popping), wavy logo + random tagline instead of "(WORKING TITLE)", top bar (coins, gear), next-unlock teaser card with progress, big hopping PLAY, UNLOCKS | SHOP, FREE +25 COINS
+- [x] Settings as a modal window over the dim; vibration setting (`Save` default on, `permissions/vibrate` in both Android presets); buzz on the unlock popup and when switching vibration on
+- [x] Menu screens: fixed bottom bar (< BACK + NEXT / GO!), coin plate, bold section headings with rules, "COLLECTED n/19" bar, coin-icon price buttons inside the rows (no overlaps), level pips in the shop, locked hero shows its challenge progress; titles HEROES / MAPS (the old ones didn't fit the ribbon)
+- [x] Unlock popup (`UnlockPopup`): UNLOCKED!, icon at 3x on a turning sunburst (pixel-rendered), NICE!
+- [x] HUD: big 2x timer (SALMON last 30 s, PINK in the Final Swarm), LV on the XP bar (flashes on level-up), HP ghost drain, heart beats under 30%, gold hop, toasts on a dark plate that wrap (fixes the cut-off altar hint)
+- [x] Level-up: `LevelCard` (kind-coloured icon frame, bold name, level pips with the new level blinking, kind + level, wrapped description), cards slide in one by one, REROLL / SKIP / BANISH words on the action buttons
+- [x] Pause: run facts, build (weapon and tome slots with levels, items with stacks), stats, music / sound toggles, RESUME, GIVE UP asks twice
+- [x] Shrine / merchant: tome icon per stat bonus (three colours), item icons at the merchant
+- [x] Game over: reason line, hero (idle after a win, hit after a loss), TIME / LEVEL / KO / GOLD tiles, coins rolling up with ticks (and again on 2X), FINAL SWARM / DOUBLED / TOTAL line, closest unlocks in a scroll, PLAY AGAIN (same hero and map, through the ad break) and MENU
+- [x] Run start: SURVIVE! banner; first two runs: ghost joystick "DRAG ANYWHERE TO MOVE" until the first touch
+- [x] Death: 0.7 s red dither flash over the frozen moment before the result (state and pause stay immediate)
+- [x] Damage numbers: Bonk with a full outline, hop-and-fall arc, crits flash with a red outline and "!"
+- [x] Revive panel shows the hero's hit pose
+- [x] Tests + flow check + stress fps; brief updated ("UI and screens", asset table)
+  - `tests/test_ui_polish.gd` (font coverage and palette, dither levels, safe area to HUD / pause / menus, pause build and two-tap GIVE UP, PLAY AGAIN, level cards, unlock popup, menu nodes). 2037 checks pass, FLOW OK (headless), `tools/check_assets.py` 124 assets, 0 failed
+  - Review renders: `tools/shoot_screens.gd` (menu, settings, heroes, maps, unlocks, popup, shop, run, level-up, pause, shrine, low HP, game over, gameplay)
+- [ ] Owner phone check: safe area on a real cutout, font readability, the title scene, haptics
+- [ ] Phone stress test after phase 8
+
+### Phase 8 results (2026-10-09, same desktop, windowed, 20 s, full build, Final Swarm density, all effects)
+
+| Stress test, 300 enemies | Avg fps | 1% low fps | Logic ms/frame | Avg on screen |
+| --- | --- | --- | --- | --- |
+| Windowed, vsync on | 75.0 (display cap) | 67.5 | 3.03 | 302.7 |
+| Windowed, uncapped | 354.9 | 196.5 | 1.55 | 306.1 |
+| Phase 7, uncapped (for comparison) | 338.6 | 188.6 | 1.68 | 306.3 |
+
+### Phase 8 release pass (owner feedback 2026-10-10)
+
+Owner: unlocks and shop look bad and are hard to scroll; layouts are bad everywhere (in run too); the run doesn't say what your weapons, tomes and items are; VFX (Baguette swing, Stinky Socks, chests, shrines, pickups) need to be much more visible, "like Megabonk"; remove MADE WITH GODOT; the name is "Mobbed! Survive the swarm"; titles don't render on the phone; less empty space.
+
+- [x] Titles blank on the phone: `PixelTitle` read the raw `bonk.fnt` with FileAccess, which an export doesn't ship. Glyphs now come from the imported FontFile (checked in an exported Android pack: raw .fnt absent, glyphs read fine). `assets/ui/ui_kit.json` (UI kit 9-slice data) was also missing from both presets' include_filter, so the phone drew fallback boxes; added. Tests: every asset JSON is in the include filter (fails with the old filter), PixelTitle glyphs match the .fnt
+- [x] Name: logo "MOBBED!" (4x Bonk, overlapping outlines, letters hop in turn) + "SURVIVE THE SWARM" on the ribbon; `config/name` "Mobbed!", Android `package/name` "Mobbed!" (package id unchanged, see Found); MADE WITH GODOT removed; tagline under the logo removed (it crowded the town)
+- [x] `DragScroll`: lists drag from anywhere, even starting on a button, with fling; the button lets go without firing or staying drawn pressed (test, mutation-checked). Used by every menu screen and the game-over list
+- [x] Menu screens: slimmer header (title only), coin plate moved into the bottom bar next to BACK, optional fixed `top_panel()`, `list_height()` + `fills_height` so short screens fill the space (rebuilt once the real height is known)
+- [x] Unlocks: fixed detail panel + 4-column `IconTile` grid by tier (silhouette + progress strip / hop + sparkle + NEW / tick), BUY in the panel
+- [x] Shop: same layout; tiles with level pips, red dot when affordable; shop data names an "icon" (`Icons.ref`, validated); Remove Ads as a purple banner that wraps its text
+- [x] Hero select: preview fills the screen, hero at 3x on a lit stage (2x/1x on short screens), compact two-column stat pips, weapon + passive; Map select: one-line locked cards and a WHO LIVES HERE panel (enemy portraits from the map's spawns and swarms) with the goals
+- [x] HUD build strip (weapon and tome icons with level pips, flash on new/level-up), pickup card for chest/merchant items and shrine bonuses (icon, rarity, name, desc, stacks); arrows draw under the card; info line and toasts moved below
+- [x] Pause fills the screen; tap a build slot for details (level, what it does now, weapon damage and kills this run, tome totals, item rarity/stacks); stats always fit on a 19.5:9 phone
+- [x] Level-up cards show the numbers that change (weapons: first two changed keys; tomes: before > after); merchant cards say what the item does; game over lists the build
+- [x] VFX: Baguette crescent smear (4 layered bands); Stinky Socks stink cloud under the hero (cached dither disc), rim, puffs, stink lines, wave per tick; light pillars + ground glow + motes + twinkles for chests, shrines, key, cage, altar, portal, merchant (data "beam"), pot twinkles ("twinkle"); chest price tag always shown; shrine ring turns, fills and lights up; chest pop adds a second ring; shot trails per weapon (data "trail"); plain damage numbers in a tiny 3x5 font (crits stay big)
+- [x] Gems no longer pile in a ring round a hero standing still: base pickup range 22 -> 30 (Sir Loaf, Gary), 24 -> 32 (Turbo Pigeon); 32 made the Final Swarm outlast the bills test (10.3 min), 30 passes
+- [x] Perf: interactables culled to the view (pass 2 drew every chest's price string on the map each frame), glows cached as textures, cheaper trails
+- [x] Screenshot tool: run shots no longer covered by real level-ups (auto cards during the fast-forward), new `vfx` and `weapons` sections
+- [x] Tests: `tests/test_ui_release.gd` (name/no credit, drag scroll, unlocks grid buy, shop icons/buy, HUD strip + pickup card, pause details, level-card numbers, build on game over, new effects on the palette), export filter tests; 2107 checks pass, FLOW OK
+- [ ] Owner phone check of this pass (titles, scrolling feel, pillars/smear readability, HUD strip size)
+
+Owner follow-up (2026-10-10): Stinky Socks and Hot Coffee still weak, the timer overlaps the HP bar, show the items in the run (small, at the bottom), remove the monster info from the map select.
+
+- [x] Stinky Socks: denser cloud rim; outlined three-lobe stink puffs drifting out and popping at the rim; three swirling wisps; rim drawn dark-under-light so it reads on grass and road; a green puff with each tick's wave
+- [x] Hot Coffee: puddles drawn under the hero and enemies as glossy coffee (cached lumpy blob: BARK fill, WOOD ripple and edge band, CRUST lip, DOUGH shine), spreading on landing and shrinking as they dry; popping bubbles; wavy steam; landing splash (drops, ring, steam); the cup throws a shadow and puffs steam in flight
+- [x] Fixed: `draw_under` layer was never redrawn after the first frame (the aura cloud and puddles froze); `Run._render` now redraws it
+- [x] HUD: the HP bar ends where the big timer starts (shrinks for +10:00 in the Final Swarm, 30 px minimum)
+- [x] HUD item row at the bottom-left: 16 px icons in 18 px frames with rarity corners, tiny stack digits, flash on new stacks, wraps upward, sits above the boss bar during the boss; its own layer, redrawn only when it changes
+- [x] Map select: monster roster removed, a small GOALS panel stays
+- [x] Tests (item row, timer room, socks/coffee art on the palette, map without roster): 2117 checks pass, FLOW OK; 75 fps capped (0 missed vsyncs), uncapped 300-355 across repeated runs (desktop noise is about +-50 fps run to run)
+
+| Stress, 300 enemies, full build, Final Swarm density, all effects (desktop, 2026-10-10) | Avg fps | 1% low fps | Logic ms/frame | Avg on screen |
+| --- | --- | --- | --- | --- |
+| Windowed, vsync on | 75.0 (display cap) | 69.2 | 3.17 | 305.2 |
+| Windowed, uncapped (after the culling fix) | 341.8 | 192.8 | ~1.6 | ~305 |
+
+## Found during phase 8
+
+- `scripts/ui/menu_screen.gd` slide-ins capture the final position when the screen opens; a viewport resize during the 0.25 s slide lands it at the old spot until the next resize (the main menu uses an offset over the layout instead, which is safe)
+- XP gems pile into a dense ring round the hero mid-run (seen in the gameplay render); a gameplay/balance question for the balance phase, not UI
+- ~~The title is still the working title~~ Done 2026-10-10: "Mobbed!" (`main_menu.gd` GAME_TITLE / GAME_SUBTITLE)
+- The Android package id is still `com.aviharez.swarmsurvivor` (only the display name changed). It can't change after the first Play Store upload, so pick the final id before then
+- Renaming `config/name` moves the desktop `user://` folder (`~/.local/share/godot/app_userdata/Mobbed!`); the old desktop save stays in `.../Swarm Survivor Pixel/`. Phones are unaffected (Android keys user data on the package id)
+- On a short desktop window (338 px tall) the map screen's info panel runs ~6 px past the list and scrolls; fits on 19.5:9 phones
+- Many weapon effects are small at the world scale (Rubber Duck, Stapler, Feathers read mostly through their new trails); a per-weapon art pass (bigger shot sprites, muzzle flashes) would need SpriteCook and the owner's OK

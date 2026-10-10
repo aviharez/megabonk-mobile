@@ -7,5 +7,6 @@
 	"sprite": "res://assets/props/chest_elite.png",
 	"color": "BLUE",
 	"arrow": "BLUE",
+	"beam": {"color": "BLUE", "height": 52},
 	"chest": "elite"
 }

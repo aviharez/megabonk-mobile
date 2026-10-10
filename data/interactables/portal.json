@@ -6,5 +6,6 @@
 	"shape": "portal",
 	"sprite": "res://assets/props/portal.png",
 	"color": "PURPLE",
-	"arrow": "PURPLE"
+	"arrow": "PURPLE",
+	"beam": {"color": "PURPLE", "height": 72}
 }

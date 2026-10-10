@@ -10,6 +10,14 @@ const KNOB := 6
 const DEAD_ZONE := 0.15
 
 var direction := Vector2.ZERO
+## First runs: a ghost stick at the bottom with "DRAG ANYWHERE TO MOVE",
+## gone after the first touch.
+var hint := false:
+	set(v):
+		hint = v
+		set_process(hint)
+		queue_redraw()
+var _hint_t := 0.0
 var _touch := -1
 var _base := Vector2.ZERO
 var _knob := Vector2.ZERO
@@ -22,6 +30,12 @@ func _ready() -> void:
 	mouse_filter = MOUSE_FILTER_STOP
 	_ring = _circle_pixels(RADIUS, false)
 	_disc = _circle_pixels(KNOB, true)
+	set_process(hint)
+
+
+func _process(delta: float) -> void:
+	_hint_t += delta
+	queue_redraw()
 
 
 func release() -> void:
@@ -45,6 +59,7 @@ func read() -> Vector2:
 func _gui_input(event: InputEvent) -> void:
 	if event is InputEventScreenTouch:
 		if event.pressed and _touch < 0:
+			hint = false
 			_touch = event.index
 			_base = event.position.round()
 			_knob = _base
@@ -70,6 +85,8 @@ func _notification(what: int) -> void:
 
 func _draw() -> void:
 	if _touch < 0:
+		if hint:
+			_draw_hint()
 		return
 	if UiArt.has("stick_base") and UiArt.has("stick_knob"):
 		UiArt.sprite(self, "stick_base", (_base - Vector2(UiArt.sprite_size("stick_base")) / 2.0).round())
@@ -97,3 +114,20 @@ static func _circle_pixels(r: int, filled: bool) -> PackedVector2Array:
 			if d <= r * r + r and (filled or d >= (r - 1) * (r - 1) + (r - 1)):
 				out.append(Vector2(x, y))
 	return out
+
+
+## The ghost stick: base and knob at the bottom middle, the knob swaying
+## left and right, and the hint text above it.
+func _draw_hint() -> void:
+	var base := Vector2(floorf(size.x / 2.0), floorf(size.y * 0.78))
+	var sway := Vector2(roundf(sin(_hint_t * 3.0) * RADIUS * 0.8), 0)
+	if UiArt.has("stick_base") and UiArt.has("stick_knob"):
+		UiArt.sprite(self, "stick_base", (base - Vector2(UiArt.sprite_size("stick_base")) / 2.0).round())
+		UiArt.sprite(self, "stick_knob", (base + sway - Vector2(UiArt.sprite_size("stick_knob")) / 2.0).round())
+	var text := "DRAG ANYWHERE TO MOVE"
+	var tw := Fonts.BOLD.get_string_size(text, HORIZONTAL_ALIGNMENT_LEFT, -1, 8).x
+	var at := Vector2(floorf((size.x - tw) / 2.0), base.y - RADIUS - 8)
+	if int(_hint_t * 2.0) % 4 != 3:
+		for o in [Vector2(0, 1), Vector2(1, 0), Vector2(-1, 0), Vector2(0, -1)]:
+			draw_string(Fonts.BOLD, at + o, text, HORIZONTAL_ALIGNMENT_LEFT, -1, 8, Palette.color(Palette.INK))
+		draw_string(Fonts.BOLD, at, text, HORIZONTAL_ALIGNMENT_LEFT, -1, 8, Palette.color(Palette.WHITE))

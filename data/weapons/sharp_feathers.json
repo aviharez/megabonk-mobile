@@ -3,6 +3,7 @@
 	"name": "SHARP FEATHERS",
 	"desc": "FEATHERS HOME IN ON FOES",
 	"pattern": "homing_shot",
+	"trail": "SKY",
 	"shot_sprite": "res://assets/shots/feather.png",
 	"shot_turns": 16,
 	"status": "signature",

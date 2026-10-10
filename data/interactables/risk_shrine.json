@@ -7,6 +7,7 @@
 	"sprite": "res://assets/props/shrine_risk.png",
 	"color": "RED",
 	"arrow": "RED",
+	"beam": {"color": "RED", "height": 56},
 	"charge_time": 2.0,
 	"duration": 45,
 	"modifiers": [

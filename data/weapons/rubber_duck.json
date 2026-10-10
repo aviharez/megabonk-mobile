@@ -3,6 +3,7 @@
 	"name": "RUBBER DUCK",
 	"desc": "BOUNCES FROM FOE TO FOE",
 	"pattern": "bounce_shot",
+	"trail": "BUTTER",
 	"shot_sprite": "res://assets/shots/duck.png",
 	"status": "start",
 	"levels": [

@@ -7,5 +7,6 @@
 	"sprite": "res://assets/props/chest_boss.png",
 	"color": "PURPLE",
 	"arrow": "PURPLE",
+	"beam": {"color": "PURPLE", "height": 64},
 	"chest": "boss"
 }

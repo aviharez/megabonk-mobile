@@ -7,6 +7,7 @@
 	"sprite": "res://assets/props/merchant.png",
 	"color": "PURPLE",
 	"arrow": "BUTTER",
+	"beam": {"color": "BUTTER", "height": 44},
 	"chest": "merchant",
 	"stock": 3,
 	"prices": {"common": 20, "rare": 40, "epic": 80, "legendary": 150},

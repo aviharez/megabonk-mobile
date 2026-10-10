@@ -3,6 +3,7 @@
 	"name": "TOGGLER",
 	"desc": "TURN CONTENT OFF FOR RUNS",
 	"kind": "toggler",
+	"icon": "ui/toggle_on",
 	"needs": {
 		"unlocks": 12
 	},

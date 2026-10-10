@@ -3,6 +3,7 @@
 	"name": "LEAF BLOWER",
 	"desc": "BLASTS FOES BACK IN A CONE",
 	"pattern": "cone_blast",
+	"trail": "LIME",
 	"status": "unlock",
 	"levels": [
 		{"damage": 7, "cooldown": 1.3, "count": 1, "range": 44, "angle": 50, "knockback": 160, "desc": "GUST OF LEAVES"},

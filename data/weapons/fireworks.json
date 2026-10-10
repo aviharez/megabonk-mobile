@@ -3,6 +3,7 @@
 	"name": "FIREWORKS",
 	"desc": "RANDOM BLASTS ON SCREEN",
 	"pattern": "rockets",
+	"trail": "ORANGE",
 	"shot_sprite": "res://assets/shots/rocket.png",
 	"shot_turns": 16,
 	"status": "unlock",

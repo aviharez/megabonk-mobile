@@ -3,6 +3,7 @@
 	"name": "GREED",
 	"desc": "+4% GOLD PER LEVEL",
 	"kind": "stat",
+	"icon": "tomes/coupon_clipping",
 	"prices": [
 		20,
 		45,

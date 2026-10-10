@@ -3,6 +3,7 @@
 	"name": "MIGHT",
 	"desc": "+3% DAMAGE PER LEVEL",
 	"kind": "stat",
+	"icon": "tomes/muscle_magazine",
 	"prices": [
 		20,
 		45,

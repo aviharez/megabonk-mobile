@@ -3,6 +3,7 @@
 	"name": "FAULTY TOASTER",
 	"desc": "ZAPS CHAIN BETWEEN FOES",
 	"pattern": "chain",
+	"trail": "ORANGE",
 	"status": "unlock",
 	"levels": [
 		{"damage": 7, "cooldown": 1.6, "jumps": 3, "range": 60, "desc": "ZAPS 3 FOES"},

@@ -7,6 +7,7 @@
 	"sprite": "res://assets/props/shrine_charge.png",
 	"color": "SKY",
 	"arrow": "SKY",
+	"beam": {"color": "SKY", "height": 56},
 	"charge_time": 3.0,
 	"offer": 3,
 	"choices": [

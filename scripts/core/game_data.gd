@@ -252,6 +252,8 @@ func _check_weapon(e: Dictionary) -> void:
 		return
 	if not e.status in WEAPON_STATUSES:
 		errors.append("%s: unknown status \"%s\"" % [file, e.status])
+	if e.has("trail") and not (e.trail is String and Palette.index_of(e.trail) >= 0):
+		errors.append("%s: \"trail\" must be a palette name" % file)
 	if e.status == "signature" and typeof(e.get("character")) != TYPE_STRING:
 		errors.append("%s: a signature weapon needs \"character\"" % file)
 	if e.levels.is_empty():
@@ -677,6 +679,12 @@ func _check_interactable_values(f: String, e: Dictionary) -> void:
 			errors.append("%s: \"%s\" must be a number" % [f, k])
 	if e.has("gold") and not _is_pair(e.gold):
 		errors.append("%s: \"gold\" must be [min, max]" % f)
+	if e.has("beam"):
+		var b = e.beam
+		if not (b is Dictionary and _is_num(b.get("height")) and float(b.height) > 0.0 and b.get("color") is String and Palette.index_of(b.color) >= 0):
+			errors.append("%s: \"beam\" must be {\"color\": a palette name, \"height\": px > 0}" % f)
+	if e.has("twinkle") and not (e.twinkle is String and Palette.index_of(e.twinkle) >= 0):
+		errors.append("%s: \"twinkle\" must be a palette name" % f)
 	if e.has("prices"):
 		if not e.prices is Dictionary:
 			errors.append("%s: \"prices\" must map rarity to price" % f)
@@ -855,6 +863,9 @@ func _check_unlock_links() -> void:
 			errors.append("%s: unknown weapon \"%s\"" % [f, ch.weapon])
 		if ch.get("character") is String and not entries.characters.has(ch.character):
 			errors.append("%s: unknown character \"%s\"" % [f, ch.character])
+	for e: Dictionary in entries.shop.values():
+		if e.has("icon") and Icons.ref_error(self, e.icon) != "":
+			errors.append("%s: \"icon\" %s" % [e._file, Icons.ref_error(self, e.icon)])
 	if entries.challenges.is_empty():
 		return  # a data set without challenges (tests): nothing to link
 	for cat: String in Meta.CONTENT:

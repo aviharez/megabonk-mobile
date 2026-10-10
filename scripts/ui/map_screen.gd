@@ -11,7 +11,7 @@ var selected := ""
 
 
 func _init(save_node: Node) -> void:
-	super(save_node, "PICK A MAP")
+	super(save_node, "MAPS")
 	selected = Meta.picked_map(db, save.data)
 
 
@@ -41,14 +41,9 @@ func _fill() -> void:
 		t.custom_minimum_size = Vector2(W, 20)
 		t.pressed.connect(_open_toggler)
 		list.add_child(t)
-	var go := PixelButton.new()
-	go.name = "Go"
-	go.label = "GO!"
-	go.face = Palette.GREEN
-	go.custom_minimum_size = Vector2(W, 22)
+	_info(db.get_entry("maps", selected))
+	var go := primary("GO!", Palette.GREEN, func() -> void: picked.emit(selected), "Go")
 	go.disabled = selected == ""
-	go.pressed.connect(func() -> void: picked.emit(selected))
-	list.add_child(go)
 
 
 func select(id: String) -> void:
@@ -60,3 +55,21 @@ func _open_toggler() -> void:
 	var tg := TogglerScreen.new(save)
 	tg.closed.connect(refresh)
 	add_child(tg)
+
+
+## The selected map's goals in a small panel under the cards.
+func _info(m: Dictionary) -> void:
+	if m.is_empty() or not m.has("spawns"):
+		return
+	var boss := Meta.map_boss_name(db, m.id)
+	var sec := int(db.get_entry("rules", "run").get("run_length_sec", 480))
+	var goals := ["SURVIVE %d:%02d" % [sec / 60, sec % 60]]
+	if boss != "":
+		goals.append("CALL " + boss + " AT THE ALTAR")
+		goals.append("BEAT IT, THEN TAKE THE PORTAL")
+	var p := row(26 + goals.size() * 10)
+	p.name = "MapInfo"
+	p.part = "window"
+	bold_label(p, "GOALS", Vector2(6, 6), Palette.BUTTER)
+	for i in goals.size():
+		label(p, "- " + goals[i], Vector2(6, 17 + i * 10), Palette.PAPER)

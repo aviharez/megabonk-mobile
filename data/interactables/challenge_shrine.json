@@ -7,6 +7,7 @@
 	"sprite": "res://assets/props/shrine_challenge.png",
 	"color": "GOLD",
 	"arrow": "GOLD",
+	"beam": {"color": "GOLD", "height": 56},
 	"charge_time": 2.0,
 	"kills": 50,
 	"time": 30,

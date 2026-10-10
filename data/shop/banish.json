@@ -3,6 +3,7 @@
 	"name": "BANISH",
 	"desc": "REMOVE A CARD FOR THE RUN",
 	"kind": "action",
+	"icon": "ui/xmark",
 	"action": "banish",
 	"needs": {
 		"runs": 3

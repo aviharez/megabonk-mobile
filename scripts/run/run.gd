@@ -37,6 +37,7 @@ signal stat_event(name: String, amount: float)
 signal run_ended(result: Dictionary)
 
 const MENU_SCENE := "res://scenes/main_menu.tscn"
+const RUN_SCENE := "res://scenes/run.tscn"
 const SaveManager := preload("res://scripts/autoload/save_manager.gd")
 ## Spawns appear this far outside the visible area.
 const SPAWN_MARGIN := Vector2(10, 10)
@@ -193,7 +194,27 @@ var _particle_tex := {}
 var _hud: Hud
 var _joystick: ThumbStick
 var _cards_panel: Control
-var _card_buttons: Array[PixelButton] = []
+var _card_buttons: Array[LevelCard] = []
+var _dim: DitherDim
+var _flash: DitherDim
+var _pause_facts: Label
+var _pause_build: BuildView
+var _pause_stats: Control
+var _pause_info: Control
+var _weapon_under: Node2D
+var _pause_resume: PixelButton
+## [kind, id] shown in the pause info box.
+var _pause_pick: Array = []
+var _pause_toggles := {}
+var _give_up: PixelButton
+var _give_up_armed := false
+var _over_reason: Label
+var _over_hero: Control
+var _over_tiles: Control
+var _over_coins: CoinPlate
+var _over_mult: Label
+var _over_scroll: ScrollContainer
+var _again_btn: PixelButton
 var _cards: Array = []
 var _choice_panel: Control
 var _choice_title: Label
@@ -284,6 +305,9 @@ func _ready() -> void:
 		ads.ready_changed.connect(_refresh_ad_buttons)
 	_music("gameplay")
 	_render()
+	if not options.get("bot", false) and not options.get("stress", false):
+		_hud.banner("SURVIVE!", Palette.BUTTER, 1.5)
+		_joystick.hint = int(meta.get("runs_played", 0)) < 2
 
 
 func _process(delta: float) -> void:
@@ -441,6 +465,7 @@ func add_xp(amount: float) -> void:
 		level += 1
 		pending_levels += 1
 		juice.sfx("level_up")
+		UiFx.buzz(self, 25)
 		on_level_up.emit(level)
 		if items.listens("on_level_up"):
 			items.emit("on_level_up", {"level": level, "pos": _pos})
@@ -535,6 +560,7 @@ func damage_player(amount: float, source: String, contact := false, pierce := fa
 	# Feedback first: an invincible test hero still flinches and shakes.
 	juice.sfx("hurt")
 	juice.shake("hurt")
+	UiFx.buzz(self, 35)
 	fx.puff(_pos, 6.0, Palette.RED if absorbed < dmg else Palette.SKY)
 	if options.get("invincible", false):
 		return true
@@ -680,6 +706,18 @@ func give_item(id: String) -> void:
 		run_stats["max_item_copies"] = maxf(run_stats.get("max_item_copies", 0.0), items.count(id))
 
 
+## The pickup card for an item just gained: icon, rarity, name, what it does
+## (and how many stacks when it's more than one).
+func show_item_card(id: String) -> void:
+	var def := db.get_entry("items", id)
+	var loot := db.get_entry("rules", "loot")
+	var n := items.count(id)
+	var tag := "%s ITEM" % String(loot.rarity_names.get(def.rarity, ""))
+	if n > 1:
+		tag += "  X%d" % n
+	_hud.pickup_card(Icons.texture(db, "items", id), def.name, tag, def.get("desc", ""), Palette.index_of(loot.rarity_colors[def.rarity]))
+
+
 ## Opens a chest of `kind` ("paid", "elite", "boss"): rolls an item with
 ## the player's luck and gives it. Returns the item id ("" = nothing left
 ## to give; the chest pays out gold instead). Map chests, elite drops and the
@@ -711,8 +749,12 @@ func open_chest(kind: String, at := Vector2.INF) -> String:
 	later(wait, func() -> void:
 		fx.sparks(at, 14.0, ci, 0.45)
 		fx.ring(at, 10.0, ci)
+		fx.ring(at, 18.0, ci, 0.4)
 		juice.sfx("chest")
-		toast(text, color))
+		if id == "":
+			toast(text, color)
+		else:
+			show_item_card(id))
 	on_chest_opened.emit(kind, id)
 	if items.listens("on_chest_opened"):
 		items.emit("on_chest_opened", {"kind": kind, "item": id, "pos": _pos})
@@ -786,6 +828,7 @@ func summon_boss(id: String, at: Vector2) -> bool:
 	fx.ring(at, 30.0, Palette.RED)
 	fx.sparks(at + Vector2(0, -24), 20.0, Palette.CRUST, 0.5)
 	juice.sfx("boss_roar")
+	UiFx.buzz(self, 80)
 	juice.shake("boss_slam")
 	_music("boss")
 	return true
@@ -1175,6 +1218,7 @@ func _boss_killed(at: Vector2) -> void:
 	juice.hitstop(float(h.get("boss_down", 0.12)))
 	juice.shake("boss_down")
 	juice.sfx("boss_down")
+	UiFx.buzz(self, 120)
 	fx.sparks(at, 26.0, Palette.CRUST, 0.7)
 	fx.sparks(at, 18.0, Palette.BUTTER, 0.6)
 	fx.ring(at, 40.0, Palette.BUTTER, 0.5)
@@ -1265,18 +1309,23 @@ func _screen_pos(world: Vector2) -> Vector2:
 
 func _show_cards() -> void:
 	_cards_title.text = "BANISH WHICH?" if _banish_mode else "LEVEL UP!"
+	var fresh := not _cards_panel.visible
 	for i in _card_buttons.size():
 		var b := _card_buttons[i]
 		b.visible = i < _cards.size()
 		if b.visible:
 			var card: Dictionary = _cards[i]
-			# "NEW!" goes on the card's badge plate instead of the text.
-			var lines := Array(LevelUpCards.describe(card)).map(func(l: String) -> String: return l.replace("  NEW!", ""))
-			b.label = "\n".join(lines)
-			b.badge = "NEW!" if card.get("is_new", false) else ""
-			b.art = Icons.texture(db, card.kind + "s", card.id) if card.kind in ["weapon", "tome"] else null
+			# The plain text stays on the button for tests and bots.
+			b.label = "\n".join(Array(LevelUpCards.describe(card)).map(func(l: String) -> String: return l.replace("  NEW!", "")))
+			var top := int(rules.max_level)
+			if card.kind == "weapon":
+				top = mini(top, card.def.levels.size())
+			b.show_card(card, Icons.texture(db, card.kind + "s", card.id) if card.kind in ["weapon", "tome"] else null, top)
 			b.disabled = _banish_mode and not _can_banish(card)
 			b.ink = Palette.SALMON if _banish_mode and not b.disabled else Palette.PAPER
+			if fresh:
+				b.position.x = 4
+				UiFx.slide_in(b, Vector2(180, 0), 0.25, 0.06 * i)
 	for a: String in _action_buttons:
 		var ab: ActionButton = _action_buttons[a]
 		ab.charges = charges.get(a, 0)
@@ -1384,6 +1433,7 @@ func _refresh_ad_buttons() -> void:
 func _die() -> void:
 	juice.sfx("death")
 	juice.shake("death")
+	UiFx.buzz(self, 150)
 	fx.sparks(_pos, 20.0, Palette.RED, 0.6)
 	var reason := "bills" if is_bill(last_damage_source) else "died"
 	if reason == "died" and _ad_offer("revive"):
@@ -1515,15 +1565,25 @@ func open_shrine_choice(def: Dictionary) -> void:
 	_shrine_n += 1
 	var src := "shrine:%d" % _shrine_n
 	var opts := []
+	var faces := [Palette.SKY, Palette.LIME, Palette.BUTTER]
 	for c: Dictionary in offer:
-		opts.append({"label": c.desc, "face": Palette.SKY, "enabled": true})
+		opts.append({"label": c.desc, "face": faces[opts.size() % faces.size()], "enabled": true, "art": _stat_icon(c.stat)})
 	_show_choice("PICK A BONUS", opts, "", func(i: int) -> bool:
 		var c: Dictionary = offer[i]
 		var before := stat("max_hp")
 		stats.set_modifier(c.stat, src, float(c.get("flat", 0.0)), float(c.get("pct", 0.0)))
 		heal(maxf(0.0, stat("max_hp") - before))
-		toast(c.desc, "SKY")
+		_hud.pickup_card(_stat_icon(c.stat), c.desc, "SHRINE BONUS", "LASTS THE WHOLE RUN", Palette.SKY)
 		return true)
+
+
+## The icon of a tome that raises `stat` (shrine bonuses borrow it), or null.
+func _stat_icon(stat_id: String) -> Texture2D:
+	for t: Dictionary in db.all("tomes"):
+		for m: Dictionary in t.get("modifiers_per_level", []):
+			if m.get("stat", "") == stat_id:
+				return Icons.texture(db, "tomes", t.id)
+	return null
 
 
 ## Merchant: buy items for gold, then leave. Touch it again to come back.
@@ -1533,11 +1593,13 @@ func open_merchant(o: Dictionary) -> void:
 		var opts := []
 		for st: Dictionary in o.stock:
 			var item := db.get_entry("items", st.item)
-			var label := "%s\n%s\n%s" % [item.name, loot.rarity_names[item.rarity], "SOLD" if st.sold else "G %d" % st.price]
+			var price_text := "SOLD" if st.sold else "G %d" % st.price
 			var ok := _can_hold(st.item)
 			if not st.sold and not ok:
-				label = "%s\n%s\nYOU HAVE ONE" % [item.name, loot.rarity_names[item.rarity]]
-			opts.append({"label": label, "face": Palette.index_of(loot.rarity_colors[item.rarity]), "enabled": not st.sold and ok and gold >= st.price})
+				price_text = "YOU HAVE ONE"
+			var label := "%s\n%s\n%s  %s" % [item.name, item.get("desc", ""), loot.rarity_names[item.rarity], price_text]
+			opts.append({"label": label, "face": Palette.index_of(loot.rarity_colors[item.rarity]), "enabled": not st.sold and ok and gold >= st.price,
+				"art": Icons.texture(db, "items", st.item)})
 		return opts
 	_show_choice("MERCHANT", refresh.call(), "LEAVE", func(i: int) -> bool:
 		var st: Dictionary = o.stock[i]
@@ -1549,7 +1611,7 @@ func open_merchant(o: Dictionary) -> void:
 		record("items_bought")
 		juice.sfx("buy")
 		fx.sparks(_pos, 10.0, Palette.GOLD)
-		toast(db.get_entry("items", st.item).name, loot.rarity_colors[db.get_entry("items", st.item).rarity])
+		show_item_card(st.item)
 		_set_choice_options(refresh.call())
 		return false)
 
@@ -1586,6 +1648,7 @@ func _set_choice_options(opts: Array) -> void:
 			b.label = opts[i].label
 			b.face = opts[i].face if opts[i].enabled else Palette.GRAY
 			b.disabled = not opts[i].enabled
+			b.art = opts[i].get("art")
 
 
 func _on_choice(i: int) -> void:
@@ -1668,10 +1731,69 @@ func _end(reason: String) -> void:
 				color = Palette.PAPER
 	_over_title.text = title
 	_over_title.add_theme_color_override("font_color", Palette.color(color))
+	(_over_title.get_meta("big") as PixelTitle).color = color
 	_over_text.text = _over_lines()
+	_over_reason.text = {
+		"portal": "YOU GOT OUT. THE TOWN THANKS YOU.",
+		"bills": "THE BILLS CAUGHT UP WITH YOU.",
+		"gave_up": "EVEN HEROES NEED A NAP.",
+	}.get(reason, "THE SWARM WAS TOO MUCH." if not reached_final else "YOU HELD ON TO THE VERY END!")
+	_show_over_hero(won)
+	_over_tiles.queue_redraw()
+	_sync_over_coins(false)
 	_double_btn.visible = _can_double()
 	_fill_over_progress()
+	_hud.hide()
+	_pause_btn.hide()
+	# Death beat: the frozen moment flashes red, then the result slides in.
+	var beat := 0.0 if won or reason == "gave_up" or DisplayServer.get_name() == "headless" else 0.7
+	if beat > 0.0:
+		_flash.level = 6
+		_flash.fade_to(0, beat)
+		get_tree().create_timer(beat, true).timeout.connect(_reveal_over)
+	else:
+		_reveal_over()
+
+
+func _reveal_over() -> void:
+	if state != "over":
+		return
 	_over_panel.show()
+	UiFx.slide_in(_over_panel, Vector2(0, 60), 0.3)
+	var earned := int(result.coins) * (2 if result.get("coins_doubled", false) else 1)
+	_over_coins.count_to(earned, 0, 0.9)
+
+
+## The hero on the result screen: idle sheet after a win, hit sheet after a loss.
+func _show_over_hero(won_run: bool) -> void:
+	for c in _over_hero.get_children():
+		c.queue_free()
+	var sheets: Dictionary = char_def.get("sheets", {})
+	var sh := EnemySystem.load_sheet({"sheet": sheets.get("idle" if won_run else "hit", sheets.get("idle", ""))})
+	if sh.is_empty():
+		return
+	var sv := SheetView.new(sh)
+	sv.scale = Vector2(2, 2)
+	var fs := sv.frame_size()
+	sv.position = Vector2(floorf(28 - fs.x), 48 - fs.y * 2)
+	_over_hero.add_child(sv)
+
+
+## Coins on the result screen (and the multiplier line under them).
+func _sync_over_coins(roll: bool) -> void:
+	var earned := int(result.coins) * (2 if result.get("coins_doubled", false) else 1)
+	var mult := ""
+	if result.get("coins_doubled", false):
+		mult = "DOUBLED!"
+	elif director.coin_mult() > 1.0:
+		mult = "FINAL SWARM X%.1f" % director.coin_mult()
+	if _save != null:
+		mult += ("   " if mult != "" else "") + "TOTAL %d" % int(meta.coins)
+	_over_mult.text = mult
+	if roll:
+		_over_coins.count_to(earned, int(result.coins), 0.6)
+	else:
+		_over_coins.value = earned
 
 
 func _over_lines() -> String:
@@ -1707,6 +1829,7 @@ func _on_double_pressed() -> void:
 			result.coins_doubled = true
 			_save.save_game()
 			_over_text.text = _over_lines()
+			_sync_over_coins(true)
 			toast("COINS X2!", "GOLD")
 		_double_btn.visible = _can_double())
 
@@ -1716,6 +1839,13 @@ func _on_double_pressed() -> void:
 func _fill_over_progress() -> void:
 	for c in _over_list.get_children():
 		c.queue_free()
+	# The build you ended with (tap a slot: nothing to see here, so no hint).
+	var bv := BuildView.new()
+	bv.name = "OverBuild"
+	bv.size = Vector2(156, 0)
+	bv.mouse_filter = Control.MOUSE_FILTER_PASS
+	bv.setup(db, owned_weapons, owned_tomes, items.stacks, int(rules.weapon_slots), int(rules.tome_slots))
+	_over_list.add_child(bv)
 	var next := Meta.closest(db, meta, 3)
 	if not next.is_empty():
 		_over_list.add_child(_small_label("NEXT UNLOCKS", Palette.BUTTER))
@@ -1749,7 +1879,10 @@ func _pause(on: bool) -> void:
 		state = "paused"
 		_joystick.release()
 		get_tree().paused = true
+		_disarm_give_up()
+		_sync_pause()
 		_pause_panel.show()
+		UiFx.slide_in(_pause_panel, Vector2(0, 30), 0.2)
 	elif not on and state == "paused":
 		state = "live"
 		get_tree().paused = false
@@ -1962,6 +2095,7 @@ func _render() -> void:
 	_player_view.position = _pos.round()
 	_player_view.queue_redraw()
 	_weapon_view.queue_redraw()
+	_weapon_under.queue_redraw()
 	if boss != null or _boss_view.visible:
 		_boss_view.queue_redraw()
 	_camera.position = _pos.round()
@@ -1980,6 +2114,8 @@ func _render() -> void:
 	_hud.view_center = _pos.round()
 	_hud.arrows = _arrow_targets()
 	_hud.set_values(level, seconds_left(), kills)
+	_hud.set_build(owned_weapons, owned_tomes, int(rules.weapon_slots), int(rules.tome_slots))
+	_hud.set_items(items.stacks)
 
 
 func _arrow_targets() -> Array:
@@ -2041,11 +2177,20 @@ func _build_world() -> void:
 	projectiles.setup(256)
 	projectiles.default_sprite = rules.get("default_shot_sprite", "")
 	projectiles.hit_fn = hit_enemy
+	projectiles.trails = not _reduce_fx
+	for w: Dictionary in db.all("weapons"):
+		if w.has("trail"):
+			projectiles.trail_colors[w.id] = Palette.index_of(w.trail)
 	world_viewport.add_child(projectiles)
 	enemy_shots = EnemyShots.new()
 	enemy_shots.setup(int(rules.get("enemy_shots", 160)))
 	world_viewport.add_child(enemy_shots)
 
+	_weapon_under = Node2D.new()
+	_weapon_under.draw.connect(func() -> void:
+		for w in weapons:
+			w.draw_under(_weapon_under, _pos))
+	world_viewport.add_child(_weapon_under)
 	_player_view = Node2D.new()
 	_player_view.draw.connect(_draw_player)
 	world_viewport.add_child(_player_view)
@@ -2195,6 +2340,7 @@ func _build_ui() -> void:
 	_joystick = ThumbStick.new()
 	ui.add_child(_joystick)
 	_hud = Hud.new()
+	_hud.db = db
 	_hud.world_zoom = float(world_scale) / float(ui_scale)
 	ui.add_child(_hud)
 	juice.build_burst(ui)
@@ -2206,139 +2352,448 @@ func _build_ui() -> void:
 	_pause_btn.anchor_right = 1.0
 	_pause_btn.offset_left = -21
 	_pause_btn.offset_right = -2
-	_pause_btn.offset_top = Hud.PAUSE_Y
-	_pause_btn.offset_bottom = Hud.PAUSE_Y + 21
 	_pause_btn.pressed.connect(_pause.bind(true))
 	ui.add_child(_pause_btn)
+	# Every modal panel sits over a dithered dim of the frozen world.
+	_dim = DitherDim.new()
+	_dim.hide()
+	ui.add_child(_dim)
+	_flash = DitherDim.new(true)
+	_flash.color = Palette.RED
+	ui.add_child(_flash)
 
 	# Level-up cards, with the Reroll / Skip / Banish actions under them.
-	_cards_panel = _panel(ui, Rect2(4, 36, 172, 258), Palette.NIGHT)
-	_cards_title = _title(_cards_panel, "LEVEL UP!", Palette.BUTTER, 8)
+	_cards_panel = _panel(ui, Rect2(4, 22, 172, 280), Palette.NIGHT)
+	_cards_title = _title(_cards_panel, "LEVEL UP!", Palette.BUTTER, 6)
+	for i in 3:
+		var b := LevelCard.new()
+		b.position = Vector2(4, 32 + i * 68)
+		b.custom_minimum_size = Vector2(164, 64)
+		b.size = b.custom_minimum_size
+		b.sound = ""  # _on_card plays "card"
+		b.pressed.connect(_on_card.bind(i))
+		_cards_panel.add_child(b)
+		_card_buttons.append(b)
 	var actions := Meta.ACTIONS
 	for i in actions.size():
 		var ab := ActionButton.new()
 		ab.glyph = actions[i]
 		ab.face = Palette.MIST
-		ab.position = Vector2(6 + i * 54, 228)
-		ab.custom_minimum_size = Vector2(52, 22)
+		ab.position = Vector2(4 + i * 56, 236)
+		ab.custom_minimum_size = Vector2(52, 32)
 		ab.size = ab.custom_minimum_size
 		ab.pressed.connect(_on_action.bind(actions[i]))
 		_cards_panel.add_child(ab)
 		_action_buttons[actions[i]] = ab
-	for i in 3:
-		var b := PixelButton.new()
-		b.position = Vector2(6, 34 + i * 64)
-		b.custom_minimum_size = Vector2(160, 58)
-		b.size = b.custom_minimum_size
-		b.art_above = true
-		b.frame = "card"
-		b.pressed_frame = "card_gold"
-		b.sound = ""  # _on_card plays "card"
-		b.ink = Palette.PAPER
-		b.pressed.connect(_on_card.bind(i))
-		_cards_panel.add_child(b)
-		_card_buttons.append(b)
 
 	# Shrine bonus / merchant choices: up to 3 options and a leave button.
 	_choice_panel = _panel(ui, Rect2(4, 40, 172, 262), Palette.NIGHT)
-	_choice_title = _title(_choice_panel, "", Palette.BUTTER, 8)
+	_choice_title = _title(_choice_panel, "", Palette.BUTTER, 6)
 	for i in 3:
 		var b := PixelButton.new()
 		b.position = Vector2(6, 34 + i * 64)
 		b.custom_minimum_size = Vector2(160, 58)
 		b.size = b.custom_minimum_size
+		b.small_rest = true
 		b.pressed.connect(_on_choice.bind(i))
 		_choice_panel.add_child(b)
 		_choice_buttons.append(b)
 	_choice_leave = PixelButton.new()
 	_choice_leave.position = Vector2(36, 230)
-	_choice_leave.custom_minimum_size = Vector2(100, 20)
+	_choice_leave.custom_minimum_size = Vector2(100, 22)
 	_choice_leave.size = _choice_leave.custom_minimum_size
 	_choice_leave.face = Palette.MIST
 	_choice_leave.pressed.connect(_close_choice)
 	_choice_panel.add_child(_choice_leave)
 
-	# Game over: result, closest unlocks, ready to buy.
-	_over_panel = _panel(ui, Rect2(6, 14, 168, 290), Palette.NIGHT)
-	_over_title = _title(_over_panel, "", Palette.BUTTER, 6)
-	_over_text = Label.new()
-	_over_text.position = Vector2(0, 28)
-	_over_text.size = Vector2(168, 40)
-	_over_text.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
-	_over_panel.add_child(_over_text)
-	# 2x coins (rewarded ad), right above the unlock progress it feeds.
-	_double_btn = AdButton.new()
-	_double_btn.label = "2X COINS"
-	_double_btn.face = Palette.GOLD
-	_double_btn.position = Vector2(28, 70)
-	_double_btn.custom_minimum_size = Vector2(112, 18)
-	_double_btn.size = _double_btn.custom_minimum_size
-	_double_btn.pressed.connect(_on_double_pressed)
-	_double_btn.hide()
-	_over_panel.add_child(_double_btn)
-	_over_list = VBoxContainer.new()
-	_over_list.position = Vector2(6, 92)
-	_over_list.size = Vector2(156, 164)
-	_over_list.add_theme_constant_override("separation", 2)
-	_over_panel.add_child(_over_list)
-	_menu_btn = PixelButton.new()
-	_menu_btn.label = "BACK TO MENU"
-	_menu_btn.position = Vector2(28, 260)
-	_menu_btn.custom_minimum_size = Vector2(112, 20)
-	_menu_btn.size = _menu_btn.custom_minimum_size
-	_menu_btn.pressed.connect(_to_menu)
-	_over_panel.add_child(_menu_btn)
+	_build_over(ui)
 
 	# Revive offer (rewarded ad) after a death.
-	_revive_panel = _panel(ui, Rect2(20, 100, 140, 112), Palette.NIGHT)
-	_title(_revive_panel, "TOASTED?", Palette.PAPER, 8)  # on the red ribbon
+	_revive_panel = _panel(ui, Rect2(16, 84, 148, 150), Palette.NIGHT)
+	_title(_revive_panel, "TOASTED?", Palette.PAPER, 6)  # on the red ribbon
+	var hit := EnemySystem.load_sheet({"sheet": char_def.get("sheets", {}).get("hit", char_def.get("sheets", {}).get("idle", ""))})
+	if not hit.is_empty():
+		var sv := SheetView.new(hit)
+		sv.scale = Vector2(2, 2)
+		sv.position = Vector2(74 - sv.frame_size().x, 30)
+		_revive_panel.add_child(sv)
 	var why := Label.new()
-	why.text = "WATCH AN AD\nTO GET BACK UP"
-	why.position = Vector2(0, 32)
-	why.size = Vector2(140, 20)
+	why.text = "WATCH AN AD TO\nGET BACK UP!"
+	why.position = Vector2(0, 80)
+	why.size = Vector2(148, 20)
 	why.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
 	why.add_theme_color_override("font_color", Palette.color(Palette.MIST))
 	_revive_panel.add_child(why)
 	_revive_btn = AdButton.new()
 	_revive_btn.label = "REVIVE"
 	_revive_btn.face = Palette.LIME
-	_revive_btn.position = Vector2(18, 58)
-	_revive_btn.custom_minimum_size = Vector2(104, 20)
+	_revive_btn.position = Vector2(14, 102)
+	_revive_btn.custom_minimum_size = Vector2(120, 22)
 	_revive_btn.size = _revive_btn.custom_minimum_size
 	_revive_btn.pressed.connect(_on_revive_pressed)
 	_revive_panel.add_child(_revive_btn)
 	var no := PixelButton.new()
 	no.label = "NO THANKS"
 	no.face = Palette.MIST
-	no.position = Vector2(18, 84)
-	no.custom_minimum_size = Vector2(104, 20)
+	no.small_text = true
+	no.position = Vector2(34, 126)
+	no.custom_minimum_size = Vector2(80, 16)
 	no.size = no.custom_minimum_size
 	no.pressed.connect(_decline_revive)
 	_revive_panel.add_child(no)
 
-	# Pause.
-	_pause_panel = _panel(ui, Rect2(24, 110, 132, 100), Palette.NIGHT)
-	_title(_pause_panel, "PAUSED", Palette.PAPER, 10)
+	_build_pause(ui)
+	_dim.watch = [_cards_panel, _choice_panel, _over_panel, _revive_panel, _pause_panel]
+	_apply_safe_area()
+	get_viewport().size_changed.connect(_apply_safe_area)
+
+
+## Pause: run facts, the build so far (tap a slot to see what it is and how
+## it's doing), stats, sound toggles, RESUME and GIVE UP (asks for a second
+## tap). The panel is as tall as the safe area; the buttons sit at its foot.
+func _build_pause(ui: CanvasLayer) -> void:
+	_pause_panel = _panel(ui, Rect2(6, 26, 168, 270), Palette.NIGHT)
+	_pause_panel.anchor_top = 0.0
+	_pause_panel.anchor_bottom = 1.0
+	_title(_pause_panel, "PAUSED", Palette.PAPER, 6)
+	_pause_facts = Label.new()
+	_pause_facts.position = Vector2(0, 31)
+	_pause_facts.size = Vector2(168, 10)
+	_pause_facts.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
+	Fonts.bold(_pause_facts)
+	_pause_facts.add_theme_color_override("font_color", Palette.color(Palette.BUTTER))
+	_pause_panel.add_child(_pause_facts)
+	_pause_build = BuildView.new()
+	_pause_build.position = Vector2(12, 46)
+	_pause_build.size = Vector2(144, 120)
+	_pause_build.picked.connect(func(kind: String, id: String) -> void:
+		_pause_pick = [kind, id]
+		_pause_info.queue_redraw())
+	_pause_panel.add_child(_pause_build)
+	_pause_build.hint = "TAP TO SEE"
+	_pause_info = Control.new()
+	_pause_info.size = Vector2(152, 46)
+	_pause_info.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	_pause_info.draw.connect(_draw_pause_info)
+	_pause_panel.add_child(_pause_info)
+	_pause_stats = Control.new()
+	_pause_stats.position = Vector2(12, 120)
+	_pause_stats.size = Vector2(144, 40)
+	_pause_stats.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	_pause_stats.draw.connect(_draw_pause_stats)
+	_pause_panel.add_child(_pause_stats)
+	for i in 2:
+		var key: String = ["music", "sfx"][i]
+		var t := PixelButton.new()
+		t.name = "Toggle_" + key
+		t.label = ["MUSIC", "SOUND"][i]
+		t.face = Palette.MIST
+		t.small_text = true
+		t.position = Vector2(10 + i * 76, 182)
+		t.custom_minimum_size = Vector2(72, 18)
+		t.size = t.custom_minimum_size
+		t.pressed.connect(func() -> void:
+			if _save != null:
+				_save.set_setting(key, not _save.get_setting(key))
+			_sync_pause())
+		_pause_panel.add_child(t)
+		_pause_toggles[key] = t
 	var resume := PixelButton.new()
 	resume.label = "RESUME"
 	resume.face = Palette.GREEN
-	resume.position = Vector2(14, 34)
-	resume.custom_minimum_size = Vector2(104, 20)
+	resume.position = Vector2(10, 204)
+	resume.custom_minimum_size = Vector2(148, 28)
 	resume.size = resume.custom_minimum_size
 	resume.pressed.connect(_pause.bind(false))
 	_pause_panel.add_child(resume)
-	var quit := PixelButton.new()
-	quit.label = "GIVE UP"
-	quit.face = Palette.RED
-	quit.position = Vector2(14, 62)
-	quit.custom_minimum_size = Vector2(104, 20)
-	quit.size = quit.custom_minimum_size
-	quit.pressed.connect(func() -> void:
+	_pause_resume = resume
+	_give_up = PixelButton.new()
+	_give_up.label = "GIVE UP"
+	_give_up.face = Palette.SALMON
+	_give_up.position = Vector2(30, 238)
+	_give_up.custom_minimum_size = Vector2(108, 20)
+	_give_up.size = _give_up.custom_minimum_size
+	_give_up.pressed.connect(func() -> void:
+		if not _give_up_armed:
+			_give_up_armed = true
+			_give_up.label = "REALLY? TAP AGAIN"
+			_give_up.face = Palette.RED
+			get_tree().create_timer(2.5, true).timeout.connect(_disarm_give_up)
+			return
+		_disarm_give_up()
 		_pause_panel.hide()
 		get_tree().paused = false
 		state = "live"
 		_end("gave_up"))
-	_pause_panel.add_child(quit)
+	_pause_panel.add_child(_give_up)
+
+
+## Pause layout for the panel's height `h`: build, hint, info box and stats
+## from the top; toggles, RESUME and GIVE UP from the bottom.
+func _layout_pause(h: float) -> void:
+	var y := 44.0 + _pause_build.needed_height()
+	_pause_info.position = Vector2(8, y)
+	y += _pause_info.size.y + 3
+	_pause_stats.position.y = y
+	var bottom := h - 2.0
+	_give_up.position.y = bottom - 5 - 18
+	_give_up.size.y = 18
+	_pause_resume.position.y = _give_up.position.y - 3 - 26
+	_pause_resume.size.y = 26
+	for key: String in _pause_toggles:
+		_pause_toggles[key].position.y = _pause_resume.position.y - 3 - 16
+		_pause_toggles[key].size.y = 16
+	_pause_stats.visible = _pause_stats.position.y + 36 <= _pause_resume.position.y - 19
+
+
+func _disarm_give_up() -> void:
+	_give_up_armed = false
+	_give_up.label = "GIVE UP"
+	_give_up.face = Palette.SALMON
+
+
+## Fills the pause panel with the run so far.
+func _sync_pause() -> void:
+	var sec := int(minf(elapsed, rules.run_length_sec))
+	_pause_facts.text = "%d:%02d   LV %d   KO %d" % [sec / 60, sec % 60, level, kills]
+	_pause_build.setup(db, owned_weapons, owned_tomes, items.stacks, int(rules.weapon_slots), int(rules.tome_slots))
+	if _pause_pick.is_empty() or not _pause_has(_pause_pick):
+		_pause_pick = ["weapons", owned_weapons.keys()[0]] if not owned_weapons.is_empty() else []
+	_pause_build.selected = "" if _pause_pick.is_empty() else "%s/%s" % _pause_pick
+	_layout_pause(_pause_panel.size.y)
+	_pause_info.queue_redraw()
+	_pause_stats.queue_redraw()
+	for key: String in _pause_toggles:
+		var on: bool = _save.get_setting(key) if _save != null else true
+		_pause_toggles[key].toggle = int(on)
+
+
+## Game over: title and reason, the hero, stat tiles, coins (rolling up),
+## 2X COINS, closest unlocks, then PLAY AGAIN and MENU. Fills the screen
+## inside the safe area.
+func _build_over(ui: CanvasLayer) -> void:
+	var p := PixelPanel.new()
+	p.fill = Palette.NIGHT
+	p.anchor_left = 0.5
+	p.anchor_right = 0.5
+	p.anchor_bottom = 1.0
+	p.offset_left = -86
+	p.offset_right = 86
+	p.hide()
+	ui.add_child(p)
+	_over_panel = p
+	_over_title = _title(p, "", Palette.BUTTER, 6)
+	_over_title.size.x = 86
+	_over_reason = Label.new()
+	_over_reason.position = Vector2(0, 30)
+	_over_reason.size = Vector2(172, 10)
+	_over_reason.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
+	_over_reason.add_theme_color_override("font_color", Palette.color(Palette.MIST))
+	p.add_child(_over_reason)
+	_over_hero = Control.new()
+	_over_hero.position = Vector2(8, 42)
+	_over_hero.size = Vector2(56, 52)
+	_over_hero.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	p.add_child(_over_hero)
+	_over_tiles = Control.new()
+	_over_tiles.position = Vector2(66, 42)
+	_over_tiles.size = Vector2(100, 52)
+	_over_tiles.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	_over_tiles.draw.connect(_draw_over_tiles)
+	p.add_child(_over_tiles)
+	# The old one-block summary, kept for tests and screen readers of the result.
+	_over_text = Label.new()
+	_over_text.visible = false
+	p.add_child(_over_text)
+	var coins_cap := Label.new()
+	coins_cap.text = "COINS EARNED"
+	coins_cap.position = Vector2(10, 101)
+	Fonts.bold(coins_cap)
+	coins_cap.add_theme_color_override("font_color", Palette.color(Palette.GOLD))
+	p.add_child(coins_cap)
+	_over_coins = CoinPlate.new()
+	_over_coins.position = Vector2(100, 98)
+	_over_coins.size = Vector2(66, CoinPlate.H)
+	p.add_child(_over_coins)
+	_over_mult = Label.new()
+	_over_mult.position = Vector2(10, 112)
+	_over_mult.size = Vector2(152, 10)
+	_over_mult.horizontal_alignment = HORIZONTAL_ALIGNMENT_RIGHT
+	_over_mult.add_theme_color_override("font_color", Palette.color(Palette.PINK))
+	p.add_child(_over_mult)
+	# 2x coins (rewarded ad), right under the coins it doubles.
+	_double_btn = AdButton.new()
+	_double_btn.label = "2X COINS"
+	_double_btn.face = Palette.GOLD
+	_double_btn.position = Vector2(26, 122)
+	_double_btn.custom_minimum_size = Vector2(120, 20)
+	_double_btn.size = _double_btn.custom_minimum_size
+	_double_btn.pressed.connect(_on_double_pressed)
+	_double_btn.hide()
+	p.add_child(_double_btn)
+	var scroll := DragScroll.new()
+	scroll.position = Vector2(8, 146)
+	scroll.size = Vector2(156, 100)
+	p.add_child(scroll)
+	_over_scroll = scroll
+	_over_list = VBoxContainer.new()
+	_over_list.custom_minimum_size = Vector2(156, 0)
+	_over_list.add_theme_constant_override("separation", 2)
+	scroll.add_child(_over_list)
+	_again_btn = PixelButton.new()
+	_again_btn.name = "PlayAgain"
+	_again_btn.label = "PLAY AGAIN"
+	_again_btn.face = Palette.GREEN
+	_again_btn.pressed.connect(_play_again)
+	p.add_child(_again_btn)
+	_menu_btn = PixelButton.new()
+	_menu_btn.name = "Menu"
+	_menu_btn.label = "MENU"
+	_menu_btn.face = Palette.MIST
+	_menu_btn.pressed.connect(_to_menu)
+	p.add_child(_menu_btn)
+
+
+## Run panels and the pause button keep clear of the cutout and gesture bar.
+func _apply_safe_area() -> void:
+	var top := SafeArea.top(get_viewport())
+	var bottom := SafeArea.bottom(get_viewport())
+	_hud.safe_top = top
+	_hud.safe_bottom = bottom
+	_pause_btn.offset_top = Hud.PAUSE_Y + top
+	_pause_btn.offset_bottom = Hud.PAUSE_Y + top + 21
+	_pause_panel.offset_top = top + 6
+	_pause_panel.offset_bottom = -(bottom + 6)
+	_layout_pause(get_viewport().get_visible_rect().size.y - top - bottom - 12)
+	_over_panel.offset_top = top + 4
+	_over_panel.offset_bottom = -(bottom + 4)
+	var h := get_viewport().get_visible_rect().size.y - top - bottom - 8
+	_over_scroll.size.y = maxf(40.0, h - 2 - 146 - 40)
+	for b: PixelButton in [_again_btn, _menu_btn]:
+		b.position.y = h - 2 - 34
+		b.custom_minimum_size.y = 26
+		b.size.y = 26
+	_again_btn.position.x = 8
+	_again_btn.custom_minimum_size.x = 100
+	_again_btn.size.x = 100
+	_menu_btn.position.x = 112
+	_menu_btn.custom_minimum_size.x = 52
+	_menu_btn.size.x = 52
+
+
+func _pause_has(pick: Array) -> bool:
+	match pick[0]:
+		"weapons":
+			return owned_weapons.has(pick[1])
+		"tomes":
+			return owned_tomes.has(pick[1])
+		"items":
+			return items.stacks.has(pick[1])
+	return false
+
+
+## The picked slot: icon, name, kind and level, what it does now, and for a
+## weapon how hard it hits and how many it has knocked out this run.
+func _draw_pause_info() -> void:
+	var ci := _pause_info
+	var r := Rect2(Vector2.ZERO, ci.size)
+	ci.draw_rect(r, Palette.color(Palette.INK))
+	ci.draw_rect(r.grow(-1), Palette.color(Palette.DEEP_BLUE))
+	ci.draw_rect(Rect2(2, 1, r.size.x - 4, 1), Palette.color(Palette.OCEAN))
+	if _pause_pick.is_empty():
+		return
+	var kind: String = _pause_pick[0]
+	var id: String = _pause_pick[1]
+	var def := db.get_entry(kind, id)
+	var tex := Icons.texture(db, kind, id)
+	ci.draw_rect(Rect2(4, 4, 18, 18), Palette.color(Palette.INK))
+	ci.draw_rect(Rect2(5, 5, 16, 16), Palette.color(Palette.NIGHT))
+	if tex != null:
+		ci.draw_texture(tex, Vector2(5, 5))
+	var name_t: String = def.get("name", id)
+	var nf := Fonts.fitting(name_t, r.size.x - 30)
+	ci.draw_string(nf, Vector2(26, 12), name_t, HORIZONTAL_ALIGNMENT_LEFT, -1, 8, Palette.color(Palette.INK))
+	ci.draw_string(nf, Vector2(26, 11), name_t, HORIZONTAL_ALIGNMENT_LEFT, -1, 8, Palette.color(Palette.BUTTER))
+	var sub := ""
+	var desc: String = def.get("desc", "")
+	var extra := ""
+	var sub_c := Palette.MIST
+	match kind:
+		"weapons":
+			var lvl := int(owned_weapons[id])
+			sub = "WEAPON  LV %d/%d" % [lvl, def.levels.size()]
+			sub_c = Palette.SALMON
+			var ld: Dictionary = def.levels[lvl - 1]
+			if ld.has("damage"):
+				extra = "DMG %d   " % roundi(float(ld.damage) * stat("damage"))
+			extra += "KO %d" % int(run_stats.get("kills." + id, 0.0))
+		"tomes":
+			var lvl := int(owned_tomes[id])
+			sub = "TOME  LV %d/%d" % [lvl, int(rules.get("max_level", 5))]
+			sub_c = Palette.SKY
+			extra = "EACH LEVEL: " + desc
+			desc = _tome_total(def, lvl)
+		"items":
+			var loot := db.get_entry("rules", "loot")
+			sub = "%s ITEM" % String(loot.rarity_names.get(def.rarity, ""))
+			sub_c = Palette.index_of(loot.rarity_colors.get(def.rarity, "MIST"))
+			if int(items.stacks[id]) > 1:
+				sub += "  X%d" % int(items.stacks[id])
+	ci.draw_string(Fonts.SMALL, Vector2(26, 20), sub, HORIZONTAL_ALIGNMENT_LEFT, -1, 8, Palette.color(sub_c))
+	ci.draw_string(Fonts.SMALL, Vector2(5, 32), desc, HORIZONTAL_ALIGNMENT_LEFT, r.size.x - 8, 8, Palette.color(Palette.PAPER))
+	ci.draw_string(Fonts.SMALL, Vector2(5, 42), extra, HORIZONTAL_ALIGNMENT_LEFT, r.size.x - 8, 8, Palette.color(Palette.LIME))
+
+
+## What a tome gives in total at `lvl`: the first number in its per-level
+## description times the level ("+10% DAMAGE" at LV 3 -> "NOW +30% DAMAGE").
+func _tome_total(def: Dictionary, lvl: int) -> String:
+	var desc: String = def.get("desc", "")
+	var re := RegEx.new()
+	re.compile("\\d+(\\.\\d+)?")
+	var m := re.search(desc)
+	if m == null:
+		return desc
+	var v := float(m.get_string()) * lvl
+	var num := str(int(v)) if v == floorf(v) else "%.1f" % v
+	return "NOW " + desc.substr(0, m.get_start()) + num + desc.substr(m.get_end())
+
+
+func _draw_pause_stats() -> void:
+	var ci := _pause_stats
+	var rows := [
+		["DMG", "X%.2f" % stat("damage")], ["ARMOR", "%d" % int(stat("armor"))],
+		["SPEED", "%d" % int(stat("move_speed"))], ["REGEN", "%.1f" % stat("regen")],
+		["CRIT", "%d%%" % roundi(stat("crit_chance") * 100.0)], ["LUCK", "%d%%" % roundi(stat("luck") * 100.0)],
+	]
+	ci.draw_string(Fonts.BOLD, Vector2(0, 8), "STATS", HORIZONTAL_ALIGNMENT_LEFT, -1, 8, Palette.color(Palette.MIST))
+	ci.draw_rect(Rect2(38, 4, ci.size.x - 38, 1), Palette.color(Palette.SHADE))
+	for i in rows.size():
+		var at := Vector2((i % 2) * 74, 18 + (i / 2) * 9)
+		ci.draw_string(Fonts.SMALL, at, rows[i][0], HORIZONTAL_ALIGNMENT_LEFT, -1, 8, Palette.color(Palette.GRAY))
+		var v: String = rows[i][1]
+		var vw := Fonts.BOLD.get_string_size(v, HORIZONTAL_ALIGNMENT_LEFT, -1, 8).x
+		ci.draw_string(Fonts.BOLD, at + Vector2(68 - vw, 0), v, HORIZONTAL_ALIGNMENT_LEFT, -1, 8, Palette.color(Palette.PAPER))
+
+
+func _draw_over_tiles() -> void:
+	var ci := _over_tiles
+	var sec := int(minf(elapsed, rules.run_length_sec))
+	var tiles := [
+		["clock", "%d:%02d" % [sec / 60, sec % 60], "TIME"],
+		["star", str(level), "LEVEL"],
+		["skull", str(kills), "KO"],
+		["coin", str(floori(gold)), "GOLD"],
+	]
+	for i in 4:
+		var at := Vector2((i % 2) * 51, (i / 2) * 27)
+		var r := Rect2(at, Vector2(49, 25))
+		ci.draw_rect(r, Palette.color(Palette.INK))
+		ci.draw_rect(r.grow(-1), Palette.color(Palette.DEEP_BLUE))
+		ci.draw_rect(Rect2(r.position + Vector2(2, 1), Vector2(r.size.x - 4, 1)), Palette.color(Palette.OCEAN))
+		Glyphs.draw(ci, tiles[i][0], at + Vector2(4, 4))
+		ci.draw_string(Fonts.SMALL, at + Vector2(14, 10), tiles[i][2], HORIZONTAL_ALIGNMENT_LEFT, -1, 8, Palette.color(Palette.MIST))
+		ci.draw_string(Fonts.BOLD, at + Vector2(5, 22), tiles[i][1], HORIZONTAL_ALIGNMENT_LEFT, -1, 8, Palette.color(Palette.INK))
+		ci.draw_string(Fonts.BOLD, at + Vector2(5, 21), tiles[i][1], HORIZONTAL_ALIGNMENT_LEFT, -1, 8, Palette.color(Palette.PAPER))
 
 
 ## A hidden panel. `rect` is in a 180x320 design frame; the panel is
@@ -2359,6 +2814,8 @@ func _panel(parent: Node, rect: Rect2, fill: int) -> PixelPanel:
 	return p
 
 
+## A 2x bold title on the red ribbon. Returns the Label that holds the text
+## (hidden: a PixelTitle draws it, following the label's text).
 func _title(parent: Control, text: String, color: int, y: int) -> Label:
 	var l := Label.new()
 	l.text = text
@@ -2367,12 +2824,40 @@ func _title(parent: Control, text: String, color: int, y: int) -> Label:
 	l.scale = Vector2(2, 2)
 	l.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
 	l.add_theme_color_override("font_color", Palette.color(color))
-	l.add_theme_color_override("font_shadow_color", Palette.color(Palette.INK))
-	l.add_theme_constant_override("shadow_offset_x", 0)
-	l.add_theme_constant_override("shadow_offset_y", 1)
+	l.self_modulate = Color(1, 1, 1, 0)
 	parent.add_child(l)
 	UiArt.ribbon_behind(l)
+	var big := PixelTitle.new(text, 2, color)
+	big.top_color = Palette.WHITE if color in [Palette.BUTTER, Palette.GOLD] else -1
+	big.position = Vector2(0, y - 1)
+	big.size = Vector2(parent.size.x, 22)
+	parent.add_child(big)
+	# Follow the label: its text and colour can change (game over titles).
+	l.draw.connect(func() -> void:
+		big.text = l.text
+		big.size.x = l.size.x * 2.0)
+	l.set_meta("big", big)
 	return l
+
+
+## Again with the same hero and map. A break like the way to the menu, so
+## an interstitial may show first (Ads decides).
+func _play_again() -> void:
+	if _leaving or _ad_busy():
+		return
+	_leaving = true
+	Run.next_options = {"character": char_def.id, "map": map_def.id}
+	var go := func(_shown := false) -> void:
+		get_tree().paused = false
+		var tr := get_node_or_null("/root/Transition")
+		if tr != null:
+			tr.change_scene(RUN_SCENE)
+		else:
+			get_tree().change_scene_to_file(RUN_SCENE)
+	if ads != null and state == "over":
+		ads.at_break(go)
+	else:
+		go.call()
 
 
 ## Back to the menu. After a game over this is the one break where an
@@ -2390,4 +2875,8 @@ func _to_menu() -> void:
 
 func _go_to_menu() -> void:
 	get_tree().paused = false
-	get_tree().change_scene_to_file(MENU_SCENE)
+	var tr := get_node_or_null("/root/Transition")
+	if tr != null:
+		tr.change_scene(MENU_SCENE)
+	else:
+		get_tree().change_scene_to_file(MENU_SCENE)

@@ -3,6 +3,7 @@
 	"name": "STAPLER",
 	"desc": "RAPID-FIRE STAPLES",
 	"pattern": "rapid_shot",
+	"trail": "MIST",
 	"shot_sprite": "res://assets/shots/staple.png",
 	"shot_turns": 16,
 	"status": "signature",

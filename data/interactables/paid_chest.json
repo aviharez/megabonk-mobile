@@ -7,6 +7,7 @@
 	"sprite": "res://assets/props/chest.png",
 	"color": "WOOD",
 	"arrow": "GOLD",
+	"beam": {"color": "GOLD", "height": 40},
 	"chest": "paid",
 	"price": 15,
 	"price_growth": 1.4

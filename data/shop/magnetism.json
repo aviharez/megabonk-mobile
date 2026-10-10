@@ -3,6 +3,7 @@
 	"name": "MAGNETISM",
 	"desc": "+5% PICKUP RANGE PER LEVEL",
 	"kind": "stat",
+	"icon": "tomes/fridge_magnets",
 	"prices": [
 		20,
 		45,

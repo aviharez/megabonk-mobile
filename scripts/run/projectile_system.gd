@@ -48,11 +48,21 @@ var _looks := {}  # "shape:color" -> index
 var _batches: Array[SpriteBatch] = []
 var _hits := PackedInt32Array()
 var _bounce_hits := PackedInt32Array()
+## Trail colour per weapon id (its "trail" in data; Run fills it), palette index.
+var trail_colors := {}
+## Off with "reduce effects".
+var trails := true
+var _trail := PackedInt32Array()
+var _trail_view: Node2D
 
 
 func setup(capacity: int) -> void:
 	pool = SlotPool.new(capacity)
-	for arr: String in ["pos", "vel", "damage", "radius", "life", "pierce", "bounces", "bounce_range", "homing", "knockback", "look", "source", "_last_enemy", "_prev_enemy", "_target"]:
+	# Trails draw under the shot sprites (added before any batch).
+	_trail_view = Node2D.new()
+	_trail_view.draw.connect(_draw_trails)
+	add_child(_trail_view)
+	for arr: String in ["pos", "vel", "damage", "radius", "life", "pierce", "bounces", "bounce_range", "homing", "knockback", "look", "source", "_last_enemy", "_prev_enemy", "_target", "_trail"]:
 		var a = get(arr)
 		a.resize(capacity)
 		set(arr, a)
@@ -80,6 +90,7 @@ func fire(shot: Dictionary) -> int:
 	knockback[s] = shot.get("knockback", 30.0)
 	look[s] = _look_index(shot.get("sprite", ""), int(shot.get("turns", 1)), shot.get("shape", ""), int(shot.get("color", Palette.BUTTER)))
 	source[s] = shot.get("source", "")
+	_trail[s] = int(trail_colors.get(source[s], -1))
 	_last_enemy[s] = -1
 	_prev_enemy[s] = -1
 	_target[s] = -1
@@ -156,6 +167,31 @@ func render() -> void:
 		_batches[l].push(pos[s], false, false, Art.turn_frame(vel[s], _turns[l]))
 	for b in _batches:
 		b.commit()
+	if trails:
+		_trail_view.queue_redraw()
+
+
+## A short streak behind each shot in its weapon's trail colour: 2 px wide
+## at the shot, thinning and dithering out behind it.
+func _draw_trails() -> void:
+	if not trails:
+		return
+	for s in pool.active:
+		var ci := _trail[s]
+		if ci < 0:
+			continue
+		var v := vel[s]
+		var sp := v.length()
+		if sp < 1.0:
+			continue
+		var back := -v / sp
+		var c := Palette.color(ci)
+		# Three dabs: a 2x2 at the shot, then two single pixels further back.
+		var n := clampf(sp / 40.0, 3.0, 7.0)
+		var p0 := (pos[s] + back * 2.0).round()
+		_trail_view.draw_rect(Rect2(p0, Vector2(2, 2)), c)
+		_trail_view.draw_rect(Rect2((pos[s] + back * (2.0 + n * 0.5)).round(), Vector2.ONE), c)
+		_trail_view.draw_rect(Rect2((pos[s] + back * (2.0 + n)).round(), Vector2.ONE), c)
 
 
 func _look_index(sprite: String, turns: int, shape: String, color: int) -> int:

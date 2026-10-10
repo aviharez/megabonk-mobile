@@ -108,5 +108,10 @@ func update(_delta: float, _run: Node) -> void:
 
 
 ## Draws the weapon's visuals onto `canvas` (in world space).
+## Drawn under the player (ground effects: auras, puddles). Optional.
+func draw_under(_canvas: CanvasItem, _origin: Vector2) -> void:
+	pass
+
+
 func draw(_canvas: CanvasItem, _origin: Vector2) -> void:
 	pass

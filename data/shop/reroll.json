@@ -3,6 +3,7 @@
 	"name": "REROLL",
 	"desc": "NEW LEVEL-UP CARDS",
 	"kind": "action",
+	"icon": "ui/die",
 	"action": "reroll",
 	"prices": [
 		30,

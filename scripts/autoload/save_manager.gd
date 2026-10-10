@@ -32,6 +32,7 @@ static func default_data() -> Dictionary:
 			"damage_numbers": true,
 			"screen_shake": true,
 			"reduce_effects": false,
+			"vibration": true,
 		},
 		# Meta progression (phase 4); the keys are explained in scripts/core/meta.gd.
 		# Cumulative stat tracker totals, keyed by stat key ("kills.hot_coffee@gary").
