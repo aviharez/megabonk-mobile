@@ -2,6 +2,10 @@
 
 Title (owner, 2026-10-10): **Mobbed!**, subtitle **Survive the swarm**. Earlier working title: Swarm Survivor Pixel.
 
+Player-facing names (owner, 2026-10-10, to move away from Megabonk's terms): shrines are **beacons** (CHARGE / RISK / CHALLENGE BEACON) and tomes are **manuals** (MANUAL LV 2, the MANUALS tab). This brief, the data folders and the code keep "shrine" and "tome" as internal names (ids, `data/tomes/`, `tome:<id>` stat sources, save keys), so saves and content stay valid.
+
+Studio: **Aviharez Studio**. Its splash (`scenes/splash.tscn`) is the first scene.
+
 Oct 5, 2026 · @Syifa
 
 ## Concept summary

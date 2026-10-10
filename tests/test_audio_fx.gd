@@ -219,6 +219,26 @@ func test_every_key_event_has_a_sound_and_an_effect(t) -> void:
 	_done(t, run)
 
 
+func test_shrine_charge_blips_rise(t) -> void:
+	# Standing in a shrine: a blip per step of the charge, rising, from the
+	# moment you step in; the shrine chime when it's full.
+	var run := _start(t, {})
+	await t.process_frame
+	var sh: Dictionary = run.interactables.add("charge_shrine", run.player_pos())
+	var steps := int(run.db.get_entry("rules", "audio").sfx.charge.steps)
+	run.tick(DT)
+	t.check(int(run.juice.cues.get("charge", 0)) == 1, "a blip as soon as you step in (%d)" % run.juice.cues.get("charge", 0))
+	for i in 200:
+		if run.state != "live" or sh.used:
+			break
+		sh.pos = run.player_pos()  # the bot walks; the shrine stays underfoot
+		run.tick(DT)
+	t.check(int(run.juice.cues.get("charge", 0)) == steps, "one blip per step (%d of %d)" % [run.juice.cues.get("charge", 0), steps])
+	t.check(int(run.juice.cues.get("shrine", 0)) >= 1 or run.state == "choice", "the shrine fires when full")
+	_done(t, run)
+	await t.process_frame
+
+
 func test_every_weapon_has_a_signature(t) -> void:
 	# Every weapon has its own hit effect, attack sound, or its own drawing
 	# for the effect named in the brief (steam, sock aura, lightning, fireworks).

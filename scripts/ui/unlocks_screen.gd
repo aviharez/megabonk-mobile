@@ -1,18 +1,22 @@
 class_name UnlocksScreen
 extends MenuScreen
-## Every unlock as a grid of icon tiles, grouped by tier (EARLY, MID, HARD),
-## with a fixed detail panel on top for the selected one: its icon, name (or
-## "??? WEAPON" while locked), what it does once known, the challenge with
-## its progress bar, and BUY / OWNED / the price. Locked rewards are
-## silhouettes with a progress strip; available ones hop and sparkle with a
-## NEW badge; owned ones get a tick. The whole collection fits on one or two
-## screens, so there's little to scroll. Opening the screen marks the NEW
-## badges as seen.
+## Every unlock as a grid of icon tiles, one tab per kind (HEROES, WEAPONS,
+## TOMES, ITEMS; each tab shows owned/total and a red dot when one is ready
+## to buy), with a fixed detail panel on top for the selected one: its icon,
+## name (or "??? WEAPON" while locked), what it does once known, the
+## challenge with its progress bar, and BUY / OWNED / the price. Locked
+## rewards are silhouettes with a progress strip; available ones hop and
+## sparkle with a NEW badge; owned ones get a tick. A tab fits on the screen,
+## so nothing scrolls. Opening the screen marks the NEW badges as seen.
 
 const COLUMNS := 4
 const PANEL_H := 82
+## Tabs: content category, name, colour.
+const KINDS := [["characters", "HEROES", Palette.LIME], ["weapons", "WEAPONS", Palette.SALMON],
+	["tomes", "MANUALS", Palette.SKY], ["items", "ITEMS", Palette.PINK]]
 
 var selected := ""
+var tab := 0
 var _new := {}  # content ids that were unseen when the screen opened
 
 
@@ -30,19 +34,59 @@ func _init(save_node: Node) -> void:
 	else:
 		var next := Meta.closest(db, save.data, 1)
 		selected = next[0].challenge.reward if not next.is_empty() else String(Meta.challenges(db)[0].reward)
+	tab = _tab_of(selected)
+
+
+func _tab_of(id: String) -> int:
+	var cat := Meta.category_of(db, id)
+	for i in KINDS.size():
+		if KINDS[i][0] == cat:
+			return i
+	return 0
+
+
+## The unlock challenges of tab `i`, in challenge order.
+func in_tab(i: int) -> Array:
+	return Meta.challenges(db).filter(func(ch: Dictionary) -> bool: return Meta.category_of(db, ch.reward) == KINDS[i][0])
 
 
 func _fill() -> void:
 	_panel()
 	_summary()
-	var tier := ""
-	var grid: GridContainer
-	for ch: Dictionary in Meta.challenges(db):
-		if ch.tier != tier:
-			tier = ch.tier
-			heading(tier.to_upper(), {"early": Palette.LIME, "mid": Palette.GOLD, "hard": Palette.SALMON}.get(tier, Palette.BUTTER))
-			grid = _grid()
+	var tabs := PixelTabs.new()
+	tabs.name = "Tabs"
+	tabs.custom_minimum_size.x = W
+	var info := []
+	for i in KINDS.size():
+		var chs := in_tab(i)
+		var owned := chs.filter(func(ch: Dictionary) -> bool: return Meta.state(db, save.data, ch.reward) == "owned").size()
+		var ready := chs.any(func(ch: Dictionary) -> bool: return Meta.state(db, save.data, ch.reward) == "available")
+		# The tab's icon: something you start with (never a locked reward).
+		var start: Array = db.all(KINDS[i][0]).filter(func(e: Dictionary) -> bool: return e.get("status", "") == "start")
+		var art: Texture2D = Icons.texture(db, KINDS[i][0], start[0].id) if not start.is_empty() else null
+		info.append({"name": KINDS[i][1], "sub": "%d/%d" % [owned, chs.size()], "color": KINDS[i][2], "dot": ready, "art": art})
+	list.add_child(tabs)
+	tabs.size.x = W
+	tabs.tabs = info
+	tabs.current = tab
+	tabs.picked.connect(show_tab)
+	var grid := _grid()
+	for ch: Dictionary in in_tab(tab):
 		grid.add_child(_tile(ch))
+
+
+## Shows tab `i`; the panel moves to its first unlock that is ready to buy
+## (else its first).
+func show_tab(i: int) -> void:
+	tab = i
+	var chs := in_tab(i)
+	if not chs.is_empty() and _tab_of(selected) != i:
+		selected = chs[0].reward
+		for ch: Dictionary in chs:
+			if Meta.state(db, save.data, ch.reward) == "available":
+				selected = ch.reward
+				break
+	refresh.call_deferred()
 
 
 func _grid() -> GridContainer:
@@ -105,7 +149,7 @@ func _panel() -> void:
 	var nl := bold_label(p, name_text, Vector2(x, 6), Palette.BUTTER if known else Palette.MIST)
 	if Fonts.BOLD.get_string_size(name_text, HORIZONTAL_ALIGNMENT_LEFT, -1, Fonts.SIZE).x > tw:
 		nl.add_theme_font_override("font", Fonts.SMALL)
-	var kind_line := Meta.kind_name(db, id) + "  " + String(ch.get("tier", "")).to_upper()
+	var kind_line := Meta.kind_name(db, id)
 	label(p, kind_line, Vector2(x, 16), {"weapons": Palette.SALMON, "tomes": Palette.SKY, "items": Palette.PINK, "characters": Palette.LIME}.get(cat, Palette.MIST))
 	# What it does (once it's known), else a teaser.
 	var what: String = def.get("desc", "") if known else "WHAT COULD IT BE?"

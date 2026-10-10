@@ -114,8 +114,9 @@ func has_sound(id: String) -> bool:
 	return rules.get("sfx", {}).has(id)
 
 
-## Plays sound `id`. Returns true if a voice took it.
-func play(id: String) -> bool:
+## Plays sound `id`, `pitch_mul` times its pitch (rising steps). Returns
+## true if a voice took it.
+func play(id: String, pitch_mul := 1.0) -> bool:
 	var def: Dictionary = rules.get("sfx", {}).get(id, {})
 	if def.is_empty():
 		push_warning("Audio: no sound \"%s\" in data/rules/audio.json" % id)
@@ -149,7 +150,7 @@ func play(id: String) -> bool:
 		return false
 	var p := _voices[v]
 	var j := float(def.get("pitch", 0.0))
-	var pitch := 1.0 + randf_range(-j, j)
+	var pitch := (1.0 + randf_range(-j, j)) * maxf(0.1, pitch_mul)
 	if not silent:
 		p.stream = stream
 		p.volume_db = float(def.get("db", 0.0))

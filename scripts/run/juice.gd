@@ -103,12 +103,12 @@ func _tint_lut() -> ImageTexture:
 
 
 ## Plays sound `id` (if there is an Audio node) and counts the cue.
-func sfx(id: String) -> void:
+func sfx(id: String, pitch := 1.0) -> void:
 	if id == "":
 		return
 	cues[id] = int(cues.get(id, 0)) + 1
 	if audio != null:
-		audio.play(id)
+		audio.play(id, pitch)
 
 
 ## Adds screen shake by a named amount from rules "shake" (or a number).

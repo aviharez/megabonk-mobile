@@ -238,5 +238,15 @@
 		"asset_id": "aec24acf-f40c-4d82-9692-5f94f9bf2901",
 		"sha12": "b7be43f135ea",
 		"label": "Small parts sheet F (3x3, 68x68): 3 XP gems, feather, staple, rocket, spit bullet, pellet, cup; tools/art/run_art.py (smallF.png) -> assets/gems/, assets/shots/"
+	},
+	"app_icon": {
+		"asset_id": "4f8375c7-b3aa-4ed5-ac9a-ead3a3a1ce59",
+		"sha12": "7b1042db9c2d",
+		"label": "App icon, Sir Loaf among the swarm (34x34 pixel output, NB2.1 1K); tools/art/app_icon.py -> assets/icon/"
+	},
+	"app_icon_v2": {
+		"asset_id": "c891cd31-5fac-4b4d-be4f-1529d4a4bc52",
+		"sha12": "b4a72a972984",
+		"label": "App icon v2, Sir Loaf mid-swing with Blob and bug critters on sky (68x68 pixel output, NB2.1 1K); tools/art/app_icon.py -> assets/icon/ (64 px centre). Replaces app_icon"
 	}
 }

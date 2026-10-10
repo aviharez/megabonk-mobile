@@ -326,14 +326,36 @@ func _on_daily() -> void:
 
 
 func _notification(what: int) -> void:
-	# Android back button closes the open screen or the settings panel first.
-	if what != NOTIFICATION_WM_GO_BACK_REQUEST:
+	if what == NOTIFICATION_WM_GO_BACK_REQUEST:
+		back()
+
+
+## The Android back button, one step at a time: a question or popup on top
+## goes first, then the open screen, then the settings panel; on the home
+## screen it asks before closing the game.
+func back() -> void:
+	if _ads != null and _ads.is_showing():
 		return
-	var screens := get_children().filter(func(c: Node) -> bool: return c is MenuScreen)
+	var ask := find_children("ConfirmPopup", "ConfirmPopup", true, false).filter(func(c: Node) -> bool: return not c.is_queued_for_deletion())
+	if not ask.is_empty():
+		(ask.back() as ConfirmPopup).answer(false)
+		return
+	var pops := find_children("*", "UnlockPopup", true, false).filter(func(c: Node) -> bool: return not c.is_queued_for_deletion())
+	if not pops.is_empty():
+		pops.back().queue_free()
+		return
+	var screens := get_children().filter(func(c: Node) -> bool: return c is MenuScreen and not c.is_queued_for_deletion())
 	if not screens.is_empty():
 		_top_screen(screens.back()).close()
 	elif _settings != null and _settings.visible:
 		_close_settings()
+	else:
+		var q := ConfirmPopup.new("QUIT?", "THE SWARM WILL WAIT FOR YOU.", "QUIT", "STAY")
+		q.answered.connect(func(yes: bool) -> void:
+			if yes:
+				Save.save_game()
+				get_tree().quit())
+		add_child(q)
 
 
 ## The innermost open screen (the Toggler opens on top of the hero select).

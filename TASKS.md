@@ -517,6 +517,40 @@ Owner follow-up (2026-10-10): Stinky Socks and Hot Coffee still weak, the timer 
 | Windowed, vsync on | 75.0 (display cap) | 69.2 | 3.17 | 305.2 |
 | Windowed, uncapped (after the culling fix) | 341.8 | 192.8 | ~1.6 | ~305 |
 
+Owner follow-up 2 (2026-10-10): scrolling still bugged and not intuitive on every page; redesign the PICK A BONUS and LEVEL UP popups; smaller weapon/tome/item icons in the run, items centred with the rarity as the whole border; a progress sound while a shrine charges; game over shows only the coins earned.
+
+- [x] Scroll bug found: `DragScroll` let go of the pressed button with a pushed release at -10000 and recognised it by position, but `push_input` maps positions through the screen's stretch scale (x6 on the phone), so the list swallowed its own fake release and stopped after 5 px with the button held. The old test only ran at x1. Now the injected events are flagged (and pushed in viewport coordinates); test runs at x1 and x3 (the old code fails x3: "follows the finger (0)")
+- [x] Scroll feel: the list follows the finger from where the drag starts (no 5 px jump), fling speed from the last 0.1 s of movement (none if the finger rested before lifting), a tap on a gliding list only stops it (presses nothing), smooth float glide that stops at the ends. Game over list got the pixel scrollbar (`DragScroll.make_bar()`, shared with menu screens)
+- [x] Pick-one cards (`LevelCard`, used by level-up, shrine and merchant): striped badge in the kind / option colour with the icon at 2x and an INK drop, level pips under it, bold name, tag chip (NEW WEAPON / TOME LV 2 / SHRINE / RARE ITEM), description, LIME numbers line; NEW! sticker on the top edge; white rim while pressed. Panels float over a darker dim (no box), title + subtitle ("LEVEL 4 - PICK ONE (+1 MORE)", "YOUR GOLD 40")
+- [x] Shrine cards: stat name, big value ("+8%") in the card colour, "NOW 100% > 108%" (the bonus tried on and taken off). Merchant cards: price chip (gold, SALMON when short), SOLD / HAVE ONE stamps
+- [x] HUD: build strip slots 18 -> 14 px with 12 px icons and 5 pips under each slot; item row centred, 16 px frames with a full 1 px border in the rarity colour, 12 px icons. `Icons.small()` makes real 12 px images (area-weighted majority colour, palette only, never scaled)
+- [x] Shrine / altar charge: "charge" blip (`tools/audio/sfx.json`, sfxr) plays in 10 steps while you stand in it, rising an octave ("steps", "rise" in rules/audio.json), first one as you step in; the shrine chime when full. `Audio.play` / `Juice.sfx` take a pitch
+- [x] Game over: TOTAL coins removed; only the coins earned (and DOUBLED / FINAL SWARM)
+- [x] Fixed a flaky test error: a late fake-store callback refreshed a shop whose save was gone
+- [x] Tests: drag at x1/x3 (follow, no jump, no click, no stuck button, rest = no fling, flick glides, tap stops it), small icons 12 px on the palette, item row centred at 1/3/12/30 items, rarity frame colour, shrine/merchant cards, bonus preview leaves stats alone, charge blips (one per step), no TOTAL. 2188 checks pass, FLOW OK, 124 assets OK
+- [x] Stress (desktop, full build, Final Swarm, all effects): vsync 75.0 avg / 66.3 1% low, 304 on screen; uncapped 351.6 avg / 202.7 1% low, 306 on screen
+- [ ] Owner phone check: scrolling feel on every list, the new cards, HUD icon size, the charge blips by ear
+- [ ] The game-over TOTAL test is not mutation-checked (test runs have no save, and the old code showed TOTAL only with one)
+
+Owner follow-up 3 (2026-10-10, after the phone build): unlocks grouped by kind with tabs instead of EARLY / MID / HARD; level-up and bonus popups keep their new cards but go back in a container; REROLL / SKIP / BANISH redesigned; the back button must never close the game (in a run like the pause button, menus step back, home asks); a new game icon from SpriteCook.
+
+- [x] Unlocks: `PixelTabs` (new) with one tab per kind (hero, weapon, tome, item icon + owned/total, red dot when one is ready to buy; the picked tab stands taller in its colour on a matching rule). A tab fits on screen (most is 7 tiles, 2 rows). Tier names removed from the screen; tab icons are start content only (no spoiled rewards)
+- [x] Level-up, shrine and merchant cards back in the window panel (cards 160 wide); the dim is back to its old level
+- [x] `ActionButton` redesign: plate in the action's colour (REROLL sky, SKIP butter, BANISH salmon; PINK "CANCEL" while banishing), icon centred with an INK silhouette drop, bold word under it, corner bubble with the charges left (RED) or AD (PURPLE)
+- [x] Back button: `application/config/quit_on_go_back=false`. Run: pause / resume like the pause button, leaves the merchant, level-up and shrine cards wait, game over goes to the menu, nothing during an ad. Menus: a question or unlock popup closes first, then the open screen, then settings; on the home screen a `ConfirmPopup` (new) asks QUIT? (QUIT / STAY; back again = STAY)
+- [x] Game icon: SpriteCook (12 credits, owner approved), `tools/art/app_icon.py` -> 32 px icon, 192 launcher (x6), adaptive foreground (x9 = the 288 px a launcher shows) + background + monochrome (themed icons) in both Android presets
+- [x] Tests: `tests/test_back_button.gd` (setting off, run pause/resume, level-up waits, merchant leaves, menu steps then asks, back = STAY), unlocks test per tab. 2209 checks pass, FLOW OK, 127 assets OK. Stress 75.0 avg / 66.9 1% low (vsync), 304 on screen
+- [x] Installed on the phone (debug APK), menu runs, no script errors
+- [ ] Owner phone check: back button everywhere (adb can't press it on this Xiaomi), tabs, the new action buttons, the icon on the home screen (round mask cuts the swarm at the corners)
+
+Owner follow-up 4 (2026-10-10): "shrine" and "tome" too close to Megabonk; a more engaging game icon from SpriteCook; an "Aviharez Studio" splash with a little animation and a logo.
+
+- [x] Names on screen: shrines are BEACONS (CHARGE / RISK / CHALLENGE BEACON, BEACON card tag, BEACON BONUS, challenge "ACTIVATE 5 BEACONS"), tomes are MANUALS (MANUALS tab, MANUAL card tag, "MANUAL LV n/5", silhouette label). Ids, data folders, stat sources and save keys unchanged; noted in BRIEF.md
+- [x] Game icon v2: SpriteCook (12 credits, owner approved; first try blocked by content safety and refunded), Sir Loaf mid-swing on sky with a Blob and a bug. `tools/art/app_icon.py` now keeps 64x64: icon 64, launcher 192 (x3), adaptive fg x5 on SKY-blue bg, mono = hero silhouette
+- [x] Studio splash `scenes/splash.tscn` (`Splash`, now `run/main_scene`): code-drawn pixel badge (gold "A" on a blue plate) drops in with dust and a bounce ("bonk"), shine sweep, sparkles, AVIHAREZ pops in letter by letter (rising "gem" blips), STUDIO under it, name hops, dither wipe to the menu at 2.7 s; tap or back skips (after 0.3 s). INK background = the boot splash colour
+- [x] Tests: `tests/test_splash.gd` (first scene, badge on the palette, plays then a tap leaves); 2225 checks pass
+- [ ] Owner phone check: splash timing / sound, the new icon on the home screen (round mask and themed icon)
+
 ## Found during phase 8
 
 - `scripts/ui/menu_screen.gd` slide-ins capture the final position when the screen opens; a viewport resize during the 0.25 s slide lands it at the old spot until the next resize (the main menu uses an offset over the layout instead, which is safe)

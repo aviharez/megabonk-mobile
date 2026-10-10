@@ -8,11 +8,13 @@ config_version=5
 config/name="Mobbed!"
 config/description="Mobbed! Survive the swarm. A pixel survivor-like for phones."
 config/version="0.0.1"
-run/main_scene="res://scenes/main_menu.tscn"
+run/main_scene="res://scenes/splash.tscn"
 ; The "Android Stress" export preset (feature tag "stress") boots into the stress test.
 run/main_scene.stress="res://scenes/debug/bot_run.tscn"
 config/features=PackedStringArray("4.7", "GL Compatibility")
 config/icon="res://assets/icon/icon.png"
+; Back on Android goes to the game (pause, close a screen, ask before quitting).
+config/quit_on_go_back=false
 boot_splash/bg_color=Color(0.0549, 0.0431, 0.0863, 1)
 boot_splash/show_image=false
 

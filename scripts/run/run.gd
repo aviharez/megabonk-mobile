@@ -218,7 +218,15 @@ var _again_btn: PixelButton
 var _cards: Array = []
 var _choice_panel: Control
 var _choice_title: Label
-var _choice_buttons: Array[PixelButton] = []
+var _choice_buttons: Array[LevelCard] = []
+var _choice_sub: Label
+var _cards_sub: Label
+## Pick-one cards (level-up, shrine, merchant): where they sit in their panel.
+const CARD_X := 6
+const CARD_Y := 40
+const CARD_W := 160
+const CARD_H := 66
+const CARD_STEP := 70
 var _choice_leave: PixelButton
 var _choice := {}
 var _over_panel: Control
@@ -1309,6 +1317,7 @@ func _screen_pos(world: Vector2) -> Vector2:
 
 func _show_cards() -> void:
 	_cards_title.text = "BANISH WHICH?" if _banish_mode else "LEVEL UP!"
+	_cards_sub.text = "TAP A NEW ONE TO BANISH IT" if _banish_mode else ("LEVEL %d  -  PICK ONE" % level if pending_levels <= 1 else "LEVEL %d  -  PICK ONE  (+%d MORE)" % [level, pending_levels - 1])
 	var fresh := not _cards_panel.visible
 	for i in _card_buttons.size():
 		var b := _card_buttons[i]
@@ -1324,7 +1333,7 @@ func _show_cards() -> void:
 			b.disabled = _banish_mode and not _can_banish(card)
 			b.ink = Palette.SALMON if _banish_mode and not b.disabled else Palette.PAPER
 			if fresh:
-				b.position.x = 4
+				b.position.x = CARD_X
 				UiFx.slide_in(b, Vector2(180, 0), 0.25, 0.06 * i)
 	for a: String in _action_buttons:
 		var ab: ActionButton = _action_buttons[a]
@@ -1334,7 +1343,7 @@ func _show_cards() -> void:
 		ab.ad = ab.charges <= 0
 		ab.visible = ab.charges > 0 or _ad_offer(a)
 		ab.disabled = _ad_busy()
-		ab.ink = Palette.SALMON if a == "banish" and _banish_mode else Palette.PAPER
+		ab.active = a == "banish" and _banish_mode
 
 
 func _on_card(i: int) -> void:
@@ -1567,14 +1576,36 @@ func open_shrine_choice(def: Dictionary) -> void:
 	var opts := []
 	var faces := [Palette.SKY, Palette.LIME, Palette.BUTTER]
 	for c: Dictionary in offer:
-		opts.append({"label": c.desc, "face": faces[opts.size() % faces.size()], "enabled": true, "art": _stat_icon(c.stat)})
+		# "AREA +8%": the name, and the value shown big.
+		var desc: String = c.desc
+		var cut := desc.rfind(" ")
+		var value := desc.substr(cut + 1) if cut > 0 else ""
+		opts.append({"label": desc, "face": faces[opts.size() % faces.size()], "enabled": true, "art": _stat_icon(c.stat),
+			"title": desc.substr(0, cut) if cut > 0 else desc, "value": value,
+			"tag": "BEACON", "desc": _bonus_preview(c, value.ends_with("%"))})
 	_show_choice("PICK A BONUS", opts, "", func(i: int) -> bool:
 		var c: Dictionary = offer[i]
 		var before := stat("max_hp")
 		stats.set_modifier(c.stat, src, float(c.get("flat", 0.0)), float(c.get("pct", 0.0)))
 		heal(maxf(0.0, stat("max_hp") - before))
-		_hud.pickup_card(_stat_icon(c.stat), c.desc, "SHRINE BONUS", "LASTS THE WHOLE RUN", Palette.SKY)
+		_hud.pickup_card(_stat_icon(c.stat), c.desc, "BEACON BONUS", "LASTS THE WHOLE RUN", Palette.SKY)
 		return true)
+
+
+## "NOW 150 > 165": the stat now and with shrine bonus `c` (tried on and
+## taken off again). Percent bonuses on small stats (multipliers, chances)
+## read as percents.
+func _bonus_preview(c: Dictionary, pct: bool) -> String:
+	var before := stat(c.stat)
+	stats.set_modifier(c.stat, "shrine:preview", float(c.get("flat", 0.0)), float(c.get("pct", 0.0)))
+	var after := stat(c.stat)
+	stats.remove_modifier(c.stat, "shrine:preview")
+	var as_pct: bool = (pct or c.stat in ["crit_chance", "luck", "evasion"]) and absf(before) < 5.0 and absf(after) < 5.0
+	var f := func(v: float) -> String:
+		if as_pct:
+			return "%d%%" % roundi(v * 100.0)
+		return LevelCard._num(snappedf(v, 0.1)) if absf(v) < 10.0 else str(roundi(v))
+	return "NOW %s > %s" % [f.call(before), f.call(after)]
 
 
 ## The icon of a tome that raises `stat` (shrine bonuses borrow it), or null.
@@ -1598,8 +1629,15 @@ func open_merchant(o: Dictionary) -> void:
 			if not st.sold and not ok:
 				price_text = "YOU HAVE ONE"
 			var label := "%s\n%s\n%s  %s" % [item.name, item.get("desc", ""), loot.rarity_names[item.rarity], price_text]
-			opts.append({"label": label, "face": Palette.index_of(loot.rarity_colors[item.rarity]), "enabled": not st.sold and ok and gold >= st.price,
-				"art": Icons.texture(db, "items", st.item)})
+			var opt := {"label": label, "face": Palette.index_of(loot.rarity_colors[item.rarity]), "enabled": not st.sold and ok and gold >= st.price,
+				"art": Icons.texture(db, "items", st.item), "title": item.name, "tag": loot.rarity_names[item.rarity] + " ITEM",
+				"desc": item.get("desc", ""), "price": st.price, "afford": gold >= st.price}
+			if st.sold:
+				opt.stamp = "SOLD"
+			elif not ok:
+				opt.stamp = "HAVE ONE"
+				opt.stamp_color = Palette.SHADE
+			opts.append(opt)
 		return opts
 	_show_choice("MERCHANT", refresh.call(), "LEAVE", func(i: int) -> bool:
 		var st: Dictionary = o.stock[i]
@@ -1640,15 +1678,23 @@ func _show_choice(title: String, opts: Array, leave: String, on_pick: Callable) 
 
 
 func _set_choice_options(opts: Array) -> void:
+	var fresh := not _choice_panel.visible
 	_choice.opts = opts
 	for i in _choice_buttons.size():
 		var b := _choice_buttons[i]
 		b.visible = i < opts.size()
 		if b.visible:
-			b.label = opts[i].label
-			b.face = opts[i].face if opts[i].enabled else Palette.GRAY
-			b.disabled = not opts[i].enabled
-			b.art = opts[i].get("art")
+			var o: Dictionary = opts[i].duplicate()
+			o.color = o.face
+			# The plain text stays on the card for tests and bots.
+			b.label = o.label
+			b.disabled = not o.enabled
+			b.show_option(o)
+			if fresh:
+				b.position.x = CARD_X
+				UiFx.slide_in(b, Vector2(180, 0), 0.25, 0.06 * i)
+	# The merchant shows your gold (it changes as you buy); shrines just ask.
+	_choice_sub.text = ("YOUR GOLD  %d" % gold) if _choice.get("leave", "") != "" else "PICK ONE"
 
 
 func _on_choice(i: int) -> void:
@@ -1787,8 +1833,7 @@ func _sync_over_coins(roll: bool) -> void:
 		mult = "DOUBLED!"
 	elif director.coin_mult() > 1.0:
 		mult = "FINAL SWARM X%.1f" % director.coin_mult()
-	if _save != null:
-		mult += ("   " if mult != "" else "") + "TOTAL %d" % int(meta.coins)
+	# Only what this run earned: the wallet total is the menu's business.
 	_over_mult.text = mult
 	if roll:
 		_over_coins.count_to(earned, int(result.coins), 0.6)
@@ -1892,10 +1937,18 @@ func _pause(on: bool) -> void:
 func _notification(what: int) -> void:
 	match what:
 		NOTIFICATION_WM_GO_BACK_REQUEST:
+			# Like the pause button (never closes the game): pause, or resume
+			# from the pause; leave the merchant; level-up and shrine cards
+			# wait for a pick. Nothing while an ad is up.
+			if _ad_busy():
+				return
 			if state == "over":
 				_to_menu.call_deferred()
 			elif state == "dying":
 				_decline_revive()
+			elif state == "choice":
+				if _choice.get("leave", "") != "":
+					_close_choice()
 			else:
 				_pause(state == "live")
 		NOTIFICATION_APPLICATION_PAUSED, NOTIFICATION_APPLICATION_FOCUS_OUT:
@@ -2362,13 +2415,14 @@ func _build_ui() -> void:
 	_flash.color = Palette.RED
 	ui.add_child(_flash)
 
-	# Level-up cards, with the Reroll / Skip / Banish actions under them.
-	_cards_panel = _panel(ui, Rect2(4, 22, 172, 280), Palette.NIGHT)
-	_cards_title = _title(_cards_panel, "LEVEL UP!", Palette.BUTTER, 6)
+	# Level-up cards in a panel, with the Reroll / Skip / Banish actions under them.
+	_cards_panel = _panel(ui, Rect2(4, 14, 172, 296), Palette.NIGHT)
+	_cards_title = _title(_cards_panel, "LEVEL UP!", Palette.BUTTER, 4)
+	_cards_sub = _subtitle(_cards_panel, 27)
 	for i in 3:
 		var b := LevelCard.new()
-		b.position = Vector2(4, 32 + i * 68)
-		b.custom_minimum_size = Vector2(164, 64)
+		b.position = Vector2(CARD_X, CARD_Y + i * CARD_STEP)
+		b.custom_minimum_size = Vector2(CARD_W, CARD_H)
 		b.size = b.custom_minimum_size
 		b.sound = ""  # _on_card plays "card"
 		b.pressed.connect(_on_card.bind(i))
@@ -2378,29 +2432,28 @@ func _build_ui() -> void:
 	for i in actions.size():
 		var ab := ActionButton.new()
 		ab.glyph = actions[i]
-		ab.face = Palette.MIST
-		ab.position = Vector2(4 + i * 56, 236)
-		ab.custom_minimum_size = Vector2(52, 32)
+		ab.position = Vector2(CARD_X + i * 55, CARD_Y + 3 * CARD_STEP + 3)
+		ab.custom_minimum_size = Vector2(50, 33)
 		ab.size = ab.custom_minimum_size
 		ab.pressed.connect(_on_action.bind(actions[i]))
 		_cards_panel.add_child(ab)
 		_action_buttons[actions[i]] = ab
 
-	# Shrine bonus / merchant choices: up to 3 options and a leave button.
-	_choice_panel = _panel(ui, Rect2(4, 40, 172, 262), Palette.NIGHT)
-	_choice_title = _title(_choice_panel, "", Palette.BUTTER, 6)
+	# Shrine bonus / merchant choices: the same cards, up to 3, and a leave button.
+	_choice_panel = _panel(ui, Rect2(4, 14, 172, 296), Palette.NIGHT)
+	_choice_title = _title(_choice_panel, "", Palette.BUTTER, 4)
+	_choice_sub = _subtitle(_choice_panel, 27)
 	for i in 3:
-		var b := PixelButton.new()
-		b.position = Vector2(6, 34 + i * 64)
-		b.custom_minimum_size = Vector2(160, 58)
+		var b := LevelCard.new()
+		b.position = Vector2(CARD_X, CARD_Y + i * CARD_STEP)
+		b.custom_minimum_size = Vector2(CARD_W, CARD_H)
 		b.size = b.custom_minimum_size
-		b.small_rest = true
 		b.pressed.connect(_on_choice.bind(i))
 		_choice_panel.add_child(b)
 		_choice_buttons.append(b)
 	_choice_leave = PixelButton.new()
-	_choice_leave.position = Vector2(36, 230)
-	_choice_leave.custom_minimum_size = Vector2(100, 22)
+	_choice_leave.position = Vector2(36, CARD_Y + 3 * CARD_STEP + 4)
+	_choice_leave.custom_minimum_size = Vector2(100, 24)
 	_choice_leave.size = _choice_leave.custom_minimum_size
 	_choice_leave.face = Palette.MIST
 	_choice_leave.pressed.connect(_close_choice)
@@ -2636,6 +2689,13 @@ func _build_over(ui: CanvasLayer) -> void:
 	scroll.size = Vector2(156, 100)
 	p.add_child(scroll)
 	_over_scroll = scroll
+	var bar := scroll.make_bar()
+	bar.position = Vector2(165, 146)
+	bar.size = Vector2(2, 100)
+	p.add_child(bar)
+	scroll.resized.connect(func() -> void:
+		bar.position = scroll.position + Vector2(scroll.size.x + 1, 0)
+		bar.size = Vector2(2, scroll.size.y))
 	_over_list = VBoxContainer.new()
 	_over_list.custom_minimum_size = Vector2(156, 0)
 	_over_list.add_theme_constant_override("separation", 2)
@@ -2729,7 +2789,7 @@ func _draw_pause_info() -> void:
 			extra += "KO %d" % int(run_stats.get("kills." + id, 0.0))
 		"tomes":
 			var lvl := int(owned_tomes[id])
-			sub = "TOME  LV %d/%d" % [lvl, int(rules.get("max_level", 5))]
+			sub = "MANUAL  LV %d/%d" % [lvl, int(rules.get("max_level", 5))]
 			sub_c = Palette.SKY
 			extra = "EACH LEVEL: " + desc
 			desc = _tome_total(def, lvl)
@@ -2812,6 +2872,20 @@ func _panel(parent: Node, rect: Rect2, fill: int) -> PixelPanel:
 	p.hide()
 	parent.add_child(p)
 	return p
+
+
+## A small centred line under a panel title ("PICK ONE"), MIST.
+func _subtitle(parent: Control, y: int) -> Label:
+	var l := Label.new()
+	l.position = Vector2(0, y)
+	l.size = Vector2(parent.size.x, 10)
+	l.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
+	l.add_theme_color_override("font_color", Palette.color(Palette.PAPER))
+	l.add_theme_color_override("font_shadow_color", Palette.color(Palette.INK))
+	l.add_theme_constant_override("shadow_offset_x", 0)
+	l.add_theme_constant_override("shadow_offset_y", 1)
+	parent.add_child(l)
+	return l
 
 
 ## A 2x bold title on the red ribbon. Returns the Label that holds the text

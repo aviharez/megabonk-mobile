@@ -99,9 +99,11 @@ func _run() -> void:
 		run.show_item_card("band_aid")
 		await _wait(0.3)
 		await _shot("10_run")
+		run.pending_levels = 2
 		run.call("_open_level_up")
 		await _wait(1.6)
 		await _shot("11_level_up")
+		run.pending_levels = 1
 		run.call("_level_done")
 		await _wait(0.2)
 		run.call("_pause", true)
@@ -113,6 +115,15 @@ func _run() -> void:
 			run.open_shrine_choice(shrine)
 			await _wait(0.3)
 			await _shot("13_shrine")
+			run.call("_close_choice")
+		var mdef := run.db.get_entry("interactables", "merchant")
+		if not mdef.is_empty():
+			var m: Dictionary = run.interactables.add("merchant", run.player_pos() + Vector2(300, 0))
+			run.gold = 40
+			m.stock[0].sold = true
+			run.open_merchant(m)
+			await _wait(0.4)
+			await _shot("13b_merchant")
 			run.call("_close_choice")
 		run.hp = run.stat("max_hp") * 0.15
 		await _wait(0.6)

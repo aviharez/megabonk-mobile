@@ -5,25 +5,35 @@ extends ScrollContainer
 ## the touch through, so lists full of buttons felt stuck on a phone).
 ##
 ## The press goes to the button as usual. Once the finger moves more than
-## DEADZONE px, the list takes over: the button gets a release far outside
-## itself (so it doesn't fire), the list follows the finger, and on release
-## it keeps gliding with the finger's speed and slows down (fling). Mouse
-## wheel scrolling still comes from ScrollContainer.
+## SLOP px, the list takes over: the button is let go without firing, and the
+## list follows the finger from there (no jump). On release it glides on with
+## the finger's speed over the last moments (none if the finger had stopped)
+## and slows down. A tap on a gliding list only stops it (nothing under the
+## finger is pressed). Mouse wheel scrolling still comes from ScrollContainer.
 
-const DEADZONE := 5.0
+const SLOP := 4.0
 ## Fling slowdown per second (fraction of speed kept after 1 s).
-const FRICTION := 0.02
-const MAX_FLING := 1600.0
+const FRICTION := 0.03
+const MAX_FLING := 1400.0
+## Only finger movement this recent counts toward the fling speed.
+const VEL_WINDOW_USEC := 100000
+## A finger that rested this long before lifting doesn't fling.
+const REST_USEC := 70000
+## A press while the list glides faster than this only stops it.
+const CATCH_SPEED := 40.0
 
 var _down := false
 var _dragging := false
+## The press stopped a glide: it is the list's, never a button's.
+var _catching := false
 var _start := Vector2.ZERO
-var _last := Vector2.ZERO
 var _start_scroll := 0.0
-var _vel := 0.0
-var _last_t := 0
-var _cancel_sent := false
+## Recent finger samples [usec, y], oldest first.
+var _samples: Array[Vector2] = []
 var _glide := 0.0
+var _fpos := 0.0
+## Set while we push our own events (they go straight to the GUI).
+var _injecting := false
 
 
 func _init() -> void:
@@ -38,78 +48,138 @@ func is_dragging() -> bool:
 	return _dragging
 
 
+## True while the list glides on after a fling.
+func is_gliding() -> bool:
+	return _glide != 0.0
+
+
 func _input(event: InputEvent) -> void:
-	if not is_visible_in_tree():
+	if _injecting or not is_visible_in_tree():
 		return
 	if event is InputEventMouseButton and event.button_index == MOUSE_BUTTON_LEFT:
-		if _cancel_sent and not event.pressed and event.position.x < -5000.0:
-			return
 		if event.pressed:
 			if get_global_rect().has_point(event.position) and _top_of_stack(event.position):
 				_down = true
 				_dragging = false
-				_cancel_sent = false
-				_start = event.position
-				_last = event.position
-				_start_scroll = scroll_vertical
-				_vel = 0.0
+				_catching = absf(_glide) > CATCH_SPEED
 				_glide = 0.0
-				_last_t = Time.get_ticks_usec()
+				if _catching:
+					get_viewport().set_input_as_handled()
+				_grab(event.position)
 		elif _down:
 			_down = false
-			if _dragging:
-				# Swallow the real release: the button was already let go.
+			if _dragging or _catching:
+				# The button never got the press, or was already let go.
 				get_viewport().set_input_as_handled()
-				_dragging = false
-				_glide = clampf(_vel, -MAX_FLING, MAX_FLING)
-	elif event is InputEventMouseMotion and _cancel_sent:
-		return
+			if _dragging:
+				_glide = clampf(_fling_speed(), -MAX_FLING, MAX_FLING)
+				_fpos = scroll_vertical
+			_dragging = false
+			_catching = false
 	elif event is InputEventMouseMotion and _down:
-		var now := Time.get_ticks_usec()
-		if not _dragging and absf(event.position.y - _start.y) > DEADZONE:
+		if not _dragging and absf(event.position.y - _start.y) > SLOP:
 			_dragging = true
-			_release_pressed_button()
-		if _dragging:
+			if not _catching:
+				_release_pressed_button()
+			# Follow the finger from here on: no jump by the slop.
+			_grab(event.position)
+		if _dragging or _catching:
 			get_viewport().set_input_as_handled()
-			var dt := maxf(0.001, float(now - _last_t) / 1000000.0)
-			var dy: float = event.position.y - _last.y
-			# Smoothed finger speed in px/s (list moves opposite the finger).
-			_vel = lerpf(_vel, -dy / dt, 0.4)
+		if _dragging:
 			scroll_vertical = int(roundf(_start_scroll - (event.position.y - _start.y)))
-		_last = event.position
-		_last_t = now
+			_sample(event.position.y)
+
+
+func _grab(at: Vector2) -> void:
+	_start = at
+	_start_scroll = scroll_vertical
+	_samples.clear()
+	_sample(at.y)
+
+
+func _sample(y: float) -> void:
+	var now := Time.get_ticks_usec()
+	_samples.append(Vector2(now, y))
+	while _samples.size() > 2 and now - _samples[0].x > VEL_WINDOW_USEC:
+		_samples.pop_front()
+
+
+## List speed in px/s (opposite the finger) from the recent samples; 0 when
+## the finger had stopped before lifting.
+func _fling_speed() -> float:
+	if _samples.size() < 2:
+		return 0.0
+	var now := Time.get_ticks_usec()
+	var last: Vector2 = _samples[-1]
+	if now - last.x > REST_USEC:
+		return 0.0
+	var first: Vector2 = _samples[0]
+	for s: Vector2 in _samples:
+		if now - s.x <= VEL_WINDOW_USEC:
+			first = s
+			break
+	var dt := (last.x - first.x) / 1000000.0
+	if dt < 0.008:
+		return 0.0
+	return -(last.y - first.y) / dt
 
 
 func _process(delta: float) -> void:
 	if _glide == 0.0 or _down:
 		return
-	var before := scroll_vertical
-	scroll_vertical = int(roundf(scroll_vertical + _glide * delta))
+	var bar := get_v_scroll_bar()
+	var top := maxf(0.0, bar.max_value - bar.page)
+	_fpos = clampf(_fpos + _glide * delta, 0.0, top)
+	scroll_vertical = int(roundf(_fpos))
 	_glide *= pow(FRICTION, delta)
 	# Stop at the ends or when slow.
-	if absf(_glide) < 20.0 or scroll_vertical == before and absf(_glide * delta) >= 1.0:
+	if absf(_glide) < 12.0 or (_fpos <= 0.0 and _glide < 0.0) or (_fpos >= top and _glide > 0.0):
 		_glide = 0.0
 
 
+## A 2 px pixel scrollbar for this list (Godot's isn't pixel art, so it stays
+## hidden): add it next to the list and place it; it draws nothing while
+## everything fits.
+func make_bar() -> Control:
+	var bar := Control.new()
+	bar.mouse_filter = MOUSE_FILTER_IGNORE
+	bar.draw.connect(func() -> void:
+		var sb := get_v_scroll_bar()
+		var h := bar.size.y
+		var total := sb.max_value - sb.min_value
+		if total <= sb.page or total <= 0.0:
+			return
+		bar.draw_rect(Rect2(0, 0, 2, h), Palette.color(Palette.SHADE))
+		var th := maxf(6.0, floorf(h * sb.page / total))
+		var ty := floorf((h - th) * sb.value / maxf(1.0, total - sb.page))
+		bar.draw_rect(Rect2(0, ty, 2, th), Palette.color(Palette.MIST)))
+	get_v_scroll_bar().changed.connect(bar.queue_redraw)
+	get_v_scroll_bar().value_changed.connect(func(_v: float) -> void: bar.queue_redraw())
+	return bar
+
+
 ## Lets go of whatever button took the press, without a click: a move and a
-## release far off screen (Godot sends both to the control that got the press).
+## release far off (Godot sends both to the control that got the press).
+## Pushed in viewport coordinates, so the screen's stretch scale can't bring
+## them back inside the button.
 func _release_pressed_button() -> void:
-	# A move far away first: buttons decide on release from whether the
-	# pointer is still inside them, which only motion updates.
+	var vp := get_viewport()
+	var far := Vector2(-10000, -10000)
+	# A move first: buttons decide on release from whether the pointer is
+	# still inside them, which only motion updates.
 	var away := InputEventMouseMotion.new()
-	away.position = Vector2(-10000, -10000)
-	away.global_position = away.position
+	away.position = far
+	away.global_position = far
 	away.button_mask = MOUSE_BUTTON_MASK_LEFT
-	_cancel_sent = true
-	get_viewport().push_input(away)
 	var up := InputEventMouseButton.new()
 	up.button_index = MOUSE_BUTTON_LEFT
 	up.pressed = false
-	up.position = Vector2(-10000, -10000)
-	up.global_position = up.position
-	_cancel_sent = true
-	get_viewport().push_input(up)
-	_cancel_sent = false
+	up.position = far
+	up.global_position = far
+	_injecting = true
+	vp.push_input(away, true)
+	vp.push_input(up, true)
+	_injecting = false
 
 
 ## Only the frontmost list reacts: nothing drawn above it (a popup, a screen

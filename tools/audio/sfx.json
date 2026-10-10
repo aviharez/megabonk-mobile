@@ -48,6 +48,7 @@
 		{"id": "death", "note": "player dies", "seed": 45, "set": {"wave": 1, "base_freq": 0.4, "freq_ramp": -0.18, "env_sustain": 0.3, "env_decay": 0.6, "vib_strength": 0.3, "vib_speed": 0.5, "lpf_freq": 0.7}},
 		{"id": "revive", "note": "back on your feet", "preset": "powerup", "seed": 46, "set": {"wave": 2, "base_freq": 0.25, "freq_ramp": 0.25, "repeat_speed": 0.5, "env_sustain": 0.3, "env_decay": 0.3}},
 		{"id": "heartbeat", "note": "low HP", "seed": 47, "set": {"wave": 2, "base_freq": 0.12, "freq_ramp": -0.1, "env_sustain": 0.04, "env_punch": 0.6, "env_decay": 0.24}},
-		{"id": "escape", "note": "run won through the portal", "preset": "powerup", "seed": 48, "set": {"wave": 0, "duty": 0.25, "base_freq": 0.3, "freq_ramp": 0.2, "repeat_speed": 0.48, "env_sustain": 0.4, "env_decay": 0.4}}
+		{"id": "escape", "note": "run won through the portal", "preset": "powerup", "seed": 48, "set": {"wave": 0, "duty": 0.25, "base_freq": 0.3, "freq_ramp": 0.2, "repeat_speed": 0.48, "env_sustain": 0.4, "env_decay": 0.4}},
+		{"id": "charge", "note": "one step of a shrine or altar charging (played rising in pitch)", "seed": 49, "set": {"wave": 0, "duty": 0.5, "base_freq": 0.36, "freq_ramp": 0.06, "env_sustain": 0.08, "env_punch": 0.3, "env_decay": 0.2, "hpf_freq": 0.1, "lpf_freq": 0.85}}
 	]
 }

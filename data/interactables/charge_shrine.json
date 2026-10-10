@@ -1,6 +1,6 @@
 {
 	"id": "charge_shrine",
-	"name": "CHARGE SHRINE",
+	"name": "CHARGE BEACON",
 	"behavior": "charge_shrine",
 	"radius": 18,
 	"shape": "shrine",

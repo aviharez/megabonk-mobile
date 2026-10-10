@@ -1,6 +1,6 @@
 {
 	"id": "audio",
-	"_doc": "Every audio file the game loads (scripts/autoload/audio.gd). Swap a sound or track by overwriting the file with the same name. sfx: db volume, pitch = random +- fraction per play, max = voices of this sound at once, gap = min seconds between plays, priority 0-3 (a full voice pool only steals from lower or equal priority). WAVs come from tools/audio/sfxr.py, music from tools/audio/chiptune.py.",
+	"_doc": "Every audio file the game loads (scripts/autoload/audio.gd). Swap a sound or track by overwriting the file with the same name. sfx: db volume, pitch = random +- fraction per play, max = voices of this sound at once, gap = min seconds between plays, priority 0-3 (a full voice pool only steals from lower or equal priority). charge: \"steps\" blips while a shrine or altar charges, each higher in pitch, ending \"rise\" (fraction) above the first. WAVs come from tools/audio/sfxr.py, music from tools/audio/chiptune.py.",
 	"voices": 12,
 	"music_db": -9,
 	"music_fade": 0.6,
@@ -24,6 +24,7 @@
 		"gold": {"file": "res://assets/audio/sfx/gold.wav", "db": -11, "pitch": 0.05, "max": 2, "gap": 0.06, "priority": 1},
 		"pot": {"file": "res://assets/audio/sfx/pot.wav", "db": -9, "pitch": 0.05, "max": 2, "gap": 0.05, "priority": 2},
 		"shrine": {"file": "res://assets/audio/sfx/shrine.wav", "db": -7, "pitch": 0.05, "max": 1, "gap": 0.2, "priority": 3},
+		"charge": {"file": "res://assets/audio/sfx/charge.wav", "db": -11, "pitch": 0.0, "max": 1, "gap": 0.05, "priority": 3, "steps": 10, "rise": 1.0},
 		"key": {"file": "res://assets/audio/sfx/key.wav", "db": -7, "pitch": 0.05, "max": 1, "gap": 0.1, "priority": 3},
 		"cage": {"file": "res://assets/audio/sfx/cage.wav", "db": -7, "pitch": 0.05, "max": 1, "gap": 0.1, "priority": 3},
 		"merchant": {"file": "res://assets/audio/sfx/merchant.wav", "db": -7, "pitch": 0.05, "max": 1, "gap": 0.3, "priority": 3},

@@ -122,7 +122,9 @@ func update(delta: float) -> void:
 		o.inside = inside
 		if def.behavior in STAND:
 			if inside:
+				var before: float = o.progress
 				o.progress += delta
+				_charge_blip(before, o.progress, float(def.get("charge_time", 2.0)))
 				if o.progress >= float(def.get("charge_time", 2.0)):
 					_activate(o)
 			else:
@@ -131,6 +133,18 @@ func update(delta: float) -> void:
 			_touch(o)
 	_update_effects(delta)
 	queue_redraw()
+
+
+## Standing in a shrine or the altar: a blip for each step of the charge
+## (the first as soon as you step in), each higher than the last, so you can
+## hear it fill. Steps and rise from the "charge" sound in rules/audio.json.
+func _charge_blip(before: float, now: float, charge_time: float) -> void:
+	var c: Dictionary = db.get_entry("rules", "audio").get("sfx", {}).get("charge", {})
+	var steps := maxi(1, int(c.get("steps", 10)))
+	var was := -1 if before <= 0.0 else floori(before / charge_time * steps)
+	var step := floori(now / charge_time * steps)
+	if step > was and step < steps:
+		run.juice.sfx("charge", 1.0 + float(c.get("rise", 1.0)) * step / float(steps - 1 if steps > 1 else 1))
 
 
 func _touch(o: Dictionary) -> void:

@@ -11,7 +11,7 @@ extends Control
 ##   y 0-11   XP bar, full width, "LV n" on it
 ##   y 13-26  heart + HP bar      | big timer |  coin + gold
 ##   y 27-36  "hp/max"            |           |  skull + kills
-##   y 38-55  build strip: weapon slots | tome slots | key  |  pause button (Run, PAUSE_Y)
+##   y 38-53  build strip: weapon slots | tome slots | key  |  pause button (Run, PAUSE_Y)
 ##   y 60     info line (challenge shrine, Final Swarm coins)
 ##   y 62+    pickup card (new item: icon, rarity, name, what it does)
 ##   y 72+    toast plate
@@ -30,15 +30,19 @@ const XP_H := 12
 const HP_BAR := Rect2(17, 14, 54, 12)
 const BANNER_TIME := 3.0
 const TOAST_W := 150
-## Build strip: one 16x16 icon slot per weapon, then per tome, level pips
-## along each slot's bottom; a slot flashes white when it's new or levels up.
+## Build strip: one 14 px slot per weapon, then per tome, round the 12 px
+## icon (Icons.small), level pips under each slot; a slot flashes white when
+## it's new or levels up.
 const STRIP_Y := 38
-const SLOT := 18
+const SLOT := 14
+const ICON_PX := 12
 const FLASH_TIME := 0.9
 const CARD_TIME := 3.2
-## Item row at the bottom: 19 px slots (18 px frames) round the 16 px icons (never scaled:
-## a non-whole scale would break the pixel grid).
-const ITEM_SLOT := 19
+## Item row at the bottom, centred: 16 px frames (INK, then a 1 px border in
+## the item's rarity colour) round the 12 px icons (Icons.small: a real
+## smaller image, never a scaled one), 1 px apart.
+const ITEM_FRAME := 16
+const ITEM_SLOT := 17
 
 ## Boss bar: 0..1, or -1 when there's no boss.
 var boss_frac := -1.0
@@ -329,8 +333,9 @@ func _draw() -> void:
 		draw_string(Fonts.BOLD, Vector2(px + 5, y - 3), boss_name, HORIZONTAL_ALIGNMENT_LEFT, -1, 8, Palette.color(Palette.PAPER))
 
 
-## The build strip at `y`: weapon slots, a gap, tome slots (empty slots as a
-## dark dotted box). Returns the x where it ends.
+## The build strip at `y`: weapon slots, a gap, tome slots, each a small
+## icon in a dark frame with its level as pips under it (gold when maxed).
+## Returns the x where it ends.
 func _draw_strip(y: float) -> float:
 	if db == null:
 		return 0.0
@@ -345,65 +350,75 @@ func _draw_strip(y: float) -> float:
 			var lvl := int(pair[1][id])
 			draw_rect(r, Palette.color(Palette.INK))
 			draw_rect(r.grow(-1), Palette.color(Palette.NIGHT))
-			var tex := Icons.texture(db, pair[0], id)
+			var tex := Icons.small(db, pair[0], id, ICON_PX)
 			if tex != null:
 				draw_texture(tex, r.position + Vector2.ONE)
-			# Level pips: 2px each along the bottom, max level gold.
+			# Level pips under the slot: five 2 px pips, lit up to the level.
 			var maxed := lvl >= 5
-			for k in mini(lvl, 5):
-				draw_rect(Rect2(r.position.x + 2 + k * 3, r.end.y - 3, 2, 2), Palette.color(Palette.INK))
-				draw_rect(Rect2(r.position.x + 2 + k * 3, r.end.y - 3, 2, 1), Palette.color(Palette.GOLD if maxed else pair[3]))
+			draw_rect(Rect2(r.position.x, r.end.y, SLOT, 3), Palette.color(Palette.INK))
+			for k in 5:
+				var c: int = (Palette.GOLD if maxed else pair[3]) if k < lvl else Palette.SHADE
+				draw_rect(Rect2(r.position.x + k * 3, r.end.y, 2, 2), Palette.color(c))
 			var fl: float = _flash.get(pair[0] + "/" + id, 0.0)
 			if fl > 0.0 and int(fl * 12.0) % 2 == 0:
-				draw_rect(Rect2(r.position, Vector2(SLOT, 1)), Palette.color(Palette.WHITE))
-				draw_rect(Rect2(r.position.x, r.end.y - 1, SLOT, 1), Palette.color(Palette.WHITE))
-				draw_rect(Rect2(r.position, Vector2(1, SLOT)), Palette.color(Palette.WHITE))
-				draw_rect(Rect2(r.end.x - 1, r.position.y, 1, SLOT), Palette.color(Palette.WHITE))
-			x += SLOT
+				_outline(self, Rect2(r.position, Vector2(SLOT, SLOT + 3)), Palette.WHITE)
+			x += SLOT + 1
 		x += 3
-	return x - 3
+	return x - 4
 
 
-## Items along the bottom-left (above the boss bar while there is one):
-## small icons in dark frames, the stack count in tiny digits, wrapping
-## upward when there are many.
+## A 1 px frame round `r` on `ci`.
+static func _outline(ci: CanvasItem, r: Rect2, color: int) -> void:
+	var c := Palette.color(color)
+	ci.draw_rect(Rect2(r.position, Vector2(r.size.x, 1)), c)
+	ci.draw_rect(Rect2(r.position.x, r.end.y - 1, r.size.x, 1), c)
+	ci.draw_rect(Rect2(r.position, Vector2(1, r.size.y)), c)
+	ci.draw_rect(Rect2(r.end.x - 1, r.position.y, 1, r.size.y), c)
+
+
+## Items along the bottom, centred (above the boss bar while there is one):
+## small icons framed in their rarity colour, the stack count in tiny
+## digits, wrapping upward when there are many (each row centred).
 func _draw_items() -> void:
 	if db == null or _items.is_empty():
 		return
-	var w := floorf(size.x)
-	var bottom := floorf(size.y) - safe_bottom - 2.0
-	if boss_frac >= 0.0:
-		bottom -= 28.0
-	var per_row := maxi(1, int((w - 4.0) / ITEM_SLOT))
+	var n := _items.size()
 	var i := 0
 	var tiny := DamageNumbers.tiny_atlas(Palette.BUTTER)
 	for id: String in _items:
-		var col := i % per_row
-		var row := i / per_row
-		var r := Rect2(2 + col * ITEM_SLOT, bottom - ITEM_SLOT * (row + 1) + 1, ITEM_SLOT - 1, ITEM_SLOT - 1)
-		var rc: int = _rarity_color(id)
-		# Rarity shows as the frame's corners, so the icon keeps its full 16 px.
+		var r := item_rect(i, n)
 		_items_view.draw_rect(r, Palette.color(Palette.INK))
-		_items_view.draw_rect(r.grow(-1), Palette.color(Palette.NIGHT))
-		for c in [r.position, Vector2(r.end.x - 3, r.position.y), Vector2(r.position.x, r.end.y - 3), r.end - Vector2(3, 3)]:
-			_items_view.draw_rect(Rect2(c, Vector2(3, 3)), Palette.color(rc))
-		var tex := Icons.texture(db, "items", id)
+		_items_view.draw_rect(r.grow(-1), Palette.color(_rarity_color(id)))
+		_items_view.draw_rect(r.grow(-2), Palette.color(Palette.NIGHT))
+		var tex := Icons.small(db, "items", id, ICON_PX)
 		if tex != null:
-			_items_view.draw_texture(tex, r.position + Vector2.ONE)
-		var n := int(_items[id])
-		if n > 1:
-			var txt := str(n)
+			_items_view.draw_texture(tex, r.position + Vector2(2, 2))
+		var stacks := int(_items[id])
+		if stacks > 1:
+			var txt := str(stacks)
 			var tw := txt.length() * 4 + 1
 			for k in txt.length():
 				var d := int(txt[k])
 				_items_view.draw_texture_rect_region(tiny, Rect2(r.end - Vector2(tw - k * 4, 7), Vector2(DamageNumbers.CELL)), Rect2(d * DamageNumbers.CELL.x, 0, DamageNumbers.CELL.x, DamageNumbers.CELL.y))
 		var fl: float = _flash.get("items/" + id, 0.0)
 		if fl > 0.0 and int(fl * 12.0) % 2 == 0:
-			_items_view.draw_rect(Rect2(r.position, Vector2(r.size.x, 1)), Palette.color(Palette.WHITE))
-			_items_view.draw_rect(Rect2(r.position.x, r.end.y - 1, r.size.x, 1), Palette.color(Palette.WHITE))
-			_items_view.draw_rect(Rect2(r.position, Vector2(1, r.size.y)), Palette.color(Palette.WHITE))
-			_items_view.draw_rect(Rect2(r.end.x - 1, r.position.y, 1, r.size.y), Palette.color(Palette.WHITE))
+			_outline(_items_view, r, Palette.WHITE)
 		i += 1
+
+
+## The frame of item `i` of `n` in the row: rows of as many as fit, each
+## centred, the first at the bottom.
+func item_rect(i: int, n: int) -> Rect2:
+	var w := floorf(size.x)
+	var bottom := floorf(size.y) - safe_bottom - 2.0
+	if boss_frac >= 0.0:
+		bottom -= 28.0
+	var per_row := maxi(1, int((w - 4.0 + 1.0) / ITEM_SLOT))
+	var col := i % per_row
+	var row := i / per_row
+	var in_row := mini(per_row, n - row * per_row)
+	var x0 := floorf((w - (in_row * ITEM_SLOT - 1)) / 2.0)
+	return Rect2(x0 + col * ITEM_SLOT, bottom - ITEM_SLOT * (row + 1) + 1, ITEM_FRAME, ITEM_FRAME)
 
 
 var _rarity_cache := {}

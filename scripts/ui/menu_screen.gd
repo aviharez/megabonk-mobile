@@ -76,17 +76,13 @@ func _init(save_node: Node, title: String) -> void:
 	list.custom_minimum_size.x = W
 	list.add_theme_constant_override("separation", 4)
 	_scroll.add_child(list)
-	_scrollbar = Control.new()
+	_scrollbar = _scroll.make_bar()
 	_scrollbar.anchor_left = 0.5
 	_scrollbar.anchor_right = 0.5
 	_scrollbar.anchor_bottom = 1.0
 	_scrollbar.offset_left = W / 2.0 + 2
 	_scrollbar.offset_right = W / 2.0 + 4
-	_scrollbar.mouse_filter = MOUSE_FILTER_IGNORE
-	_scrollbar.draw.connect(_draw_scrollbar)
 	add_child(_scrollbar)
-	_scroll.get_v_scroll_bar().changed.connect(_scrollbar.queue_redraw)
-	_scroll.get_v_scroll_bar().value_changed.connect(func(_v: float) -> void: _scrollbar.queue_redraw())
 
 	# Bottom bar: a dark strip with BACK (and the main action on its right).
 	_bar = Control.new()
@@ -171,6 +167,9 @@ func list_height() -> float:
 
 ## Rebuilds the list. Subclasses add rows to `list` in _fill().
 func refresh() -> void:
+	# A late store callback can land after the save is gone (tests free theirs).
+	if not is_instance_valid(save):
+		return
 	_filled_h = _scroll.size.y
 	_coins.value = int(save.data.coins)
 	for c in list.get_children():
@@ -240,19 +239,6 @@ func _apply_safe_area() -> void:
 	_scrollbar.offset_top = _scroll.offset_top
 	_scrollbar.offset_bottom = _scroll.offset_bottom
 	_bar.offset_top = -(BAR_H + bottom)
-
-
-## A pixel scroll bar: SHADE track, MIST thumb, only when the list scrolls.
-func _draw_scrollbar() -> void:
-	var sb := _scroll.get_v_scroll_bar()
-	var h := _scrollbar.size.y
-	var total := sb.max_value - sb.min_value
-	if total <= sb.page or total <= 0.0:
-		return
-	_scrollbar.draw_rect(Rect2(0, 0, 2, h), Palette.color(Palette.SHADE))
-	var th := maxf(6.0, floorf(h * sb.page / total))
-	var ty := floorf((h - th) * sb.value / maxf(1.0, total - sb.page))
-	_scrollbar.draw_rect(Rect2(0, ty, 2, th), Palette.color(Palette.MIST))
 
 
 ## A row box for the list.

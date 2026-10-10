@@ -394,7 +394,7 @@ func _cross_check() -> void:
 ## Sound ids the run and menus play by name (scripts/run/run.gd, juice.gd,
 ## interactables.gd, mega_mole.gd, ui). Each must be in data/rules/audio.json.
 const AUDIO_EVENTS := ["hit", "crit", "kill", "hurt", "dodge", "gem", "level_up", "card", "click",
-	"chest", "beam", "gold", "pot", "shrine", "key", "cage", "merchant", "buy", "portal", "boom", "zap",
+	"chest", "beam", "gold", "pot", "shrine", "charge", "key", "cage", "merchant", "buy", "portal", "boom", "zap",
 	"boss_roar", "boss_dig", "boss_slam", "rocks", "boss_down", "elite", "alarm", "final", "bills",
 	"death", "revive", "heartbeat", "escape", "pop"]
 const MUSIC_TRACKS := ["menu", "gameplay", "boss"]

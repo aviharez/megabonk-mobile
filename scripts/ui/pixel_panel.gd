@@ -3,7 +3,7 @@ extends Control
 ## Solid pixel box: a UI kit frame (UiArt `part`: "window" = riveted overlay
 ## panel, "row" = the lighter list row), its inside recolored to `fill`, with a
 ## hard 2px INK shadow; a notched 1px INK box when the panel is smaller than
-## the art. Opaque on purpose (no alpha overlays:
+## the art. part "" draws nothing (a see-through holder). Opaque on purpose (no alpha overlays:
 ## blended colors would leave the palette).
 
 @export var fill := Palette.NIGHT:
@@ -17,6 +17,8 @@ extends Control
 
 
 func _draw() -> void:
+	if part == "":
+		return  # a see-through holder (cards floating over the dim)
 	var w := int(size.x)
 	var h := int(size.y) - 2
 	if UiArt.fits(part, Vector2(w, h)):

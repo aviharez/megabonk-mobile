@@ -49,7 +49,9 @@ SpriteCook credits (Starter plan, 800 per month). Ask before every generation. N
 | 2026-10-09 | Map object sheet E: portal, merchant, cage key, mole rock | generate_game_art, NB2.1 1K, pixel, 1 image (2x2 sheet, 64px hint, smart crop off), palette colors passed, style refs house + sheet A + altar + Mega Mole | 12 | 12 | asset `6024107d-6a7e-487c-8b21-a592585a55eb`. Portal 14x18, merchant 17x18, key 11x6; rock recolored to the enemy-shot magenta + INK outline (7x6). Balance after: 177 |
 | 2026-10-09 | Small parts sheet F (3x3): 3 XP gems, feather, staple, rocket, spit bullet, pellet, coffee cup | generate_game_art, NB2.1 1K, pixel, 1 image (3x3 sheet, 64px hint, smart crop off), palette colors passed, style refs icon sheets 1 + 2 + Baguette | 12 | 12 | asset `aec24acf-f40c-4d82-9692-5f94f9bf2901`. 68x68, first 3x3 sheet: all nine cells clean. Gems 7x9 / 10x10 / 11x12 (were 3x4 / 5x5 / 6x6); feather, staple, rocket baked into 16-direction strips; bullet magenta 6x6; pellet 4x4 (default shot); cup 7x8. Free extras from owned art: duck shot (icon sheet 1), orbit gnome (icon sheet 2), Baguette swing (32 turns x 7 lengths from `9b021e66`). Balance after: 165 |
 
-**Running total:** 635
+| 2026-10-10 | App icon: Sir Loaf among the swarm | generate_game_art, NB2.1 1K, pixel, 1 image, background included, 48px hint, smart crop off, palette colors passed, style ref Sir Loaf `fee7d917` | 12 | 12 | asset `4f8375c7-b3aa-4ed5-ac9a-ead3a3a1ce59`. Came back 34x34; centre 32x32 snapped to the palette by `tools/art/app_icon.py` -> `assets/icon/icon.png` (32), `icon_192.png` (x6), adaptive `icon_fg_432.png` (x9 = 288 visible) + `icon_bg_432.png` (#13304F). Owner approved 12 credits. Balance after: 153 |
+| 2026-10-10 | App icon v2: Sir Loaf mid-swing, critters crowding in | generate_game_art, NB2.1 1K, pixel, 1 image, background included, 48px hint, smart crop off, palette colors passed, style refs Sir Loaf `fee7d917` + Baguette `9b021e66` | 12 | 12 | First try (job `7339a12e`) blocked by SpriteCook content safety ("battle cry", "sword"), refunded (0). Retry asset `c891cd31-5fac-4b4d-be4f-1529d4a4bc52`, 68x68. `tools/art/app_icon.py` now keeps the centre 64x64: `icon.png` (64), `icon_192.png` (x3), adaptive fg x5 (320, fills the 288 a launcher shows) on `icon_bg_432.png` (#3A9AD9), mono = the hero's silhouette. Owner approved 12 credits. Balance after: 141 |
+**Running total:** 659
 
 ## Non-SpriteCook placeholders
 
@@ -57,7 +59,7 @@ SpriteCook credits (Starter plan, 800 per month). Ask before every generation. N
 | --- | --- | --- |
 | 2026-10-05 | `assets/palette.png` (temporary 32 colors) | Hand-picked, `tools/gen_placeholder_assets.py` |
 | 2026-10-05 | `assets/fonts/pixel.*` (5x7 bitmap font) | Hand-drawn glyphs, `tools/gen_placeholder_assets.py` |
-| 2026-10-05 | `assets/icon/icon*.png` (placeholder loaf icon) | Hand-drawn, `tools/gen_placeholder_assets.py` |
+| 2026-10-05 | `assets/icon/icon*.png` (placeholder loaf icon; replaced by SpriteCook art 2026-10-10) | Hand-drawn, `tools/gen_placeholder_assets.py` |
 | 2026-10-05 | `assets/creatures/blob.png` (Blob walk, 5 frames 19x16) | procedural-pixel-creatures, amorphous/ooze seed 114, palette-snapped with `tools/palette_snap.py`; owner-approved. Commands in `tools/creature_export/README.md` |
 | 2026-10-05 | `assets/creatures/skitter.png` (Skitter walk, 4 frames 18x15) | procedural-pixel-creatures, arthropod/spider seed 28, palette-snapped; owner-approved |
 | 2026-10-05 | `assets/creatures/chomper.png` (Chomper walk, 4 frames 28x20) | procedural-pixel-creatures, quadruped/beast seed 5, palette-snapped; owner-approved |

@@ -49,6 +49,16 @@ func test_menu_shows_the_name_and_no_engine_credit(t) -> void:
 
 
 func test_drag_scroll_scrolls_over_buttons_without_clicking(t) -> void:
+	# At 1x and at a phone's stretch scale (the screen-to-UI scale once broke
+	# the release that lets go of the button, so the list stopped after 5 px).
+	for k in [1.0, 3.0]:
+		t.root.content_scale_factor = k
+		await _drag_check(t, k)
+	t.root.content_scale_factor = 1.0
+	await t.process_frame
+
+
+func _drag_check(t, k: float) -> void:
 	var ds := DragScroll.new()
 	ds.position = Vector2(0, 0)
 	ds.size = Vector2(100, 100)
@@ -66,24 +76,43 @@ func test_drag_scroll_scrolls_over_buttons_without_clicking(t) -> void:
 	await t.process_frame
 	var vp: Viewport = ds.get_viewport()
 	var at := Vector2(50, 80)
-	vp.push_input(_mouse(at, true))
-	for k in 6:
+	vp.push_input(_mouse(at * k, true))
+	for i in 6:
 		var m := InputEventMouseMotion.new()
-		m.position = at - Vector2(0, 8 * (k + 1))
+		m.position = (at - Vector2(0, 8 * (i + 1))) * k
 		m.global_position = m.position
+		m.button_mask = MOUSE_BUTTON_MASK_LEFT
 		vp.push_input(m)
-	vp.push_input(_mouse(at - Vector2(0, 48), false))
+	t.check(ds.is_dragging() and ds.scroll_vertical >= 40, "x%d: dragging over buttons follows the finger (%d)" % [k, ds.scroll_vertical])
+	t.check(ds.scroll_vertical <= 48, "x%d: without jumping ahead of it (%d)" % [k, ds.scroll_vertical])
+	vp.push_input(_mouse((at - Vector2(0, 48)) * k, false))
 	await t.process_frame
-	t.check(ds.scroll_vertical >= 40, "dragging over buttons scrolls the list (%d)" % ds.scroll_vertical)
-	t.check(clicks[0] == 0, "and doesn't press the button it started on (%d)" % clicks[0])
+	t.check(clicks[0] == 0, "x%d: and doesn't press the button it started on (%d)" % [k, clicks[0]])
 	var stuck := box.get_children().filter(func(b: PixelButton) -> bool: return b.get_draw_mode() == BaseButton.DRAW_PRESSED or b.get_draw_mode() == BaseButton.DRAW_HOVER_PRESSED)
-	t.check(stuck.is_empty(), "no button is left drawn pressed after the drag (%d)" % stuck.size())
+	t.check(stuck.is_empty(), "x%d: no button is left drawn pressed after the drag (%d)" % [k, stuck.size()])
+	# A finger that stops before lifting doesn't fling.
+	t.check(not ds.is_gliding(), "x%d: no glide after the finger rested" % k)
 	# A plain tap still presses.
 	var before := ds.scroll_vertical
-	vp.push_input(_mouse(Vector2(50, 50), true))
-	vp.push_input(_mouse(Vector2(50, 50), false))
+	vp.push_input(_mouse(Vector2(50, 50) * k, true))
+	vp.push_input(_mouse(Vector2(50, 50) * k, false))
 	await t.process_frame
-	t.check(clicks[0] == 1 and absi(ds.scroll_vertical - before) <= 1, "a tap still presses a button (%d)" % clicks[0])
+	t.check(clicks[0] == 1 and absi(ds.scroll_vertical - before) <= 1, "x%d: a tap still presses a button (%d)" % [k, clicks[0]])
+	# A quick flick glides on; a tap on the gliding list stops it, pressing nothing.
+	vp.push_input(_mouse(Vector2(50, 90) * k, true))
+	for i in 4:
+		var m := InputEventMouseMotion.new()
+		m.position = Vector2(50, 90 - 10 * (i + 1)) * k
+		m.global_position = m.position
+		m.button_mask = MOUSE_BUTTON_MASK_LEFT
+		vp.push_input(m)
+		OS.delay_msec(10)
+	vp.push_input(_mouse(Vector2(50, 50) * k, false))
+	t.check(ds.is_gliding(), "x%d: a flick glides on" % k)
+	vp.push_input(_mouse(Vector2(50, 50) * k, true))
+	vp.push_input(_mouse(Vector2(50, 50) * k, false))
+	await t.process_frame
+	t.check(not ds.is_gliding() and clicks[0] == 1, "x%d: a tap stops the glide without pressing (%d)" % [k, clicks[0]])
 	ds.queue_free()
 	await t.process_frame
 
@@ -105,8 +134,20 @@ func test_unlocks_grid_selects_and_buys(t) -> void:
 	var screen := UnlocksScreen.new(save)
 	t.root.add_child(screen)
 	await t.process_frame
-	var tiles := screen.find_children("*", "IconTile", true, false).filter(func(x: IconTile) -> bool: return not x.disabled)
-	t.check(tiles.size() == Meta.challenges(db).size(), "one tile per unlock (%d)" % tiles.size())
+	# One tab per kind; every unlock is on exactly one tab.
+	var seen := 0
+	for i in UnlocksScreen.KINDS.size():
+		screen.show_tab(i)
+		await t.process_frame
+		var on_tab := screen.find_children("*", "IconTile", true, false).filter(func(x: IconTile) -> bool: return not x.disabled and not x.is_queued_for_deletion())
+		t.check(on_tab.size() == screen.in_tab(i).size(), "tab %s shows its %d unlocks (%d)" % [UnlocksScreen.KINDS[i][1], screen.in_tab(i).size(), on_tab.size()])
+		t.check(on_tab.all(func(x: IconTile) -> bool: return Meta.category_of(db, String(x.name)) == UnlocksScreen.KINDS[i][0]), "tab %s holds only its kind" % UnlocksScreen.KINDS[i][1])
+		seen += on_tab.size()
+	t.check(seen == Meta.challenges(db).size(), "the tabs hold every unlock (%d)" % seen)
+	t.check(screen.find_child("Summary", true, false) != null and screen.find_children("*", "PixelTabs", true, false).size() == 1, "summary and tab bar")
+	screen.show_tab(UnlocksScreen.KINDS.size() - 1)
+	await t.process_frame
+	var tiles := screen.find_children("*", "IconTile", true, false).filter(func(x: IconTile) -> bool: return not x.disabled and not x.is_queued_for_deletion())
 	var other: IconTile = tiles[3]
 	var other_id := String(other.name)
 	other.pressed.emit()
@@ -233,6 +274,71 @@ func test_hud_items_row_and_timer_room(t) -> void:
 		var timer_left := floorf(w / 2.0 - Fonts.BOLD.get_string_size(text, HORIZONTAL_ALIGNMENT_LEFT, -1, 8).x)
 		var bar_w := clampf(timer_left - 4.0 - Hud.HP_BAR.position.x, 30.0, Hud.HP_BAR.size.x)
 		t.check(Hud.HP_BAR.position.x + bar_w <= timer_left - 1.0 or w > 180.0, "HP bar clears the timer at %s (%s <= %s)" % [text, Hud.HP_BAR.position.x + bar_w, timer_left])
+	run.queue_free()
+	await t.process_frame
+
+
+func test_hud_small_icons_centred_items_with_rarity_frames(t) -> void:
+	var db := GameData.shared()
+	# Strip and item icons are real 12 px images on the palette (never scaled).
+	for kind in ["weapons", "tomes", "items"]:
+		for e: Dictionary in db.all(kind):
+			var tex := Icons.small(db, kind, e.id, Hud.ICON_PX)
+			if tex == null:
+				continue
+			var img := tex.get_image()
+			t.check(img.get_size() == Vector2i(Hud.ICON_PX, Hud.ICON_PX) and _palette_only(img) == 0, "%s/%s small icon is 12 px on the palette" % [kind, e.id])
+	t.check(Hud.SLOT < 18 and Hud.ITEM_FRAME < 18, "strip and item slots are smaller than before (%d, %d)" % [Hud.SLOT, Hud.ITEM_FRAME])
+	var run := _start(t, {"loadout": {"weapons": {"rubber_duck": 2}}})
+	await t.process_frame
+	for it in ["band_aid", "hot_sauce", "lucky_penny"]:
+		run.give_item(it)
+	run._render()
+	var hud: Hud = run._hud
+	var w := floorf(hud.size.x)
+	for n in [1, 3, 12, 30]:
+		var first := hud.item_rect(0, n)
+		var last := hud.item_rect(mini(n, int((w - 3.0) / Hud.ITEM_SLOT)) - 1, n)
+		var left := first.position.x
+		var right := w - last.end.x
+		t.check(absf(left - right) <= 1.0, "%d items: the bottom row is centred (%s | %s)" % [n, left, right])
+	var loot := db.get_entry("rules", "loot")
+	var rare := Palette.index_of(loot.rarity_colors[db.get_entry("items", "hot_sauce").rarity])
+	t.check(hud._rarity_color("hot_sauce") == rare, "an item's frame is its rarity colour")
+	run.queue_free()
+	await t.process_frame
+
+
+func test_pick_one_cards_for_shrine_and_merchant(t) -> void:
+	var run := _start(t, {"loadout": {"weapons": {"rubber_duck": 2}}})
+	await t.process_frame
+	run.open_shrine_choice(run.db.get_entry("interactables", "charge_shrine"))
+	t.check(run.state == "choice" and run._choice_panel.visible, "the shrine asks")
+	for i in run._choice.opts.size():
+		var b: LevelCard = run._choice_buttons[i]
+		t.check(b.option.get("value", "") != "" and String(b.option.get("desc", "")).begins_with("NOW "), "shrine card %d shows its value and now > after (%s)" % [i, b.option.get("desc", "")])
+	var hp_before := run.stat("max_hp")
+	t.check(run._bonus_preview({"stat": "max_hp", "flat": 15}, false) == "NOW %d > %d" % [roundi(hp_before), roundi(hp_before + 15)], "max HP preview (%s)" % run._bonus_preview({"stat": "max_hp", "flat": 15}, false))
+	t.check(is_equal_approx(run.stat("max_hp"), hp_before), "the preview leaves the stat alone")
+	run._close_choice()
+	var m: Dictionary = run.interactables.add("merchant", run.player_pos() + Vector2(300, 0))
+	m.stock[0].sold = true
+	run.gold = 0
+	run.open_merchant(m)
+	var sold: LevelCard = run._choice_buttons[0]
+	t.check(sold.option.get("stamp", "") == "SOLD" and sold.disabled, "a sold item is stamped SOLD")
+	var other: LevelCard = run._choice_buttons[1]
+	t.check(other.option.has("price") and not other.option.get("afford", true), "an item you can't afford shows its price (%s)" % [other.option])
+	run.queue_free()
+	await t.process_frame
+
+
+func test_game_over_shows_coins_earned_not_total(t) -> void:
+	var run := _start(t, {"loadout": {"weapons": {"rubber_duck": 2}}})
+	await t.process_frame
+	run._end("died")
+	await t.process_frame
+	t.check(not run._over_mult.text.contains("TOTAL"), "no wallet total on the result (%s)" % run._over_mult.text)
 	run.queue_free()
 	await t.process_frame
 

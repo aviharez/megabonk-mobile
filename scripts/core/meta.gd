@@ -504,6 +504,6 @@ static func toggle(db: GameData, data: Dictionary, id: String) -> bool:
 	return true
 
 
-## Short name of a content kind for silhouettes: "HERO", "WEAPON", "TOME", "ITEM".
+## Short name of a content kind for silhouettes: "HERO", "WEAPON", "MANUAL", "ITEM".
 static func kind_name(db: GameData, id: String) -> String:
-	return {"characters": "HERO", "weapons": "WEAPON", "tomes": "TOME", "items": "ITEM"}.get(category_of(db, id), "?")
+	return {"characters": "HERO", "weapons": "WEAPON", "tomes": "MANUAL", "items": "ITEM"}.get(category_of(db, id), "?")

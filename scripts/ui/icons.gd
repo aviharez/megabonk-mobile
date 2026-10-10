@@ -20,6 +20,7 @@ const SYMBOL_AT := Vector2i(6, 3)
 
 static var _images := {}  # "kind/id" -> Image (or null when there is no art)
 static var _textures := {}  # "kind/id" or "kind/id/locked" -> ImageTexture
+static var _small := {}  # "kind/id/size" -> ImageTexture
 
 
 static func texture(db: GameData, kind: String, id: String, locked := false) -> Texture2D:
@@ -76,10 +77,56 @@ static func ref_error(db: GameData, path: Variant) -> String:
 	return ""
 
 
+## The icon shrunk to `px` x `px` for tight HUD slots, or null. Never drawn
+## scaled (that breaks the pixel grid): a real smaller image, palette colours
+## only (see shrink()). Cached.
+static func small(db: GameData, kind: String, id: String, px := 12) -> Texture2D:
+	var key := "%s/%s/%d" % [kind, id, px]
+	if not _small.has(key):
+		var img := image(db, kind, id)
+		_small[key] = ImageTexture.create_from_image(shrink(img, px)) if img != null else null
+	return _small[key]
+
+
+## `img` shrunk to `px` x `px`: each new pixel takes the colour that covers
+## most of its patch of the original (no blending, so only palette colours
+## and full or no alpha). Thin outlines get a little extra weight so shapes
+## keep their edge.
+static func shrink(img: Image, px: int) -> Image:
+	var w := img.get_width()
+	var h := img.get_height()
+	var out := Image.create_empty(px, px, false, Image.FORMAT_RGBA8)
+	var ink := Palette.color(Palette.INK).to_rgba32()
+	var sx := float(w) / px
+	var sy := float(h) / px
+	for oy in px:
+		for ox in px:
+			var weight := {}
+			var x0 := ox * sx
+			var y0 := oy * sy
+			for y in range(floori(y0), mini(h, ceili(y0 + sy))):
+				var cy := minf(y + 1.0, y0 + sy) - maxf(float(y), y0)
+				for x in range(floori(x0), mini(w, ceili(x0 + sx))):
+					var cx := minf(x + 1.0, x0 + sx) - maxf(float(x), x0)
+					var c := img.get_pixel(x, y)
+					var k := 0 if c.a < 0.5 else c.to_rgba32()
+					var wgt := cx * cy * (1.35 if k == ink else 1.0)
+					weight[k] = float(weight.get(k, 0.0)) + wgt
+			var best := 0
+			var best_w := -1.0
+			for k: int in weight:
+				if weight[k] > best_w:
+					best_w = weight[k]
+					best = k
+			out.set_pixel(ox, oy, Color.hex(best) if best != 0 else Color(0, 0, 0, 0))
+	return out
+
+
 ## Forgets the cache (tests that swap data).
 static func clear() -> void:
 	_images.clear()
 	_textures.clear()
+	_small.clear()
 
 
 ## The book with the cover's MIST / SHADE swapped for icon.cover [light, dark]
