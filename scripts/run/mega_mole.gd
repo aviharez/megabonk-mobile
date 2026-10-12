@@ -57,7 +57,7 @@ func update(delta: float) -> void:
 	var e: EnemySystem = run.enemies
 	if not rage and hp_frac() < float(cfg.get("rage_below", 0.5)):
 		rage = true
-		run.toast("MEGA MOLE IS ANGRY!", "RED")
+		run.toast("Mega Mole is angry!", "RED")
 		run.juice.sfx("boss_roar")
 		run.juice.shake("explode")
 	var fast := 1.0 / float(cfg.get("rage_speedup", 0.65)) if rage else 1.0

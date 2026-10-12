@@ -57,7 +57,8 @@ func _init(db: GameData, id: String) -> void:
 	name_l.add_theme_constant_override("shadow_offset_y", 1)
 	win.add_child(name_l)
 	var kind := Label.new()
-	kind.text = "NEW %s FOR YOUR RUNS" % Meta.kind_name(db, id)
+	var kn := Meta.kind_name(db, id)
+	kind.text = "New %s for your runs." % (kn if kn == "Manual" else kn.to_lower())
 	kind.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
 	kind.position = Vector2(0, 132)
 	kind.size = Vector2(148, 10)
@@ -65,7 +66,7 @@ func _init(db: GameData, id: String) -> void:
 	win.add_child(kind)
 	var ok := PixelButton.new()
 	ok.name = "Nice"
-	ok.label = "NICE!"
+	ok.label = "Nice!"
 	ok.face = Palette.GREEN
 	ok.position = Vector2(29, 150)
 	ok.custom_minimum_size = Vector2(90, 24)

@@ -138,7 +138,7 @@ func _banner_node() -> ColorRect:
 		_banner.anchor_bottom = 1.0
 		_banner.mouse_filter = Control.MOUSE_FILTER_STOP
 		var l := Label.new()
-		l.text = "TEST BANNER"
+		l.text = "Test banner"
 		l.add_theme_color_override("font_color", Palette.color(Palette.INK))
 		l.set_anchors_and_offsets_preset(Control.PRESET_CENTER)
 		l.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
@@ -159,7 +159,7 @@ func _show_visual(format: String) -> void:
 	screen.mouse_filter = Control.MOUSE_FILTER_STOP
 	_canvas().add_child(screen)
 	var title := Label.new()
-	title.text = "TEST AD\n" + format.to_upper()
+	title.text = "Test ad\n" + format.capitalize()
 	title.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
 	title.add_theme_color_override("font_color", Palette.color(Palette.BUTTER))
 	title.set_anchors_and_offsets_preset(Control.PRESET_CENTER)
@@ -171,7 +171,7 @@ func _show_visual(format: String) -> void:
 	timer_label.set_anchors_and_offsets_preset(Control.PRESET_CENTER)
 	screen.add_child(timer_label)
 	var skip := PixelButton.new()
-	skip.label = "SKIP"
+	skip.label = "Skip"
 	skip.face = Palette.MIST
 	skip.name = "Skip"
 	skip.custom_minimum_size = Vector2(72, 18)
@@ -179,7 +179,7 @@ func _show_visual(format: String) -> void:
 	skip.position += Vector2(-76, 30)
 	screen.add_child(skip)
 	var done := PixelButton.new()
-	done.label = "GET REWARD" if format == "rewarded" else "CLOSE"
+	done.label = "Get reward" if format == "rewarded" else "Close"
 	done.face = Palette.LIME
 	done.custom_minimum_size = Vector2(72, 18)
 	done.set_anchors_and_offsets_preset(Control.PRESET_CENTER)

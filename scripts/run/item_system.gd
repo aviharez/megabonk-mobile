@@ -189,7 +189,8 @@ func _do(id: String, t: Dictionary, n: int, ctx: Dictionary) -> void:
 			var before: float = _run.stat("max_hp")
 			_run.stats.set_modifier(c.stat, "boost:" + id, cur[0], cur[1])
 			_run.heal(maxf(0.0, _run.stat("max_hp") - before))
-			_run.toast("%s UP!" % String(c.stat).replace("_", " ").to_upper(), "GOLD")
+			var stat_name := String(c.stat).replace("_", " ").replace("hp", "HP")
+			_run.toast("%s up!" % (stat_name.left(1).to_upper() + stat_name.substr(1)), "GOLD")
 		"duplicate":
 			if ctx.has("shot"):
 				_run.duplicate_shot(ctx.shot, float(t.get("spread", 0.25)))

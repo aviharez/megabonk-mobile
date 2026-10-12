@@ -11,7 +11,7 @@ var selected := ""
 
 
 func _init(save_node: Node) -> void:
-	super(save_node, "MAPS")
+	super(save_node, "Maps")
 	selected = Meta.picked_map(db, save.data)
 
 
@@ -25,7 +25,7 @@ func _fill() -> void:
 		if open:
 			card.thumb = load(m.thumb) if m.has("thumb") else null
 			var boss := Meta.map_boss_name(db, m.id)
-			card.lines = PackedStringArray([m.name, "BOSS: " + boss if boss != "" else ""])
+			card.lines = PackedStringArray([m.name, "Boss: " + boss if boss != "" else ""])
 		else:
 			card.lines = PackedStringArray(["???", Meta.map_hint(db, save.data, m.id)])
 		card.pressed.connect(select.bind(m.id))
@@ -35,14 +35,14 @@ func _fill() -> void:
 	if slots > 0:
 		var t := PixelButton.new()
 		t.name = "Toggler"
-		t.label = "TOGGLER  %d/%d OFF" % [save.data.toggled_off.size(), slots]
+		t.label = "Toggler  %d/%d off" % [save.data.toggled_off.size(), slots]
 		t.face = Palette.PURPLE
 		t.ink = Palette.PAPER
 		t.custom_minimum_size = Vector2(W, 20)
 		t.pressed.connect(_open_toggler)
 		list.add_child(t)
 	_info(db.get_entry("maps", selected))
-	var go := primary("GO!", Palette.GREEN, func() -> void: picked.emit(selected), "Go")
+	var go := primary("Go!", Palette.GREEN, func() -> void: picked.emit(selected), "Go")
 	go.disabled = selected == ""
 
 
@@ -63,13 +63,13 @@ func _info(m: Dictionary) -> void:
 		return
 	var boss := Meta.map_boss_name(db, m.id)
 	var sec := int(db.get_entry("rules", "run").get("run_length_sec", 480))
-	var goals := ["SURVIVE %d:%02d" % [sec / 60, sec % 60]]
+	var goals := ["Survive %d:%02d" % [sec / 60, sec % 60]]
 	if boss != "":
-		goals.append("CALL " + boss + " AT THE ALTAR")
-		goals.append("BEAT IT, THEN TAKE THE PORTAL")
+		goals.append("Call " + boss + " at the altar")
+		goals.append("Beat it, then take the portal")
 	var p := row(26 + goals.size() * 10)
 	p.name = "MapInfo"
 	p.part = "window"
-	bold_label(p, "GOALS", Vector2(6, 6), Palette.BUTTER)
+	bold_label(p, "Goals", Vector2(6, 6), Palette.BUTTER)
 	for i in goals.size():
 		label(p, "- " + goals[i], Vector2(6, 17 + i * 10), Palette.PAPER)

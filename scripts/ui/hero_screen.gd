@@ -15,7 +15,7 @@ var selected := ""
 
 
 func _init(save_node: Node) -> void:
-	super(save_node, "HEROES")
+	super(save_node, "Heroes")
 	selected = Meta.picked_character(db, save.data)
 	fills_height = true
 
@@ -51,7 +51,7 @@ func _fill() -> void:
 		t.pressed.connect(select.bind(c.id))
 		grid.add_child(t)
 
-	var next := primary("NEXT >" if owned else "LOCKED", Palette.GREEN, _open_maps, "Next")
+	var next := primary("Next" if owned else "Locked", Palette.GREEN, _open_maps, "Next")
 	next.disabled = not owned
 
 
@@ -83,7 +83,7 @@ func _preview(c: Dictionary, owned: bool) -> void:
 	if owned and c.get("role", "") != "":
 		_tag(p, c.role, Vector2(floorf((W - _tag_w(c.role)) / 2.0), 28))
 	elif not owned:
-		label(p, "LOCKED HERO", Vector2(0, 28), Palette.SALMON, HORIZONTAL_ALIGNMENT_CENTER, W)
+		label(p, "Locked hero", Vector2(0, 28), Palette.SALMON, HORIZONTAL_ALIGNMENT_CENTER, W)
 	# Bottom block height (stats + weapon + passive, or the challenge), so
 	# the stage takes whatever is left in the middle.
 	var info_h := 100.0 if owned else 70.0
@@ -131,7 +131,7 @@ func _preview(c: Dictionary, owned: bool) -> void:
 	var y0 := stage_bottom
 	if not owned:
 		var ch := Meta.challenge_for(db, c.id)
-		label(p, "TO UNLOCK:", Vector2(8, y0), Palette.MIST)
+		label(p, "To unlock:", Vector2(8, y0), Palette.MIST)
 		if not ch.is_empty():
 			var cr := ChallengeRow.new().setup(ch, Meta.progress(db, save.data, ch), "")
 			cr.position = Vector2(8, y0 + 12)
@@ -139,9 +139,9 @@ func _preview(c: Dictionary, owned: bool) -> void:
 			cr.size = cr.custom_minimum_size
 			p.add_child(cr)
 		if Meta.state(db, save.data, c.id) == "available":
-			_wrapped(p, "DONE! BUY IT IN UNLOCKS", Vector2(8, y0 + 42), W - 16, Palette.LIME)
+			_wrapped(p, "Done! Buy it in Unlocks.", Vector2(8, y0 + 42), W - 16, Palette.LIME)
 		else:
-			_wrapped(p, "THEN BUY IT FOR %d COINS" % int(ch.get("price", 0)), Vector2(8, y0 + 42), W - 16, Palette.GOLD)
+			_wrapped(p, "Then buy it for %d coins." % int(ch.get("price", 0)), Vector2(8, y0 + 42), W - 16, Palette.GOLD)
 		return
 	# Stats: two columns of label + pips.
 	for i in Meta.SHOWN_STATS.size():
@@ -157,12 +157,12 @@ func _preview(c: Dictionary, owned: bool) -> void:
 	icon.position = Vector2(6, wy)
 	p.add_child(icon)
 	bold_label(p, weapon.get("name", ""), Vector2(28, wy), Palette.GOLD)
-	label(p, "WEAPON", Vector2(W - 60, wy), Palette.GRAY, HORIZONTAL_ALIGNMENT_RIGHT, 54)
+	label(p, "Weapon", Vector2(W - 60, wy), Palette.GRAY, HORIZONTAL_ALIGNMENT_RIGHT, 54)
 	label(p, weapon.get("desc", ""), Vector2(28, wy + 10), Palette.PAPER)
 	var py := wy + 24
 	p.add_child(_rule(py))
 	bold_label(p, c.passive.name, Vector2(6, py + 4), Palette.LIME)
-	label(p, "PASSIVE", Vector2(W - 60, py + 4), Palette.GRAY, HORIZONTAL_ALIGNMENT_RIGHT, 54)
+	label(p, "Passive", Vector2(W - 60, py + 4), Palette.GRAY, HORIZONTAL_ALIGNMENT_RIGHT, 54)
 	_wrapped(p, c.passive.desc, Vector2(6, py + 15), W - 12, Palette.PAPER)
 
 

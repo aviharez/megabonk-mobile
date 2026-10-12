@@ -91,7 +91,7 @@ func _init(save_node: Node, title: String) -> void:
 	add_child(_bar)
 	_back = PixelButton.new()
 	_back.name = "Back"
-	_back.label = "< BACK"
+	_back.label = "Back"
 	_back.face = Palette.MIST
 	_back.pressed.connect(close)
 	_bar.add_child(_back)

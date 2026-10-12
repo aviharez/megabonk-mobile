@@ -29,7 +29,7 @@ var selected := false:
 var progress := -1.0
 var pips := 0
 var pips_max := 0
-## Small text on a plate at the top-left ("NEW", "!", "MAX").
+## Small text on a plate at the top-left ("New", "!", "Max").
 var tag := ""
 var _t := 0.0
 
@@ -106,7 +106,7 @@ func _draw() -> void:
 		var bw := int(bf.get_string_size(tag, HORIZONTAL_ALIGNMENT_LEFT, -1, Fonts.SIZE).x) + 6
 		var bx := size.x - bw + 1
 		UiArt.draw(self, "new_badge", Rect2(bx, y - 2, bw, 9))
-		draw_string(bf, Vector2(bx + 3, y - 1 + bf.get_ascent(Fonts.SIZE)), tag, HORIZONTAL_ALIGNMENT_LEFT, -1, Fonts.SIZE, Palette.color(Palette.PAPER if tag != "MAX" else Palette.BUTTER))
+		draw_string(bf, Vector2(bx + 3, y - 1 + bf.get_ascent(Fonts.SIZE)), tag, HORIZONTAL_ALIGNMENT_LEFT, -1, Fonts.SIZE, Palette.color(Palette.PAPER if tag != "Max" else Palette.BUTTER))
 
 
 ## A green tick on an INK outline, 8x7.

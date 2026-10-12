@@ -82,7 +82,7 @@ func test_pause_shows_the_build_and_give_up_asks_twice(t) -> void:
 	t.check(run.state == "paused" and run._give_up_armed, "first GIVE UP tap only asks")
 	run._give_up.pressed.emit()
 	t.check(run.state == "over" and run.end_reason == "gave_up", "second tap gives up (state %s)" % run.state)
-	t.check(run._again_btn != null and run._again_btn.label == "PLAY AGAIN", "game over offers PLAY AGAIN")
+	t.check(run._again_btn != null and run._again_btn.label == "Play again", "game over offers PLAY AGAIN")
 	t.check(run.find_child("Menu", true, false) != null, "and MENU")
 	run.queue_free()
 	await t.process_frame
@@ -99,7 +99,7 @@ func test_level_up_cards_show_kind_level_and_text(t) -> void:
 		t.check(b.card == card and b.label.contains(String(card.def.name)), "card %d shows %s" % [i, card.def.name])
 		t.check(b._desc() != "", "card %d has a description" % i)
 	var ab: ActionButton = run._action_buttons.reroll
-	t.check(ActionButton.WORDS.reroll == "REROLL", "action buttons are labelled")
+	t.check(ActionButton.WORDS.reroll == "Reroll", "action buttons are labelled")
 	run.queue_free()
 	await t.process_frame
 

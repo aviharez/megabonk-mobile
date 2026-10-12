@@ -12,8 +12,8 @@ extends MenuScreen
 const COLUMNS := 4
 const PANEL_H := 82
 ## Tabs: content category, name, colour.
-const KINDS := [["characters", "HEROES", Palette.LIME], ["weapons", "WEAPONS", Palette.SALMON],
-	["tomes", "MANUALS", Palette.SKY], ["items", "ITEMS", Palette.PINK]]
+const KINDS := [["characters", "Heroes", Palette.LIME], ["weapons", "Weapons", Palette.SALMON],
+	["tomes", "Manuals", Palette.SKY], ["items", "Items", Palette.PINK]]
 
 var selected := ""
 var tab := 0
@@ -21,7 +21,7 @@ var _new := {}  # content ids that were unseen when the screen opened
 
 
 func _init(save_node: Node) -> void:
-	super(save_node, "UNLOCKS")
+	super(save_node, "Unlocks")
 	for id: String in Meta.ready_to_buy(db, save.data):
 		if not save.data.seen.has(id):
 			_new[id] = true
@@ -110,7 +110,7 @@ func _tile(ch: Dictionary) -> IconTile:
 	if st == "locked":
 		t.progress = float(Meta.progress(db, save.data, ch).frac)
 	elif st == "available":
-		t.tag = "NEW" if _new.has(id) else "!"
+		t.tag = "New" if _new.has(id) else "!"
 	t.pressed.connect(select.bind(id))
 	return t
 
@@ -152,7 +152,7 @@ func _panel() -> void:
 	var kind_line := Meta.kind_name(db, id)
 	label(p, kind_line, Vector2(x, 16), {"weapons": Palette.SALMON, "tomes": Palette.SKY, "items": Palette.PINK, "characters": Palette.LIME}.get(cat, Palette.MIST))
 	# What it does (once it's known), else a teaser.
-	var what: String = def.get("desc", "") if known else "WHAT COULD IT BE?"
+	var what: String = def.get("desc", "") if known else "What could it be?"
 	if cat == "characters" and known:
 		what = String(def.get("passive", {}).get("desc", what))
 	var wl := label(p, what, Vector2(x, 26), Palette.PAPER if known else Palette.GRAY)
@@ -170,27 +170,27 @@ func _panel() -> void:
 		p.add_child(cr)
 		match st:
 			"owned":
-				cr.reward = "OWNED"
+				cr.reward = "Owned"
 				cr.reward_color = Palette.LIME
 			"available":
-				cr.reward = "DONE! READY TO BUY"
+				cr.reward = "Done! Ready to buy."
 				cr.reward_color = Palette.LIME
 			"locked":
 				if prog.blocked:
-					cr.reward = "NEEDS " + String(Meta.content(db, ch.requires).name)
+					cr.reward = "Needs " + String(Meta.content(db, ch.requires).name)
 					cr.reward_color = Palette.SALMON
 				else:
-					cr.reward = "THEN %d COINS" % int(ch.price)
+					cr.reward = "Then %d coins" % int(ch.price)
 					cr.reward_color = Palette.GOLD
 		var br := Rect2(W - 52, 50, 52, 22)
 		match st:
 			"available":
-				var b := price_button(p, int(ch.price), br, _buy.bind(id), "BUY ")
+				var b := price_button(p, int(ch.price), br, _buy.bind(id), "Buy ")
 				b.name = "Buy"
 				if b.disabled:
 					b.label = str(int(ch.price))
 			"owned":
-				bold_label(p, "OWNED", Vector2(br.position.x, 57), Palette.LIME, HORIZONTAL_ALIGNMENT_CENTER, br.size.x)
+				bold_label(p, "Owned", Vector2(br.position.x, 57), Palette.LIME, HORIZONTAL_ALIGNMENT_CENTER, br.size.x)
 
 
 func _buy(id: String) -> void:
@@ -221,7 +221,7 @@ func _summary() -> void:
 		var tw := f.get_string_size(t, HORIZONTAL_ALIGNMENT_LEFT, -1, 8).x
 		box.draw_string(f, Vector2(0, 11), t, HORIZONTAL_ALIGNMENT_LEFT, -1, 8, Palette.color(Palette.INK))
 		box.draw_string(f, Vector2(0, 10), t, HORIZONTAL_ALIGNMENT_LEFT, -1, 8, Palette.color(Palette.PAPER))
-		var rt := ("%d READY!" % ready) if ready > 0 else ""
+		var rt := ("%d ready!" % ready) if ready > 0 else ""
 		var rw := f.get_string_size(rt, HORIZONTAL_ALIGNMENT_LEFT, -1, 8).x + (4 if ready > 0 else 0)
 		if ready > 0:
 			box.draw_string(f, Vector2(W - rw + 4, 11), rt, HORIZONTAL_ALIGNMENT_LEFT, -1, 8, Palette.color(Palette.INK))

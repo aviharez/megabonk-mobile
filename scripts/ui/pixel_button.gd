@@ -11,7 +11,7 @@ const SHADOW := 2
 ## Titan size of a button's first line before it shrinks to fit.
 const BUTTON_SIZE := 9
 
-@export var label := "BUTTON":
+@export var label := "Button":
 	set(v):
 		label = v
 		queue_redraw()

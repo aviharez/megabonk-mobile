@@ -23,12 +23,12 @@ extends Control
 
 const RUN_SCENE := "res://scenes/run.tscn"
 const SETTINGS := [
-	["music", "MUSIC"],
-	["sfx", "SOUNDS"],
-	["vibration", "VIBRATION"],
-	["damage_numbers", "DMG NUMBERS"],
-	["screen_shake", "SCREEN SHAKE"],
-	["reduce_effects", "REDUCE FX"],
+	["music", "Music"],
+	["sfx", "Sounds"],
+	["vibration", "Vibration"],
+	["damage_numbers", "Damage numbers"],
+	["screen_shake", "Screen shake"],
+	["reduce_effects", "Reduce effects"],
 ]
 const GAME_TITLE := "Mobbed!"
 const GAME_SUBTITLE := "survive the swarm"
@@ -330,7 +330,7 @@ func back() -> void:
 	elif _settings != null and _settings.visible:
 		_close_settings()
 	else:
-		var q := ConfirmPopup.new("QUIT?", "THE SWARM WILL WAIT FOR YOU.", "QUIT", "STAY")
+		var q := ConfirmPopup.new("Quit?", "The swarm will wait for you.", "Quit", "Stay")
 		q.answered.connect(func(yes: bool) -> void:
 			if yes:
 				Save.save_game()
@@ -456,7 +456,7 @@ func _build_settings() -> void:
 		_toggles.add_child(b)
 	var close := PixelButton.new()
 	close.name = "Back"
-	close.label = "DONE"
+	close.label = "Done"
 	close.face = Palette.GREEN
 	close.position = Vector2(26, 190)
 	close.custom_minimum_size = Vector2(100, 22)

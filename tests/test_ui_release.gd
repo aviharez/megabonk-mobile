@@ -204,7 +204,7 @@ func test_hud_build_strip_and_pickup_card(t) -> void:
 	run.give_item("band_aid")
 	run.show_item_card("band_aid")
 	t.check(run._hud.card_height() > 0.0 and run._hud._card.title == "Band-Aid", "an item shows a pickup card")
-	t.check(String(run._hud._card.tag).contains("ITEM") and run._hud._card.desc.size() >= 1, "with its rarity and what it does")
+	t.check(String(run._hud._card.tag).contains("item") and run._hud._card.desc.size() >= 1, "with its rarity and what it does")
 	run.queue_free()
 	await t.process_frame
 
@@ -230,9 +230,9 @@ func test_level_card_numbers(t) -> void:
 	var db := GameData.shared()
 	var card := LevelCard.new()
 	card.card = {"kind": "weapon", "level": 2, "def": db.get_entry("weapons", "baguette"), "is_new": false}
-	t.check(card.stat_line() == "DMG 10>14  CD 1.3>1.2", "a weapon level-up shows what changes (%s)" % card.stat_line())
+	t.check(card.stat_line() == "Dmg 10>14  CD 1.3>1.2", "a weapon level-up shows what changes (%s)" % card.stat_line())
 	card.card = {"kind": "tome", "level": 2, "def": db.get_entry("tomes", "muscle_magazine"), "is_new": false}
-	t.check(card.stat_line() == "NOW +10% > +20%", "a tome shows before and after (%s)" % card.stat_line())
+	t.check(card.stat_line() == "Now +10% > +20%", "a tome shows before and after (%s)" % card.stat_line())
 	card.free()
 
 
@@ -318,9 +318,9 @@ func test_pick_one_cards_for_shrine_and_merchant(t) -> void:
 	t.check(run.state == "choice" and run._choice_panel.visible, "the shrine asks")
 	for i in run._choice.opts.size():
 		var b: LevelCard = run._choice_buttons[i]
-		t.check(b.option.get("value", "") != "" and String(b.option.get("desc", "")).begins_with("NOW "), "shrine card %d shows its value and now > after (%s)" % [i, b.option.get("desc", "")])
+		t.check(b.option.get("value", "") != "" and String(b.option.get("desc", "")).begins_with("Now "), "shrine card %d shows its value and now > after (%s)" % [i, b.option.get("desc", "")])
 	var hp_before := run.stat("max_hp")
-	t.check(run._bonus_preview({"stat": "max_hp", "flat": 15}, false) == "NOW %d > %d" % [roundi(hp_before), roundi(hp_before + 15)], "max HP preview (%s)" % run._bonus_preview({"stat": "max_hp", "flat": 15}, false))
+	t.check(run._bonus_preview({"stat": "max_hp", "flat": 15}, false) == "Now %d > %d" % [roundi(hp_before), roundi(hp_before + 15)], "max HP preview (%s)" % run._bonus_preview({"stat": "max_hp", "flat": 15}, false))
 	t.check(is_equal_approx(run.stat("max_hp"), hp_before), "the preview leaves the stat alone")
 	run._close_choice()
 	var m: Dictionary = run.interactables.add("merchant", run.player_pos() + Vector2(300, 0))
@@ -328,7 +328,7 @@ func test_pick_one_cards_for_shrine_and_merchant(t) -> void:
 	run.gold = 0
 	run.open_merchant(m)
 	var sold: LevelCard = run._choice_buttons[0]
-	t.check(sold.option.get("stamp", "") == "SOLD" and sold.disabled, "a sold item is stamped SOLD")
+	t.check(sold.option.get("stamp", "") == "Sold" and sold.disabled, "a sold item is stamped SOLD")
 	var other: LevelCard = run._choice_buttons[1]
 	t.check(other.option.has("price") and not other.option.get("afford", true), "an item you can't afford shows its price (%s)" % [other.option])
 	run.queue_free()
@@ -360,7 +360,7 @@ func test_map_select_has_goals_but_no_monster_roster(t) -> void:
 	t.root.add_child(screen)
 	await t.process_frame
 	var labels := screen.find_children("*", "Label", true, false).map(func(l: Label) -> String: return l.text)
-	t.check(labels.has("GOALS"), "the map screen shows the goals")
+	t.check(labels.has("Goals"), "the map screen shows the goals")
 	t.check(not labels.has("WHO LIVES HERE"), "and no monster roster")
 	screen.queue_free()
 	save.free()

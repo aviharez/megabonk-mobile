@@ -54,10 +54,10 @@ static func describe(card: Dictionary) -> PackedStringArray:
 		"weapon":
 			var lv: Dictionary = def.levels[card.level - 1]
 			return PackedStringArray([
-				"%s  %s" % [def.name, "NEW!" if card.is_new else "LV %d" % card.level],
+				"%s  %s" % [def.name, "New!" if card.is_new else "Lv %d" % card.level],
 				def.desc if card.is_new else lv.get("desc", "")])
 		"tome":
 			return PackedStringArray([
 				"%s" % def.name,
-				"%s  %s" % [def.desc, "NEW!" if card.is_new else "LV %d" % card.level]])
+				"%s  %s" % [def.desc, "New!" if card.is_new else "Lv %d" % card.level]])
 	return PackedStringArray([def.name, def.desc])

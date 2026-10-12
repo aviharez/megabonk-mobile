@@ -111,7 +111,7 @@ func update(delta: float) -> void:
 		if def.behavior == "merchant":
 			o.left -= delta
 			if o.left <= 0.0:
-				run.toast("THE MERCHANT LEFT", "MIST")
+				run.toast("The merchant left.", "MIST")
 				run.fx.puff(o.pos, 8.0, Palette.MIST, 0.4)
 				remove(o)
 				continue
@@ -158,7 +158,7 @@ func _touch(o: Dictionary) -> void:
 				remove(o)
 				run.open_chest(def.chest, o.pos)
 			else:
-				run.toast("NEED G %d" % price, "GOLD")
+				run.toast("Need G %d" % price, "GOLD")
 		"free_chest":
 			remove(o)
 			run.open_chest(def.chest, o.pos)
@@ -179,17 +179,17 @@ func _touch(o: Dictionary) -> void:
 				has_key = false
 				o.used = true
 				run.record(def.get("stat_event", "pigeon_cage_opened"))
-				run.toast("PIGEON FREED!", "BUTTER")
+				run.toast("Pigeon freed!", "BUTTER")
 				run.fx.ring(o.pos, 14.0, Palette.BUTTER)
 				run.fx.sparks(o.pos, 14.0, Palette.BUTTER)
 				run.juice.sfx("cage")
 			else:
-				run.toast("THE CAGE NEEDS A KEY", "MIST")
+				run.toast("The cage needs a key.", "MIST")
 		"key":
 			has_key = true
 			remove(o)
 			run.record("keys_found")
-			run.toast("GOT A KEY!", "GOLD")
+			run.toast("Got a key!", "GOLD")
 			run.fx.star(o.pos, 5.0, Palette.GOLD, 0.3)
 			run.juice.sfx("key")
 		"portal":
@@ -213,11 +213,11 @@ func _activate(o: Dictionary) -> void:
 			for m: Dictionary in def.get("modifiers", []):
 				run.stats.set_modifier(m.stat, src, float(m.get("flat", 0.0)), float(m.get("pct", 0.0)))
 			risks.append({"left": float(def.duration), "src": src, "def": def})
-			run.toast("RISK! FOES +, LOOT +", "RED")
+			run.toast("Risk! Foes +, loot +", "RED")
 			run.juice.shake("explode")
 		"challenge_shrine":
 			challenges.append({"left": float(def.time), "need": int(def.kills), "start_kills": run.kills, "def": def})
-			run.toast("KILL %d IN %dS!" % [int(def.kills), int(def.time)], "GOLD")
+			run.toast("Kill %d in %ds!" % [int(def.kills), int(def.time)], "GOLD")
 	remove(o)
 	run.shrine_activated(def.id)
 
@@ -232,7 +232,7 @@ func _update_effects(delta: float) -> void:
 		var chest: String = r.def.get("reward_chest", "")
 		if chest != "":
 			add(chest + "_chest", _reward_spot())
-		run.toast("RISK OVER: REWARD!", "GOLD")
+		run.toast("Risk over: reward!", "GOLD")
 		risks.erase(r)
 	for c in challenges.duplicate():
 		c.left -= delta
@@ -242,10 +242,10 @@ func _update_effects(delta: float) -> void:
 			if chest != "":
 				add(chest + "_chest", _reward_spot())
 			run.record("challenges_won")
-			run.toast("CHALLENGE DONE!", "GOLD")
+			run.toast("Challenge done!", "GOLD")
 			challenges.erase(c)
 		elif c.left <= 0.0:
-			run.toast("CHALLENGE FAILED", "MIST")
+			run.toast("Challenge failed", "MIST")
 			challenges.erase(c)
 
 
@@ -337,12 +337,12 @@ func _draw() -> void:
 			var can: bool = run.gold >= price
 			_price_tag(at + Vector2(0, -floorf(tex.get_height() / 2.0) - 9 - bob), price, can)
 		elif def.behavior == "merchant":
-			_label(at + Vector2(0, -12), "SHOP %d" % ceili(o.left), Palette.BUTTER)
+			_label(at + Vector2(0, -12), "Shop %d" % ceili(o.left), Palette.BUTTER)
 	if not risks.is_empty():
 		var left := 0.0
 		for r in risks:
 			left = maxf(left, r.left)
-		_label(run.player_pos() + Vector2(0, -16), "RISK %d" % ceili(left), Palette.RED)
+		_label(run.player_pos() + Vector2(0, -16), "Risk %d" % ceili(left), Palette.RED)
 
 
 ## Cached pillar textures: "color|height|phase" -> ImageTexture. A column of

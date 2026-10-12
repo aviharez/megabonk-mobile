@@ -10,7 +10,7 @@ const KNOB := 6
 const DEAD_ZONE := 0.15
 
 var direction := Vector2.ZERO
-## First runs: a ghost stick at the bottom with "DRAG ANYWHERE TO MOVE",
+## First runs: a ghost stick at the bottom with "Drag anywhere to move.",
 ## gone after the first touch.
 var hint := false:
 	set(v):
@@ -124,7 +124,7 @@ func _draw_hint() -> void:
 	if UiArt.has("stick_base") and UiArt.has("stick_knob"):
 		UiArt.sprite(self, "stick_base", (base - Vector2(UiArt.sprite_size("stick_base")) / 2.0).round())
 		UiArt.sprite(self, "stick_knob", (base + sway - Vector2(UiArt.sprite_size("stick_knob")) / 2.0).round())
-	var text := "DRAG ANYWHERE TO MOVE"
+	var text := "Drag anywhere to move."
 	var tw := Fonts.BOLD.get_string_size(text, HORIZONTAL_ALIGNMENT_LEFT, -1, 8).x
 	var at := Vector2(floorf((size.x - tw) / 2.0), base.y - RADIUS - 8)
 	if int(_hint_t * 2.0) % 4 != 3:

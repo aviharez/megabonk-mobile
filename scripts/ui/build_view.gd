@@ -68,14 +68,14 @@ func _draw() -> void:
 		return
 	_hit.clear()
 	var y := 0.0
-	_heading("BUILD", y, hint)
+	_heading("Build", y, hint)
 	y += 12
 	_slots("weapons", weapons, weapon_slots, y, Palette.RED)
 	_slots("tomes", tomes, tome_slots, y + SLOT + GAP, Palette.BLUE)
 	y += (SLOT + GAP) * 2
 	if items.is_empty():
 		return
-	_heading("ITEMS", y)
+	_heading("Items", y)
 	y += 12
 	var x := 0.0
 	for id: String in items:

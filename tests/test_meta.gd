@@ -294,7 +294,7 @@ func test_at_most_keeps_the_lowest(t) -> void:
 	Meta.commit_run(db, d, {}, "sir_loaf", 0)  # no boss: no value
 	var p := Meta.progress(db, d, ch)
 	t.check(p.value == 300.0 and not p.done and is_equal_approx(p.frac, 240.0 / 300.0), "best 300 s, 80%% there: %s" % p)
-	t.check(Meta.progress_text(ch, p) == "BEST 5:00 / 4:00", Meta.progress_text(ch, p))
+	t.check(Meta.progress_text(ch, p) == "Best 5:00 / 4:00", Meta.progress_text(ch, p))
 	Meta.commit_run(db, d, {"boss_defeated": 1.0, "boss_defeated_at": 200.0}, "sir_loaf", 0)
 	t.check(Meta.state(db, d, "cursed_diary") == "available", "200 s: done")
 
@@ -320,7 +320,7 @@ func test_closest_challenges_and_ready_to_buy(t) -> void:
 	var rows := run.find_children("*", "ChallengeRow", true, false)
 	var texts := run._over_list.get_children().filter(func(n: Node) -> bool: return n is Label).map(func(l: Label) -> String: return l.text)
 	t.check(rows.size() == 3, "game over shows 3 closest (%d)" % rows.size())
-	t.check(texts.has("READY TO BUY") and texts.any(func(s: String) -> bool: return s.contains("Fireworks")), "and what's ready to buy: %s" % [texts])
+	t.check(texts.has("Ready to buy") and texts.any(func(s: String) -> bool: return s.contains("Fireworks")), "and what's ready to buy: %s" % [texts])
 	var save: Node = run._save
 	_done(t, run)
 	save.free()

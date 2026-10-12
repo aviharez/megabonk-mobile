@@ -6,19 +6,19 @@ extends MenuScreen
 
 
 func _init(save_node: Node) -> void:
-	super(save_node, "TOGGLER")
+	super(save_node, "Toggler")
 
 
 func _fill() -> void:
 	var data: Dictionary = save.data
 	var slots := Meta.toggler_slots(db, data)
-	heading("OFF %d/%d" % [data.toggled_off.size(), slots], Palette.SALMON)
+	heading("Off %d/%d" % [data.toggled_off.size(), slots], Palette.SALMON)
 	var cat := ""
 	for e: Dictionary in Meta.toggleable(db, data):
 		var c := Meta.category_of(db, e.id)
 		if c != cat:
 			cat = c
-			heading(c.to_upper())
+			heading({"weapons": "Weapons", "tomes": "Manuals", "items": "Items"}.get(c, c.capitalize()))
 		var off: bool = data.toggled_off.has(e.id)
 		var b := PixelButton.new()
 		b.label = e.name

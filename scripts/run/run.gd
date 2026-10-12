@@ -317,7 +317,7 @@ func _ready() -> void:
 	_music("gameplay")
 	_render()
 	if not options.get("bot", false) and not options.get("stress", false):
-		_hud.banner("SURVIVE!", Palette.BUTTER, 1.5)
+		_hud.banner("Survive!", Palette.BUTTER, 1.5)
 		_joystick.hint = int(meta.get("runs_played", 0)) < 2
 
 
@@ -557,7 +557,7 @@ func damage_player(amount: float, source: String, contact := false, pierce := fa
 		return false
 	_iframes = rules.player_iframes
 	if rng.randf() < stat("evasion"):
-		numbers.show_text(_pos, "MISS")
+		numbers.show_text(_pos, "Miss")
 		juice.sfx("dodge")
 		fx.star(_pos, 4.0, Palette.WHITE)
 		return false
@@ -726,9 +726,9 @@ func show_item_card(id: String) -> void:
 	var def := db.get_entry("items", id)
 	var loot := db.get_entry("rules", "loot")
 	var n := items.count(id)
-	var tag := "%s ITEM" % String(loot.rarity_names.get(def.rarity, ""))
+	var tag := "%s item" % String(loot.rarity_names.get(def.rarity, ""))
 	if n > 1:
-		tag += "  X%d" % n
+		tag += "  ×%d" % n
 	_hud.pickup_card(Icons.texture(db, "items", id), def.name, tag, def.get("desc", ""), Palette.index_of(loot.rarity_colors[def.rarity]))
 
 
@@ -745,7 +745,7 @@ func open_chest(kind: String, at := Vector2.INF) -> String:
 	var cb: Dictionary = fx_rules.get("chest_beam", {})
 	var wait := float(cb.get("time", 0.5))
 	var color := "GOLD"
-	var text := "+GOLD"
+	var text := "+Gold"
 	if id == "":
 		add_gold(db.get_entry("rules", "loot").get("empty_chest_gold", 0.0))
 	else:
@@ -832,7 +832,7 @@ func summon_boss(id: String, at: Vector2) -> bool:
 		return false
 	var slot := spawn_enemy(id, at + Vector2(0, -24))
 	if slot < 0:
-		toast("THE ALTAR FIZZLES. TRY AGAIN", "RED")
+		toast("The altar fizzles. Try again.", "RED")
 		return false
 	boss_summoned = true
 	boss = MegaMole.new(self, slot)
@@ -927,7 +927,7 @@ func _director_events() -> void:
 	for ev in director.events:
 		match ev:
 			"swarm_warning":
-				_hud.banner("SWARM INCOMING!", Palette.RED)
+				_hud.banner("Swarm incoming!", Palette.RED)
 				juice.sfx("alarm")
 			"swarm_start":
 				_swarm_hit = false
@@ -935,21 +935,21 @@ func _director_events() -> void:
 			"swarm_end":
 				if not _swarm_hit and hp > 0.0:
 					record("swarm_survived_no_damage")
-				toast("SWARM OVER", "LIME")
+				toast("Swarm over", "LIME")
 				juice.sfx("shrine")
 				fx.ring(_pos, 24.0, Palette.LIME, 0.4)
 			"final_start":
-				_hud.banner("FINAL SWARM!", Palette.PINK)
+				_hud.banner("Final Swarm!", Palette.PINK)
 				record("final_swarm_reached")
 				juice.sfx("final")
 				juice.shake("boss_slam")
 				juice.start_final_tint()
 				_music("boss")
 			"bills_start":
-				_hud.banner("BILLS ARE DUE!", Palette.PAPER)
+				_hud.banner("Bills are due!", Palette.PAPER)
 				juice.sfx("bills")
 			"bills_faster":
-				toast("THE BILLS GROW IMPATIENT", "PAPER")
+				toast("The bills grow impatient.", "PAPER")
 				juice.sfx("bills")
 
 
@@ -1211,7 +1211,7 @@ func _elite_killed(id: String, at: Vector2, splits: int, defeated := true) -> vo
 		_elites_since_key = 0
 		_keys_dropped += 1
 		interactables.add(key.drop, free_spot_near(at + Vector2(8, 0)))
-		toast("AN ELITE DROPPED A KEY!", "GOLD")
+		toast("An elite dropped a key!", "GOLD")
 
 
 func _boss_killed(at: Vector2) -> void:
@@ -1226,7 +1226,7 @@ func _boss_killed(at: Vector2) -> void:
 	var portal := free_spot_near(at + Vector2(0, 20))
 	interactables.add("portal", portal)
 	enemy_shots.clear()
-	_hud.banner("PORTAL OPEN!", Palette.PURPLE)
+	_hud.banner("Portal open!", Palette.PURPLE)
 	boss = null
 	var h: Dictionary = fx_rules.get("hitstop", {})
 	juice.hitstop(float(h.get("boss_down", 0.12)))
@@ -1257,7 +1257,7 @@ func _tick_merchant() -> void:
 			at = p
 			break
 	interactables.add(m.id, at)
-	toast("A MERCHANT APPEARED!", "BUTTER", 2.5)
+	toast("A merchant appeared!", "BUTTER", 2.5)
 	juice.sfx("merchant")
 	fx.puff(at, 8.0, Palette.MIST, 0.4)
 	fx.sparks(at, 10.0, Palette.BUTTER)
@@ -1275,7 +1275,7 @@ func _tick_hint(minute: float) -> void:
 	var first: bool = options.get("first_run", _first_run())
 	if first:
 		interactables.altar_pulse = true
-		toast("STAND ON THE ALTAR TO CALL THE BOSS", "RED", 4.0)
+		toast("Stand on the altar to call the boss.", "RED", 4.0)
 
 
 func _first_run() -> bool:
@@ -1332,7 +1332,7 @@ func _show_cards() -> void:
 		if b.visible:
 			var card: Dictionary = _cards[i]
 			# The plain text stays on the button for tests and bots.
-			b.label = "\n".join(Array(LevelUpCards.describe(card)).map(func(l: String) -> String: return l.replace("  NEW!", "")))
+			b.label = "\n".join(Array(LevelUpCards.describe(card)).map(func(l: String) -> String: return l.replace("  New!", "")))
 			var top := int(rules.max_level)
 			if card.kind == "weapon":
 				top = mini(top, card.def.levels.size())
@@ -1506,7 +1506,7 @@ func revive() -> void:
 	_revive_panel.hide()
 	state = "live"
 	get_tree().paused = false
-	toast("BACK FOR SECONDS!", "LIME")
+	toast("Back for seconds!", "LIME")
 	juice.sfx("revive")
 	fx.ring(_pos, r, Palette.LIME, 0.4)
 	fx.sparks(_pos, 16.0, Palette.LIME)
@@ -1530,7 +1530,7 @@ func skip_level() -> bool:
 		return false
 	charges.skip -= 1
 	add_gold(float(Meta.action_entry(db, "skip").get("gold", 0.0)))
-	toast("SKIPPED", "GOLD")
+	toast("Skipped", "GOLD")
 	_level_done()
 	return true
 
@@ -1548,7 +1548,7 @@ func banish_card(i: int) -> bool:
 	charges.banish -= 1
 	_banish_mode = false
 	pool.banish(_cards[i].id)
-	toast("BANISHED " + String(_cards[i].def.name), "SALMON")
+	toast("Banished " + String(_cards[i].def.name), "SALMON")
 	var shown := {}
 	for c: Dictionary in _cards:
 		shown[c.kind + ":" + c.id] = true
@@ -1583,23 +1583,23 @@ func open_shrine_choice(def: Dictionary) -> void:
 	var opts := []
 	var faces := [Palette.SKY, Palette.LIME, Palette.BUTTER]
 	for c: Dictionary in offer:
-		# "AREA +8%": the name, and the value shown big.
+		# "Area +8%": the name, and the value shown big.
 		var desc: String = c.desc
 		var cut := desc.rfind(" ")
 		var value := desc.substr(cut + 1) if cut > 0 else ""
 		opts.append({"label": desc, "face": faces[opts.size() % faces.size()], "enabled": true, "art": _stat_icon(c.stat),
 			"title": desc.substr(0, cut) if cut > 0 else desc, "value": value,
-			"tag": "BEACON", "desc": _bonus_preview(c, value.ends_with("%"))})
-	_show_choice("PICK A BONUS", opts, "", func(i: int) -> bool:
+			"tag": "Beacon", "desc": _bonus_preview(c, value.ends_with("%"))})
+	_show_choice("Pick a bonus", opts, "", func(i: int) -> bool:
 		var c: Dictionary = offer[i]
 		var before := stat("max_hp")
 		stats.set_modifier(c.stat, src, float(c.get("flat", 0.0)), float(c.get("pct", 0.0)))
 		heal(maxf(0.0, stat("max_hp") - before))
-		_hud.pickup_card(_stat_icon(c.stat), c.desc, "BEACON BONUS", "LASTS THE WHOLE RUN", Palette.SKY)
+		_hud.pickup_card(_stat_icon(c.stat), c.desc, "Beacon bonus", "Lasts the whole run.", Palette.SKY)
 		return true)
 
 
-## "NOW 150 > 165": the stat now and with shrine bonus `c` (tried on and
+## "Now 150 > 165": the stat now and with shrine bonus `c` (tried on and
 ## taken off again). Percent bonuses on small stats (multipliers, chances)
 ## read as percents.
 func _bonus_preview(c: Dictionary, pct: bool) -> String:
@@ -1612,7 +1612,7 @@ func _bonus_preview(c: Dictionary, pct: bool) -> String:
 		if as_pct:
 			return "%d%%" % roundi(v * 100.0)
 		return LevelCard._num(snappedf(v, 0.1)) if absf(v) < 10.0 else str(roundi(v))
-	return "NOW %s > %s" % [f.call(before), f.call(after)]
+	return "Now %s > %s" % [f.call(before), f.call(after)]
 
 
 ## The icon of a tome that raises `stat` (shrine bonuses borrow it), or null.
@@ -1631,22 +1631,22 @@ func open_merchant(o: Dictionary) -> void:
 		var opts := []
 		for st: Dictionary in o.stock:
 			var item := db.get_entry("items", st.item)
-			var price_text := "SOLD" if st.sold else "G %d" % st.price
+			var price_text := "Sold" if st.sold else "G %d" % st.price
 			var ok := _can_hold(st.item)
 			if not st.sold and not ok:
-				price_text = "YOU HAVE ONE"
+				price_text = "You have one"
 			var label := "%s\n%s\n%s  %s" % [item.name, item.get("desc", ""), loot.rarity_names[item.rarity], price_text]
 			var opt := {"label": label, "face": Palette.index_of(loot.rarity_colors[item.rarity]), "enabled": not st.sold and ok and gold >= st.price,
-				"art": Icons.texture(db, "items", st.item), "title": item.name, "tag": loot.rarity_names[item.rarity] + " ITEM",
+				"art": Icons.texture(db, "items", st.item), "title": item.name, "tag": loot.rarity_names[item.rarity] + " item",
 				"desc": item.get("desc", ""), "price": st.price, "afford": gold >= st.price}
 			if st.sold:
-				opt.stamp = "SOLD"
+				opt.stamp = "Sold"
 			elif not ok:
-				opt.stamp = "HAVE ONE"
+				opt.stamp = "Have one"
 				opt.stamp_color = Palette.SHADE
 			opts.append(opt)
 		return opts
-	_show_choice("MERCHANT", refresh.call(), "LEAVE", func(i: int) -> bool:
+	_show_choice("Merchant", refresh.call(), "Leave", func(i: int) -> bool:
 		var st: Dictionary = o.stock[i]
 		if st.sold or gold < st.price or not _can_hold(st.item):
 			return false
@@ -1701,7 +1701,7 @@ func _set_choice_options(opts: Array) -> void:
 				b.position.x = CARD_X
 				UiFx.slide_in(b, Vector2(180, 0), 0.25, 0.06 * i)
 	# The merchant shows your gold (it changes as you buy); shrines just ask.
-	_choice_sub.text = ("YOUR GOLD  %d" % gold) if _choice.get("leave", "") != "" else "PICK ONE"
+	_choice_sub.text = ("Your gold  %d" % gold) if _choice.get("leave", "") != "" else "Pick one"
 
 
 func _on_choice(i: int) -> void:
@@ -1767,28 +1767,28 @@ func _end(reason: String) -> void:
 		return  # headless sims read `result`; no screen to show
 	_joystick.release()
 	get_tree().paused = true
-	var title := "TOASTED!"
+	var title := "Toasted!"
 	var color := Palette.PAPER  # titles sit on the red ribbon
 	match reason:
 		"portal":
-			title = "ESCAPED!"
+			title = "Escaped!"
 			color = Palette.BUTTER
 		"bills":
-			title = "OVERDUE!"
+			title = "Overdue!"
 			color = Palette.PAPER
 		"gave_up":
-			title = "GAVE UP"
+			title = "Gave up"
 		_:
 			if reached_final:
-				title = "SWARMED!"
+				title = "Swarmed!"
 				color = Palette.PAPER
 	_set_title(_over_title, title)
 	_over_text.text = _over_lines()
 	_over_reason.text = {
-		"portal": "YOU GOT OUT. THE TOWN THANKS YOU.",
-		"bills": "THE BILLS CAUGHT UP WITH YOU.",
-		"gave_up": "EVEN HEROES NEED A NAP.",
-	}.get(reason, "THE SWARM WAS TOO MUCH." if not reached_final else "YOU HELD ON TO THE VERY END!")
+		"portal": "You got out. The town thanks you.",
+		"bills": "The bills caught up with you.",
+		"gave_up": "Even heroes need a nap.",
+	}.get(reason, "The swarm was too much." if not reached_final else "You held on to the very end!")
 	_show_over_hero(won)
 	_over_tiles.queue_redraw()
 	_sync_over_coins(false)
@@ -1835,9 +1835,9 @@ func _sync_over_coins(roll: bool) -> void:
 	var earned := int(result.coins) * (2 if result.get("coins_doubled", false) else 1)
 	var mult := ""
 	if result.get("coins_doubled", false):
-		mult = "DOUBLED!"
+		mult = "Doubled!"
 	elif director.coin_mult() > 1.0:
-		mult = "FINAL SWARM X%.1f" % director.coin_mult()
+		mult = "Final Swarm ×%.1f" % director.coin_mult()
 	# Only what this run earned: the wallet total is the menu's business.
 	_over_mult.text = mult
 	if roll:
@@ -1848,15 +1848,15 @@ func _sync_over_coins(roll: bool) -> void:
 
 func _over_lines() -> String:
 	var sec := int(minf(elapsed, rules.run_length_sec))
-	var lines := "TIME %d:%02d   LEVEL %d\nKO %d" % [sec / 60, sec % 60, level, kills]
+	var lines := "Time %d:%02d   Level %d\nKO %d" % [sec / 60, sec % 60, level, kills]
 	if final_swarm():
 		var f := int(director.final_time)
-		lines += "\nFINAL SWARM +%d:%02d" % [f / 60, f % 60]
-	lines += "\nCOINS +%d" % (result.coins * (2 if result.get("coins_doubled", false) else 1))
+		lines += "\nFinal Swarm +%d:%02d" % [f / 60, f % 60]
+	lines += "\nCoins +%d" % (result.coins * (2 if result.get("coins_doubled", false) else 1))
 	if result.get("coins_doubled", false):
-		lines += "  X2"
+		lines += "  ×2"
 	elif director.coin_mult() > 1.0:
-		lines += "  X%.1f" % director.coin_mult()
+		lines += "  ×%.1f" % director.coin_mult()
 	if _save != null:
 		lines += "  (%d)" % int(meta.coins)
 	return lines
@@ -1880,7 +1880,7 @@ func _on_double_pressed() -> void:
 			_save.save_game()
 			_over_text.text = _over_lines()
 			_sync_over_coins(true)
-			toast("COINS X2!", "GOLD")
+			toast("Coins ×2!", "GOLD")
 		_double_btn.visible = _can_double())
 
 
@@ -1898,23 +1898,23 @@ func _fill_over_progress() -> void:
 	_over_list.add_child(bv)
 	var next := Meta.closest(db, meta, 3)
 	if not next.is_empty():
-		_over_list.add_child(_small_label("NEXT UNLOCKS", Palette.BUTTER))
+		_over_list.add_child(_small_label("Next unlocks", Palette.BUTTER))
 		for n: Dictionary in next:
 			var row := ChallengeRow.new().setup(n.challenge, n.progress, Meta.kind_name(db, n.challenge.reward))
 			_over_list.add_child(row)
 	var ready := Meta.ready_to_buy(db, meta)
 	if not ready.is_empty():
-		_over_list.add_child(_small_label("READY TO BUY", Palette.LIME))
+		_over_list.add_child(_small_label("Ready to buy", Palette.LIME))
 		var just := {}
 		for id: String in result.get("completed", []):
 			just[db.get_entry("challenges", id).reward] = true
 		for i in mini(ready.size(), 3):
 			var id: String = ready[i]
 			var price := int(Meta.challenge_for(db, id).price)
-			var tag := "NEW! " if just.has(id) else ""
+			var tag := "New! " if just.has(id) else ""
 			_over_list.add_child(_small_label("%s%s  C %d" % [tag, Meta.content(db, id).name, price], Palette.LIME if just.has(id) else Palette.PAPER))
 		if ready.size() > 3:
-			_over_list.add_child(_small_label("+%d MORE IN UNLOCKS" % (ready.size() - 3), Palette.MIST))
+			_over_list.add_child(_small_label("+%d more in Unlocks" % (ready.size() - 3), Palette.MIST))
 
 
 func _small_label(text: String, color: int) -> Label:
@@ -2165,7 +2165,7 @@ func _render() -> void:
 	_hud.xp = xp
 	_hud.xp_need = xp_needed(rules.xp_curve, level)
 	_hud.boss_frac = boss.hp_frac() if boss != null and boss.alive() else -1.0
-	_hud.boss_name = "MEGA MOLE" if boss == null else String(enemies.types[enemies.type_of[boss.slot]].name)
+	_hud.boss_name = "Mega Mole" if boss == null else String(enemies.types[enemies.type_of[boss.slot]].name)
 	_hud.coin_mult = director.coin_mult()
 	_hud.challenge = interactables.challenge_status()
 	_hud.has_key = interactables.has_key
@@ -2494,7 +2494,7 @@ func _build_ui() -> void:
 
 	# Revive offer (rewarded ad) after a death.
 	_revive_panel = _panel(ui, Rect2(16, 84, 148, 150), Palette.NIGHT)
-	_title(_revive_panel, "TOASTED?", Palette.PAPER, 6)  # on the red ribbon
+	_title(_revive_panel, "Toasted?", Palette.PAPER, 6)  # on the red ribbon
 	var hit := EnemySystem.load_sheet({"sheet": char_def.get("sheets", {}).get("hit", char_def.get("sheets", {}).get("idle", ""))})
 	if not hit.is_empty():
 		var sv := SheetView.new(hit)
@@ -2502,14 +2502,14 @@ func _build_ui() -> void:
 		sv.position = Vector2(74 - sv.frame_size().x, 30)
 		_revive_panel.add_child(sv)
 	var why := Label.new()
-	why.text = "WATCH AN AD TO\nGET BACK UP!"
+	why.text = "Watch an ad to\nget back up!"
 	why.position = Vector2(0, 80)
 	why.size = Vector2(148, 20)
 	why.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
 	why.add_theme_color_override("font_color", Palette.color(Palette.MIST))
 	_revive_panel.add_child(why)
 	_revive_btn = AdButton.new()
-	_revive_btn.label = "REVIVE"
+	_revive_btn.label = "Revive"
 	_revive_btn.face = Palette.LIME
 	_revive_btn.position = Vector2(14, 102)
 	_revive_btn.custom_minimum_size = Vector2(120, 22)
@@ -2517,7 +2517,7 @@ func _build_ui() -> void:
 	_revive_btn.pressed.connect(_on_revive_pressed)
 	_revive_panel.add_child(_revive_btn)
 	var no := PixelButton.new()
-	no.label = "NO THANKS"
+	no.label = "No thanks"
 	no.face = Palette.MIST
 	no.small_text = true
 	no.position = Vector2(34, 126)
@@ -2539,7 +2539,7 @@ func _build_pause(ui: CanvasLayer) -> void:
 	_pause_panel = _panel(ui, Rect2(6, 26, 168, 270), Palette.NIGHT)
 	_pause_panel.anchor_top = 0.0
 	_pause_panel.anchor_bottom = 1.0
-	_title(_pause_panel, "PAUSED", Palette.PAPER, 6)
+	_title(_pause_panel, "Paused", Palette.PAPER, 6)
 	_pause_facts = Label.new()
 	_pause_facts.position = Vector2(0, 31)
 	_pause_facts.size = Vector2(168, 10)
@@ -2554,7 +2554,7 @@ func _build_pause(ui: CanvasLayer) -> void:
 		_pause_pick = [kind, id]
 		_pause_info.queue_redraw())
 	_pause_panel.add_child(_pause_build)
-	_pause_build.hint = "TAP TO SEE"
+	_pause_build.hint = "Tap to see"
 	_pause_info = Control.new()
 	_pause_info.size = Vector2(152, 46)
 	_pause_info.mouse_filter = Control.MOUSE_FILTER_IGNORE
@@ -2570,7 +2570,7 @@ func _build_pause(ui: CanvasLayer) -> void:
 		var key: String = ["music", "sfx"][i]
 		var t := PixelButton.new()
 		t.name = "Toggle_" + key
-		t.label = ["MUSIC", "SOUND"][i]
+		t.label = ["Music", "Sound"][i]
 		t.face = Palette.MIST
 		t.small_text = true
 		t.position = Vector2(10 + i * 76, 182)
@@ -2583,7 +2583,7 @@ func _build_pause(ui: CanvasLayer) -> void:
 		_pause_panel.add_child(t)
 		_pause_toggles[key] = t
 	var resume := PixelButton.new()
-	resume.label = "RESUME"
+	resume.label = "Resume"
 	resume.face = Palette.GREEN
 	resume.position = Vector2(10, 204)
 	resume.custom_minimum_size = Vector2(148, 28)
@@ -2592,7 +2592,7 @@ func _build_pause(ui: CanvasLayer) -> void:
 	_pause_panel.add_child(resume)
 	_pause_resume = resume
 	_give_up = PixelButton.new()
-	_give_up.label = "GIVE UP"
+	_give_up.label = "Give up"
 	_give_up.face = Palette.SALMON
 	_give_up.position = Vector2(30, 238)
 	_give_up.custom_minimum_size = Vector2(108, 20)
@@ -2600,7 +2600,7 @@ func _build_pause(ui: CanvasLayer) -> void:
 	_give_up.pressed.connect(func() -> void:
 		if not _give_up_armed:
 			_give_up_armed = true
-			_give_up.label = "REALLY? TAP AGAIN"
+			_give_up.label = "Really? Tap again"
 			_give_up.face = Palette.RED
 			get_tree().create_timer(2.5, true).timeout.connect(_disarm_give_up)
 			return
@@ -2632,14 +2632,14 @@ func _layout_pause(h: float) -> void:
 
 func _disarm_give_up() -> void:
 	_give_up_armed = false
-	_give_up.label = "GIVE UP"
+	_give_up.label = "Give up"
 	_give_up.face = Palette.SALMON
 
 
 ## Fills the pause panel with the run so far.
 func _sync_pause() -> void:
 	var sec := int(minf(elapsed, rules.run_length_sec))
-	_pause_facts.text = "%d:%02d   LV %d   KO %d" % [sec / 60, sec % 60, level, kills]
+	_pause_facts.text = "%d:%02d   Lv %d   KO %d" % [sec / 60, sec % 60, level, kills]
 	_pause_build.setup(db, owned_weapons, owned_tomes, items.stacks, int(rules.weapon_slots), int(rules.tome_slots))
 	if _pause_pick.is_empty() or not _pause_has(_pause_pick):
 		_pause_pick = ["weapons", owned_weapons.keys()[0]] if not owned_weapons.is_empty() else []
@@ -2690,7 +2690,7 @@ func _build_over(ui: CanvasLayer) -> void:
 	_over_text.visible = false
 	p.add_child(_over_text)
 	var coins_cap := Label.new()
-	coins_cap.text = "COINS EARNED"
+	coins_cap.text = "Coins earned"
 	coins_cap.position = Vector2(10, 101)
 	Fonts.bold(coins_cap)
 	coins_cap.add_theme_color_override("font_color", Palette.color(Palette.GOLD))
@@ -2707,7 +2707,7 @@ func _build_over(ui: CanvasLayer) -> void:
 	p.add_child(_over_mult)
 	# 2x coins (rewarded ad), right under the coins it doubles.
 	_double_btn = AdButton.new()
-	_double_btn.label = "2X COINS"
+	_double_btn.label = "2× coins"
 	_double_btn.face = Palette.GOLD
 	_double_btn.position = Vector2(26, 122)
 	_double_btn.custom_minimum_size = Vector2(120, 20)
@@ -2733,13 +2733,13 @@ func _build_over(ui: CanvasLayer) -> void:
 	scroll.add_child(_over_list)
 	_again_btn = PixelButton.new()
 	_again_btn.name = "PlayAgain"
-	_again_btn.label = "PLAY AGAIN"
+	_again_btn.label = "Play again"
 	_again_btn.face = Palette.GREEN
 	_again_btn.pressed.connect(_play_again)
 	p.add_child(_again_btn)
 	_menu_btn = PixelButton.new()
 	_menu_btn.name = "Menu"
-	_menu_btn.label = "MENU"
+	_menu_btn.label = "Menu"
 	_menu_btn.face = Palette.MIST
 	_menu_btn.pressed.connect(_to_menu)
 	p.add_child(_menu_btn)
@@ -2817,31 +2817,31 @@ func _draw_pause_info() -> void:
 	match kind:
 		"weapons":
 			var lvl := int(owned_weapons[id])
-			sub = "WEAPON  LV %d/%d" % [lvl, def.levels.size()]
+			sub = "Weapon  Lv %d/%d" % [lvl, def.levels.size()]
 			sub_c = Palette.SALMON
 			var ld: Dictionary = def.levels[lvl - 1]
 			if ld.has("damage"):
-				extra = "DMG %d   " % roundi(float(ld.damage) * stat("damage"))
+				extra = "Dmg %d   " % roundi(float(ld.damage) * stat("damage"))
 			extra += "KO %d" % int(run_stats.get("kills." + id, 0.0))
 		"tomes":
 			var lvl := int(owned_tomes[id])
-			sub = "MANUAL  LV %d/%d" % [lvl, int(rules.get("max_level", 5))]
+			sub = "Manual  Lv %d/%d" % [lvl, int(rules.get("max_level", 5))]
 			sub_c = Palette.SKY
-			extra = "EACH LEVEL: " + desc
+			extra = "Each level: " + desc
 			desc = _tome_total(def, lvl)
 		"items":
 			var loot := db.get_entry("rules", "loot")
-			sub = "%s ITEM" % String(loot.rarity_names.get(def.rarity, ""))
+			sub = "%s item" % String(loot.rarity_names.get(def.rarity, ""))
 			sub_c = Palette.index_of(loot.rarity_colors.get(def.rarity, "MIST"))
 			if int(items.stacks[id]) > 1:
-				sub += "  X%d" % int(items.stacks[id])
+				sub += "  ×%d" % int(items.stacks[id])
 	ci.draw_string(Fonts.SMALL, Vector2(26, 20), sub, HORIZONTAL_ALIGNMENT_LEFT, -1, 8, Palette.color(sub_c))
 	ci.draw_string(Fonts.SMALL, Vector2(5, 32), desc, HORIZONTAL_ALIGNMENT_LEFT, r.size.x - 8, 8, Palette.color(Palette.PAPER))
 	ci.draw_string(Fonts.SMALL, Vector2(5, 42), extra, HORIZONTAL_ALIGNMENT_LEFT, r.size.x - 8, 8, Palette.color(Palette.LIME))
 
 
 ## What a tome gives in total at `lvl`: the first number in its per-level
-## description times the level ("+10% DAMAGE" at LV 3 -> "NOW +30% DAMAGE").
+## description times the level ("+10% damage" at Lv 3 -> "Now +30% damage").
 func _tome_total(def: Dictionary, lvl: int) -> String:
 	var desc: String = def.get("desc", "")
 	var re := RegEx.new()
@@ -2857,11 +2857,11 @@ func _tome_total(def: Dictionary, lvl: int) -> String:
 func _draw_pause_stats() -> void:
 	var ci := _pause_stats
 	var rows := [
-		["DMG", "X%.2f" % stat("damage")], ["ARMOR", "%d" % int(stat("armor"))],
-		["SPEED", "%d" % int(stat("move_speed"))], ["REGEN", "%.1f" % stat("regen")],
-		["CRIT", "%d%%" % roundi(stat("crit_chance") * 100.0)], ["LUCK", "%d%%" % roundi(stat("luck") * 100.0)],
+		["Dmg", "×%.2f" % stat("damage")], ["Armor", "%d" % int(stat("armor"))],
+		["Speed", "%d" % int(stat("move_speed"))], ["Regen", "%.1f" % stat("regen")],
+		["Crit", "%d%%" % roundi(stat("crit_chance") * 100.0)], ["Luck", "%d%%" % roundi(stat("luck") * 100.0)],
 	]
-	ci.draw_string(Fonts.BOLD, Vector2(0, 8), "STATS", HORIZONTAL_ALIGNMENT_LEFT, -1, 8, Palette.color(Palette.MIST))
+	ci.draw_string(Fonts.BOLD, Vector2(0, 8), "Stats", HORIZONTAL_ALIGNMENT_LEFT, -1, 8, Palette.color(Palette.MIST))
 	ci.draw_rect(Rect2(38, 4, ci.size.x - 38, 1), Palette.color(Palette.SHADE))
 	for i in rows.size():
 		var at := Vector2((i % 2) * 74, 18 + (i / 2) * 9)
@@ -2875,10 +2875,10 @@ func _draw_over_tiles() -> void:
 	var ci := _over_tiles
 	var sec := int(minf(elapsed, rules.run_length_sec))
 	var tiles := [
-		["clock", "%d:%02d" % [sec / 60, sec % 60], "TIME"],
-		["star", str(level), "LEVEL"],
+		["clock", "%d:%02d" % [sec / 60, sec % 60], "Time"],
+		["star", str(level), "Level"],
 		["skull", str(kills), "KO"],
-		["coin", str(floori(gold)), "GOLD"],
+		["coin", str(floori(gold)), "Gold"],
 	]
 	for i in 4:
 		var at := Vector2((i % 2) * 51, (i / 2) * 27)

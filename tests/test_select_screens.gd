@@ -41,7 +41,7 @@ func test_maps_in_unlock_order_and_their_state(t) -> void:
 	Meta.commit_run(db, d, {"boss_defeated": 1.0}, "sir_loaf", 0, "suburbia")
 	t.check(d.maps_cleared.has("suburbia"), "beating Mega Mole clears Suburbia")
 	t.check(Meta.map_state(db, d, "sewers") == "soon", "a planned map whose turn came is 'soon', not playable")
-	t.check(Meta.map_hint(db, d, "sewers") == "COMING SOON", "and says COMING SOON")
+	t.check(Meta.map_hint(db, d, "sewers") == "Coming soon", "and says COMING SOON")
 
 
 func test_stat_pips_show_differences(t) -> void:

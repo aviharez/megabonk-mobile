@@ -175,7 +175,7 @@ func test_every_key_event_has_a_sound_and_an_effect(t) -> void:
 		["swarm warning", "alarm", func(r: Run) -> void:
 			r.director.events = ["swarm_warning"]
 			r._director_events(),
-			func(r: Run, _n: int) -> bool: return r._hud._banner.text == "SWARM INCOMING!"],
+			func(r: Run, _n: int) -> bool: return r._hud._banner.text == "Swarm incoming!"],
 		["boss summoned", "boss_roar", func(r: Run) -> void: r.summon_boss("mega_mole", r.player_pos() + Vector2(0, -60)),
 			func(r: Run, n: int) -> bool: return _fx_total(r) > n and r.juice._trauma > 0.0],
 		["boss defeated", "boss_down", func(r: Run) -> void: r.hit_enemy(r.boss.slot, 1.0e9, Vector2.ZERO, "baguette"),
@@ -188,7 +188,7 @@ func test_every_key_event_has_a_sound_and_an_effect(t) -> void:
 		["bills due", "bills", func(r: Run) -> void:
 			r.director.events = ["bills_start"]
 			r._director_events(),
-			func(r: Run, _n: int) -> bool: return r._hud._banner.text == "BILLS ARE DUE!"],
+			func(r: Run, _n: int) -> bool: return r._hud._banner.text == "Bills are due!"],
 		["low HP", "heartbeat", func(r: Run) -> void:
 			r.hp = r.stat("max_hp") * 0.1
 			r.juice.update(DT, 0.1),

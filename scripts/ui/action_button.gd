@@ -87,7 +87,7 @@ func _ready() -> void:
 
 
 ## Words for tests and screen readers (not drawn: the buttons are icon-only).
-const WORDS := {"reroll": "REROLL", "skip": "SKIP", "banish": "BANISH"}
+const WORDS := {"reroll": "Reroll", "skip": "Skip", "banish": "Banish"}
 
 
 func _draw() -> void:

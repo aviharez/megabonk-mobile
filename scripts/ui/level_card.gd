@@ -14,9 +14,9 @@ extends PixelButton
 ##                "stamp_color", "color", "art"})    any other choice
 
 const KIND := {
-	"weapon": ["WEAPON", Palette.RED],
-	"tome": ["MANUAL", Palette.BLUE],
-	"fallback": ["BONUS", Palette.ORANGE],
+	"weapon": ["Weapon", Palette.RED],
+	"tome": ["Manual", Palette.BLUE],
+	"fallback": ["Bonus", Palette.ORANGE],
 }
 ## Name colour per card colour (the lighter shade of the card's ramp).
 const NAME_COLOR := {Palette.RED: Palette.SALMON, Palette.BLUE: Palette.SKY, Palette.ORANGE: Palette.BUTTER,
@@ -237,19 +237,19 @@ func _tag() -> String:
 		var kind: Array = KIND.get(card.get("kind", ""), KIND.fallback)
 		var lvl := int(card.get("level", 0))
 		if card.get("is_new", false):
-			return "NEW " + kind[0]
-		return kind[0] + ("  LV %d" % lvl if lvl > 0 else "")
+			return "New " + kind[0]
+		return kind[0] + ("  Lv %d" % lvl if lvl > 0 else "")
 	return option.get("tag", "")
 
 
 ## Weapon level keys worth showing on a card, with their short names.
-const STAT_NAMES := [["damage", "DMG"], ["cooldown", "CD"], ["radius", "AREA"], ["count", "COUNT"],
-	["projectiles", "SHOTS"], ["swings", "SWINGS"], ["bounces", "BOUNCE"], ["pierce", "PIERCE"],
-	["duration", "TIME"], ["jumps", "JUMPS"], ["range", "RANGE"]]
+const STAT_NAMES := [["damage", "Dmg"], ["cooldown", "CD"], ["radius", "Area"], ["count", "Count"],
+	["projectiles", "Shots"], ["swings", "Swings"], ["bounces", "Bounce"], ["pierce", "Pierce"],
+	["duration", "Time"], ["jumps", "Jumps"], ["range", "Range"]]
 
 
-## "DMG 14 > 16  CD 1.2 > 1.1" for a weapon level-up (the first two keys that
-## change), "DMG 10  CD 1.3" for a new weapon, "+10% > +20%" for a tome.
+## "Dmg 14 > 16  CD 1.2 > 1.1" for a weapon level-up (the first two keys that
+## change), "Dmg 10  CD 1.3" for a new weapon, "+10% > +20%" for a tome.
 func stat_line() -> String:
 	var def: Dictionary = card.get("def", {})
 	var lvl := int(card.get("level", 0))
@@ -281,8 +281,8 @@ func stat_line() -> String:
 			var sign := desc.substr(m.get_start() - 1, 1) if m.get_start() > 0 else ""
 			var unit := "%" if desc.substr(m.get_end(), 1) == "%" else ""
 			if lvl == 1:
-				return "NOW %s%s%s" % [sign, _num(per), unit]
-			return "NOW %s%s%s > %s%s%s" % [sign, _num(per * (lvl - 1)), unit, sign, _num(per * lvl), unit]
+				return "Now %s%s%s" % [sign, _num(per), unit]
+			return "Now %s%s%s > %s%s%s" % [sign, _num(per * (lvl - 1)), unit, sign, _num(per * lvl), unit]
 	return ""
 
 

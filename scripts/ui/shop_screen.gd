@@ -14,11 +14,11 @@ const PANEL_H := 64
 
 var selected := ""
 var _store: Node
-var _notice := {}  # product key -> "FAILED, TRY AGAIN" etc. after a purchase flow
+var _notice := {}  # product key -> "Failed, try again." etc. after a purchase flow
 
 
 func _init(save_node: Node) -> void:
-	super(save_node, "SHOP")
+	super(save_node, "Shop")
 	# Start on the cheapest thing you can buy now, else the first entry.
 	var best := INF
 	for e: Dictionary in db.all("shop"):
@@ -43,7 +43,7 @@ func _fill() -> void:
 	if _store != null and not _store.products().is_empty():
 		for key: String in _store.products():
 			_product_row(key)
-	var groups := [["action", "LEVEL-UP ACTIONS", Palette.SKY], ["stat", "UPGRADES", Palette.LIME], ["toggler", "TOGGLER", Palette.PURPLE]]
+	var groups := [["action", "Level-up actions", Palette.SKY], ["stat", "Upgrades", Palette.LIME], ["toggler", "Toggler", Palette.PURPLE]]
 	for g: Array in groups:
 		var entries := db.all("shop").filter(func(e: Dictionary) -> bool: return e.kind == g[0])
 		if entries.is_empty():
@@ -73,7 +73,7 @@ func _tile(e: Dictionary) -> IconTile:
 		t.picture = _dark(t.picture)
 	elif price < 0:
 		t.state = "maxed"
-		t.tag = "MAX"
+		t.tag = "Max"
 	elif price <= int(data.coins):
 		t.state = "available"
 		t.tag = "!"
@@ -127,7 +127,7 @@ func _panel() -> void:
 	var x := 6 + IconTile.SIZE + 5
 	var tw := W + 4 - x - 6
 	bold_label(p, e.name, Vector2(x, 6), Palette.BUTTER if lvl > 0 else Palette.PAPER)
-	label(p, "LV %d/%d" % [lvl, top], Vector2(x, 6), Palette.MIST, HORIZONTAL_ALIGNMENT_RIGHT, tw)
+	label(p, "Lv %d/%d" % [lvl, top], Vector2(x, 6), Palette.MIST, HORIZONTAL_ALIGNMENT_RIGHT, tw)
 	var dl := label(p, e.desc, Vector2(x, 17), Palette.PAPER)
 	dl.autowrap_mode = TextServer.AUTOWRAP_WORD
 	dl.size = Vector2(tw, 20)
@@ -135,8 +135,8 @@ func _panel() -> void:
 	var note := ""
 	if e.kind in ["action", "toggler"]:
 		var next_lvl := mini(lvl + 1, top)
-		var per := "%d PER RUN" if e.kind == "action" else "%d OFF AT ONCE"
-		note = ("NOW " + per % int(e.charges[lvl - 1])) if lvl > 0 else ("GET " + per % int(e.charges[next_lvl - 1]))
+		var per := "%d per run" if e.kind == "action" else "%d off at once"
+		note = ("Now " + per % int(e.charges[lvl - 1])) if lvl > 0 else ("Get " + per % int(e.charges[next_lvl - 1]))
 	label(p, note, Vector2(6, 48), Palette.LIME)
 	var price := Meta.shop_price(data, e)
 	var br := Rect2(W - 58, 38, 58, 22)
@@ -144,12 +144,12 @@ func _panel() -> void:
 		var needs: Dictionary = e.needs
 		var why := ""
 		if needs.has("runs") and int(data.runs_played) < int(needs.runs):
-			why = "AFTER %d RUNS" % int(needs.runs)
+			why = "After %d runs" % int(needs.runs)
 		else:
-			why = "AFTER %d UNLOCKS" % int(needs.unlocks)
+			why = "After %d unlocks" % int(needs.unlocks)
 		label(p, why, Vector2(br.position.x - 40, 48), Palette.SALMON, HORIZONTAL_ALIGNMENT_RIGHT, br.size.x + 40)
 	elif price < 0:
-		bold_label(p, "MAX!", Vector2(br.position.x, 46), Palette.LIME, HORIZONTAL_ALIGNMENT_CENTER, br.size.x)
+		bold_label(p, "Max!", Vector2(br.position.x, 46), Palette.LIME, HORIZONTAL_ALIGNMENT_CENTER, br.size.x)
 	else:
 		var b := price_button(p, price, br, _buy.bind(e.id))
 		b.name = "Buy"
@@ -169,15 +169,15 @@ func _product_row(key: String) -> void:
 	dl.size = Vector2(W - 74, 20)
 	match st:
 		"owned":
-			bold_label(r, "OWNED", Vector2(W - 60, 15), Palette.LIME, HORIZONTAL_ALIGNMENT_RIGHT, 54)
+			bold_label(r, "Owned", Vector2(W - 60, 15), Palette.LIME, HORIZONTAL_ALIGNMENT_RIGHT, 54)
 		"buyable":
 			button(r, _store.price_text(key), Rect2(W - 64, 9, 60, 22), Palette.LIME, _buy_product.bind(key))
 		"busy":
-			label(r, "WAIT...", Vector2(W - 60, 11), Palette.MIST, HORIZONTAL_ALIGNMENT_RIGHT, 54)
+			label(r, "Wait...", Vector2(W - 60, 11), Palette.MIST, HORIZONTAL_ALIGNMENT_RIGHT, 54)
 		"pending":
-			label(r, "PENDING", Vector2(W - 60, 11), Palette.SALMON, HORIZONTAL_ALIGNMENT_RIGHT, 54)
+			label(r, "Pending", Vector2(W - 60, 11), Palette.SALMON, HORIZONTAL_ALIGNMENT_RIGHT, 54)
 		_:
-			label(r, "OFFLINE", Vector2(W - 60, 11), Palette.GRAY, HORIZONTAL_ALIGNMENT_RIGHT, 54)
+			label(r, "Offline", Vector2(W - 60, 11), Palette.GRAY, HORIZONTAL_ALIGNMENT_RIGHT, 54)
 
 
 func _buy_product(key: String) -> void:
@@ -185,7 +185,7 @@ func _buy_product(key: String) -> void:
 
 
 func _on_purchase_finished(key: String, status: String) -> void:
-	_notice[key] = {"failed": "FAILED, TRY AGAIN", "canceled": "CANCELED"}.get(status, "")
+	_notice[key] = {"failed": "Failed, try again.", "canceled": "Canceled."}.get(status, "")
 	refresh()
 
 

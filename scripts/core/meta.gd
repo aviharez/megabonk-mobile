@@ -119,7 +119,7 @@ static func picked_character(db: GameData, data: Dictionary) -> String:
 
 
 ## Character select stat bars: the stats shown, in order, with their labels.
-const SHOWN_STATS := [["max_hp", "HP"], ["move_speed", "SPEED"], ["damage", "DAMAGE"], ["pickup_range", "MAGNET"]]
+const SHOWN_STATS := [["max_hp", "HP"], ["move_speed", "Speed"], ["damage", "Damage"], ["pickup_range", "Magnet"]]
 const PIPS := 5
 
 
@@ -176,7 +176,7 @@ static func map_boss_name(db: GameData, id: String) -> String:
 static func map_hint(db: GameData, data: Dictionary, id: String) -> String:
 	match map_state(db, data, id):
 		"soon":
-			return "COMING SOON"
+			return "Coming soon"
 		"locked":
 			var prev: String = db.get_entry("maps", id).get("unlock_after", "")
 			var boss := map_boss_name(db, prev)
@@ -261,10 +261,10 @@ static func progress(db: GameData, data: Dictionary, ch: Dictionary) -> Dictiona
 	return {"value": v, "has_value": has, "frac": frac, "done": done, "blocked": not requirement_met(db, data, ch)}
 
 
-## Progress text, e.g. "1234/3000", "BEST 5:12 / 4:00", "BEST 31% / 20%".
+## Progress text, e.g. "1234/3000", "Best 5:12 / 4:00", "Best 31% / 20%".
 static func progress_text(ch: Dictionary, p: Dictionary) -> String:
 	if p.done:
-		return "DONE"
+		return "Done"
 	var fmt := func(x: float) -> String:
 		match ch.stat:
 			"boss_defeated_at", "final_swarm_seconds":
@@ -273,7 +273,7 @@ static func progress_text(ch: Dictionary, p: Dictionary) -> String:
 				return "%d%%" % roundi(x * 100.0)
 		return str(floori(x))
 	if _at_most(ch):
-		return "BEST %s / %s" % [fmt.call(p.value) if p.has_value else "-", fmt.call(float(ch.target))]
+		return "Best %s / %s" % [fmt.call(p.value) if p.has_value else "-", fmt.call(float(ch.target))]
 	return "%s/%s" % [fmt.call(minf(p.value, float(ch.target))), fmt.call(float(ch.target))]
 
 
@@ -504,6 +504,6 @@ static func toggle(db: GameData, data: Dictionary, id: String) -> bool:
 	return true
 
 
-## Short name of a content kind for silhouettes: "HERO", "WEAPON", "MANUAL", "ITEM".
+## Short name of a content kind for silhouettes: "Hero", "Weapon", "Manual", "Item".
 static func kind_name(db: GameData, id: String) -> String:
-	return {"characters": "HERO", "weapons": "WEAPON", "tomes": "MANUAL", "items": "ITEM"}.get(category_of(db, id), "?")
+	return {"characters": "Hero", "weapons": "Weapon", "tomes": "Manual", "items": "Item"}.get(category_of(db, id), "?")
