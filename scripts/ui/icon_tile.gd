@@ -61,9 +61,11 @@ func _draw() -> void:
 			hop = -2.0
 		var at := Vector2(floorf((size.x - s.x) / 2.0), y + floorf((r.size.y - s.y) / 2.0) + hop)
 		if state == "locked":
-			# A 1px lighter rim round the silhouette so the shape reads on SHADE.
+			# A 1px lighter rim round the silhouette so the shape reads on SHADE
+			# (a GRAY copy, not a modulate: INK x GRAY would leave the palette).
+			var rim := _recolored(picture, Palette.GRAY)
 			for o in [Vector2(-1, 0), Vector2(1, 0), Vector2(0, -1), Vector2(0, 1)]:
-				draw_texture_rect(picture, Rect2(at + o, s), false, Palette.color(Palette.GRAY))
+				draw_texture_rect(rim, Rect2(at + o, s), false)
 		draw_texture_rect(picture, Rect2(at, s), false)
 	match state:
 		"locked":
@@ -100,6 +102,27 @@ func _draw() -> void:
 		UiArt.draw(self, "lv_sticker", br, Palette.GOLD if tag == "Max" else -1)
 		Fonts.draw(self, tag, Vector2(br.position.x, br.position.y + 1), "TAG", Palette.INK if tag == "Max" else -1,
 				br.size.x, HORIZONTAL_ALIGNMENT_CENTER)
+
+
+static var _rims := {}  # "rid/colour" -> ImageTexture
+
+
+## `tex` with every opaque pixel set to palette colour `c` (cached).
+static func _recolored(tex: Texture2D, c: int) -> Texture2D:
+	var key := "%s/%d" % [tex.get_rid(), c]
+	if not _rims.has(key):
+		var img := tex.get_image()
+		if img == null:
+			return tex
+		img = img.duplicate() as Image
+		img.convert(Image.FORMAT_RGBA8)
+		var col := Palette.color(c)
+		for y in img.get_height():
+			for x in img.get_width():
+				if img.get_pixel(x, y).a > 0.0:
+					img.set_pixel(x, y, col)
+		_rims[key] = ImageTexture.create_from_image(img)
+	return _rims[key]
 
 
 ## A green tick on an INK outline, 8x7.
