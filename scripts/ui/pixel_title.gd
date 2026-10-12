@@ -7,6 +7,7 @@ extends Control
 ## font page (white on clear) and tinted with palette colours.
 
 const PAGE := preload("res://assets/fonts/bonk.png")
+const BONK := preload("res://assets/fonts/bonk.fnt")
 const LINE := 10
 const BASE := 8
 
@@ -81,12 +82,12 @@ static func glyph(code: int) -> Array:
 	# ships only the imported resource, so FileAccess on the .fnt finds nothing
 	# on a phone (every title drew blank there).
 	if _glyphs.is_empty():
-		var f: FontFile = Fonts.BOLD
-		var sz := Vector2i(Fonts.SIZE, 0)
+		var f: FontFile = BONK
+		var sz := Vector2i(BASE, 0)
 		for c in f.get_glyph_list(0, sz):
 			var uv := f.get_glyph_uv_rect(0, sz, c)
 			var off := f.get_glyph_offset(0, sz, c)
-			_glyphs[c] = [uv, Vector2(off.x, off.y + BASE), f.get_glyph_advance(0, Fonts.SIZE, c).x]
+			_glyphs[c] = [uv, Vector2(off.x, off.y + BASE), f.get_glyph_advance(0, BASE, c).x]
 	return _glyphs.get(code, _glyphs.get(63, [Rect2(), Vector2.ZERO, 4]))
 
 

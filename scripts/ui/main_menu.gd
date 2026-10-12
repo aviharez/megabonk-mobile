@@ -435,14 +435,9 @@ func _build_settings() -> void:
 	_settings_win.offset_top = -110
 	_settings_win.offset_bottom = 110
 	_settings.add_child(_settings_win)
-	var title := PixelTitle.new("SETTINGS", 2, Palette.PAPER)
-	title.position = Vector2(0, 8)
-	title.size = Vector2(152, 22)
-	var ribbon := Control.new()
-	ribbon.mouse_filter = MOUSE_FILTER_IGNORE
-	ribbon.draw.connect(func() -> void:
-		UiArt.draw(ribbon, "ribbon", Rect2(6, 9, 140, 20)))
-	_settings_win.add_child(ribbon)
+	var title := HeaderTitle.new("Settings")
+	title.position = Vector2(0, 6)
+	title.size = Vector2(152, HeaderTitle.H + 2)
 	_settings_win.add_child(title)
 	_toggles = VBoxContainer.new()
 	_toggles.position = Vector2(12, 36)

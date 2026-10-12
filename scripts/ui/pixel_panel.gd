@@ -1,10 +1,14 @@
 class_name PixelPanel
 extends Control
-## Solid pixel box: a UI kit frame (UiArt `part`: "window" = riveted overlay
-## panel, "row" = the lighter list row), its inside recolored to `fill`, with a
-## hard 2px INK shadow; a notched 1px INK box when the panel is smaller than
-## the art. part "" draws nothing (a see-through holder). Opaque on purpose (no alpha overlays:
-## blended colors would leave the palette).
+## Solid pixel box, Phase 9 kit look: "window" = the kit 3b dark window
+## (`lv_window`), "row" = the kit 3 dark plate (`plate_dark`), any other UiArt
+## part drawn as is (its inside recoloured to `fill` when the part has a fill),
+## with a hard 2px INK shadow; a notched 1px INK box when the panel is smaller
+## than the art. part "" draws nothing (a see-through holder). Opaque on
+## purpose (no alpha overlays: blended colors would leave the palette).
+
+## Old part names -> the Phase 9 kit parts.
+const PARTS := {"window": "lv_window", "row": "plate_dark"}
 
 @export var fill := Palette.NIGHT:
 	set(v):
@@ -21,8 +25,9 @@ func _draw() -> void:
 		return  # a see-through holder (cards floating over the dim)
 	var w := int(size.x)
 	var h := int(size.y) - 2
-	if UiArt.fits(part, Vector2(w, h)):
-		UiArt.draw(self, part, Rect2(0, 0, w, h), -1, fill, 2)
+	var kit: String = PARTS.get(part, part)
+	if UiArt.fits(kit, Vector2(w, h)):
+		UiArt.draw(self, kit, Rect2(0, 0, w, h), -1, fill, 2)
 		return
 	var ink := Palette.color(Palette.INK)
 	_box(Rect2i(0, 2, w, h), ink, ink)

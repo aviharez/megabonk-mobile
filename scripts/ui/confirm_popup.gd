@@ -27,11 +27,9 @@ func _init(title: String, text: String, yes_text: String, no_text: String) -> vo
 	win.offset_top = -46
 	win.offset_bottom = 46
 	add_child(win)
-	var t := PixelTitle.new(title, 2, Palette.BUTTER)
-	t.top_color = Palette.WHITE
-	t.wave = 1
-	t.position = Vector2(0, 8)
-	t.size = Vector2(152, 22)
+	var t := HeaderTitle.new(title)
+	t.position = Vector2(0, 6)
+	t.size = Vector2(152, HeaderTitle.H + 2)
 	win.add_child(t)
 	var l := Label.new()
 	l.text = text

@@ -10,12 +10,13 @@ extends RefCounted
 ## LabelSettings from STYLES. Custom _draw() code uses draw(), which draws the
 ## same drop, outline and fill. fit() shrinks a label until its text fits.
 ##
-## BOLD / SMALL / bold() / fitting() are the old 8 px pixel fonts, still used by
-## the screens that haven't moved to the new styles yet.
+## BOLD / SMALL / bold() / fitting() are the old names, kept while code moves
+## to the styles: BOLD is now Titan One and SMALL Inter 900 (both at SIZE).
 
 const TITLE_FONT := preload("res://assets/fonts/titan_one/TitanOne-Regular.ttf")
-const INTER := preload("res://assets/fonts/inter/Inter-Variable.ttf")
-const BODY_WEIGHT := 900
+## Inter at weight 900 (a FontVariation of the variable font); also the
+## theme's default font (assets/ui/theme.tres) at 7 px.
+const BODY_FONT := preload("res://assets/fonts/inter/inter_900.tres")
 
 ## name: [font ("T" Titan / "I" Inter), size, colour, outline px, outline colour, drop px]
 const STYLES := {
@@ -39,21 +40,16 @@ const STYLES := {
 const MIN_TITLE := 6
 const MIN_BODY := 7
 
-const BOLD := preload("res://assets/fonts/bonk.fnt")
-const SMALL := preload("res://assets/fonts/pixel.fnt")
+const BOLD := TITLE_FONT
+const SMALL := BODY_FONT
 const SIZE := 8
 
-static var _body: FontVariation
 static var _styles := {}
 
 
 ## Inter at weight 900.
 static func body() -> Font:
-	if _body == null:
-		_body = FontVariation.new()
-		_body.base_font = INTER
-		_body.variation_opentype = {TextServerManager.get_primary_interface().name_to_tag("wght"): BODY_WEIGHT}
-	return _body
+	return BODY_FONT
 
 
 static func font_of(style_name: String) -> Font:
@@ -145,13 +141,14 @@ static func draw(ci: CanvasItem, text: String, pos: Vector2, style_name: String,
 	ci.draw_string(f, base, text, align, max_width, fs, Palette.color(d[2] if color < 0 else color))
 
 
-## Puts a label in the old bold pixel font.
+## Puts a label in Titan One (NAME size).
 static func bold(l: Control) -> Control:
-	l.add_theme_font_override("font", BOLD)
+	l.add_theme_font_override("font", TITLE_FONT)
+	l.add_theme_font_size_override("font_size", 9)
 	return l
 
 
-## Old pixel fonts: BOLD if `text` fits in `width` px, else SMALL.
+## BOLD (Titan) if `text` fits in `width` px at SIZE, else SMALL (Inter).
 static func fitting(text: String, width_px: float) -> Font:
 	if BOLD.get_string_size(text, HORIZONTAL_ALIGNMENT_LEFT, -1, SIZE).x <= width_px:
 		return BOLD

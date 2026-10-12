@@ -1,11 +1,15 @@
 @tool
 class_name PixelButton
 extends Button
-## Chunky pixel button: notched 1px outline, hard 2px drop shadow, sinks when
-## pressed. Draws its own label so the text moves with the face. All colors
-## come from the palette. Set `label`, not `text`.
+## Chunky pixel button, Phase 9 kit look: the kit 3b `lv_frame` plate
+## recoloured to `face` (any palette colour, through UiArt's ramps) with a hard
+## 2 px drop, sinking when pressed. Draws its own label so the text moves with
+## the face: the first line in Titan One (NAME, shrunk to fit), further lines
+## in Inter (BODY). All colours come from the palette. Set `label`, not `text`.
 
 const SHADOW := 2
+## Titan size of a button's first line before it shrinks to fit.
+const BUTTON_SIZE := 9
 
 @export var label := "BUTTON":
 	set(v):
@@ -50,9 +54,9 @@ var toggle := -1:
 	set(v):
 		toggle = v
 		queue_redraw()
-## The UI kit frame: "button" (riveted plate recolored to `face`, the small
-## one when it doesn't fit) or another 9-slice part drawn as is ("card",
-## "action"); `pressed_frame` replaces it while pressed ("card_gold").
+## The UI kit frame: "button" (the kit 3b frame recoloured to `face`) or
+## another 9-slice part drawn as is ("card", "action"); `pressed_frame`
+## replaces it while pressed ("card_gold").
 var frame := "button":
 	set(v):
 		frame = v
@@ -66,12 +70,12 @@ var badge := "":
 	set(v):
 		badge = v
 		queue_redraw()
-## Every line in the small font (dense buttons).
+## Every line in BODY (dense buttons).
 var small_text := false:
 	set(v):
 		small_text = v
 		queue_redraw()
-## Lines after the first in the small font (a bold name over its description).
+## Lines after the first are always BODY (kept for callers; no effect now).
 var small_rest := false:
 	set(v):
 		small_rest = v
@@ -109,7 +113,7 @@ func _draw() -> void:
 		var f := pressed_frame if sunk and pressed_frame != "" else frame
 		part = f if UiArt.fits(f, Vector2(w, h)) else ""
 	else:
-		part = "button" if UiArt.fits("button", Vector2(w, h)) else ("button_small" if UiArt.fits("button_small", Vector2(w, h)) else "")
+		part = "lv_frame" if UiArt.fits("lv_frame", Vector2(w, h)) else ""
 	if part != "":
 		UiArt.draw(self, part, Rect2(0, y, w, h), Palette.GRAY if off else face, -1, 0 if sunk else SHADOW)
 	else:
@@ -129,7 +133,7 @@ func _draw() -> void:
 	if art != null and art_plain:
 		# A small icon with no frame, centered together with the label.
 		var asz := Vector2i(art.get_size())
-		var lw := int(Fonts.fitting(label, w - asz.x - 10).get_string_size(label, HORIZONTAL_ALIGNMENT_LEFT, -1, Fonts.SIZE).x)
+		var lw := int(ceilf(Fonts.width(label, "NAME", _name_size(label, w - asz.x - 10))))
 		var ax := (w - asz.x - 3 - lw) / 2
 		draw_texture(art, Vector2(ax, y + (h - 2 - asz.y) / 2))
 		# The label's centering span is exactly its width, right after the icon.
@@ -148,13 +152,11 @@ func _draw() -> void:
 		else:
 			left = at.x + ContentIcon.SIZE + 1
 
-	if badge != "" and UiArt.has("new_badge"):
-		var bf := get_theme_default_font()
-		var bfs := get_theme_default_font_size()
-		var bw := int(bf.get_string_size(badge, HORIZONTAL_ALIGNMENT_LEFT, -1, bfs).x) + 6
-		var bx := w - bw - 3
-		UiArt.draw(self, "new_badge", Rect2(bx, y + 3, bw, 9))
-		draw_string(bf, Vector2(bx + 3, y + 4 + bf.get_ascent(bfs)), badge, HORIZONTAL_ALIGNMENT_LEFT, -1, bfs, Palette.color(Palette.PAPER))
+	if badge != "":
+		var bw := ceilf(Fonts.width(badge, "TAG")) + 8.0
+		var br := Rect2(w - bw + 3, y - 5, bw, 12)
+		UiArt.draw(self, "lv_sticker", br)
+		Fonts.draw(self, badge, Vector2(br.position.x, br.position.y + 1), "TAG", -1, br.size.x, HORIZONTAL_ALIGNMENT_CENTER)
 	var right := plain_right
 	if toggle >= 0:
 		var sw := "toggle_on" if toggle == 1 else "toggle_off"
@@ -163,25 +165,37 @@ func _draw() -> void:
 		right = ts.x + 6
 	if _own_label:
 		return
-	# One centered line per "\n"-separated part of the label: the bold font
-	# when the line fits, the small one otherwise (long card descriptions).
-	var fs := Fonts.SIZE
+	# One centred line per "\n"-separated part of the label: the first in
+	# Titan One (NAME, shrunk to fit), the rest in Inter (BODY).
 	var lines := label.split("\n")
-	var lh := Fonts.BOLD.get_height(fs)
-	var top := text_top + floorf((text_h - lh * lines.size()) / 2.0) + Fonts.BOLD.get_ascent(fs)
 	var room := w - right - left - (0 if plain_right > 0 else 8)
-	var c := Palette.color(Palette.SHADE if off else ink)
-	# Light text gets a 1px INK shadow so it reads on any plate.
-	var shade := not off and c.get_luminance() > 0.5
+	var c := Palette.SHADE if off else ink
+	var sizes := []
+	var styles := []
+	var total := 0.0
 	for i in lines.size():
-		var font := Fonts.fitting(lines[i], room) if not small_text else Fonts.SMALL
-		if i > 0 and small_rest:
-			font = Fonts.SMALL
-		var tw := font.get_string_size(lines[i], HORIZONTAL_ALIGNMENT_LEFT, -1, fs).x
-		var pos := Vector2(left + floorf((w - right - left - tw) / 2.0), top + lh * i)
-		if shade:
-			draw_string(font, pos + Vector2(0, 1), lines[i], HORIZONTAL_ALIGNMENT_LEFT, -1, fs, Palette.color(Palette.INK))
-		draw_string(font, pos, lines[i], HORIZONTAL_ALIGNMENT_LEFT, -1, fs, c)
+		var body := small_text or i > 0
+		var st := "BODY" if body else "NAME"
+		var fs: int = Fonts.STYLES.BODY[1] if body else _name_size(lines[i], room)
+		styles.append(st)
+		sizes.append(fs)
+		total += _line_h(st, fs)
+	var ty := text_top + floorf((text_h - total) / 2.0)
+	for i in lines.size():
+		Fonts.draw(self, lines[i], Vector2(left, ty), styles[i], c, w - right - left, HORIZONTAL_ALIGNMENT_CENTER, sizes[i])
+		ty += _line_h(styles[i], sizes[i])
+
+
+## The NAME size (9 down to Titan's minimum) at which `text` fits `room`.
+func _name_size(text: String, room: float) -> int:
+	var fs := BUTTON_SIZE
+	while fs > Fonts.MIN_TITLE and Fonts.width(text, "NAME", fs) > room:
+		fs -= 1
+	return fs
+
+
+static func _line_h(style_name: String, size: int) -> float:
+	return size + 2.0 if style_name == "NAME" else size + 1.0
 
 
 ## Filled rect with a 1px outline and the four corner pixels left empty.

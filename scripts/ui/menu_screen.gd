@@ -1,8 +1,8 @@
 class_name MenuScreen
 extends Control
 ## Base for full-screen menu pages (unlocks, shop, hero select, map select,
-## Toggler): a drifting pattern backdrop, a header (bold title on the red
-## ribbon) kept below the camera cutout, an optional fixed panel under it
+## Toggler): a drifting pattern backdrop, a header (the title on the gold
+## kit header plate) kept below the camera cutout, an optional fixed panel under it
 ## (`top_panel()`: the selected thing's details), a drag-scrolling list in the
 ## middle column (DragScroll), and a bottom bar with BACK and either the main
 ## action (`primary()`) or the coin plate, kept above the gesture bar. The
@@ -21,7 +21,7 @@ var list: VBoxContainer
 var title_text := ""
 var _scroll: DragScroll
 var _coins: CoinPlate
-var _title: PixelTitle
+var _title: HeaderTitle
 var _header: Control
 var _bar: Control
 var _scrollbar: Control
@@ -51,18 +51,10 @@ func _init(save_node: Node, title: String) -> void:
 	_header.offset_right = 90
 	_header.offset_bottom = HEADER_H
 	add_child(_header)
-	var ribbon := Control.new()
-	ribbon.mouse_filter = MOUSE_FILTER_IGNORE
-	ribbon.set_anchors_and_offsets_preset(PRESET_FULL_RECT)
-	_header.add_child(ribbon)
-	_title = PixelTitle.new(title, 2, Palette.BUTTER)
-	_title.top_color = Palette.WHITE
+	_title = HeaderTitle.new(title)
 	_title.position = Vector2(0, 3)
-	_title.size = Vector2(180, 24)
+	_title.size = Vector2(180, HeaderTitle.H + 2)
 	_header.add_child(_title)
-	ribbon.draw.connect(func() -> void:
-		var rw := mini(_title.text_width() + 30, 180)
-		UiArt.draw(ribbon, "ribbon", Rect2(floorf((180 - rw) / 2.0), 5, rw, 20)))
 
 	_scroll = DragScroll.new()
 	_scroll.anchor_left = 0.5

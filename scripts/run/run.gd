@@ -1677,7 +1677,7 @@ func _show_choice(title: String, opts: Array, leave: String, on_pick: Callable) 
 	state = "choice"
 	_joystick.release()
 	get_tree().paused = true
-	_choice_title.text = title
+	_set_title(_choice_title, title)
 	_set_choice_options(opts)
 	_choice_leave.visible = leave != ""
 	_choice_leave.label = leave
@@ -1782,9 +1782,7 @@ func _end(reason: String) -> void:
 			if reached_final:
 				title = "SWARMED!"
 				color = Palette.PAPER
-	_over_title.text = title
-	_over_title.add_theme_color_override("font_color", Palette.color(color))
-	(_over_title.get_meta("big") as PixelTitle).color = color
+	_set_title(_over_title, title)
 	_over_text.text = _over_lines()
 	_over_reason.text = {
 		"portal": "YOU GOT OUT. THE TOWN THANKS YOU.",
@@ -2926,30 +2924,26 @@ func _subtitle(parent: Control, y: int) -> Label:
 	return l
 
 
-## A 2x bold title on the red ribbon. Returns the Label that holds the text
-## (hidden: a PixelTitle draws it, following the label's text).
+## A panel title on the gold kit header plate (HeaderTitle). Returns a hidden
+## Label holding the text (tests read it); the header follows its text.
 func _title(parent: Control, text: String, color: int, y: int) -> Label:
 	var l := Label.new()
 	l.text = text
-	l.position = Vector2(0, y)
-	l.size = Vector2(parent.size.x / 2.0, 10)
-	l.scale = Vector2(2, 2)
-	l.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
-	l.add_theme_color_override("font_color", Palette.color(color))
-	l.self_modulate = Color(1, 1, 1, 0)
+	l.visible = false
 	parent.add_child(l)
-	UiArt.ribbon_behind(l)
-	var big := PixelTitle.new(text, 2, color)
-	big.top_color = Palette.WHITE if color in [Palette.BUTTER, Palette.GOLD] else -1
-	big.position = Vector2(0, y - 1)
-	big.size = Vector2(parent.size.x, 22)
-	parent.add_child(big)
-	# Follow the label: its text and colour can change (game over titles).
-	l.draw.connect(func() -> void:
-		big.text = l.text
-		big.size.x = l.size.x * 2.0)
-	l.set_meta("big", big)
+	var head := HeaderTitle.new(text)
+	head.position = Vector2(0, y - 2)
+	head.size = Vector2(parent.size.x, HeaderTitle.H + 2)
+	parent.add_child(head)
+	l.set_meta("big", head)
+	l.set_meta("color", color)
 	return l
+
+
+## Sets a _title() label's text (and the header that shows it).
+func _set_title(l: Label, text: String) -> void:
+	l.text = text
+	(l.get_meta("big") as HeaderTitle).text = text
 
 
 ## Again with the same hero and map. A break like the way to the menu, so

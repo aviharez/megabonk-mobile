@@ -28,11 +28,9 @@ func _init(db: GameData, id: String) -> void:
 	win.offset_top = -94
 	win.offset_bottom = 94
 	add_child(win)
-	var title := PixelTitle.new("UNLOCKED!", 2, Palette.BUTTER)
-	title.top_color = Palette.WHITE
-	title.wave = 2
-	title.position = Vector2(0, 8)
-	title.size = Vector2(148, 24)
+	var title := HeaderTitle.new("Unlocked!")
+	title.position = Vector2(0, 6)
+	title.size = Vector2(148, HeaderTitle.H + 2)
 	win.add_child(title)
 	_burst = Control.new()
 	_burst.position = Vector2(74, 72)
