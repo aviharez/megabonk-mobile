@@ -1,8 +1,8 @@
 {
 	"id": "sir_loaf",
-	"name": "SIR LOAF",
-	"desc": "A LOAF OF BREAD IN A KNIGHT'S HELMET",
-	"role": "TANK",
+	"name": "Sir Loaf",
+	"desc": "A loaf of bread in a knight's helmet.",
+	"role": "Tank",
 	"status": "start",
 	"signature_weapon": "baguette",
 	"stats": {
@@ -24,8 +24,8 @@
 	},
 	"passive": {
 		"id": "getting_stale",
-		"name": "GETTING STALE",
-		"desc": "LESS DAMAGE TAKEN OVER TIME",
+		"name": "Getting Stale",
+		"desc": "Less damage taken over time.",
 		"reduction_per_minute": 0.03,
 		"max_reduction": 0.24
 	}

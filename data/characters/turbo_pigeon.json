@@ -1,8 +1,8 @@
 {
 	"id": "turbo_pigeon",
-	"name": "TURBO PIGEON",
-	"desc": "CITY PIGEON IN RUNNING SHOES",
-	"role": "SPEED",
+	"name": "Turbo Pigeon",
+	"desc": "City pigeon in running shoes.",
+	"role": "Speed",
 	"status": "unlock",
 	"signature_weapon": "sharp_feathers",
 	"stats": {
@@ -24,8 +24,8 @@
 	},
 	"passive": {
 		"id": "speed_damage",
-		"name": "TAILWIND",
-		"desc": "FASTER MEANS MORE DAMAGE",
+		"name": "Tailwind",
+		"desc": "Faster means more damage.",
 		"from_speed": 40,
 		"damage_per_speed": 0.01
 	}

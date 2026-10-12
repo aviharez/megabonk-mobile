@@ -1,6 +1,6 @@
 {
 	"id": "skitter",
-	"name": "SKITTER",
+	"name": "Skitter",
 	"role": "pack",
 	"hp": 5,
 	"hp_growth_per_minute": 0.15,

@@ -1,7 +1,7 @@
 {
 	"id": "greed",
-	"name": "GREED",
-	"desc": "+4% GOLD PER LEVEL",
+	"name": "Greed",
+	"desc": "+4% gold per level.",
 	"kind": "stat",
 	"icon": "tomes/coupon_clipping",
 	"prices": [

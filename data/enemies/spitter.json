@@ -1,6 +1,6 @@
 {
 	"id": "spitter",
-	"name": "SPITTER",
+	"name": "Spitter",
 	"role": "shooter",
 	"hp": 14,
 	"hp_growth_per_minute": 0.15,

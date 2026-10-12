@@ -1,9 +1,9 @@
 {
 	"id": "alarm_clock",
-	"name": "ALARM CLOCK",
+	"name": "Alarm Clock",
 	"rarity": "rare",
 	"status": "unlock",
-	"desc": "SURE CRIT EVERY 20 SEC",
+	"desc": "Sure crit every 20 sec.",
 	"triggers": [
 		{
 			"event": "every",

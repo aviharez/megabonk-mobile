@@ -1,6 +1,6 @@
 {
 	"id": "chomper",
-	"name": "CHOMPER",
+	"name": "Chomper",
 	"role": "charger",
 	"hp": 30,
 	"hp_growth_per_minute": 0.15,

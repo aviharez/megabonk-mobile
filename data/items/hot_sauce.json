@@ -1,9 +1,9 @@
 {
 	"id": "hot_sauce",
-	"name": "HOT SAUCE",
+	"name": "Hot Sauce",
 	"rarity": "rare",
 	"status": "start",
-	"desc": "ATTACKS CAN BURN FOES",
+	"desc": "Attacks can burn foes.",
 	"triggers": [
 		{
 			"event": "on_hit",

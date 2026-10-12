@@ -1,9 +1,9 @@
 {
 	"id": "rubber_boots",
-	"name": "RUBBER BOOTS",
+	"name": "Rubber Boots",
 	"rarity": "common",
 	"status": "start",
-	"desc": "LESS DAMAGE FROM TOUCHING",
+	"desc": "Less damage from touching.",
 	"modifiers": [
 		{
 			"stat": "contact_damage_taken",

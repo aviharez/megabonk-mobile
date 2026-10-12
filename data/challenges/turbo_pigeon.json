@@ -1,7 +1,7 @@
 {
 	"id": "turbo_pigeon",
 	"tier": "mid",
-	"desc": "OPEN THE PIGEON CAGE",
+	"desc": "Open the pigeon cage.",
 	"stat": "pigeon_cage_opened",
 	"scope": "total",
 	"target": 1,

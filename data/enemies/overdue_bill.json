@@ -1,6 +1,6 @@
 {
 	"id": "overdue_bill",
-	"name": "OVERDUE BILL",
+	"name": "Overdue Bill",
 	"role": "ghost",
 	"hp": 1,
 	"speed": 30,

@@ -1,6 +1,6 @@
 {
 	"id": "cage_key",
-	"name": "KEY",
+	"name": "Key",
 	"behavior": "key",
 	"radius": 6,
 	"shape": "key",

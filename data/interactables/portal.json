@@ -1,6 +1,6 @@
 {
 	"id": "portal",
-	"name": "PORTAL",
+	"name": "Portal",
 	"behavior": "portal",
 	"radius": 10,
 	"shape": "portal",

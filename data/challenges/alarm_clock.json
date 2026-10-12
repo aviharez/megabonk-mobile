@@ -1,7 +1,7 @@
 {
 	"id": "alarm_clock",
 	"tier": "early",
-	"desc": "FINISH 3 RUNS",
+	"desc": "Finish 3 runs.",
 	"stat": "runs_finished",
 	"scope": "total",
 	"target": 3,

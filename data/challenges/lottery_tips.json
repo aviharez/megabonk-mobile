@@ -1,7 +1,7 @@
 {
 	"id": "lottery_tips",
 	"tier": "mid",
-	"desc": "EPIC FROM A PAID CHEST",
+	"desc": "Epic from a paid chest.",
 	"stat": "epic_from_paid_chest",
 	"scope": "total",
 	"target": 1,

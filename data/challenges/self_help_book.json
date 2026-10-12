@@ -1,7 +1,7 @@
 {
 	"id": "self_help_book",
 	"tier": "mid",
-	"desc": "REACH LEVEL 20 IN A RUN",
+	"desc": "Reach level 20 in a run.",
 	"stat": "level",
 	"scope": "run",
 	"target": 20,

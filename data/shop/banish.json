@@ -1,7 +1,7 @@
 {
 	"id": "banish",
-	"name": "BANISH",
-	"desc": "REMOVE A CARD FOR THE RUN",
+	"name": "Banish",
+	"desc": "Remove a card for the run.",
 	"kind": "action",
 	"icon": "ui/xmark",
 	"action": "banish",

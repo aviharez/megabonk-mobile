@@ -26,6 +26,6 @@
 	"shield": {"delay": 4.0, "refill_per_sec": 0.5},
 	"burn_tick": 0.5,
 	"fallback_cards": [
-		{"id": "snack", "name": "SNACK", "desc": "HEAL 30 HP", "heal": 30}
+		{"id": "snack", "name": "Snack", "desc": "Heal 30 HP.", "heal": 30}
 	]
 }

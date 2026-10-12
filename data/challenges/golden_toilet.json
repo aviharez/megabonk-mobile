@@ -1,7 +1,7 @@
 {
 	"id": "golden_toilet",
 	"tier": "mid",
-	"desc": "10 ELITES IN ONE RUN",
+	"desc": "10 elites in one run.",
 	"stat": "elites_killed",
 	"scope": "run",
 	"target": 10,

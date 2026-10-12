@@ -1,7 +1,7 @@
 {
 	"id": "cursed_diary",
 	"tier": "hard",
-	"desc": "BEAT THE BOSS BEFORE 4:00",
+	"desc": "Beat the boss before 4:00.",
 	"stat": "boss_defeated_at",
 	"scope": "run",
 	"target": 240,

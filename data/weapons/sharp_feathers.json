@@ -1,7 +1,7 @@
 {
 	"id": "sharp_feathers",
-	"name": "SHARP FEATHERS",
-	"desc": "FEATHERS HOME IN ON FOES",
+	"name": "Sharp Feathers",
+	"desc": "Feathers home in on foes.",
 	"pattern": "homing_shot",
 	"trail": "SKY",
 	"shot_sprite": "res://assets/shots/feather.png",
@@ -9,11 +9,11 @@
 	"status": "signature",
 	"character": "turbo_pigeon",
 	"levels": [
-		{"damage": 6, "cooldown": 1.1, "count": 2, "speed": 110, "homing": 5, "pierce": 0, "desc": "HOMING FEATHERS"},
-		{"damage": 8, "cooldown": 1.1, "count": 2, "speed": 110, "homing": 5, "pierce": 0, "desc": "MORE DAMAGE"},
-		{"damage": 8, "cooldown": 1.1, "count": 3, "speed": 115, "homing": 5.5, "pierce": 0, "desc": "+1 FEATHER"},
-		{"damage": 10, "cooldown": 0.95, "count": 3, "speed": 120, "homing": 6, "pierce": 0, "desc": "MORE DAMAGE, FASTER"},
-		{"damage": 12, "cooldown": 0.95, "count": 4, "speed": 120, "homing": 6, "pierce": 1, "desc": "+1 FEATHER, PIERCE 1"}
+		{"damage": 6, "cooldown": 1.1, "count": 2, "speed": 110, "homing": 5, "pierce": 0, "desc": "Homing feathers."},
+		{"damage": 8, "cooldown": 1.1, "count": 2, "speed": 110, "homing": 5, "pierce": 0, "desc": "More damage."},
+		{"damage": 8, "cooldown": 1.1, "count": 3, "speed": 115, "homing": 5.5, "pierce": 0, "desc": "+1 feather."},
+		{"damage": 10, "cooldown": 0.95, "count": 3, "speed": 120, "homing": 6, "pierce": 0, "desc": "More damage, faster."},
+		{"damage": 12, "cooldown": 0.95, "count": 4, "speed": 120, "homing": 6, "pierce": 1, "desc": "+1 feather, pierce 1."}
 	],
 	"sfx": {"attack": "feather"},
 	"hit_fx": {"kind": "puff", "color": "PAPER", "r": 3}

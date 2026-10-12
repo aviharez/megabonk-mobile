@@ -1,6 +1,6 @@
 {
 	"id": "risk_shrine",
-	"name": "RISK BEACON",
+	"name": "Risk Beacon",
 	"behavior": "risk_shrine",
 	"radius": 18,
 	"shape": "shrine",

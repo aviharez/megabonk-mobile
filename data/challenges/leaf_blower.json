@@ -1,7 +1,7 @@
 {
 	"id": "leaf_blower",
 	"tier": "mid",
-	"desc": "SURVIVE A SWARM UNHURT",
+	"desc": "Survive a swarm unhurt.",
 	"stat": "swarm_survived_no_damage",
 	"scope": "total",
 	"target": 1,

@@ -1,6 +1,6 @@
 {
 	"id": "boss_altar",
-	"name": "BOSS ALTAR",
+	"name": "Boss Altar",
 	"behavior": "altar",
 	"radius": 20,
 	"shape": "altar",

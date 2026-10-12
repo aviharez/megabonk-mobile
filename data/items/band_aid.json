@@ -1,9 +1,9 @@
 {
 	"id": "band_aid",
-	"name": "BAND-AID",
+	"name": "Band-Aid",
 	"rarity": "common",
 	"status": "start",
-	"desc": "MORE MAX HP, SLOW REGEN",
+	"desc": "More max HP, slow regen.",
 	"modifiers": [
 		{
 			"stat": "max_hp",

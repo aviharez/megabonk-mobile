@@ -1,9 +1,9 @@
 {
 	"id": "lucky_penny",
-	"name": "LUCKY PENNY",
+	"name": "Lucky Penny",
 	"rarity": "common",
 	"status": "start",
-	"desc": "MORE LUCK",
+	"desc": "More luck.",
 	"modifiers": [
 		{
 			"stat": "luck",

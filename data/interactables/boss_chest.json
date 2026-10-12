@@ -1,6 +1,6 @@
 {
 	"id": "boss_chest",
-	"name": "BOSS CHEST",
+	"name": "Boss Chest",
 	"behavior": "free_chest",
 	"radius": 8,
 	"shape": "chest",

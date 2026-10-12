@@ -1,9 +1,9 @@
 {
 	"id": "static_sweater",
-	"name": "STATIC SWEATER",
+	"name": "Static Sweater",
 	"rarity": "rare",
 	"status": "unlock",
-	"desc": "ATTACKS CAN ZAP LIGHTNING",
+	"desc": "Attacks can zap lightning.",
 	"triggers": [
 		{
 			"event": "on_attack",

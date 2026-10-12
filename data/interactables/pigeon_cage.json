@@ -1,6 +1,6 @@
 {
 	"id": "pigeon_cage",
-	"name": "PIGEON CAGE",
+	"name": "Pigeon Cage",
 	"behavior": "cage",
 	"radius": 8,
 	"shape": "cage",

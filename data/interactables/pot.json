@@ -1,6 +1,6 @@
 {
 	"id": "pot",
-	"name": "POT",
+	"name": "Pot",
 	"behavior": "pot",
 	"radius": 5,
 	"shape": "pot",

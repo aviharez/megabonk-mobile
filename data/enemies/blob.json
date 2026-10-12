@@ -1,6 +1,6 @@
 {
 	"id": "blob",
-	"name": "BLOB",
+	"name": "Blob",
 	"role": "chaser",
 	"hp": 8,
 	"hp_growth_per_minute": 0.12,

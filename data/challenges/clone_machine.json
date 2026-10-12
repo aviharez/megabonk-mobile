@@ -1,7 +1,7 @@
 {
 	"id": "clone_machine",
 	"tier": "hard",
-	"desc": "HOLD 3 OF ONE ITEM",
+	"desc": "Hold 3 of one item.",
 	"stat": "max_item_copies",
 	"scope": "run",
 	"target": 3,

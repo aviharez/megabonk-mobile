@@ -1,7 +1,7 @@
 {
 	"id": "might",
-	"name": "MIGHT",
-	"desc": "+3% DAMAGE PER LEVEL",
+	"name": "Might",
+	"desc": "+3% damage per level.",
 	"kind": "stat",
 	"icon": "tomes/muscle_magazine",
 	"prices": [

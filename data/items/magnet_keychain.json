@@ -1,9 +1,9 @@
 {
 	"id": "magnet_keychain",
-	"name": "MAGNET KEYCHAIN",
+	"name": "Magnet Keychain",
 	"rarity": "common",
 	"status": "start",
-	"desc": "LONGER PICKUP RANGE",
+	"desc": "Longer pickup range.",
 	"modifiers": [
 		{
 			"stat": "pickup_range",

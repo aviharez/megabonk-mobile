@@ -1,9 +1,9 @@
 {
 	"id": "clone_machine",
-	"name": "CLONE MACHINE",
+	"name": "Clone Machine",
 	"rarity": "epic",
 	"status": "unlock",
-	"desc": "SHOTS CAN DUPLICATE",
+	"desc": "Shots can duplicate.",
 	"triggers": [
 		{
 			"event": "on_projectile",

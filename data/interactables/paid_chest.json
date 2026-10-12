@@ -1,6 +1,6 @@
 {
 	"id": "paid_chest",
-	"name": "CHEST",
+	"name": "Chest",
 	"behavior": "paid_chest",
 	"radius": 7,
 	"shape": "chest",

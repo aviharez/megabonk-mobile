@@ -1,7 +1,7 @@
 {
 	"id": "skip",
-	"name": "SKIP",
-	"desc": "SKIP A LEVEL-UP FOR GOLD",
+	"name": "Skip",
+	"desc": "Skip a level-up for gold.",
 	"kind": "action",
 	"icon": "ui/ffwd",
 	"action": "skip",

@@ -1,1 +1,1 @@
-{"id": "lottery_tips", "name": "LOTTERY TIPS", "group": "utility", "status": "unlock", "desc": "+0.1 LUCK", "modifiers_per_level": [{"stat": "luck", "flat": 0.1}], "icon": {"cover": ["GREEN", "LEAF"], "symbol_color": "BUTTER", "symbol": ["..X..", "XXXXX", ".XXX.", ".X.X.", "X...X"]}}
+{"id": "lottery_tips", "name": "Lottery Tips", "group": "utility", "status": "unlock", "desc": "+0.1 luck.", "modifiers_per_level": [{"stat": "luck", "flat": 0.1}], "icon": {"cover": ["GREEN", "LEAF"], "symbol_color": "BUTTER", "symbol": ["..X..", "XXXXX", ".XXX.", ".X.X.", "X...X"]}}

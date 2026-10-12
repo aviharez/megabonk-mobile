@@ -1,6 +1,6 @@
 {
 	"id": "gnat",
-	"name": "GNAT",
+	"name": "Gnat",
 	"role": "swarm",
 	"hp": 2,
 	"hp_growth_per_minute": 0.15,

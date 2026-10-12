@@ -1,7 +1,7 @@
 {
 	"id": "toggler",
-	"name": "TOGGLER",
-	"desc": "TURN CONTENT OFF FOR RUNS",
+	"name": "Toggler",
+	"desc": "Turn content off for runs.",
 	"kind": "toggler",
 	"icon": "ui/toggle_on",
 	"needs": {

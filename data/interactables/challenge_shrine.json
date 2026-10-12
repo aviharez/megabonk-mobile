@@ -1,6 +1,6 @@
 {
 	"id": "challenge_shrine",
-	"name": "CHALLENGE BEACON",
+	"name": "Challenge Beacon",
 	"behavior": "challenge_shrine",
 	"radius": 18,
 	"shape": "shrine",

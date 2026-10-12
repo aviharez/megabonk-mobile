@@ -1,9 +1,9 @@
 {
 	"id": "energy_drink",
-	"name": "ENERGY DRINK",
+	"name": "Energy Drink",
 	"rarity": "common",
 	"status": "start",
-	"desc": "MOVE AND ATTACK FASTER",
+	"desc": "Move and attack faster.",
 	"modifiers": [
 		{
 			"stat": "move_speed",

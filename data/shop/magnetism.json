@@ -1,7 +1,7 @@
 {
 	"id": "magnetism",
-	"name": "MAGNETISM",
-	"desc": "+5% PICKUP RANGE PER LEVEL",
+	"name": "Magnetism",
+	"desc": "+5% pickup range per level.",
 	"kind": "stat",
 	"icon": "tomes/fridge_magnets",
 	"prices": [

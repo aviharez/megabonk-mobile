@@ -1,6 +1,6 @@
 {
 	"id": "merchant",
-	"name": "MERCHANT",
+	"name": "Merchant",
 	"behavior": "merchant",
 	"radius": 10,
 	"shape": "merchant",

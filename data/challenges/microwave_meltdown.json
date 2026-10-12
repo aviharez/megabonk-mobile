@@ -1,7 +1,7 @@
 {
 	"id": "microwave_meltdown",
 	"tier": "hard",
-	"desc": "BEAT BOSS IN FINAL SWARM",
+	"desc": "Beat boss in Final Swarm.",
 	"stat": "boss_defeated_in_final_swarm",
 	"scope": "total",
 	"target": 1,

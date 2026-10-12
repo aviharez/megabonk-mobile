@@ -1,1 +1,1 @@
-{"id": "think_big", "name": "THINK BIG", "group": "offense", "status": "start", "desc": "+10% AREA SIZE", "modifiers_per_level": [{"stat": "area", "pct": 0.1}], "icon": {"cover": ["PINK", "PLUM"], "symbol_color": "BUTTER", "symbol": [".XXX.", "XXXXX", "XXXXX", ".XXX.", "..X.."]}}
+{"id": "think_big", "name": "Think Big", "group": "offense", "status": "start", "desc": "+10% area size.", "modifiers_per_level": [{"stat": "area", "pct": 0.1}], "icon": {"cover": ["PINK", "PLUM"], "symbol_color": "BUTTER", "symbol": [".XXX.", "XXXXX", "XXXXX", ".XXX.", "..X.."]}}

@@ -1,8 +1,8 @@
 {
 	"id": "gary",
-	"name": "GARY THE INTERN",
-	"desc": "EXHAUSTED OFFICE INTERN",
-	"role": "SCALING",
+	"name": "Gary the Intern",
+	"desc": "Exhausted office intern.",
+	"role": "Scaling",
 	"status": "unlock",
 	"signature_weapon": "stapler",
 	"stats": {
@@ -24,8 +24,8 @@
 	},
 	"passive": {
 		"id": "overtime",
-		"name": "OVERTIME",
-		"desc": "ALL STATS RISE AFTER 5:00",
+		"name": "Overtime",
+		"desc": "All stats rise after 5:00.",
 		"from_min": 5,
 		"max_steps": 6,
 		"modifiers_per_step": [

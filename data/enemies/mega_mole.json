@@ -1,6 +1,6 @@
 {
 	"id": "mega_mole",
-	"name": "MEGA MOLE",
+	"name": "Mega Mole",
 	"role": "boss",
 	"hp": 1800,
 	"hp_growth_per_minute": 0.15,

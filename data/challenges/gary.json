@@ -1,7 +1,7 @@
 {
 	"id": "gary",
 	"tier": "hard",
-	"desc": "60 S IN THE FINAL SWARM",
+	"desc": "60 s in the Final Swarm.",
 	"stat": "final_swarm_seconds",
 	"scope": "run",
 	"target": 60,

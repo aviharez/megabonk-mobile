@@ -1,7 +1,7 @@
 {
 	"id": "vitality",
-	"name": "VITALITY",
-	"desc": "+6 MAX HP PER LEVEL",
+	"name": "Vitality",
+	"desc": "+6 max HP per level.",
 	"kind": "stat",
 	"icon": "tomes/grandmas_soup_recipes",
 	"prices": [

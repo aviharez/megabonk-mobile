@@ -1,9 +1,9 @@
 {
 	"id": "pinata",
-	"name": "PINATA",
+	"name": "Pinata",
 	"rarity": "rare",
 	"status": "unlock",
-	"desc": "KILLS CAN DROP MORE GOLD",
+	"desc": "Kills can drop more gold.",
 	"triggers": [
 		{
 			"event": "on_kill",

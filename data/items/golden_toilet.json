@@ -1,9 +1,9 @@
 {
 	"id": "golden_toilet",
-	"name": "GOLDEN TOILET",
+	"name": "Golden Toilet",
 	"rarity": "epic",
 	"status": "unlock",
-	"desc": "ELITE KILLS: STAT BOOST",
+	"desc": "Elite kills: stat boost.",
 	"triggers": [
 		{
 			"event": "on_kill",

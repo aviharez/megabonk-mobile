@@ -1,7 +1,7 @@
 {
 	"id": "fireworks",
 	"tier": "early",
-	"desc": "DEFEAT MEGA MOLE",
+	"desc": "Defeat Mega Mole.",
 	"stat": "boss_defeated",
 	"scope": "total",
 	"target": 1,

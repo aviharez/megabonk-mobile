@@ -1,7 +1,7 @@
 {
 	"id": "angry_neighbor",
 	"tier": "hard",
-	"desc": "BEAT THE BOSS BELOW 20% HP",
+	"desc": "Beat the boss below 20% HP.",
 	"stat": "boss_defeated_hp_frac",
 	"scope": "run",
 	"target": 0.2,

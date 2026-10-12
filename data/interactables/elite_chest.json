@@ -1,6 +1,6 @@
 {
 	"id": "elite_chest",
-	"name": "ELITE CHEST",
+	"name": "Elite Chest",
 	"behavior": "free_chest",
 	"radius": 7,
 	"shape": "chest",

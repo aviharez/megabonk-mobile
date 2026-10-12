@@ -1,6 +1,6 @@
 {
 	"id": "charge_shrine",
-	"name": "CHARGE BEACON",
+	"name": "Charge Beacon",
 	"behavior": "charge_shrine",
 	"radius": 18,
 	"shape": "shrine",
@@ -11,15 +11,15 @@
 	"charge_time": 3.0,
 	"offer": 3,
 	"choices": [
-		{"stat": "damage", "pct": 0.08, "desc": "DAMAGE +8%"},
-		{"stat": "max_hp", "flat": 15, "desc": "MAX HP +15"},
-		{"stat": "move_speed", "pct": 0.06, "desc": "SPEED +6%"},
-		{"stat": "area", "pct": 0.08, "desc": "AREA +8%"},
-		{"stat": "cooldown", "pct": -0.05, "desc": "COOLDOWN -5%"},
-		{"stat": "crit_chance", "flat": 0.04, "desc": "CRIT +4%"},
-		{"stat": "pickup_range", "pct": 0.15, "desc": "PICKUP +15%"},
-		{"stat": "luck", "flat": 0.06, "desc": "LUCK +6%"},
-		{"stat": "regen", "flat": 0.3, "desc": "REGEN +0.3"},
-		{"stat": "armor", "flat": 1, "desc": "ARMOR +1"}
+		{"stat": "damage", "pct": 0.08, "desc": "Damage +8%"},
+		{"stat": "max_hp", "flat": 15, "desc": "Max HP +15"},
+		{"stat": "move_speed", "pct": 0.06, "desc": "Speed +6%"},
+		{"stat": "area", "pct": 0.08, "desc": "Area +8%"},
+		{"stat": "cooldown", "pct": -0.05, "desc": "Cooldown -5%"},
+		{"stat": "crit_chance", "flat": 0.04, "desc": "Crit +4%"},
+		{"stat": "pickup_range", "pct": 0.15, "desc": "Pickup +15%"},
+		{"stat": "luck", "flat": 0.06, "desc": "Luck +6%"},
+		{"stat": "regen", "flat": 0.3, "desc": "Regen +0.3"},
+		{"stat": "armor", "flat": 1, "desc": "Armor +1"}
 	]
 }

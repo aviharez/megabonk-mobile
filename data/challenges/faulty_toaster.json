@@ -1,7 +1,7 @@
 {
 	"id": "faulty_toaster",
 	"tier": "mid",
-	"desc": "1000 KO WITH HOT COFFEE",
+	"desc": "1000 KO with Hot Coffee.",
 	"stat": "kills",
 	"weapon": "hot_coffee",
 	"scope": "total",

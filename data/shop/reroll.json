@@ -1,7 +1,7 @@
 {
 	"id": "reroll",
-	"name": "REROLL",
-	"desc": "NEW LEVEL-UP CARDS",
+	"name": "Reroll",
+	"desc": "New level-up cards.",
 	"kind": "action",
 	"icon": "ui/die",
 	"action": "reroll",

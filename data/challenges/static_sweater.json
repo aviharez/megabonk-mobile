@@ -1,7 +1,7 @@
 {
 	"id": "static_sweater",
 	"tier": "hard",
-	"desc": "300 KO WITH FAULTY TOASTER",
+	"desc": "300 KO with Faulty Toaster.",
 	"stat": "kills",
 	"weapon": "faulty_toaster",
 	"scope": "total",

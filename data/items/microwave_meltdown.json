@@ -1,9 +1,9 @@
 {
 	"id": "microwave_meltdown",
-	"name": "MICROWAVE MELTDOWN",
+	"name": "Microwave Meltdown",
 	"rarity": "legendary",
 	"status": "unlock",
-	"desc": "HUGE BLAST EVERY 60 SEC",
+	"desc": "Huge blast every 60 sec.",
 	"triggers": [
 		{
 			"event": "every",

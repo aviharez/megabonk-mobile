@@ -1,9 +1,9 @@
 {
 	"id": "whoopee_cushion",
-	"name": "WHOOPEE CUSHION",
+	"name": "Whoopee Cushion",
 	"rarity": "rare",
 	"status": "start",
-	"desc": "GET HIT: PUSH FOES AWAY",
+	"desc": "Get hit: push foes away.",
 	"triggers": [
 		{
 			"event": "on_damaged",

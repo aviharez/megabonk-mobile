@@ -1,9 +1,9 @@
 {
 	"id": "protein_bar",
-	"name": "PROTEIN BAR",
+	"name": "Protein Bar",
 	"rarity": "common",
 	"status": "start",
-	"desc": "MORE DAMAGE",
+	"desc": "More damage.",
 	"modifiers": [
 		{
 			"stat": "damage",

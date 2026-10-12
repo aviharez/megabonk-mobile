@@ -1,6 +1,6 @@
 {
 	"id": "bloater",
-	"name": "BLOATER",
+	"name": "Bloater",
 	"role": "exploder",
 	"hp": 22,
 	"hp_growth_per_minute": 0.15,

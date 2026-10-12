@@ -1,6 +1,6 @@
 {
 	"id": "farm",
-	"name": "FARM",
+	"name": "Farm",
 	"status": "planned",
 	"unlock_after": "sewers"
 }

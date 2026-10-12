@@ -1,7 +1,7 @@
 {
 	"id": "tin_foil_hat_theories",
 	"tier": "early",
-	"desc": "ACTIVATE 5 BEACONS",
+	"desc": "Activate 5 beacons.",
 	"stat": "shrines_activated",
 	"scope": "total",
 	"target": 5,

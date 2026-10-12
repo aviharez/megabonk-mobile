@@ -1,1 +1,1 @@
-{"id": "self_help_book", "name": "SELF-HELP BOOK", "group": "utility", "status": "unlock", "desc": "+10% XP", "modifiers_per_level": [{"stat": "xp_gain", "pct": 0.1}], "icon": {"cover": ["TEAL", "OCEAN"], "symbol_color": "LIME", "symbol": ["..X..", ".XXX.", "XXXXX", "..X..", "..X.."]}}
+{"id": "self_help_book", "name": "Self-Help Book", "group": "utility", "status": "unlock", "desc": "+10% XP.", "modifiers_per_level": [{"stat": "xp_gain", "pct": 0.1}], "icon": {"cover": ["TEAL", "OCEAN"], "symbol_color": "LIME", "symbol": ["..X..", ".XXX.", "XXXXX", "..X..", "..X.."]}}

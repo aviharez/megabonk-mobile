@@ -1,7 +1,7 @@
 {
 	"id": "sneakers",
-	"name": "SNEAKERS",
-	"desc": "+2% SPEED PER LEVEL",
+	"name": "Sneakers",
+	"desc": "+2% speed per level.",
 	"kind": "stat",
 	"icon": "tomes/cardio_is_life",
 	"prices": [

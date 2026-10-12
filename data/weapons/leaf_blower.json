@@ -1,16 +1,16 @@
 {
 	"id": "leaf_blower",
-	"name": "LEAF BLOWER",
-	"desc": "BLASTS FOES BACK IN A CONE",
+	"name": "Leaf Blower",
+	"desc": "Blasts foes back in a cone.",
 	"pattern": "cone_blast",
 	"trail": "LIME",
 	"status": "unlock",
 	"levels": [
-		{"damage": 7, "cooldown": 1.3, "count": 1, "range": 44, "angle": 50, "knockback": 160, "desc": "GUST OF LEAVES"},
-		{"damage": 8, "cooldown": 1.3, "count": 1, "range": 44, "angle": 60, "knockback": 190, "desc": "WIDER CONE, STRONGER PUSH"},
-		{"damage": 9, "cooldown": 1.25, "count": 1, "range": 46, "angle": 70, "knockback": 220, "desc": "WIDER CONE, STRONGER PUSH"},
-		{"damage": 10, "cooldown": 1.2, "count": 1, "range": 48, "angle": 85, "knockback": 250, "desc": "WIDER CONE, STRONGER PUSH"},
-		{"damage": 12, "cooldown": 1.2, "count": 1, "range": 50, "angle": 100, "knockback": 290, "desc": "HUGE CONE, HUGE PUSH"}
+		{"damage": 7, "cooldown": 1.3, "count": 1, "range": 44, "angle": 50, "knockback": 160, "desc": "Gust of leaves."},
+		{"damage": 8, "cooldown": 1.3, "count": 1, "range": 44, "angle": 60, "knockback": 190, "desc": "Wider cone, stronger push."},
+		{"damage": 9, "cooldown": 1.25, "count": 1, "range": 46, "angle": 70, "knockback": 220, "desc": "Wider cone, stronger push."},
+		{"damage": 10, "cooldown": 1.2, "count": 1, "range": 48, "angle": 85, "knockback": 250, "desc": "Wider cone, stronger push."},
+		{"damage": 12, "cooldown": 1.2, "count": 1, "range": 50, "angle": 100, "knockback": 290, "desc": "Huge cone, huge push."}
 	],
 	"sfx": {"attack": "gust"},
 	"hit_fx": {"kind": "puff", "color": "ORANGE", "r": 3}
