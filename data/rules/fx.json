@@ -12,5 +12,6 @@
 	"chest_beam": {"time": 0.5, "height": 44},
 	"death_particles": 24,
 	"gem": {"trail_max": 48, "sparkle_every": 29},
-	"hit_fx_gap": 0.05
+	"walk_trail": {"every_px": 5, "radius": 6, "life": 0.5, "color": "PAPER", "foot_gap": 2, "behind": 5},
+  "hit_fx_gap": 0.05
 }

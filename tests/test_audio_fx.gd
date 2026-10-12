@@ -338,3 +338,22 @@ func test_gem_trails_and_dither(t) -> void:
 	run.tick(DT)
 	t.check(run.gems.pulled[run.gems.pool.active[0]] == 1, "a gem in range is pulled (and trails)")
 	_done(t, run)
+
+
+func test_walk_trail_puffs_at_the_feet(t) -> void:
+	var run := _start(t, {})
+	run._moving = false
+	run._walk_trail(20.0)
+	t.check(run.trail.live_of(Fx.PUFF) == 0, "standing still: no dust")
+	run._moving = true
+	var every := float(run.fx_rules.walk_trail.every_px)
+	run._walk_trail(every - 1.0)
+	t.check(run.trail.live_of(Fx.PUFF) == 0, "no dust before every_px walked")
+	run._walk_trail(1.0)
+	run._walk_trail(every)
+	t.check(run.trail.live_of(Fx.PUFF) == 2, "one puff per every_px walked")
+	t.check(run.trail.get_index() < run._player_view.get_index(), "dust is drawn under the hero")
+	run.trail.reduced = true
+	run._walk_trail(every)
+	t.check(run.trail.live_of(Fx.PUFF) == 2, "reduce effects: no dust")
+	_done(t, run)

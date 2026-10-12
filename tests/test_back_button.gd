@@ -53,6 +53,12 @@ func test_back_in_the_menus_steps_out_then_asks(t) -> void:
 	await t.process_frame
 	var ask: ConfirmPopup = menu.find_child("ConfirmPopup", true, false)
 	t.check(ask != null, "on the home screen back asks before quitting")
+	await t.process_frame
+	await t.create_timer(0.25).timeout
+	var win := ask.get_child(1) as Control
+	var mid := win.get_global_rect().get_center()
+	var screen := ask.get_global_rect().get_center()
+	t.check(mid.distance_to(screen) < 1.0, "the QUIT? window lands in the middle of the screen (%s vs %s)" % [mid, screen])
 	var said := [null]
 	ask.answered.connect(func(yes: bool) -> void: said[0] = yes)
 	menu.back()

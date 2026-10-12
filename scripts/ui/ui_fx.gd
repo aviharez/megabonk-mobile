@@ -17,6 +17,23 @@ static func slide_in(c: Control, offset: Vector2, sec := 0.22, delay := 0.0) -> 
 	return tw
 
 
+## Like `slide_in` but moves the offsets, so an anchored control (a centred
+## popup made before it is in the tree) lands where its anchors say, even
+## when the parent's size is not known yet or changes mid-slide.
+static func slide_in_offsets(c: Control, offset: Vector2, sec := 0.22) -> Tween:
+	var tl := Vector2(c.offset_left, c.offset_top)
+	var br := Vector2(c.offset_right, c.offset_bottom)
+	c.offset_left = tl.x + offset.x
+	c.offset_top = tl.y + offset.y
+	c.offset_right = br.x + offset.x
+	c.offset_bottom = br.y + offset.y
+	var tw := c.create_tween().set_parallel()
+	tw.set_pause_mode(Tween.TWEEN_PAUSE_PROCESS)
+	for side in [["offset_left", tl.x], ["offset_top", tl.y], ["offset_right", br.x], ["offset_bottom", br.y]]:
+		tw.tween_property(c, side[0], side[1], sec).set_trans(Tween.TRANS_BACK).set_ease(Tween.EASE_OUT)
+	return tw
+
+
 ## A 1px hop up and back (button nudges, counters ticking).
 static func hop(c: CanvasItem, px := 2.0, sec := 0.12) -> void:
 	var tw := c.create_tween()

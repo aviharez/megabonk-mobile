@@ -59,7 +59,7 @@ func _init(title: String, text: String, yes_text: String, no_text: String) -> vo
 	no.size = no.custom_minimum_size
 	no.pressed.connect(answer.bind(false))
 	win.add_child(no)
-	UiFx.slide_in(win, Vector2(0, 20), 0.15)
+	UiFx.slide_in_offsets(win, Vector2(0, 20), 0.15)
 
 
 func answer(yes: bool) -> void:

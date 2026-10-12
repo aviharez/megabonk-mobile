@@ -140,6 +140,11 @@ var juice: Juice
 var fx_rules: Dictionary
 ## Enemy telegraphs (red zones, charge lines). Never turned off.
 var danger: Fx
+## Dust puffs at the hero's feet while walking (rules fx "walk_trail"), drawn
+## under the hero. Cosmetic: off with "reduce effects".
+var trail: Fx
+var _trail_dist := 0.0
+var _trail_foot := 1.0
 
 var _pos := Vector2.ZERO
 var _facing := Vector2.RIGHT
@@ -364,7 +369,9 @@ func tick(delta: float) -> void:
 	_moving = dir.length_squared() > 0.01
 	if _moving:
 		_facing = dir.normalized()
+	var was := _pos
 	_pos = map.move(_pos, dir * stat("move_speed") * delta, player_radius())
+	_walk_trail(_pos.distance_to(was))
 	_update_passive(minute)
 	hp = minf(hp + stat("regen") * delta, stat("max_hp"))
 	_update_shield(delta)
@@ -410,6 +417,7 @@ func tick(delta: float) -> void:
 	numbers.update(delta)
 	fx.update(delta)
 	danger.update(delta)
+	trail.update(delta)
 	juice.update(delta, hp / maxf(1.0, stat("max_hp")))
 	_tick_later()
 	_mark("fx")
@@ -2239,6 +2247,9 @@ func _build_world() -> void:
 	enemy_shots.setup(int(rules.get("enemy_shots", 160)))
 	world_viewport.add_child(enemy_shots)
 
+	trail = Fx.new()
+	trail.reduced = _reduce_fx
+	world_viewport.add_child(trail)
 	_weapon_under = Node2D.new()
 	_weapon_under.draw.connect(func() -> void:
 		for w in weapons:
@@ -2314,6 +2325,26 @@ func _death_particles(at: Vector2, color: int) -> void:
 	if p.texture != tex:
 		p.texture = tex
 	p.restart()
+
+
+## Drops a dust puff every rules fx walk_trail.every_px walked, behind the
+## hero at alternate feet.
+func _walk_trail(moved: float) -> void:
+	var cfg: Dictionary = fx_rules.get("walk_trail", {})
+	if cfg.is_empty() or not _moving:
+		_trail_dist = 0.0
+		return
+	_trail_dist += moved
+	var every := float(cfg.get("every_px", 6))
+	if _trail_dist < every:
+		return
+	_trail_dist -= every
+	_trail_foot = -_trail_foot
+	# Behind the hero (the sprite would hide it at the feet), left and right
+	# of the path in turn.
+	var side := Vector2(-_facing.y, _facing.x) * _trail_foot * float(cfg.get("foot_gap", 2))
+	var feet := _pos + Vector2(0, player_radius() - 1.0) - _facing * float(cfg.get("behind", 5)) + side
+	trail.puff(feet, float(cfg.get("radius", 3)), Palette.index_of(cfg.get("color", "MIST")), float(cfg.get("life", 0.35)))
 
 
 func _draw_player() -> void:

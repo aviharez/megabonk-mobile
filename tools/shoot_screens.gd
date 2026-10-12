@@ -78,6 +78,11 @@ func _run() -> void:
 		await _shot("07_shop")
 		shop.queue_free()
 		await _wait(0.1)
+		menu.call("back")
+		await _wait(0.4)
+		await _shot("09_quit_popup")
+		menu.call("back")
+		await _wait(0.1)
 
 	if _want("run"):
 		Run.next_options = {"seed": 7, "invincible": true, "character": "sir_loaf", "start_at": 150.0,

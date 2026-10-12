@@ -560,6 +560,14 @@ Owner follow-up 5 (2026-10-10): plants shouldn't collide; unlock prices should m
 - [x] Tests: 2227 checks pass (Final Swarm multiplier test now reads the rate from data). Stress (desktop, full build, Final Swarm, vsync): 75.0 avg / 68.5 1% low, 307 on screen
 - [ ] Owner check: prices and coins by feel on the phone (bot sims only; a human's early runs are likely shorter than the bot's 4-6 min)
 
+Owner follow-up 6 (2026-10-12): exit popup off-centre on home; a trail behind the walking hero; a more readable font (reference: Overgeared Hero; one font or two).
+
+- [x] QUIT? popup centred: `ConfirmPopup` is built before it is in the tree, so `UiFx.slide_in` saved the window's position against a zero-size parent (-76,-46) and slid it there (top-left). New `UiFx.slide_in_offsets` moves the anchored offsets instead, so the window lands where its anchors say. Test: the window centre matches the screen centre after the slide (mutation-checked: old code fails with (0,-25) vs (160,135)). `tools/shoot_screens.gd` shoots it as `09_quit_popup`
+- [x] Walk trail: dust puffs (PAPER, dithered fade, drifting up) every 5 px walked, 5 px behind the hero at alternating feet, in their own `Fx` layer under the hero. Tuning in rules fx `walk_trail`; skipped with "reduce effects" (puffs are cosmetic). Test: none standing still, one per every_px, drawn under the hero, none when reduced
+- [x] Tests 2233 pass. Stress (desktop, full build, Final Swarm, vsync): 74.9 avg / 67.4 1% low, 306 on screen
+- [ ] Font: owner picked Lilita One (OFL, smooth "mobile game" font) for all text; needs a UI revamp plan first (next session). Rules in CLAUDE.md/BRIEF.md still say pixel fonts only
+- [ ] Owner phone check: trail look on grass and road, popup centred on the phone
+
 ## Found during phase 8
 
 - `scripts/ui/menu_screen.gd` slide-ins capture the final position when the screen opens; a viewport resize during the 0.25 s slide lands it at the old spot until the next resize (the main menu uses an offset over the layout instead, which is safe)
