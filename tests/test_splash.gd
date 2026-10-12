@@ -30,7 +30,7 @@ func test_splash_plays_then_a_tap_leaves(t) -> void:
 	t.root.add_child(s)
 	await t.process_frame
 	s._process(Splash.LETTERS_AT + Splash.NAME.length() * Splash.LETTER_GAP)
-	t.check(s._letters.filter(func(l: PixelTitle) -> bool: return l.visible).size() == Splash.NAME.length(), "the whole name has popped in")
+	t.check(s._letters.filter(func(l: Label) -> bool: return l.visible).size() == Splash.NAME.length(), "the whole name has popped in")
 	t.check(s._drop_offset() == 0.0, "the badge has landed")
 	var tap := InputEventMouseButton.new()
 	tap.pressed = true

@@ -11,10 +11,11 @@ extends Control
 const NEXT_SCENE := "res://scenes/main_menu.tscn"
 const NAME := "AVIHAREZ"
 const SUB := "STUDIO"
-## Badge pixels and name letters, in UI pixels per art / font pixel (the
-## name at 3 would fill the whole 180 px minimum width).
+## Badge pixels, in UI pixels per art pixel. The name is Titan One in the
+## SPLASH style (Fonts), STUDIO under it in NAME.
 const K := 3
-const NAME_K := 2
+## Gap between the name's letters (negative: outlines overlap).
+const NAME_TRACK := -1.0
 ## Timeline, in seconds from the start.
 const DROP_AT := 0.15
 const DROP_SEC := 0.35
@@ -83,9 +84,10 @@ var _tex: ImageTexture
 var _t := 0.0
 var _leaving := false
 var _landed := false
-var _letters: Array[PixelTitle] = []
+var _letters: Array[Label] = []
 var _letter_x: Array[float] = []
-var _sub: PixelTitle
+var _name_w := 0.0
+var _sub: Label
 var _next_letter := 0
 
 
@@ -96,16 +98,15 @@ func _ready() -> void:
 	# Letters are their own titles so each can pop in on its own.
 	var x := 0.0
 	for i in NAME.length():
-		var l := PixelTitle.new(NAME[i], NAME_K, Palette.GOLD)
-		l.top_color = Palette.BUTTER
+		var l := Fonts.label(NAME[i], "SPLASH")
 		l.visible = false
 		add_child(l)
 		_letters.append(l)
 		_letter_x.append(x)
-		x += PixelTitle.glyph(NAME.unicode_at(i))[2]
-	_sub = PixelTitle.new(SUB, 1, Palette.SKY)
-	_sub.tracking = 3
-	_sub.shadow = 1
+		x += Fonts.width(NAME[i], "SPLASH") + NAME_TRACK
+	_name_w = x - NAME_TRACK
+	_sub = Fonts.label(SUB, "NAME", Palette.SKY)
+	_sub.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
 	_sub.visible = false
 	add_child(_sub)
 
@@ -168,8 +169,8 @@ func _process(delta: float) -> void:
 func _layout() -> Dictionary:
 	var bw := float(PLATE[0].length() * K)
 	var bh := float(PLATE.size() * K)
-	var name_w := float(PixelTitle.measure(NAME) * NAME_K)
-	var name_h := float(PixelTitle.LINE * NAME_K)
+	var name_w := _name_w
+	var name_h := Fonts.height("SPLASH")
 	var block := bh + 10.0 + name_h + 6.0 + 10.0
 	var top := floorf((size.y - block) / 2.0)
 	return {
@@ -184,7 +185,6 @@ func _place() -> void:
 	var n: Vector2 = at["name"]
 	for i in _letters.size():
 		var l := _letters[i]
-		var w := float(int(PixelTitle.glyph(NAME.unicode_at(i))[2]) * NAME_K) + 2.0 * NAME_K
 		var age := _t - (LETTERS_AT + i * LETTER_GAP)
 		# Pops up from below the line, overshoots, settles; then a slow hop
 		# runs along the name while it holds.
@@ -192,9 +192,8 @@ func _place() -> void:
 		if age < 0.18:
 			dy = roundf(lerpf(6.0, -3.0, age / 0.12)) if age < 0.12 else roundf(lerpf(-3.0, 0.0, (age - 0.12) / 0.06))
 		elif _t > SUB_AT and fposmod((_t - SUB_AT) * 4.0 - i * 0.5, 6.0) < 0.5:
-			dy = -NAME_K
-		l.position = Vector2(n.x + _letter_x[i] * NAME_K - NAME_K, n.y + dy)
-		l.size = Vector2(w, PixelTitle.LINE * NAME_K + l.shadow)
+			dy = -2.0
+		l.position = Vector2(n.x + _letter_x[i], n.y + dy)
 	_sub.size = Vector2(size.x, 10)
 	_sub.position = Vector2(0, at["sub"])
 

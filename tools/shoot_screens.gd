@@ -62,6 +62,11 @@ func _run() -> void:
 	save.save_game()
 	var ads := root.get_node_or_null("/root/Ads")
 
+	if _want("splash"):
+		change_scene_to_file("res://scenes/splash.tscn")
+		await _wait(2.2)
+		await _shot("00_splash")
+
 	if _want("menu"):
 		change_scene_to_file("res://scenes/main_menu.tscn")
 		await _wait(0.8)

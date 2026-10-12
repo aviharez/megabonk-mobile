@@ -35,6 +35,7 @@ const STYLES := {
 	"CHANGE": ["I", 8, Palette.LIME, 0, Palette.INK, 0],
 	"HIT": ["I", 7, Palette.WHITE, 3, Palette.INK, 0],
 	"CRIT": ["T", 12, Palette.BUTTER, 4, Palette.RED, 2],
+	"SPLASH": ["T", 22, Palette.GOLD, 4, Palette.INK, 2],
 }
 ## Smallest sizes fit() may shrink to.
 const MIN_TITLE := 6
