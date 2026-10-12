@@ -23,7 +23,7 @@ The full spec is in docs/BRIEF.md. The brief is the source of truth for content 
 - Don't use names, characters, or assets from other games.
 
 ## UI design direction
-The UI should feel like goofy pixel art, not a generic mobile UI. Don't use: gradient pill buttons, glass or blur effects, soft drop shadows, non-pixel fonts, emoji as icons, smooth rounded corners, or color gradients outside the palette.
+The UI is dark, chunky pixel art from the SpriteCook kits in assets/ui/ (deep night panels, thick INK outlines, hard drop shadows, toy-bright gold / blue / green / orange / purple accents). Only the text is smooth: Titan One for titles, buttons, names and numbers; Inter 900 for body text (7 px, never smaller). Little text: kind, rarity and New are shown by colour and stickers, not words. Don't use: gradient pill buttons, glass or blur, soft shadows, emoji as icons, smooth rounded corners, colours outside the palette, or code-drawn plates where a kit part exists.
 
 ## Verification
 - Before calling a phase done, run the project and the existing tests. Report fps with 300 enemies on screen.
