@@ -565,7 +565,7 @@ Owner follow-up 6 (2026-10-12): exit popup off-centre on home; a trail behind th
 - [x] QUIT? popup centred: `ConfirmPopup` is built before it is in the tree, so `UiFx.slide_in` saved the window's position against a zero-size parent (-76,-46) and slid it there (top-left). New `UiFx.slide_in_offsets` moves the anchored offsets instead, so the window lands where its anchors say. Test: the window centre matches the screen centre after the slide (mutation-checked: old code fails with (0,-25) vs (160,135)). `tools/shoot_screens.gd` shoots it as `09_quit_popup`
 - [x] Walk trail: dust puffs (PAPER, dithered fade, drifting up) every 5 px walked, 5 px behind the hero at alternating feet, in their own `Fx` layer under the hero. Tuning in rules fx `walk_trail`; skipped with "reduce effects" (puffs are cosmetic). Test: none standing still, one per every_px, drawn under the hero, none when reduced
 - [x] Tests 2233 pass. Stress (desktop, full build, Final Swarm, vsync): 74.9 avg / 67.4 1% low, 306 on screen
-- [ ] Font: owner picked Lilita One (OFL, smooth "mobile game" font) for all text; needs a UI revamp plan first (next session). Rules in CLAUDE.md/BRIEF.md still say pixel fonts only
+- [x] Font: planned in Phase 9 below (owner first picked Lilita One, then switched to Titan One + Inter on 2026-10-12)
 - [ ] Owner phone check: trail look on grass and road, popup centred on the phone
 
 ## Found during phase 8
@@ -577,3 +577,111 @@ Owner follow-up 6 (2026-10-12): exit popup off-centre on home; a trail behind th
 - Renaming `config/name` moves the desktop `user://` folder (`~/.local/share/godot/app_userdata/Mobbed!`); the old desktop save stays in `.../Swarm Survivor Pixel/`. Phones are unaffected (Android keys user data on the package id)
 - On a short desktop window (338 px tall) the map screen's info panel runs ~6 px past the list and scrolls; fits on 19.5:9 phones
 - Many weapon effects are small at the world scale (Rubber Duck, Stapler, Feathers read mostly through their new trails); a per-weapon art pass (bigger shot sprites, muzzle flashes) would need SpriteCook and the owner's OK
+
+## Phase 9: Fonts and UI revamp (owner request 2026-10-12)
+
+Owner: the all-caps 8px pixel fonts (Bonk + 5x7) are hard to read, make every screen feel too full, and some text overlaps. New fonts: **Titan One** (titles, buttons, card and item names, big numbers) + **Inter Black (weight 900, as Overgeared Hero uses it)** (body text, labels, small numbers), both OFL from Google Fonts. Text goes mixed case. Keep the goofy pixel look: palette colours, INK outlines, hard drop shadows, pixel-art UI plates (now from SpriteCook kit 3, see below). Not started: waits for the owner's OK on this plan and on the new CLAUDE.md / BRIEF.md wording. (BRIEF.md's own "Phase 9: Release prep" becomes phase 10.)
+
+Done in the planning session (2026-10-12):
+
+- [x] Fonts in the repo with their licences: `assets/fonts/titan_one/` (Reserved Font Name "Titan": if we ever subset or edit the file, it must be renamed), `assets/fonts/inter/` (variable, wght 100-900, opsz 14-32; no reserved name), `assets/fonts/lilita_one/` (first pick, used in the comparison renders; remove once the owner confirms)
+- [x] Sharpness test, `tools/font_preview.gd` (+ `tools/revamp_fonts.gd`, the shared setup): the root viewport oversamples dynamic fonts at the stretch scale, so in the UI layer text is drawn at device resolution (3x on a 540-wide window, 6x on a 1080-wide phone). With antialiasing off every text pixel is a palette colour (0 off-palette pixels; the same line with AA on made 2,220 in 245 colours). Even spacing needs hinting none + subpixel positioning auto + `keep_rounding_remainders` (with "disabled" positioning, 8px Lilita read "Pick o ne")
+- [x] World view finding: text drawn inside Run's world `SubViewport` is rasterised at the world's low resolution and scaled up (smudgy below ~12px). Drawn in the UI layer at the same spot it is crisp. Plan: all world text moves to a UI-space overlay (below)
+- [x] Mockups, `tools/ui_mockups.gd` (real title scene, a real run, kit art and icons; not wired to the game): home, level-up cards, HUD. Renders in `docs/phase9/` (0 current, 1 Titan + Inter, 2 Lilita, 3-4 font tests), all 0 off-palette pixels
+- [x] Glyph coverage: Inter has every character we need (→ × · … ’ ♥ ★ ✓). Titan One (413 chars) and Lilita (225) lack → ♥ ★ ✓, so title-font strings stay clear of them (test below)
+- [x] Width: at the same size Titan One is ~25% wider than Lilita and Inter 900 ~21% wider (900 is ~2% wider than 700; the mockups still fit), so sizes below are a step smaller than the mockup tries suggested, and long names need shrink-to-fit
+
+### Decisions after the first mockups (owner, 2026-10-12)
+
+- The first mockups (`docs/phase9/1_*`) had too much text and too-big body text; a light and a dark redesign (`5_*`, `6_*`) were still "bad". Owner picked the **dark** direction and asked for a SpriteCook design system, with the UI art staying **pixel art** (only the text is smooth)
+- [x] SpriteCook kit 3 concepts (owner approved, 14 credits, balance 127): home `e941feb9` (`docs/phase9/7_kit3_home_concept.png`, kit `a30ebb25`) and level-up `2550b1ad` (`8_kit3_levelup_concept.png`, kit `9bd2e504`, child of kit 3). These two images are the target look for every screen
+- [x] Kit 3 (home) component sheet (2026-10-12, sheet `4562775f`): **charged 22 credits, not ~14** (sheets now run on gpt-image-2.5-sunburst and the cost only shows after queuing). Balance 127 -> 105. Extracted (alpha threshold 200: the sheet has soft alpha and a dark glow), names / groups / 9-slice borders corrected, finalized (free, 21 components). Cut by `tools/art/ui_kit.py` (third sheet, 16 source px per art px, so 1 art px = 1 UI px like kits 1-2) into 24 files in `assets/ui/` + `ui_kit.json`: `play_button`, `button_orange`, `button_off`, `nav_blue/green/orange/purple`, `plate_dark`, `panel_dark`, `icon_button`, `icon_face` (nav face without its strip, recolourable), `ribbon_red`, `track_dark`, `fill_gold` (recolourable), `seg_track`, `gear_button`, `ad_sticker`, `alert`, `bubble` (alert without "!"), `star` (hand-pixelled, the sheet's was a 7 px blob), `coin_big`, `gear`, `sack`, `padlock_big`, `mystery`. Kits 1-2 still cut byte-identical; `check_assets.py` 151 OK; tests 2297 OK
+- [x] Kit 3b (level-up + HUD) component sheet (owner OK at 22 credits, 2026-10-12; sheet `ee87d9c2`, balance 105 -> 83). Extracted (alpha 200), names / groups / states / 9-slice borders corrected, finalized (free, 34 components). Cut at 13 source px per art px into 22 files: `lv_window`, `lv_header`, `lv_card` (one template, recoloured by kind; selected = gold), `lv_frame` (icon / action-button frame, any colour), `lv_sticker` (New / +1 / Ad, any colour), `lv_bubble`, `lv_pip_on/off`, `lv_die` (cut out of the reroll button), `lv_ffwd` + `lv_x` (hand-pixelled: on the sheet they share their button's colours and fall apart when cut out), `info_bar` + `info_icon`, `hud_track`, `hud_fill` (XP gold, HP red), `hud_timer`, `hud_ring`, `hud_pause`, `hud_heart/coin/skull/clock`. New `ui_kit.py` options: `mirror` (right border = left flipped: the sheet's cards have the New sticker fused over their top-right corner), `rows`, `recolor`, `crop`, `icon` (flood-fill cut-out), `grid` (hand pixels)
+- [x] Mockups round 4, **following the concepts** (owner: "the concept is much better than yours"), `tools/ui_mockups_v4.gd`: every box at the concept's measured spot (concept px / 6.4), the extra height of a 9:19.5 phone between the top and bottom groups. Home: coin plate, gear button, logo, "survive the swarm" on the ribbon, Sir Loaf 3x on a stone plinth with a name plate, night houses (map props darkened one-two ramp steps, glass lit), critters 2x cut off at the edges, next-unlock card with the mystery slot and segmented star bar, big lowercase "play", four nav tiles with big icons and lowercase words, ! and Ad stickers. Level-up: concept HUD (ring, XP bar with "XP 64/120", timer plate, pause; heart + HP bar with "42/60", coins, kills), gold header + "+1", kit 3b window, cards (kind colour frame and name, 2x icon, one effect line, "3 → 4", 5 pips, New stickers, selected card gold), 34x30 action buttons with 2x icons and count bubbles, "Choose one upgrade." info bar. Renders `docs/phase9/10_v4_*.png` (+ `10_v4_vs_concept.png` side by side), 540x1170, notch 12, 0 off-palette pixels. Still unlike the concept: the logo has no leaves / critter on top, no street sign / lamp glow / manhole, critters are our enemy sprites in their own colours, the plinth is code-drawn (no plinth art)
+- [x] Mockups round 3 from the real parts, `tools/ui_mockups_v3.gd` (extends v2; `--size=540x1170` forces a borderless window taller than the screen, the compositor clamps `--resolution` to 1014): `docs/phase9/9_v3_1_home.png`, `9_v3_2_level_up.png`, `9_v3_3_hud.png`, side by side in `9_v3_mockups.png`; 540x1170, notch 12, 0 off-palette pixels in all three
+- Leave out what the level-up concept invented: minimap, wave counter, energy bar, objectives panel. Sir Loaf on the home plinth is our sprite (the concept drew a crest)
+- Less text everywhere: cards = name + one short line + one change line + pips; kind / rarity / New by colour and stickers; Reroll / Skip / Banish icon-only with count bubbles; home nav = 4 icon tiles with one word; the pickup card shows icon + name only (details in pause). Data gets a `short` text next to `desc`
+- Body text is **Inter 900 at 7 px** (owner: smaller); the type scale below is the first draft and gets re-tuned to the kit 3 concepts (smaller everywhere)
+
+### Owner review of v4 (2026-10-13)
+
+- Owner **approved** the plan and approved generating backdrop art, but `docs/phase9/10_v4_vs_concept.png` is "still bad, not as good as the concept". The mockups must reach the concept's quality before any game code changes. Everything on screen should be SpriteCook art, not code-drawn (the plinth, street, lamp glow, sign and logo decorations are code or missing today)
+- Why v4 falls short, side by side: (1) the concept's home is a dense, lit night scene (glowing street lamp, lit windows, plinth with lamps, manhole, street sign, foliage, round colourful critters). Ours is flat dark fill with darkened map props, a code-drawn plinth and a big empty band above Play. (2) The logo has a thick dark plum outline, an inner highlight and leaves or a critter on top; ours is a plain Titan label. (3) Hero, tile icons and critters in the concept are drawn as one piece of art at one pixel size; ours mix 1x / 2x / 3x. (4) The level-up world behind the dim reads as a dark tint in the concept and as noisy dither in ours
+- [ ] Backdrop art (approved): home backdrop scene (night street, lit houses, lamp, sign without text, manhole, foliage, an empty stone plinth with a blank name plate, no hero / UI / text), logo decorations (leaves, a critter perched on a letter), menu critters in the concept's colours. Balance 83 credits (below the old 100 floor); estimate before each call, stop if a job costs much more than estimated
+- [ ] Mockups round 5 on that art, checked side by side with the concept until they match
+
+### Type scale (UI px at the 180-wide base; screens are 3x-6x). Re-tuned to the kit 3 parts and the v3 renders (2026-10-12)
+
+Kit 3 parts are small at 1 art px = 1 UI px (play plate 17 px tall before stretching, nav tile strip 8 px, plates 13-17 px), so the scale is about two steps smaller than the first draft.
+
+| Style | Font | Size | Look | Used for (v3 render) |
+| --- | --- | --- | --- | --- |
+| LOGO | Titan One | 34 | BUTTER, 6 INK outline, 4 drop, letters tilt and hop | "Mobbed!" |
+| BIG_BUTTON | Titan One | 26 | INK, no outline, lowercase, on `play_button` (+ ORANGE play triangle) | "play" (v4, as the concept) |
+| TITLE | Titan One | 15 | INK on `lv_header` | Level up!, Paused, Game over, Unlocks, Shop |
+| BANNER | Titan One | 14 | colour + 4 INK outline + 2 drop, over the world | Swarm incoming!, Final Swarm!, Survive! |
+| NAME | Titan One | 10 (shrinks to 8) | kind / rarity colour, no outline on dark plates | card, item, hero names; toast name 8 |
+| NUM | Titan One | 9 | PAPER or BUTTER, 3 INK outline over the world, none on plates | coins plate (10), timer, level badge, gold, kills |
+| BAR_NUM | Titan One | 7 | WHITE, 3 INK outline, inside a bar | HP "42/60", "1/3" |
+| RIBBON | Titan One | 10 | PAPER, 3 WINE outline, lowercase, on `ribbon_red` stretched to 20 tall | "survive the swarm" |
+| NAV | Titan One | 7 (6 for two words) | PAPER, lowercase, on the tile strip | heroes, unlocks, shop, free coins; "next unlock" |
+| TAG | Titan One | 7 (XP label 6) | WHITE on `lv_sticker` / `lv_bubble` | New, Ad, +1, charge counts |
+| BODY | Inter 900 | 7 | MIST on dark cards, PAPER on strips | the one short card line, nav words, "Next unlock" |
+| CHANGE | Inter 900 | 8 | LIME, real → (Titan has no →) | level "3 → 4" under the effect line (v4, as the concept; the stat change is the BODY line "+1 bounce.") |
+| WORLD | Inter 900 / Titan | 7 / 12 | plain hits Inter 7 WHITE + 3 INK; crits Titan 12 BUTTER + RED edge | damage numbers, "+32" gold |
+
+Rules: Titan never under 6 (stickers only), Inter never under 7; text on world art always gets an INK outline, on kit plates never; one size per role, picked by style name in code, never by number. SMALL is gone (BODY in MIST does that job: less text means no third body size).
+
+### Shared parts
+
+- [ ] Import settings for both TTFs in their `.import` files (antialiasing none, hinting none, subpixel auto, keep rounding remainders, no mipmaps, no MSDF), not set in code; test reads them
+- [ ] `Fonts` rewritten: `TITLE_FONT` / `BODY_FONT` (Inter as a `FontVariation` at wght 900) and named `LabelSettings` styles from the table (`Fonts.style("NAME")`, cached). Old `BOLD` / `SMALL` / `fitting()` removed once nothing uses them
+- [ ] `Fonts.fit(label, width, min_size)`: shrinks a style step by step until the text fits, then wraps, never clips. Used by names, buttons, tags and the HUD
+- [ ] `Fonts.draw(ci, text, pos, style)`: one call that draws drop shadow, outline and fill for the `_draw()` code (hud.gd, run.gd pause/game over, level_card.gd, icon_tile.gd...), so custom-drawn text matches Labels
+- [ ] `assets/ui/theme.tres`: default font BODY at 7; Label line spacing checked for Inter (taller ascent than the 5x7)
+- [ ] Glyph pre-warm at boot for both fonts at the sizes in use (avoids a hitch the first time a size is drawn on a slow phone); check the font atlas memory at 6x
+- [ ] Optional: subset Inter to Latin + the symbols we use (876 KB -> ~100 KB); OFL allows it, Inter has no reserved name
+
+### Per component
+
+- [ ] `PixelButton`: kit 3 plates (`play_button` gold, `button_orange`, `button_off` disabled, pressed = 1 px sink, no separate art); label through `Fonts.fit` (no more fallback to the 5x7); text centred on the face including the sink; with `art`, icon left + text; toggle rows; check every button for width at 3x
+- [ ] `PixelPanel`: `panel_dark` (windows) and `plate_dark` (rows, cards, toasts, the coin plate) replace the riveted kit 1 `window` / `row` in menus; inner padding from the style's line height instead of hard-coded 10 px rows
+- [ ] Home nav: `nav_*` tiles (icon on the face, BODY word on the strip), `alert` on Unlocks, `ad_sticker` on Free; `gear_button` top right; next-unlock card = `panel_dark` + `icon_button` slot + `star` + `track_dark`/`fill_gold`
+- [ ] Recolourable kit 3 frames: `icon_face` (kind / rarity frames, action buttons, HUD build strip) and `fill_gold` (XP gold, HP red, pips) through UiArt's ramp swap; no code-drawn plates left (`plate()` / `notched()` from the mockups stay in tools/)
+- [ ] `PixelTitle`: rebuilt on the TTF (it cuts glyphs from `bonk.png` today): per-letter Labels or `draw_char` with tilt and hop for LOGO, TITLE on the ribbon. The band colour across the letters' top rows has no TTF equivalent; drop it or clip-draw a second fill (decide on the render)
+- [ ] `LevelCard` (level-up, beacon, merchant): layout of mockup 1 (kind sticker on the top edge, NAME, two lines of BODY at most, CHANGE line that shows as many changes as fit, never cut; pips under the badge). Beacon cards: big value in NAME/BIG_NUM; merchant price chip in NUM
+- [ ] `ActionButton`: word in BUTTON 10, charge bubble in TAG
+- [ ] `IconTile`, `PixelTabs`, `CoinPlate`, `ChallengeRow`, `MapCard`, `FaceTile`, `AdButton`, `ConfirmPopup`, `UnlockPopup`, `BuildView`, `ThumbStick` hint: move to styles; check each at 1x and 3x for fit
+- [ ] Splash (AVIHAREZ letters, the "A" badge): Titan One letters popping in; keep caps here (it's a logo)
+
+### Per screen
+
+- [ ] Home: mockup 1 layout (coin plate in NUM, LOGO, "Survive the swarm" on the ribbon, next-unlock card in BODY/SMALL, Play! / Unlocks / Shop / Free +25 coins)
+- [ ] Settings window, QUIT? popup
+- [ ] Heroes, Maps (goals panel), Unlocks (detail panel + grid), Shop, Toggler: titles, detail panels, prices, "Collected 7/19"
+- [ ] HUD (mockup 1 right): Lv on the XP bar, HP number inside the bar (drops the line under it), BIG_NUM timer, NUM gold/kills, banners in TITLE (Swarm incoming!, Final Swarm!, Survive!), toasts and the pickup card in BODY with `Fonts.fit`, boss name on the boss bar
+- [ ] Level-up / beacon / merchant panels, pause (build details, stats grid, Give up twice), revive, game over (stat tiles, coins, closest unlocks), unlock popup, first-run "Drag anywhere to move"
+- [ ] World text to a UI-space overlay (`WorldText`, a pooled Node2D in a CanvasLayer between the world and the HUD, positions = (world - view origin) x world_zoom): damage numbers (plain hits Inter 900 at 8 with INK outline, crits Titan 14 with a RED edge and "!", gold "+5"), chest and merchant price tags, beacon/altar labels. The 3x5 tiny digit atlas goes away unless the crowd render reads worse (compare at 300 enemies before deciding)
+
+### Text pass (mixed case)
+
+- [ ] Data, one subagent per group, each returns a diff and a list of anything unclear: (1) characters + challenges + shop + rules rarity names, (2) weapons, (3) tomes, (4) items, (5) interactables + enemies + maps. Names in Title Case ("Grandma's Soup Recipes", "Band-Aid"), descriptions and challenges in sentence case with a full stop, keep HP / XP / KO / AoE as caps, simple English (brief). 230 shown strings: 86 `name`, 137 `desc`, 3 hero `role`, 4 rarity names. Ids, colour names, tome `symbol` grids and `_doc` notes untouched. Check each diff before accepting
+- [ ] Code strings: ~415 capital literals in scripts (most in run.gd 75, action_button 27, splash 22, main_menu 16, map_layout 16; many are ids, not shown text), plus 3 `to_upper()` calls (toggler, item_system, fake_ad_backend). Shown text to mixed case; brief's player-facing names stay (Beacon, Manual)
+- [ ] Shorter words where space is tight: stat short names in data ("Dmg", "CD", "Area") used by the CHANGE line, so adding content still needs no code
+
+### Fit and overlap fixes
+
+- [ ] Known now: the v3 home leaves a band of empty sky between the ribbon and the town (the concept fills it with a bigger hero on a plinth and critters; the title scene would need that art); pickup card text past its frame; long Titan names on cards ("Coupon Clipping" touches the edge at 12); chest price "SHOP 32" in the world runs into the merchant; damage numbers stack into a block in crowds; the map screen panel 6 px past the list on a 338 px window (Found, phase 8)
+- [ ] Every text box sized from its text (`Fonts.fit` or measured), no hard-coded text widths
+
+### Tests
+
+- [ ] Update: `test_ui_polish.gd` font coverage (Bonk/5x7 -> Titan One/Inter: every data string and every shown code string is in the font it's drawn with; title-font strings have no → ♥ ★ ✓), `test_ui_release.gd` (PixelTitle-matches-.fnt test goes; strings like UNLOCKED!, TOTAL, BEACON BONUS -> mixed case), `test_data.gd` (12 caps strings), `test_icons.gd`, `test_select_screens.gd`, `test_meta.gd`, `test_audio_fx.gd`, `test_ui_art.gd`, `test_ads.gd`, `test_export_filters.gd` (the .ttf imports ship; no raw font reads)
+- [ ] New `tests/test_text_fit.gd`: build every screen and panel at x1 and x3 (and a 338 px short window) and check that every visible Label sits inside its panel and no two text boxes overlap; every data name fits a card at the NAME minimum size; every desc fits the card in two lines. Mutation-check it on the known overlaps
+- [ ] New: font import settings are AA off (headless can't render; the render check is the next item)
+- [ ] `tools/shoot_screens.gd` + a palette scan of every shot (0 off-palette pixels in text) as the visual check; owner phone check after
+- [ ] Stress test (300 enemies, full build, all effects) with the world text overlay: compare with phase 8 (75.0 vsync / ~350 uncapped)
+
+### Docs (after the owner approves the wording)
+
+- [ ] CLAUDE.md "UI design direction" and the copy inside BRIEF.md; BRIEF.md asset table (fonts), logo line, damage numbers line, phases list (revamp = 9, release prep = 10)

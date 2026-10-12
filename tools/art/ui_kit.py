@@ -2,10 +2,11 @@
 """Cut the UI parts out of the SpriteCook UI-kit component sheets, snapped to the palette and
 shrunk to game scale (one shrink factor for every sheet, so every part keeps the same pixel size).
 
-    python3 tools/art/ui_kit.py RAW/kit1_sheet1.png RAW/kit2_sheet1.png --out assets/ui [--preview DIR]
+    python3 tools/art/ui_kit.py RAW/kit1_sheet1.png RAW/kit2_sheet1.png RAW/kit3_sheet1.png --out assets/ui [--preview DIR]
 
-The sheets are kit 1 (menus) and kit 2 (in-run), asset ids in docs/spritecook-assets.json
-("ui_kit1_sheet1", "ui_kit2_sheet1"). PARTS / PARTS2 hold each part's rectangle on its 2048x2048
+The sheets are kit 1 (menus), kit 2 (in-run) and kit 3 (Phase 9 dark UI), asset ids in
+docs/spritecook-assets.json ("ui_kit1_sheet1", "ui_kit2_sheet1", "ui_kit3_sheet1"); all three are
+needed, since ui_kit.json is rewritten from every part. PARTS / PARTS2 hold each part's rectangle on its 2048x2048
 sheet (from extract_ui_kit_components, renamed after what the part really is). The art pixel is
 about 10.5 source pixels (outlines run 10-12).
 
@@ -93,10 +94,86 @@ PARTS2 = {
 }
 
 
+# Kit 3 (Phase 9 dark design system, home) sheet. Drawn chunkier: an art pixel is about 16 source
+# pixels (outline runs of 15 + 1), so SCALE3 keeps 1 art pixel = 1 UI pixel like kits 1 and 2.
+# Its alpha is soft (a dark glow around every part, no binary-alpha source to fall back on), so
+# pixels under CUTOFF3 are dropped before snapping.
+SCALE3 = 16
+CUTOFF3 = 200
+PARTS3 = {
+    "play_button": (49, 30, 643, 279, None),
+    "button_orange": (730, 46, 618, 257, None),
+    "button_off": (1387, 42, 612, 267, None),
+    "nav_blue": (44, 353, 313, 356, None),
+    "nav_green": (385, 353, 314, 356, None),
+    "nav_orange": (727, 353, 313, 356, None),
+    "nav_purple": (1068, 353, 313, 356, None),
+    "nav_blue_pressed": (44, 739, 313, 356, None),
+    "nav_green_pressed": (385, 738, 314, 357, None),
+    "nav_orange_pressed": (727, 739, 313, 356, None),
+    "nav_purple_pressed": (1068, 738, 313, 357, None),
+    "coin_plate": (1451, 355, 536, 204, None),
+    "gear_button": (1452, 586, 247, 230, None),
+    "gear_button_pressed": (1740, 586, 247, 230, None),
+    "ribbon_red": (1392, 853, 624, 217, None),
+    "ad_sticker": (1769, 1140, 192, 187, None),
+    "side_panel": (50, 1141, 643, 828, None),
+    "alert": (1509, 1153, 172, 174, None),
+    "seg_track": (769, 1181, 645, 139, None),
+    "seg_fill": (784, 1357, 396, 118, None),
+    "coin_big": (1467, 1364, 214, 214, None),
+    "gear": (1749, 1364, 222, 220, None),
+    "sack": (1189, 1580, 292, 357, None),
+    "padlock_big": (809, 1588, 284, 349, None),
+    "mystery": (1595, 1618, 314, 319, None),
+}
+
+# Kit 3b (Phase 9, level-up + HUD; child of kit 3) sheet: art pixel about 13 source px, soft alpha.
+SCALE3B = 13
+PARTS3B = {
+    "level_ring": (33, 25, 192, 190, None),
+    "pause_btn": (1815, 25, 200, 190, None),
+    "timer_plate": (1443, 32, 349, 144, None),
+    "heart": (887, 36, 121, 113, None),
+    "hp_track": (1025, 42, 389, 93, None),
+    "xp_track": (246, 44, 603, 95, None),
+    "hp_fill": (1033, 150, 376, 62, None),
+    "xp_fill": (254, 154, 472, 60, None),
+    "header": (79, 241, 931, 174, None),
+    "coin": (1418, 253, 127, 130, None),
+    "skull": (1612, 253, 126, 130, None),
+    "clock": (1814, 253, 136, 130, None),
+    "sticker": (1070, 273, 196, 115, None),
+    "card_red": (1101, 420, 903, 228, None),
+    "window": (41, 432, 1023, 695, None),
+    "card_blue": (1101, 659, 902, 220, None),
+    "card_gold": (1100, 890, 904, 237, None),
+    "frame_red": (52, 1154, 252, 257, None),
+    "frame_blue": (336, 1154, 251, 257, None),
+    "frame_green": (619, 1154, 251, 257, None),
+    "frame_purple": (903, 1154, 252, 257, None),
+    "frame_gold": (1187, 1154, 252, 257, None),
+    "pip_on": (1498, 1230, 98, 99, None),
+    "pip_off": (1650, 1230, 97, 99, None),
+    "sticker_b": (1805, 1235, 199, 116, None),
+    "bubble": (1857, 1448, 123, 124, None),
+    "reroll": (47, 1460, 272, 263, None),
+    "reroll_pressed": (340, 1460, 279, 264, None),
+    "skip": (654, 1461, 268, 262, None),
+    "skip_pressed": (939, 1462, 269, 261, None),
+    "banish": (1240, 1461, 268, 263, None),
+    "banish_pressed": (1530, 1461, 269, 262, None),
+    "sticker_c": (1838, 1608, 171, 116, None),
+    "info_bar": (44, 1755, 1961, 252, None),
+}
+
+
 # Written to --out. name: (source part, kind, info)
 #   "sprite": as is.
 #   "slice": [left, top, right, bottom] borders, "mid": [column, row] of the clean middle.
 #   "ramp": palette names [light, face, dark] that ui_art.gd swaps for a face colour's ramp,
+#   "rows": only these rows of the source part (before slicing).
+#   "grid": hand-pixelled here (GRIDS), where the sheet's art doesn't survive the cut.
 #   "fill": the palette name of the inside that ui_art.gd swaps for a fill colour.
 SHIP = {
     "button": ("button_grey", "slice", {"slice": [6, 7, 6, 8], "mid": [36, 9], "ramp": ["MIST", "GRAY", "NIGHT"]}),
@@ -134,6 +211,64 @@ SHIP = {
     "die": ("die", "sprite", {}),
     "ffwd": ("ffwd", "sprite", {}),
     "xmark": ("xmark", "sprite", {}),
+    # Kit 3 (Phase 9 dark UI). The second row of nav tiles on the sheet only differs by noise
+    # (4-26 px), so there is one tile per colour; pressed = the usual 1px sink.
+    "play_button": ("k3_play_button", "slice", {"slice": [4, 4, 4, 4], "mid": [20, 8]}),
+    "button_orange": ("k3_button_orange", "slice", {"slice": [4, 4, 4, 3], "mid": [19, 7]}),
+    "button_off": ("k3_button_off", "slice", {"slice": [4, 4, 4, 4], "mid": [19, 8]}),
+    "nav_blue": ("k3_nav_blue", "slice", {"slice": [2, 2, 2, 9], "mid": [9, 6]}),
+    "nav_green": ("k3_nav_green", "slice", {"slice": [2, 2, 2, 9], "mid": [9, 6]}),
+    "nav_orange": ("k3_nav_orange", "slice", {"slice": [2, 2, 2, 9], "mid": [9, 6]}),
+    "nav_purple": ("k3_nav_purple", "slice", {"slice": [2, 2, 2, 9], "mid": [9, 6]}),
+    "plate_dark": ("k3_coin_plate", "slice", {"slice": [2, 2, 3, 3], "mid": [20, 6]}),
+    "panel_dark": ("k3_side_panel", "slice", {"slice": [3, 4, 3, 4], "mid": [20, 4]}),
+    "icon_button": ("k3_gear_button", "slice", {"slice": [2, 2, 2, 2], "mid": [3, 3]}),
+    "ribbon_red": ("k3_ribbon_red", "slice", {"slice": [10, 7, 10, 6], "mid": [25, 7]}),
+    "track_dark": ("k3_seg_track", "slice", {"slice": [2, 3, 2, 3], "mid": [5, 3]}),
+    "fill_gold": ("k3_seg_fill", "slice", {"slice": [2, 2, 2, 2], "mid": [12, 3], "ramp": ["BUTTER", "GOLD", "ORANGE"]}),
+    # the blue nav tile's face without its label strip: a square kind/rarity frame, any colour
+    "icon_face": ("k3_nav_blue", "slice", {"slice": [2, 2, 2, 2], "mid": [9, 6], "rows": [*range(14), 21], "ramp": ["SKY", "BLUE", "OCEAN"]}),
+    "seg_track": ("k3_seg_track", "sprite", {}),
+    "gear_button": ("k3_gear_button", "sprite", {}),
+    "ad_sticker": ("k3_ad_sticker", "sprite", {}),
+    "alert": ("k3_alert", "sprite", {}),
+    "star": (None, "grid", {"grid": "STAR"}),
+    "coin_big": ("k3_coin_big", "sprite", {}),
+    "gear": ("k3_gear", "sprite", {}),
+    "sack": ("k3_sack", "sprite", {}),
+    "padlock_big": ("k3_padlock_big", "sprite", {}),
+    "mystery": ("k3_mystery", "sprite", {}),
+    # Kit 3b (level-up + HUD). One template per colour family, recoloured through its ramp
+    # (cards and icon frames are the red ones; the gold card's glow snapped to BARK / WOOD).
+    # "mirror": the right border is the left one flipped (the sheet's red and blue cards have
+    # the New sticker fused over their top-right corner, the window's right edge is ragged).
+    "lv_window": ("k3b_window", "slice", {"slice": [6, 8, 6, 6], "mid": [40, 20], "mirror": True}),
+    "lv_header": ("k3b_header", "slice", {"slice": [3, 3, 3, 4], "mid": [20, 5], "mirror": True}),
+    "lv_card": ("k3b_card_red", "slice", {"slice": [3, 3, 3, 3], "mid": [30, 8], "rows": list(range(1, 18)),
+                                          "mirror": True, "recolor": {"WINE": "BLOOD"}, "ramp": ["SALMON", "RED", "BLOOD"]}),
+    "lv_frame": ("k3b_frame_red", "slice", {"slice": [2, 2, 2, 3], "mid": [9, 9], "ramp": ["SALMON", "RED", "BLOOD"]}),
+    "lv_sticker": ("k3b_sticker", "slice", {"slice": [2, 2, 2, 2], "mid": [7, 4], "ramp": ["PINK", "PURPLE", "PLUM"]}),
+    "lv_bubble": ("k3b_bubble", "sprite", {}),
+    "lv_pip_on": ("k3b_pip_on", "sprite", {}),
+    "lv_pip_off": ("k3b_pip_off", "sprite", {}),
+    # icons cut out of the action buttons (the pressed ones for skip / banish: there the face is a
+    # shade darker than the icon, on the normal ones they share colours)
+    "lv_die": ("k3b_reroll", "icon", {"face": ["BLUE", "OCEAN", "DEEP_BLUE"]}),
+    # the skip / banish icons share their button's colours on the sheet, so cut out they lose
+    # their shape; hand-pixelled after the sheet's (lighter fill so they read on the face)
+    "lv_ffwd": (None, "grid", {"grid": "FFWD"}),
+    "lv_x": (None, "grid", {"grid": "XMARK"}),
+    "info_bar": ("k3b_info_bar", "slice", {"slice": [3, 3, 3, 3], "mid": [60, 14], "mirror": True}),
+    "info_icon": ("k3b_info_bar", "crop", {"rect": [4, 4, 12, 11], "drop": ["NIGHT"]}),
+    "hud_track": ("k3b_xp_track", "slice", {"slice": [2, 2, 2, 2], "mid": [20, 3], "mirror": True}),
+    "hud_fill": ("k3b_xp_fill", "slice", {"slice": [1, 1, 1, 1], "mid": [17, 2], "mirror": True, "ramp": ["BUTTER", "GOLD", "ORANGE"]}),
+    "hud_timer": ("k3b_timer_plate", "slice", {"slice": [3, 2, 3, 2], "mid": [20, 5], "mirror": True}),
+    "hud_ring": ("k3b_level_ring", "sprite", {}),
+    "hud_pause": ("k3b_pause_btn", "sprite", {}),
+    "hud_heart": ("k3b_heart", "sprite", {}),
+    "hud_coin": ("k3b_coin", "sprite", {}),
+    "hud_skull": ("k3b_skull", "sprite", {}),
+    "hud_clock": ("k3b_clock", "sprite", {}),
 }
 # Hand touch-ups after shrinking: name -> [(x, y, palette index)]. The pips get a 1px top-left
 # glint like the buttons' bevel (as plain blocks they also read as upscaled to check_assets.py).
@@ -149,10 +284,15 @@ def palette_names():
     return {int(i): n for n, i in re.findall(r"^const ([A-Z_]+) := (\d+)$", src, re.M)}
 
 
-def cut(sheet, pal, allowed, rect):
+def cut(sheet, pal, allowed, rect, scale=SCALE, cutoff=None):
     x, y, w, h = rect[:4]
-    a = snap(sheet.crop((x, y, x + w, y + h)), pal, allowed)
-    a = shrink_mode(a, max(1, round(w / SCALE)), max(1, round(h / SCALE)))
+    im = sheet.crop((x, y, x + w, y + h))
+    if cutoff is not None:
+        c = np.array(im)
+        c[..., 3] = np.where(c[..., 3] >= cutoff, 255, 0)
+        im = Image.fromarray(c)
+    a = snap(im, pal, allowed)
+    a = shrink_mode(a, max(1, round(w / scale)), max(1, round(h / scale)))
     return trim(defringe(a, pal))
 
 
@@ -173,6 +313,81 @@ def trim(a):
     return a[ys.min():ys.max() + 1, xs.min():xs.max() + 1]
 
 
+# Hand-pixelled parts: one palette index per character (base 32: 0 INK ... 9 RED, a SALMON,
+# c ORANGE, d GOLD, e BUTTER), "." transparent.
+GRIDS = {
+    # the progress star (the sheet's is 7 px and reads as a blob once shrunk)
+    "STAR": [
+        "....0....",
+        "...0e0...",
+        "..0eed0..",
+        "0eeedddd0",
+        ".0edddc0.",
+        "..0dddc0.",
+        ".0dd0dc0.",
+        "0cc0.0cc0",
+        "000...000",
+    ],
+    "FFWD": [
+        "0....0......",
+        "00...00.....",
+        "0e0..0e0....",
+        "0ee0.0ee0...",
+        "0eee00eee0..",
+        "0eeee0eeee0.",
+        "0eed00eed0..",
+        "0ed0.0ed0...",
+        "0d0..0d0....",
+        "00...00.....",
+        "0....0......",
+    ],
+    "XMARK": [
+        ".00.....00.",
+        "0aa0...0aa0",
+        "0aaa0.0aaa0",
+        ".0aaa0aaa0.",
+        "..0aaaaa0..",
+        "...0aaa0...",
+        "..0aaaaa0..",
+        ".0aa909aa0.",
+        "0a990.0a990",
+        "0990...0990",
+        ".00.....00.",
+    ],
+}
+
+
+def grid(pal, rows):
+    a = np.zeros((len(rows), len(rows[0]), 4), np.uint8)
+    for y, row in enumerate(rows):
+        for x, ch in enumerate(row):
+            if ch != ".":
+                a[y, x, :3], a[y, x, 3] = pal[int(ch, 32)], 255
+    return a
+
+
+def icon_out(a, face, inset=2):
+    """The icon baked into a square button: drops the outline + `inset` - 1 face pixels, then
+    flood-fills from the edge through the button's `face` colours and clears them, so only the
+    icon is left."""
+    a = a[inset:-inset, inset:-inset].copy()
+    h, w = a.shape[:2]
+    is_face = np.zeros((h, w), bool)
+    for c in face:
+        is_face |= (a[..., :3] == c).all(2)
+    is_face &= a[..., 3] > 0
+    seen = np.zeros((h, w), bool)
+    stack = [(y, x) for y in range(h) for x in (0, w - 1)] + [(y, x) for x in range(w) for y in (0, h - 1)]
+    while stack:
+        y, x = stack.pop()
+        if not (0 <= y < h and 0 <= x < w) or seen[y, x] or not is_face[y, x]:
+            continue
+        seen[y, x] = True
+        stack += [(y + 1, x), (y - 1, x), (y, x + 1), (y, x - 1)]
+    a[seen] = 0
+    return trim(a)
+
+
 def template(a, sl, mid):
     """Corners + one middle column/row: rows [0, top) + mid row + [h - bottom, h), same for columns."""
     left, top, right, bottom = sl
@@ -185,7 +400,7 @@ def template(a, sl, mid):
 
 def main():
     ap = argparse.ArgumentParser(description=__doc__, formatter_class=argparse.RawDescriptionHelpFormatter)
-    ap.add_argument("sheets", nargs="+", help="kit 1 sheet, then kit 2 sheet")
+    ap.add_argument("sheets", nargs="+", help="kit 1, kit 2, kit 3 and kit 3b sheets")
     ap.add_argument("--out", required=True)
     ap.add_argument("--preview", help="also write a contact sheet (8x) of every part here")
     ap.add_argument("--palette", default=ps.DEFAULT_PALETTE)
@@ -199,14 +414,38 @@ def main():
     parts = {name: cut(sheets[0], pal, allowed, rect) for name, rect in PARTS.items()}
     if len(sheets) > 1:
         parts.update({name: cut(sheets[1], pal, allowed, rect) for name, rect in PARTS2.items()})
+    if len(sheets) > 2:
+        parts.update({"k3_" + name: cut(sheets[2], pal, allowed, rect, SCALE3, CUTOFF3) for name, rect in PARTS3.items()})
+    if len(sheets) > 3:
+        parts.update({"k3b_" + name: cut(sheets[3], pal, allowed, rect, SCALE3B, CUTOFF3) for name, rect in PARTS3B.items()})
     names = palette_names()
     meta = {}
     out = parts if ap_all else {}
     for name, (src, kind, info) in SHIP.items():
-        a = parts[src]
-        entry = {k: v for k, v in info.items() if k != "mid"}
+        a = parts[src] if src else None
+        entry = {k: v for k, v in info.items() if k not in ("mid", "rows", "mirror", "recolor", "rect", "drop", "face", "inset", "grid")}
+        byname = {n: i for i, n in names.items()}
+        if "rows" in info:
+            a = a[info["rows"]]
+        for f, t in info.get("recolor", {}).items():
+            a = a.copy()
+            a[(a[..., :3] == pal[byname[f]]).all(2) & (a[..., 3] > 0), :3] = pal[byname[t]]
         if kind == "slice":
             a = template(a, info["slice"], info["mid"])
+            if info.get("mirror"):
+                assert info["slice"][0] == info["slice"][2], "mirror needs left == right"
+                a = a.copy()
+                a[:, -info["slice"][2]:] = a[:, :info["slice"][0]][:, ::-1]
+        elif kind == "grid":
+            a = grid(pal, GRIDS[info["grid"]])
+        elif kind == "crop":
+            x, y, w, h = info["rect"]
+            a = a[y:y + h, x:x + w].copy()
+            for n in info["drop"]:
+                a[(a[..., :3] == pal[byname[n]]).all(2)] = 0
+            a = trim(a)
+        elif kind == "icon":
+            a = icon_out(a, [pal[byname[n]] for n in info["face"]], info.get("inset", 2))
         for x, y, i in TOUCH.get(name, []):
             a = a.copy()
             a[y, x, :3] = pal[i]

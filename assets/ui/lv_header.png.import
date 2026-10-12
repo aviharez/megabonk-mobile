@@ -1,0 +1,14 @@
+[remap]
+
+importer="image"
+type="Image"
+uid="uid://c32ggbtl2a0l"
+path="res://.godot/imported/lv_header.png-b4a6107e8631948ca58ac40b09d2b26b.image"
+
+[deps]
+
+source_file="res://assets/ui/lv_header.png"
+dest_files=["res://.godot/imported/lv_header.png-b4a6107e8631948ca58ac40b09d2b26b.image"]
+
+[params]
+

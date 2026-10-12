@@ -248,5 +248,41 @@
 		"asset_id": "c891cd31-5fac-4b4d-be4f-1529d4a4bc52",
 		"sha12": "b4a72a972984",
 		"label": "App icon v2, Sir Loaf mid-swing with Blob and bug critters on sky (68x68 pixel output, NB2.1 1K); tools/art/app_icon.py -> assets/icon/ (64 px centre). Replaces app_icon"
+	},
+	"ui_kit3": {
+		"asset_id": "a30ebb25-653e-445a-8fb8-c01d0a01f955",
+		"label": "UI kit 3 (Phase 9 dark design system, home), gpt-image-2 2K, mobile 9:16, complete-states; kit id (not an asset). Finalized 2026-10-12: 21 components with corrected names / groups / 9-slice borders (source px = art px x 16); parts cut locally by tools/art/ui_kit.py (third sheet argument)"
+	},
+	"ui_kit3_home_concept": {
+		"asset_id": "e941feb9-1068-4921-a2ba-0c3526739059",
+		"sha12": "f8d5ebf52c1c",
+		"label": "UI kit 3 home concept (1152x2048); docs/phase9/7_kit3_home_concept.png"
+	},
+	"ui_kit3b": {
+		"asset_id": "9bd2e504-534f-4e39-9dc3-4b15a8bd731d",
+		"label": "UI kit 3b (level-up + HUD, child of kit 3), gpt-image-2 2K, hud; kit id (not an asset). Finalized 2026-10-12: 34 components with corrected names / groups / states / 9-slice borders (source px = art px x 13); parts cut locally by tools/art/ui_kit.py (fourth sheet argument)"
+	},
+	"ui_kit3b_levelup_concept": {
+		"asset_id": "2550b1ad-18ac-492d-9d31-ebacff5f92a0",
+		"sha12": "10f2f5bb747a",
+		"label": "UI kit 3b level-up concept (1152x2048); docs/phase9/8_kit3_levelup_concept.png. Minimap, wave, energy bar, objectives are invented (not in the game)"
+	},
+	"ui_kit3_sheet1": {
+		"asset_id": "4562775f-8408-4faa-8dff-00ee916c5591",
+		"sha12": "08d42a60070f",
+		"label": "UI kit 3 component sheet (2048x2048, gpt-image-2.5-sunburst, soft alpha, text-free): play / orange / off buttons, 4 nav tiles (+ a noise-only duplicate row), dark coin plate, gear buttons, red ribbon, Ad sticker, next-unlock panel, alert bubble, segmented track + gold fill, coin, gear, sack, padlock, mystery; 22 credits. tools/art/ui_kit.py (SCALE3 16, CUTOFF3 200) -> assets/ui/"
+	},
+	"ui_kit3_final": {
+		"asset_id": "a30ebb25-653e-445a-8fb8-c01d0a01f955",
+		"label": "Finalized kit 3 components (SpriteCook assets, not shipped as-is): play_button 3ee03f05, button_orange 0e9436d0, button_off 706f62b7, nav_blue 60e5f4eb, nav_green fe398a2d, nav_orange 913f05bb, nav_purple 3fe2f0ba, plate_dark 138ee324, gear_button cd45d697, gear_button_pressed c356d2fd, ribbon_red 868f2a09, ad_sticker cadd7282, panel_dark cf244210, alert_bubble 4f6f604b, track_dark b2f16010, fill_gold 4970be71, coin_big da33f5ba, gear 32a11401, sack eddfe3f2, padlock_big 5000e101, mystery 587d0c7c"
+	},
+	"ui_kit3b_sheet1": {
+		"asset_id": "ee87d9c2-afb7-48a6-951b-2dbebc03b7ac",
+		"sha12": "af7578f68d05",
+		"label": "UI kit 3b component sheet (2048x2048, gpt-image-2.5-sunburst, soft alpha, text-free): level ring, XP / HP tracks + fills, timer plate, pause, header plate, purple stickers, window, red / blue / gold card frames (New sticker fused on red and blue), 5 icon frames, pips, count bubble, reroll / skip / banish buttons + pressed, info bar, heart / coin / skull / clock; 22 credits. tools/art/ui_kit.py (SCALE3B 13) -> assets/ui/ lv_*, hud_*, info_*"
+	},
+	"ui_kit3b_final": {
+		"asset_id": "9bd2e504-534f-4e39-9dc3-4b15a8bd731d",
+		"label": "Finalized kit 3b components (SpriteCook assets, not shipped as-is): hud_level_ring 54192b60, hud_pause a5ee14e0, hud_timer_plate 2059f1bd, icon_heart 27c432fc, hp_track 18cdd362, xp_track 25042e57, hp_fill 20ce72c6, xp_fill 687b6b00, header_gold 2e2e433d, icon_coin 9c5a322b, icon_skull 70801216, icon_clock 155cb128, sticker_plus fc201834, card_red 1ff55caf, window_dark 3e57753b, card_blue f9d7ae29, card_gold 992edf27, frame_red bcf6c2be, frame_blue 02c172cc, frame_green cc9b867c, frame_purple 806d6e0b, frame_gold 65e21b28, pip_on 82a1c3af, pip_off 54e209d6, sticker_new ca975204, count_bubble c9a6a05b, reroll_button 508d958d (+pressed 46753108), skip_button ed875b61 (+pressed 3cf0e904), banish_button 88dfbd39 (+pressed 8b887f5e), sticker_ad 7dcca618, info_bar b85924f9"
 	}
 }

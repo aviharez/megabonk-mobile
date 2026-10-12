@@ -1,0 +1,14 @@
+[remap]
+
+importer="image"
+type="Image"
+uid="uid://bmw8dxs4xqo72"
+path="res://.godot/imported/star.png-04ac04c76f4243fda3a0e94698676a99.image"
+
+[deps]
+
+source_file="res://assets/ui/star.png"
+dest_files=["res://.godot/imported/star.png-04ac04c76f4243fda3a0e94698676a99.image"]
+
+[params]
+

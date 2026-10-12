@@ -1,0 +1,14 @@
+[remap]
+
+importer="image"
+type="Image"
+uid="uid://bn2b6l8l3cvw3"
+path="res://.godot/imported/hud_skull.png-08e96d3b8b6250050fdaf45135f3d036.image"
+
+[deps]
+
+source_file="res://assets/ui/hud_skull.png"
+dest_files=["res://.godot/imported/hud_skull.png-08e96d3b8b6250050fdaf45135f3d036.image"]
+
+[params]
+

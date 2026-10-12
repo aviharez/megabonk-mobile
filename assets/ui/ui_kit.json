@@ -168,5 +168,242 @@
 	"key": {},
 	"die": {},
 	"ffwd": {},
-	"xmark": {}
+	"xmark": {},
+	"play_button": {
+		"slice": [
+			4,
+			4,
+			4,
+			4
+		]
+	},
+	"button_orange": {
+		"slice": [
+			4,
+			4,
+			4,
+			3
+		]
+	},
+	"button_off": {
+		"slice": [
+			4,
+			4,
+			4,
+			4
+		]
+	},
+	"nav_blue": {
+		"slice": [
+			2,
+			2,
+			2,
+			9
+		]
+	},
+	"nav_green": {
+		"slice": [
+			2,
+			2,
+			2,
+			9
+		]
+	},
+	"nav_orange": {
+		"slice": [
+			2,
+			2,
+			2,
+			9
+		]
+	},
+	"nav_purple": {
+		"slice": [
+			2,
+			2,
+			2,
+			9
+		]
+	},
+	"plate_dark": {
+		"slice": [
+			2,
+			2,
+			3,
+			3
+		]
+	},
+	"panel_dark": {
+		"slice": [
+			3,
+			4,
+			3,
+			4
+		]
+	},
+	"icon_button": {
+		"slice": [
+			2,
+			2,
+			2,
+			2
+		]
+	},
+	"ribbon_red": {
+		"slice": [
+			10,
+			7,
+			10,
+			6
+		]
+	},
+	"track_dark": {
+		"slice": [
+			2,
+			3,
+			2,
+			3
+		]
+	},
+	"fill_gold": {
+		"slice": [
+			2,
+			2,
+			2,
+			2
+		],
+		"ramp": [
+			"BUTTER",
+			"GOLD",
+			"ORANGE"
+		]
+	},
+	"icon_face": {
+		"slice": [
+			2,
+			2,
+			2,
+			2
+		],
+		"ramp": [
+			"SKY",
+			"BLUE",
+			"OCEAN"
+		]
+	},
+	"seg_track": {},
+	"gear_button": {},
+	"ad_sticker": {},
+	"alert": {},
+	"star": {},
+	"coin_big": {},
+	"gear": {},
+	"sack": {},
+	"padlock_big": {},
+	"mystery": {},
+	"lv_window": {
+		"slice": [
+			6,
+			8,
+			6,
+			6
+		]
+	},
+	"lv_header": {
+		"slice": [
+			3,
+			3,
+			3,
+			4
+		]
+	},
+	"lv_card": {
+		"slice": [
+			3,
+			3,
+			3,
+			3
+		],
+		"ramp": [
+			"SALMON",
+			"RED",
+			"BLOOD"
+		]
+	},
+	"lv_frame": {
+		"slice": [
+			2,
+			2,
+			2,
+			3
+		],
+		"ramp": [
+			"SALMON",
+			"RED",
+			"BLOOD"
+		]
+	},
+	"lv_sticker": {
+		"slice": [
+			2,
+			2,
+			2,
+			2
+		],
+		"ramp": [
+			"PINK",
+			"PURPLE",
+			"PLUM"
+		]
+	},
+	"lv_bubble": {},
+	"lv_pip_on": {},
+	"lv_pip_off": {},
+	"lv_die": {},
+	"lv_ffwd": {},
+	"lv_x": {},
+	"info_bar": {
+		"slice": [
+			3,
+			3,
+			3,
+			3
+		]
+	},
+	"info_icon": {},
+	"hud_track": {
+		"slice": [
+			2,
+			2,
+			2,
+			2
+		]
+	},
+	"hud_fill": {
+		"slice": [
+			1,
+			1,
+			1,
+			1
+		],
+		"ramp": [
+			"BUTTER",
+			"GOLD",
+			"ORANGE"
+		]
+	},
+	"hud_timer": {
+		"slice": [
+			3,
+			2,
+			3,
+			2
+		]
+	},
+	"hud_ring": {},
+	"hud_pause": {},
+	"hud_heart": {},
+	"hud_coin": {},
+	"hud_skull": {},
+	"hud_clock": {}
 }

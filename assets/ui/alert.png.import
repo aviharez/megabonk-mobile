@@ -1,0 +1,14 @@
+[remap]
+
+importer="image"
+type="Image"
+uid="uid://b01ojiul63wre"
+path="res://.godot/imported/alert.png-1722c1a519c754ea6f5c91fb218dcfd0.image"
+
+[deps]
+
+source_file="res://assets/ui/alert.png"
+dest_files=["res://.godot/imported/alert.png-1722c1a519c754ea6f5c91fb218dcfd0.image"]
+
+[params]
+

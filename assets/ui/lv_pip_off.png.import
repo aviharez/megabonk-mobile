@@ -1,0 +1,14 @@
+[remap]
+
+importer="image"
+type="Image"
+uid="uid://cnp5ox45tq3j1"
+path="res://.godot/imported/lv_pip_off.png-1d27404b8533321eb5a5fd9f965522c4.image"
+
+[deps]
+
+source_file="res://assets/ui/lv_pip_off.png"
+dest_files=["res://.godot/imported/lv_pip_off.png-1d27404b8533321eb5a5fd9f965522c4.image"]
+
+[params]
+

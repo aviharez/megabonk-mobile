@@ -1,0 +1,14 @@
+[remap]
+
+importer="image"
+type="Image"
+uid="uid://ds1txqjodhrli"
+path="res://.godot/imported/button_orange.png-e9b30dd6826b18c41033f2249e13a375.image"
+
+[deps]
+
+source_file="res://assets/ui/button_orange.png"
+dest_files=["res://.godot/imported/button_orange.png-e9b30dd6826b18c41033f2249e13a375.image"]
+
+[params]
+

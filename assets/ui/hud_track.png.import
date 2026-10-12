@@ -1,0 +1,14 @@
+[remap]
+
+importer="image"
+type="Image"
+uid="uid://spmo68rlugw5"
+path="res://.godot/imported/hud_track.png-b0988487eab123661350f4a31a756d34.image"
+
+[deps]
+
+source_file="res://assets/ui/hud_track.png"
+dest_files=["res://.godot/imported/hud_track.png-b0988487eab123661350f4a31a756d34.image"]
+
+[params]
+

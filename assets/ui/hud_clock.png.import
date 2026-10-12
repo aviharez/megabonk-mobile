@@ -1,0 +1,14 @@
+[remap]
+
+importer="image"
+type="Image"
+uid="uid://biix4fwal711o"
+path="res://.godot/imported/hud_clock.png-2f3514a42b169c1807483ea1268946d2.image"
+
+[deps]
+
+source_file="res://assets/ui/hud_clock.png"
+dest_files=["res://.godot/imported/hud_clock.png-2f3514a42b169c1807483ea1268946d2.image"]
+
+[params]
+

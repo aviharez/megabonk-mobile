@@ -1,0 +1,14 @@
+[remap]
+
+importer="image"
+type="Image"
+uid="uid://ddude5wf8g51i"
+path="res://.godot/imported/gear.png-83f58d21966b8dd58d27afd2efe7f33f.image"
+
+[deps]
+
+source_file="res://assets/ui/gear.png"
+dest_files=["res://.godot/imported/gear.png-83f58d21966b8dd58d27afd2efe7f33f.image"]
+
+[params]
+

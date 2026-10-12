@@ -1,0 +1,14 @@
+[remap]
+
+importer="image"
+type="Image"
+uid="uid://br8htpu00jmym"
+path="res://.godot/imported/lv_bubble.png-a8fe7b92bd79fed3b7bde7421d3e336a.image"
+
+[deps]
+
+source_file="res://assets/ui/lv_bubble.png"
+dest_files=["res://.godot/imported/lv_bubble.png-a8fe7b92bd79fed3b7bde7421d3e336a.image"]
+
+[params]
+

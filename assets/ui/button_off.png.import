@@ -1,0 +1,14 @@
+[remap]
+
+importer="image"
+type="Image"
+uid="uid://de65sull4hyqk"
+path="res://.godot/imported/button_off.png-8871eb60505e568285a97e2d1fd05574.image"
+
+[deps]
+
+source_file="res://assets/ui/button_off.png"
+dest_files=["res://.godot/imported/button_off.png-8871eb60505e568285a97e2d1fd05574.image"]
+
+[params]
+

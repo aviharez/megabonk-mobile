@@ -1,0 +1,14 @@
+[remap]
+
+importer="image"
+type="Image"
+uid="uid://b5xwnclc7ki61"
+path="res://.godot/imported/hud_ring.png-2d5f2491a5c07321244da8e62ef15ce1.image"
+
+[deps]
+
+source_file="res://assets/ui/hud_ring.png"
+dest_files=["res://.godot/imported/hud_ring.png-2d5f2491a5c07321244da8e62ef15ce1.image"]
+
+[params]
+

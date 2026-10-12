@@ -1,0 +1,14 @@
+[remap]
+
+importer="image"
+type="Image"
+uid="uid://ccexjyudf4t8e"
+path="res://.godot/imported/hud_heart.png-6552a84211def88d3e9be716d67b864b.image"
+
+[deps]
+
+source_file="res://assets/ui/hud_heart.png"
+dest_files=["res://.godot/imported/hud_heart.png-6552a84211def88d3e9be716d67b864b.image"]
+
+[params]
+

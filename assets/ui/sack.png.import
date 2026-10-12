@@ -1,0 +1,14 @@
+[remap]
+
+importer="image"
+type="Image"
+uid="uid://dliyj6kp4b2v7"
+path="res://.godot/imported/sack.png-4f073701ba5d08689e5718d29652bd7b.image"
+
+[deps]
+
+source_file="res://assets/ui/sack.png"
+dest_files=["res://.godot/imported/sack.png-4f073701ba5d08689e5718d29652bd7b.image"]
+
+[params]
+
