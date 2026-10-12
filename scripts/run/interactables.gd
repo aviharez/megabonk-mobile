@@ -13,7 +13,6 @@ extends Node2D
 const BEHAVIORS := ["paid_chest", "free_chest", "pot", "charge_shrine", "risk_shrine", "challenge_shrine", "merchant", "cage", "key", "altar", "portal"]
 ## Behaviors you stand in for "charge_time" seconds.
 const STAND := ["charge_shrine", "risk_shrine", "challenge_shrine", "altar"]
-const FONT := preload("res://assets/fonts/pixel.fnt")
 const MAX_ARROWS := 6
 
 var run: Node
@@ -303,6 +302,8 @@ func arrow_targets(view: Rect2) -> Array:
 # --- Drawing --------------------------------------------------------------
 
 func _draw() -> void:
+	# Text goes to the UI-space overlay (DamageNumbers), not into the world.
+	var labels := []
 	# Pass 1: light under everything (glow on the ground, pillars of light),
 	# so chests and shrines read from across the screen.
 	# (Pillars carry information, so they stay with "reduce effects" on.)
@@ -335,14 +336,17 @@ func _draw() -> void:
 		if def.behavior == "paid_chest":
 			var price := paid_price(def)
 			var can: bool = run.gold >= price
-			_price_tag(at + Vector2(0, -floorf(tex.get_height() / 2.0) - 9 - bob), price, can)
+			labels.append([at + Vector2(0, -floorf(tex.get_height() / 2.0) - 2 - bob), str(price), Palette.GOLD if can else Palette.SALMON, true])
 		elif def.behavior == "merchant":
-			_label(at + Vector2(0, -12), "Shop %d" % ceili(o.left), Palette.BUTTER)
+			labels.append([at + Vector2(0, -10), "Shop %d" % ceili(o.left), Palette.BUTTER, false])
 	if not risks.is_empty():
 		var left := 0.0
 		for r in risks:
 			left = maxf(left, r.left)
-		_label(run.player_pos() + Vector2(0, -16), "Risk %d" % ceili(left), Palette.RED)
+		labels.append([run.player_pos() + Vector2(0, -14), "Risk %d" % ceili(left), Palette.RED, false])
+	var overlay = run.get("numbers") if run != null else null
+	if overlay is DamageNumbers:
+		(overlay as DamageNumbers).set_labels(labels)
 
 
 ## Cached pillar textures: "color|height|phase" -> ImageTexture. A column of
@@ -436,21 +440,6 @@ func _draw_twinkles(at: Vector2, sprite_size: Vector2, color: int, seed_i: int, 
 		draw_rect(Rect2(p, Vector2.ONE), white)
 
 
-## The chest's price on a small dark plate: coin + number, GOLD when the
-## player can pay, SALMON when not.
-func _price_tag(at: Vector2, price: int, can: bool) -> void:
-	var text := str(price)
-	var tw := FONT.get_string_size(text, HORIZONTAL_ALIGNMENT_LEFT, -1, 8).x
-	var w := tw + 9
-	var r := Rect2((at - Vector2(floorf(w / 2.0), 0)).round(), Vector2(w, 9))
-	draw_rect(r, Palette.color(Palette.INK))
-	draw_rect(r.grow(-1), Palette.color(Palette.NIGHT))
-	# A tiny coin: 4x4 gold with a dark middle.
-	draw_rect(Rect2(r.position + Vector2(2, 2), Vector2(4, 5)), Palette.color(Palette.GOLD))
-	draw_rect(Rect2(r.position + Vector2(3, 3), Vector2(2, 3)), Palette.color(Palette.ORANGE))
-	draw_string(FONT, r.position + Vector2(8, 8), text, HORIZONTAL_ALIGNMENT_LEFT, -1, 8, Palette.color(Palette.GOLD if can else Palette.SALMON))
-
-
 ## The object's picture: its "sprite" (an Image-imported PNG) if it has one,
 ## else its placeholder "shape" in its color.
 static func sprite_of(def: Dictionary) -> Texture2D:
@@ -493,10 +482,3 @@ func _draw_circle(at: Vector2, r: float, color: int, progress: float, used: bool
 			var a := TAU * f - PI / 2.0
 			var p := (at + Vector2.from_angle(a) * r).round()
 			draw_rect(Rect2(p - Vector2(1, 1), Vector2(2, 2)), white if f > progress - 0.05 else c)
-
-
-func _label(at: Vector2, text: String, color: int) -> void:
-	var w := FONT.get_string_size(text, HORIZONTAL_ALIGNMENT_LEFT, -1, 8).x
-	var p := (at - Vector2(floorf(w / 2.0), 0)).round()
-	draw_string(FONT, p + Vector2(0, 1), text, HORIZONTAL_ALIGNMENT_LEFT, -1, 8, Palette.color(Palette.INK))
-	draw_string(FONT, p, text, HORIZONTAL_ALIGNMENT_LEFT, -1, 8, Palette.color(color))

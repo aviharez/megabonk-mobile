@@ -248,7 +248,7 @@ func test_game_over_lists_the_build(t) -> void:
 
 func test_new_effects_stay_on_the_palette(t) -> void:
 	t.check(_palette_only(Interactables.pillar_texture(Palette.GOLD, 40, 0).get_image()) == 0, "light pillars are on the palette")
-	t.check(_palette_only(DamageNumbers.tiny_atlas(Palette.WHITE).get_image()) == 0, "tiny damage digits are on the palette")
+	t.check(Fonts.font_of("HIT") == Fonts.body() and Fonts.font_of("CRIT") == Fonts.TITLE_FONT, "damage numbers: plain hits in Inter, crits in Titan One")
 	var aura: Script = load("res://scripts/run/weapons/aura.gd")
 	t.check(_palette_only(aura._disc(30, 1).get_image()) == 0, "the stink cloud is on the palette")
 	var db := GameData.shared()

@@ -2170,6 +2170,9 @@ func _render() -> void:
 	_hud.challenge = interactables.challenge_status()
 	_hud.has_key = interactables.has_key
 	_hud.view_center = _pos.round()
+	if _camera.is_inside_tree():
+		numbers.view_center = _camera.get_screen_center_position()
+	numbers.zoom = _hud.world_zoom
 	_hud.arrows = _arrow_targets()
 	_hud.set_values(level, seconds_left(), kills)
 	_hud.set_build(owned_weapons, owned_tomes, int(rules.weapon_slots), int(rules.tome_slots))
@@ -2269,9 +2272,9 @@ func _build_world() -> void:
 	world_viewport.add_child(fx)
 	danger = Fx.new()
 	world_viewport.add_child(danger)
+	# World text is drawn in UI space (added to the UI layer in _build_ui).
 	numbers = DamageNumbers.new()
 	numbers.enabled = _setting("damage_numbers", true)
-	world_viewport.add_child(numbers)
 
 	juice.build_overlays(world_viewport)
 	interactables.place_from_map(map_def, map, rng, _pos)
@@ -2420,6 +2423,8 @@ func _build_ui() -> void:
 	add_child(ui)
 	_joystick = ThumbStick.new()
 	ui.add_child(_joystick)
+	# Damage numbers and map labels: over the world, under the HUD and panels.
+	ui.add_child(numbers)
 	# Every modal panel sits over a tint of the frozen world. The HUD and the
 	# pause button stay bright above it (as in the level-up concept); the
 	# panels draw over all of them.
