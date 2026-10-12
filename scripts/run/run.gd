@@ -2422,25 +2422,27 @@ func _build_ui() -> void:
 	add_child(ui)
 	_joystick = ThumbStick.new()
 	ui.add_child(_joystick)
+	# Every modal panel sits over a tint of the frozen world. The HUD and the
+	# pause button stay bright above it (as in the level-up concept); the
+	# panels draw over all of them.
+	_dim = DitherDim.new()
+	_dim.hide()
+	ui.add_child(_dim)
 	_hud = Hud.new()
 	_hud.db = db
 	_hud.world_zoom = float(world_scale) / float(ui_scale)
 	ui.add_child(_hud)
 	juice.build_burst(ui)
-	# Pause on screen (iOS has no back key), top right under the HUD rows.
+	# Pause on screen (iOS has no back key), top right in the HUD's first row.
 	_pause_btn = SpriteButton.new()
 	_pause_btn.name = "PauseButton"
-	_pause_btn.part = "pause"
+	_pause_btn.part = "hud_pause"
 	_pause_btn.anchor_left = 1.0
 	_pause_btn.anchor_right = 1.0
-	_pause_btn.offset_left = -21
-	_pause_btn.offset_right = -2
+	_pause_btn.offset_left = -20
+	_pause_btn.offset_right = -3
 	_pause_btn.pressed.connect(_pause.bind(true))
 	ui.add_child(_pause_btn)
-	# Every modal panel sits over a dithered dim of the frozen world.
-	_dim = DitherDim.new()
-	_dim.hide()
-	ui.add_child(_dim)
 	_flash = DitherDim.new(true)
 	_flash.color = Palette.RED
 	ui.add_child(_flash)
@@ -2752,7 +2754,7 @@ func _apply_safe_area() -> void:
 	_hud.safe_top = top
 	_hud.safe_bottom = bottom
 	_pause_btn.offset_top = Hud.PAUSE_Y + top
-	_pause_btn.offset_bottom = Hud.PAUSE_Y + top + 21
+	_pause_btn.offset_bottom = Hud.PAUSE_Y + top + 16
 	# Level-up window: centred between the HUD's two rows and the bottom edge.
 	var vs := get_viewport().get_visible_rect().size
 	var room := vs.y - top - bottom - Hud.ROWS_H

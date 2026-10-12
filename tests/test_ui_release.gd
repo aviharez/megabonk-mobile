@@ -268,13 +268,14 @@ func test_hud_items_row_and_timer_room(t) -> void:
 	run._render()
 	t.check(int(run._hud._items.get("band_aid", 0)) == 2, "the HUD item row shows Band-Aid x2")
 	t.check(run._hud._flash.has("items/band_aid"), "a new item flashes in the row")
-	# The HP bar always ends before the big timer, even at +10:00.
+	# Row 1: the timer plate stays between the XP bar and the pause button,
+	# even at +10:00 (it grows with its text).
 	for text in ["5:13", "+10:00"]:
 		run._hud._timer_text = text
-		var w := floorf(run._hud.size.x)
-		var timer_left := floorf(w / 2.0 - Fonts.BOLD.get_string_size(text, HORIZONTAL_ALIGNMENT_LEFT, -1, 8).x)
-		var bar_w := clampf(timer_left - 4.0 - Hud.HP_BAR.position.x, 30.0, Hud.HP_BAR.size.x)
-		t.check(Hud.HP_BAR.position.x + bar_w <= timer_left - 1.0 or w > 180.0, "HP bar clears the timer at %s (%s <= %s)" % [text, Hud.HP_BAR.position.x + bar_w, timer_left])
+		var tr: Rect2 = run._hud.timer_rect()
+		var pause_left: float = run._hud.size.x + run._pause_btn.offset_left
+		t.check(tr.position.x >= run._hud.xp_rect().end.x + 1.0 and tr.end.x <= pause_left - 1.0,
+				"timer plate clears the XP bar and pause at %s (%s)" % [text, tr])
 	run.queue_free()
 	await t.process_frame
 

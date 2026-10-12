@@ -104,33 +104,39 @@ func _draw() -> void:
 		value_w = Fonts.width(value, "NAME", 16) + 6.0
 		Fonts.draw(self, value, Vector2(w - 6 - value_w + 6, y + floorf((h - 20) / 2.0)), "NAME",
 				Palette.SHADE if off else acc, -1, HORIZONTAL_ALIGNMENT_LEFT, 16)
-	# Name: NAME, shrunk down to 9; a longer one wraps to two lines at 9
+	# Name: NAME, shrunk down to 8; a longer one wraps to two lines at 8
 	# ("Grandma's Soup Recipes"), which moves the BODY line down.
 	var title := _title()
 	var name_room := room - value_w
+	# The New sticker sits over the card's top-right corner: names keep clear.
+	var title_room := name_room - (8.0 if card.get("is_new", false) else 0.0)
 	var nfs: int = Fonts.STYLES.NAME[1]
-	while nfs > 9 and Fonts.width(title, "NAME", nfs) > name_room:
+	while nfs > 8 and Fonts.width(title, "NAME", nfs) > title_room:
 		nfs -= 1
 	var name_lines := PackedStringArray([title])
-	if Fonts.width(title, "NAME", nfs) > name_room:
-		name_lines = _wrap(title, name_room, "NAME", nfs)
-	for k in mini(name_lines.size(), 2):
-		Fonts.draw(self, name_lines[k], Vector2(tx, y + (4 if name_lines.size() < 2 else 1) + k * 9), "NAME", name_c,
-				-1, HORIZONTAL_ALIGNMENT_LEFT, nfs)
-	# One BODY line (two when it must wrap and the name took one line).
+	if Fonts.width(title, "NAME", nfs) > title_room:
+		name_lines = _wrap(title, title_room, "NAME", nfs)
+	# One BODY line; a longer one wraps to two (then the name moves up 2 px),
+	# never into the change line at the foot. A two-line name keeps one.
 	var desc := _desc()
 	var body_c := Palette.SHADE if off else Palette.PAPER
 	var lines := _wrap(desc, name_room)
+	var name_y := 4.0
 	var by := y + 17.0
 	if name_lines.size() > 1:
+		name_y = 1.0
 		by = y + 20.0
 		lines = lines.slice(0, 1)
 	elif lines.size() > 1:
-		by = y + 15.0
+		name_y = 2.0
+		by = y + 13.0
+	for k in mini(name_lines.size(), 2):
+		Fonts.draw(self, name_lines[k], Vector2(tx, y + name_y + k * 9), "NAME", name_c,
+				-1, HORIZONTAL_ALIGNMENT_LEFT, nfs)
 	for k in mini(lines.size(), 2):
 		Fonts.draw(self, lines[k], Vector2(tx, by + k * 8.0), "BODY", body_c)
 	var change := change_line()
-	var foot := y + h - 13.0
+	var foot := y + h - 12.0
 	if change != "":
 		Fonts.draw(self, change, Vector2(tx, foot), "CHANGE", Palette.SHADE if off else -1)
 	if card.get("kind", "") in ["weapon", "tome"]:
@@ -138,7 +144,7 @@ func _draw() -> void:
 	_draw_price(y, w, h)
 	if card.get("is_new", false):
 		var hop := 1.0 if int(_t * 3.0) % 2 == 0 else 0.0
-		var sr := Rect2(w - 20, y - 4 - hop, 21, 12)
+		var sr := Rect2(w - 20, y - 6 - hop, 21, 12)
 		UiArt.draw(self, "lv_sticker", sr)
 		Fonts.draw(self, "New", Vector2(sr.position.x, sr.position.y + 1), "TAG", -1, sr.size.x, HORIZONTAL_ALIGNMENT_CENTER)
 

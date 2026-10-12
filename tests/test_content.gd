@@ -175,12 +175,16 @@ func test_items_match_brief(t) -> void:
 func test_text_fits_the_fonts(t) -> void:
 	const FR := preload("res://tests/font_rules.gd")
 	var bad := []
-	for kind in ["weapons", "tomes", "items"]:
+	# Weapons and tomes show on 42 px level-up cards.
+	for kind in ["weapons", "tomes"]:
 		for e: Dictionary in db.all(kind):
-			bad += FR.problems(e.id, e.name, "NAME", FR.CARD_TEXT_W, 2, 9)
-			bad += FR.problems(e.id, e.desc, "BODY", FR.CARD_TEXT_W)
+			bad += FR.card_problems(e.id, e.name, e.desc)
 			for lv: Dictionary in e.get("levels", []):
-				bad += FR.problems(e.id, lv.desc, "BODY", FR.CARD_TEXT_W)
+				bad += FR.card_problems(e.id, e.name, lv.desc)
+	# Items show on the taller merchant cards and the name-only pickup card.
+	for e: Dictionary in db.all("items"):
+		bad += FR.problems(e.id, e.name, "NAME", FR.CARD_NAME_W, 2, 8)
+		bad += FR.problems(e.id, e.desc, "BODY", FR.CARD_TEXT_W)
 	t.check(bad.is_empty(), "text problems: %s" % [bad])
 
 

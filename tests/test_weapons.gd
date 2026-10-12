@@ -118,10 +118,10 @@ func test_weapon_data_rules(t) -> void:
 	const FR := preload("res://tests/font_rules.gd")
 	for w: Dictionary in GameData.shared().all("weapons"):
 		t.check(w.levels.size() == 5, "%s has 5 levels" % w.id)
-		# Card name: NAME at 9 in up to two lines; lines: BODY in up to two.
-		var bad: Array = FR.problems(w.id, w.name, "NAME", FR.CARD_TEXT_W, 2, 9)
+		# Every line the weapon's cards show fits beside its name.
+		var bad: Array = []
 		for s: String in [w.desc] + w.levels.map(func(lv: Dictionary) -> String: return lv.desc):
-			bad += FR.problems(w.id, s, "BODY", FR.CARD_TEXT_W)
+			bad += FR.card_problems(w.id, w.name, s)
 		t.check(bad.is_empty(), "%s text is in its font and fits a card: %s" % [w.id, bad])
 
 

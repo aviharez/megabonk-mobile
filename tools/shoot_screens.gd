@@ -127,6 +127,15 @@ func _run() -> void:
 		await _shot("10_run")
 		run.pending_levels = 2
 		run.call("_open_level_up")
+		# Fixed cards for the side-by-side with the concept: a long name, a
+		# line that wraps, a level-up with pips.
+		var db := run.db
+		run.set("_cards", [
+			{"kind": "tome", "id": "grandmas_soup_recipes", "level": 1, "is_new": true, "def": db.get_entry("tomes", "grandmas_soup_recipes")},
+			{"kind": "weapon", "id": "garden_gnomes", "level": 1, "is_new": true, "def": db.get_entry("weapons", "garden_gnomes")},
+			{"kind": "weapon", "id": "rubber_duck", "level": 3, "is_new": false, "def": db.get_entry("weapons", "rubber_duck")},
+		])
+		run.call("_show_cards")
 		await _wait(1.6)
 		await _shot("11_level_up")
 		run.pending_levels = 1

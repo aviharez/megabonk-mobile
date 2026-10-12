@@ -7,6 +7,8 @@ extends RefCounted
 
 ## The level-up card's text column: 132 px card, 36 px icon frame.
 const CARD_TEXT_W := 81.0
+## A name beside the New sticker.
+const CARD_NAME_W := 73.0
 
 
 ## Characters of `s` missing from the style's font ("" when all are there).
@@ -38,4 +40,13 @@ static func problems(id: String, s: String, style_name: String, width: float, ma
 	var n := lines(s, style_name, width, size)
 	if n > max_lines:
 		out.append("%s: '%s' needs %d lines of %s in %d px" % [id, s, n, style_name, width])
+	return out
+
+
+## A level-up card fits: a name that wraps to two lines (NAME 8) leaves room
+## for one BODY line only.
+static func card_problems(id: String, title: String, body: String) -> Array:
+	var out := problems(id, title, "NAME", CARD_NAME_W, 2, 8)
+	var name_lines := 1 if Fonts.width(title, "NAME", 8) <= CARD_NAME_W else 2
+	out += problems(id, body, "BODY", CARD_TEXT_W, 3 - name_lines)
 	return out

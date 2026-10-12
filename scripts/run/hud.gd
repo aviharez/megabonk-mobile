@@ -1,20 +1,23 @@
 class_name Hud
 extends Control
-## In-run HUD: XP bar across the top with the level on it, HP bar (a white
-## "ghost" drains after a hit), a big timer, gold and kills, plus the run-flow
-## parts: big banners (SWARM INCOMING, FINAL SWARM), the boss HP bar, the
-## Final Swarm coin multiplier, a running challenge shrine, the cage key,
-## toasts on a dark plate (wrapped to the screen), and arrows at the screen
-## edge pointing at things out of view. Everything sits `safe_top` px below
-## the camera cutout and `safe_bottom` px above the gesture bar.
+## In-run HUD, Phase 9 kit 3b look (docs/phase9/8_kit3_levelup_concept.png):
+## the level in the gold ring, the XP bar with "XP 64/120", the timer plate,
+## the pause button (Run's, PAUSE_Y); the heart and HP bar with "42/60" in it
+## (a PAPER "ghost" drains after a hit), coins and kills. Then the run-flow
+## parts: banners (Swarm incoming!, Final Swarm!), the boss HP bar, the Final
+## Swarm coin multiplier, a running challenge shrine, the cage key, the build
+## strip, the pickup card and toasts on the info bar, and arrows at the screen
+## edge pointing at things out of view. Plates are kit parts, text is Titan
+## One / Inter (Fonts). Everything sits `safe_top` px below the camera cutout
+## and `safe_bottom` px above the gesture bar. Right-hand parts keep their
+## distance from the right edge on wider screens.
 ##
-##   y 0-11   XP bar, full width, "LV n" on it
-##   y 13-26  heart + HP bar      | big timer |  coin + gold
-##   y 27-36  "hp/max"            |           |  skull + kills
-##   y 38-53  build strip: weapon slots | tome slots | key  |  pause button (Run, PAUSE_Y)
-##   y 60     info line (challenge shrine, Final Swarm coins)
-##   y 62+    pickup card (new item: icon, rarity, name, what it does)
-##   y 72+    toast plate
+##   y 3-18   level ring | XP bar "XP n/m"          | timer plate | pause
+##   y 19-29  heart + HP bar "hp/max"               | coin + gold | skull + kills
+##   y 33-52  build strip: weapon frames | tome frames | key
+##   y 58     info line (challenge shrine, Final Swarm coins)
+##   y 62+    pickup card (icon in its rarity frame, name, xN)
+##   y 84+    toast
 
 var hp := 1.0
 var hp_max := 1.0
@@ -24,25 +27,32 @@ var shield := 0.0
 var gold := 0
 
 const TOAST_TIME := 1.6
-## Top of the pause button Run puts on the right (under the HUD rows).
-const PAUSE_Y := 38
+## Top of the pause button Run puts on the right (row 1).
+const PAUSE_Y := 3
 ## Height of the two HUD rows at the top (concept: XP row + HP row), under
 ## which run panels are placed.
 const ROWS_H := 32
-const XP_H := 12
-const HP_BAR := Rect2(17, 14, 54, 12)
+## Row 1 and 2 boxes at the concept's spots (x from the left edge; the
+## right-hand ones are offset by the screen's extra width).
+const XP_BAR := Rect2(17, 5, 87, 10)
+const RING_AT := Vector2(3, 3)
+const TIMER_AT := Vector2(109, 4)
+const HP_BAR := Rect2(15, 19, 42, 10)
+const COIN_AT := Vector2(110, 19)
+const SKULL_AT := Vector2(141, 19)
 const BANNER_TIME := 3.0
 const TOAST_W := 150
-## Build strip: one 14 px slot per weapon, then per tome, round the 12 px
-## icon (Icons.small), level pips under each slot; a slot flashes white when
-## it's new or levels up.
-const STRIP_Y := 38
-const SLOT := 14
+const TOAST_SIZE := 8
+## Build strip: one 16 px kit frame (lv_frame, the kind's colour) per weapon,
+## then per tome, round the 12 px icon (Icons.small), level pips under each;
+## a frame flashes white when it's new or levels up.
+const STRIP_Y := 33
+const SLOT := 16
 const ICON_PX := 12
 const FLASH_TIME := 0.9
 const CARD_TIME := 3.2
-## Item row at the bottom, centred: 16 px frames (INK, then a 1 px border in
-## the item's rarity colour) round the 12 px icons (Icons.small: a real
+## Item row at the bottom, centred: 16 px kit frames (lv_frame in the item's
+## rarity colour) round the 12 px icons (Icons.small: a real
 ## smaller image, never a scaled one), 1 px apart.
 const ITEM_FRAME := 16
 const ITEM_SLOT := 17
@@ -72,8 +82,6 @@ var safe_bottom := 0:
 		if _items_view != null:
 			_items_view.queue_redraw()
 
-const _FONT := preload("res://assets/fonts/pixel.fnt")
-
 ## Content icons for the build strip (Run sets it).
 var db: GameData
 var _build_w := {}  # weapon id -> level, in the order they were taken
@@ -101,6 +109,7 @@ var _toast_left := 0.0
 var _toast_total := 1.0
 var _banner: Label
 var _banner_left := 0.0
+var _banner_color := Palette.RED
 var _info := ""
 var _info_color := Palette.GOLD
 var _time := 0.0
@@ -119,21 +128,12 @@ func _ready() -> void:
 	_toast = Label.new()
 	_toast.hide()
 	add_child(_toast)
-	# Banner: 2x bold text on the banner plate, a third of the way down.
+	# Banner: BANNER text (drawn in _draw); the label holds the text and
+	# blinks (tests, accessibility) but draws nothing itself.
 	_banner = Label.new()
-	_banner.anchor_top = 0.3
-	_banner.anchor_bottom = 0.3
-	_banner.anchor_right = 0.5
-	_banner.offset_bottom = 10.0
-	_banner.scale = Vector2(2, 2)
-	_banner.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
-	Fonts.bold(_banner)
-	_banner.add_theme_color_override("font_shadow_color", Palette.color(Palette.INK))
-	_banner.add_theme_constant_override("shadow_offset_x", 0)
-	_banner.add_theme_constant_override("shadow_offset_y", 1)
+	_banner.self_modulate = Color(1, 1, 1, 0)
 	_banner.hide()
 	add_child(_banner)
-	UiArt.ribbon_behind(_banner, "banner", 22, 24)
 	_items_view = Control.new()
 	_items_view.set_anchors_and_offsets_preset(PRESET_FULL_RECT)
 	_items_view.mouse_filter = MOUSE_FILTER_IGNORE
@@ -143,15 +143,13 @@ func _ready() -> void:
 
 
 func _place() -> void:
-	if _banner != null:
-		_banner.offset_top = float(safe_top) * 0.5
-		_banner.offset_bottom = _banner.offset_top + 10.0
+	queue_redraw()
 
 
 ## Big flashing text across the screen for a few seconds.
 func banner(text: String, color: int, seconds := BANNER_TIME) -> void:
 	_banner.text = text
-	_banner.add_theme_color_override("font_color", Palette.color(color))
+	_banner_color = color
 	_banner.show()
 	_banner_left = seconds
 
@@ -193,7 +191,9 @@ func set_items(stacks: Dictionary) -> void:
 func pickup_card(art: Texture2D, title: String, tag: String, desc: String, color: int) -> void:
 	# The hidden toast label carries the text too (tests, accessibility).
 	_toast.text = title
-	_card = {"art": art, "title": title, "tag": tag, "desc": _wrap_small(desc, 112.0), "color": color, "left": CARD_TIME}
+	# Tag and desc stay on the card for tests and the pause details; the
+	# card itself shows the icon and name only (Phase 9: less text).
+	_card = {"art": art, "title": title, "tag": tag, "desc": LevelCard._wrap(desc, 112.0), "color": color, "left": CARD_TIME}
 	queue_redraw()
 
 
@@ -202,7 +202,7 @@ func pickup_card(art: Texture2D, title: String, tag: String, desc: String, color
 func toast(text: String, color: int, seconds := TOAST_TIME) -> void:
 	_toast.text = text
 	_toast_color = color if color >= 0 else Palette.PAPER
-	_toast_lines = _wrap(text, TOAST_W - 10)
+	_toast_lines = LevelCard._wrap(text, TOAST_W - 12, "NAME", TOAST_SIZE)
 	_toast_left = seconds
 	_toast_total = seconds
 	queue_redraw()
@@ -249,7 +249,7 @@ func set_values(level: int, seconds_left: float, kills: int) -> void:
 		_last_sec = sec
 		var a := absi(sec)
 		_timer_text = ("+" if sec < 0 else "") + "%d:%02d" % [a / 60, a % 60]
-		_timer_color = Palette.PINK if sec < 0 else (Palette.SALMON if sec <= 30 else Palette.PAPER)
+		_timer_color = Palette.PINK if sec < 0 else (Palette.SALMON if sec <= 30 else Palette.WHITE)
 	_kills = kills
 	var xf := xp / maxf(xp_need, 1.0)
 	if xf < _last_xp - 0.25:
@@ -260,90 +260,124 @@ func set_values(level: int, seconds_left: float, kills: int) -> void:
 	_last_gold = gold
 	_info = ""
 	if not challenge.is_empty():
-		_info = "KILL %d  %dS" % challenge
+		_info = "Kill %d  %ds" % challenge
 		_info_color = Palette.GOLD
 	elif coin_mult > 1.0:
-		_info = "COINS X%.1f" % coin_mult
+		_info = "Coins ×%.1f" % coin_mult
 		_info_color = Palette.PINK
 	queue_redraw()
+
+
+## Extra width right-hand parts move by (wider than the 180 base).
+func _rx() -> float:
+	return maxf(0.0, floorf(size.x) - 180.0)
+
+
+func xp_rect() -> Rect2:
+	return Rect2(XP_BAR.position + Vector2(0, safe_top), Vector2(XP_BAR.size.x + _rx(), XP_BAR.size.y))
+
+
+## The timer plate: clock + text, as wide as the text ("+10:00" in the Final Swarm).
+func timer_rect() -> Rect2:
+	var tw := ceilf(Fonts.width(_timer_text, "NUM", 8))
+	return Rect2(TIMER_AT + Vector2(_rx(), safe_top), Vector2(maxf(38.0, tw + 19.0), 13))
 
 
 func _draw() -> void:
 	var w := floorf(size.x)
 	var t := float(safe_top)
-	# XP bar with the level on it; flashes white on a level-up.
-	var xp_rect := Rect2(0, t, w, XP_H)
-	UiArt.bar(self, "bar", xp_rect, xp / maxf(xp_need, 1.0), Palette.BLUE)
-	if _xp_flash > 0.0 and int(_xp_flash * 20.0) % 2 == 0:
-		draw_rect(xp_rect.grow(-4), Palette.color(Palette.WHITE))
-	_bold_centered("LV %d" % _level, w / 2.0, t + 9, Palette.WHITE)
+	var rx := _rx()
+	# Row 1: XP bar (flashes on a level-up) with "XP n/m", the level ring.
+	var xr := xp_rect()
+	UiArt.draw(self, "hud_track", xr)
+	var xf := clampf(xp / maxf(xp_need, 1.0), 0.0, 1.0)
+	_fill(Rect2(xr.position + Vector2(2, 2), xr.size - Vector2(4, 4)), xf, Palette.WHITE if _xp_flash > 0.0 and int(_xp_flash * 20.0) % 2 == 0 else Palette.GOLD)
+	var nums := "%d/%d" % [floori(xp), ceili(xp_need)]
+	var nw := Fonts.width(nums, "NUM", 6)
+	Fonts.draw(self, nums, Vector2(xr.end.x - 4 - nw, xr.position.y + 1), "NUM", Palette.WHITE, -1, HORIZONTAL_ALIGNMENT_LEFT, 6)
+	Fonts.draw(self, "XP", Vector2(xr.end.x - 7 - nw - Fonts.width("XP", "NUM", 6), xr.position.y + 1), "NUM", Palette.SKY, -1, HORIZONTAL_ALIGNMENT_LEFT, 6)
+	UiArt.sprite(self, "hud_ring", RING_AT + Vector2(0, t))
+	Fonts.draw(self, str(_level), RING_AT + Vector2(0, t + 2), "NUM", Palette.BUTTER, 15, HORIZONTAL_ALIGNMENT_CENTER, 9 if _level < 10 else 7)
+	# Timer plate.
+	var tr := timer_rect()
+	UiArt.draw(self, "hud_timer", tr)
+	UiArt.sprite(self, "hud_clock", tr.position + Vector2(2, 1))
+	Fonts.draw(self, _timer_text, tr.position + Vector2(14, 1), "NUM", _timer_color, tr.size.x - 16, HORIZONTAL_ALIGNMENT_CENTER, 8)
 
-	# HP: heart (beats when low), bar (RED under 30%), ghost, shield line.
+	# Row 2: heart (beats when low), HP bar (ghost, shield) with "hp/max".
 	var hf := clampf(hp / maxf(hp_max, 1.0), 0.0, 1.0)
 	var low := hf < 0.3
 	var beat := 1.0 if low and fmod(_time, 0.6) < 0.12 else 0.0
-	UiArt.sprite(self, "heart", Vector2(1, t + 13 - beat))
-	# The bar stops short of the big timer (it grows to +10:00 in the Final Swarm).
-	var timer_left := floorf(w / 2.0 - Fonts.BOLD.get_string_size(_timer_text, HORIZONTAL_ALIGNMENT_LEFT, -1, 8).x)
-	var bar_w := clampf(timer_left - 4.0 - HP_BAR.position.x, 30.0, HP_BAR.size.x)
-	var bar := Rect2(HP_BAR.position + Vector2(0, t), Vector2(bar_w, HP_BAR.size.y))
-	UiArt.bar(self, "bar", bar, hf, Palette.RED if low else Palette.GREEN)
-	var inner := bar.grow(-4)
-	var fw := floorf(inner.size.x * hf)
-	var gw := floorf(inner.size.x * _ghost)
-	if gw > fw:
-		draw_rect(Rect2(inner.position.x + fw, inner.position.y, gw - fw, inner.size.y), Palette.color(Palette.PAPER))
+	UiArt.sprite(self, "hud_heart", Vector2(5, t + 19 - beat))
+	var bar := Rect2(HP_BAR.position + Vector2(0, t), HP_BAR.size)
+	UiArt.draw(self, "hud_track", bar)
+	var inner := Rect2(bar.position + Vector2(2, 2), bar.size - Vector2(4, 4))
+	if _ghost > hf:
+		_fill(inner, _ghost, Palette.PAPER)
+	_fill(inner, hf, Palette.RED)
 	if shield > 0.0:
-		draw_rect(Rect2(inner.position, Vector2(floorf(inner.size.x * clampf(shield / hp_max, 0.0, 1.0)), 1)), Palette.color(Palette.SKY))
-	_small("%d/%d" % [ceili(hp), roundi(hp_max)], Vector2(18, t + 35), Palette.SALMON if low else Palette.PAPER)
+		_fill(Rect2(inner.position, Vector2(inner.size.x, 3)), clampf(shield / hp_max, 0.0, 1.0), Palette.SKY)
+	Fonts.draw(self, "%d/%d" % [ceili(hp), roundi(hp_max)], bar.position + Vector2(0, 1), "BAR_NUM",
+			Palette.SALMON if low else -1, bar.size.x, HORIZONTAL_ALIGNMENT_CENTER)
+	# Coins and kills.
+	var bump := 1.0 if _gold_bump > 0.0 else 0.0
+	UiArt.sprite(self, "hud_coin", COIN_AT + Vector2(rx, t - bump))
+	Fonts.draw(self, str(gold), COIN_AT + Vector2(rx + 12, t - bump), "NUM_WORLD", Palette.WHITE, -1, HORIZONTAL_ALIGNMENT_LEFT, 8)
+	UiArt.sprite(self, "hud_skull", SKULL_AT + Vector2(rx, t))
+	Fonts.draw(self, str(_kills), SKULL_AT + Vector2(rx + 12, t), "NUM_WORLD", Palette.WHITE, -1, HORIZONTAL_ALIGNMENT_LEFT, 8)
 
-	# Big timer in the middle.
-	_big_centered(_timer_text, w / 2.0, t + 14, _timer_color)
 	if _info != "":
-		_bold_centered(_info, w / 2.0, t + 66, _info_color)
-
-	# Gold and kills, right-aligned with their icons.
-	var gy := t + 22 - (1.0 if _gold_bump > 0.0 else 0.0)
-	_right_with_icon(str(gold), "coin", gy, Palette.GOLD)
-	_right_with_icon(str(_kills), "skull", t + 34, Palette.PAPER)
+		Fonts.draw(self, _info, Vector2(0, t + 56), "NUM_WORLD", _info_color, w, HORIZONTAL_ALIGNMENT_CENTER, 8)
 	_draw_arrows()
 	var strip_end := _draw_strip(t + STRIP_Y)
 	if has_key:
 		UiArt.sprite(self, "key", Vector2(strip_end + 3, t + STRIP_Y + 3))
-	_draw_card(t + 60)
+	_draw_card(t + 62)
 
-	# Toast on a dark plate (blinks out at the end).
+	# Toast on the info bar (blinks out at the end).
 	if _toast_left > 0.0 and not (_toast_left < 0.25 and int(_toast_left * 16.0) % 2 == 0):
-		var lh := 10.0
+		var lh := 9.0
 		var tw := 0.0
 		for l in _toast_lines:
-			tw = maxf(tw, Fonts.BOLD.get_string_size(l, HORIZONTAL_ALIGNMENT_LEFT, -1, 8).x)
-		var ty := (t + 64 + card_height()) if not _card.is_empty() else t + 72
-		var pr := Rect2(floorf((w - tw) / 2.0) - 5, ty, tw + 10, lh * _toast_lines.size() + 4)
-		draw_rect(pr, Palette.color(Palette.INK))
-		draw_rect(pr.grow(-1), Palette.color(Palette.NIGHT))
-		draw_rect(Rect2(pr.position.x + 1, pr.end.y, pr.size.x - 1, 1), Palette.color(Palette.INK))
+			tw = maxf(tw, Fonts.width(l, "NAME", TOAST_SIZE))
+		var ty := (t + 66 + card_height()) if not _card.is_empty() else t + 84
+		var pr := Rect2(floorf((w - tw) / 2.0) - 6, ty, ceilf(tw) + 12, lh * _toast_lines.size() + 8)
+		UiArt.draw(self, "info_bar", pr)
 		for i in _toast_lines.size():
-			_bold_centered(_toast_lines[i], w / 2.0, pr.position.y + 10 + lh * i, _toast_color)
+			Fonts.draw(self, _toast_lines[i], Vector2(pr.position.x, pr.position.y + 3 + lh * i), "NAME", _toast_color,
+					pr.size.x, HORIZONTAL_ALIGNMENT_CENTER, TOAST_SIZE)
 
-	# Boss bar along the bottom, its name on the red plate above it.
+	# Banner: BANNER text over the world, a third of the way down.
+	if _banner.visible and _banner.text != "":
+		Fonts.draw(self, _banner.text, Vector2(0, t + floorf(size.y * 0.24)), "BANNER", _banner_color, w, HORIZONTAL_ALIGNMENT_CENTER)
+
+	# Boss bar along the bottom, its name on a dark plate above it.
 	if boss_frac >= 0.0:
 		var y := floorf(size.y) - 16.0 - safe_bottom
-		UiArt.bar(self, "boss_bar", Rect2(8, y, w - 16, 12), boss_frac, Palette.RED)
-		var nw := Fonts.BOLD.get_string_size(boss_name, HORIZONTAL_ALIGNMENT_LEFT, -1, 8).x
-		var px := floorf((w - nw - 10) / 2.0)
-		UiArt.draw(self, "name_plate", Rect2(px, y - 11, nw + 10, 11))
-		draw_string(Fonts.BOLD, Vector2(px + 5, y - 3), boss_name, HORIZONTAL_ALIGNMENT_LEFT, -1, 8, Palette.color(Palette.PAPER))
+		var br := Rect2(8, y, w - 16, 10)
+		UiArt.draw(self, "hud_track", br)
+		_fill(Rect2(br.position + Vector2(2, 2), br.size - Vector2(4, 4)), boss_frac, Palette.RED)
+		var bw := ceilf(Fonts.width(boss_name, "NAME", 8)) + 12.0
+		var plate := Rect2(floorf((w - bw) / 2.0), y - 13, bw, 13)
+		UiArt.draw(self, "plate_dark", plate)
+		Fonts.draw(self, boss_name, plate.position + Vector2(0, 2), "NAME", Palette.PAPER, plate.size.x, HORIZONTAL_ALIGNMENT_CENTER, 8)
 
 
-## The build strip at `y`: weapon slots, a gap, tome slots, each a small
-## icon in a dark frame with its level as pips under it (gold when maxed).
-## Returns the x where it ends.
+## A kit fill (hud_fill in `face`'s ramp) over `frac` of `r`; nothing under 3 px.
+func _fill(r: Rect2, frac: float, face: int) -> void:
+	var fw := floorf(r.size.x * clampf(frac, 0.0, 1.0))
+	if fw >= 3.0 and r.size.y >= 3.0:
+		UiArt.draw(self, "hud_fill", Rect2(r.position, Vector2(fw, r.size.y)), face)
+
+
+## The build strip at `y`: weapon frames, a gap, tome frames, each a small
+## icon in a kit frame of its kind's colour with its level as pips under it
+## (gold when maxed). Returns the x where it ends.
 func _draw_strip(y: float) -> float:
 	if db == null:
 		return 0.0
-	var x := 2.0
-	for pair: Array in [["weapons", _build_w, _slots_w, Palette.SALMON], ["tomes", _build_t, _slots_t, Palette.SKY]]:
+	var x := 3.0
+	for pair: Array in [["weapons", _build_w, _slots_w, Palette.RED], ["tomes", _build_t, _slots_t, Palette.BLUE]]:
 		var ids: Array = pair[1].keys()
 		if ids.is_empty():
 			continue
@@ -351,21 +385,22 @@ func _draw_strip(y: float) -> float:
 			var r := Rect2(x, y, SLOT, SLOT)
 			var id: String = ids[i]
 			var lvl := int(pair[1][id])
-			draw_rect(r, Palette.color(Palette.INK))
-			draw_rect(r.grow(-1), Palette.color(Palette.NIGHT))
+			UiArt.draw(self, "lv_frame", r, pair[3])
 			var tex := Icons.small(db, pair[0], id, ICON_PX)
 			if tex != null:
-				draw_texture(tex, r.position + Vector2.ONE)
-			# Level pips under the slot: five 2 px pips, lit up to the level.
+				draw_texture(tex, r.position + Vector2(2, 1))
+			# Level pips under the frame: five 2 px pips on an INK strip.
 			var maxed := lvl >= 5
-			draw_rect(Rect2(r.position.x, r.end.y, SLOT, 3), Palette.color(Palette.INK))
+			draw_rect(Rect2(r.position.x + 1, r.end.y + 1, 15, 3), Palette.color(Palette.INK))
 			for k in 5:
-				var c: int = (Palette.GOLD if maxed else pair[3]) if k < lvl else Palette.SHADE
-				draw_rect(Rect2(r.position.x + k * 3, r.end.y, 2, 2), Palette.color(c))
+				var c: int = (Palette.GOLD if maxed else Palette.BUTTER) if k < lvl else Palette.SHADE
+				draw_rect(Rect2(r.position.x + 2 + k * 3, r.end.y + 1, 2, 2), Palette.color(c))
 			var fl: float = _flash.get(pair[0] + "/" + id, 0.0)
 			if fl > 0.0 and int(fl * 12.0) % 2 == 0:
-				_outline(self, Rect2(r.position, Vector2(SLOT, SLOT + 3)), Palette.WHITE)
-			x += SLOT + 1
+				UiArt.draw(self, "lv_frame", r, Palette.MIST)
+				if tex != null:
+					draw_texture(tex, r.position + Vector2(2, 1))
+			x += SLOT + 2
 		x += 3
 	return x - 4
 
@@ -380,32 +415,24 @@ static func _outline(ci: CanvasItem, r: Rect2, color: int) -> void:
 
 
 ## Items along the bottom, centred (above the boss bar while there is one):
-## small icons framed in their rarity colour, the stack count in tiny
-## digits, wrapping upward when there are many (each row centred).
+## small icons in kit frames of their rarity colour, the stack count in
+## BAR_NUM, wrapping upward when there are many (each row centred).
 func _draw_items() -> void:
 	if db == null or _items.is_empty():
 		return
 	var n := _items.size()
 	var i := 0
-	var tiny := DamageNumbers.tiny_atlas(Palette.BUTTER)
 	for id: String in _items:
 		var r := item_rect(i, n)
-		_items_view.draw_rect(r, Palette.color(Palette.INK))
-		_items_view.draw_rect(r.grow(-1), Palette.color(_rarity_color(id)))
-		_items_view.draw_rect(r.grow(-2), Palette.color(Palette.NIGHT))
+		var fl: float = _flash.get("items/" + id, 0.0)
+		var lit := fl > 0.0 and int(fl * 12.0) % 2 == 0
+		UiArt.draw(_items_view, "lv_frame", r, Palette.MIST if lit else _rarity_color(id))
 		var tex := Icons.small(db, "items", id, ICON_PX)
 		if tex != null:
-			_items_view.draw_texture(tex, r.position + Vector2(2, 2))
+			_items_view.draw_texture(tex, r.position + Vector2(2, 1))
 		var stacks := int(_items[id])
 		if stacks > 1:
-			var txt := str(stacks)
-			var tw := txt.length() * 4 + 1
-			for k in txt.length():
-				var d := int(txt[k])
-				_items_view.draw_texture_rect_region(tiny, Rect2(r.end - Vector2(tw - k * 4, 7), Vector2(DamageNumbers.CELL)), Rect2(d * DamageNumbers.CELL.x, 0, DamageNumbers.CELL.x, DamageNumbers.CELL.y))
-		var fl: float = _flash.get("items/" + id, 0.0)
-		if fl > 0.0 and int(fl * 12.0) % 2 == 0:
-			_outline(_items_view, r, Palette.WHITE)
+			Fonts.draw(_items_view, str(stacks), Vector2(r.end.x - 7, r.end.y - 7), "BAR_NUM", Palette.BUTTER, -1, HORIZONTAL_ALIGNMENT_LEFT, 6)
 		i += 1
 
 
@@ -415,7 +442,7 @@ func item_rect(i: int, n: int) -> Rect2:
 	var w := floorf(size.x)
 	var bottom := floorf(size.y) - safe_bottom - 2.0
 	if boss_frac >= 0.0:
-		bottom -= 28.0
+		bottom -= 30.0
 	var per_row := maxi(1, int((w - 4.0 + 1.0) / ITEM_SLOT))
 	var col := i % per_row
 	var row := i / per_row
@@ -435,7 +462,9 @@ func _rarity_color(id: String) -> int:
 	return _rarity_cache[id]
 
 
-## The pickup card at `y`: slides in from the left, blinks out at the end.
+## The pickup card at `y`: the info bar with the icon in a frame of its
+## rarity colour and the name (Phase 9: details live in the pause screen).
+## Slides in from the left, blinks out at the end.
 func _draw_card(y: float) -> void:
 	if _card.is_empty():
 		return
@@ -444,108 +473,34 @@ func _draw_card(y: float) -> void:
 		return
 	var age := CARD_TIME - left
 	var slide := floorf(maxf(0.0, 1.0 - age / 0.18) * -170.0)
-	var lines: PackedStringArray = _card.desc
-	var r := Rect2(4 + slide, y, 150, card_height())
-	var col := Palette.color(int(_card.color))
-	draw_rect(Rect2(r.position + Vector2(1, 2), r.size), Palette.color(Palette.INK))
-	draw_rect(r, Palette.color(Palette.INK))
-	draw_rect(r.grow(-1), col)
-	draw_rect(r.grow(-2), Palette.color(Palette.NIGHT))
-	# Icon in a frame on the left.
-	var ir := Rect2(r.position + Vector2(4, 4), Vector2(20, 20))
-	draw_rect(ir, col)
-	draw_rect(ir.grow(-1), Palette.color(Palette.INK))
-	draw_rect(ir.grow(-2), Palette.color(Palette.DEEP_BLUE))
-	if _card.art != null:
-		draw_texture(_card.art, ir.position + Vector2(2, 2))
-	var tx := r.position.x + 28
-	var tag: String = _card.tag
-	if tag != "":
-		draw_string(_FONT, Vector2(tx, r.position.y + 10), tag, HORIZONTAL_ALIGNMENT_LEFT, -1, 8, Palette.color(int(_card.color)))
 	var title: String = _card.title
-	var tf := Fonts.fitting(title, r.end.x - tx - 3)
-	draw_string(tf, Vector2(tx, r.position.y + 11 + (9 if tag != "" else 0)), title, HORIZONTAL_ALIGNMENT_LEFT, -1, 8, Palette.color(Palette.INK))
-	draw_string(tf, Vector2(tx, r.position.y + 10 + (9 if tag != "" else 0)), title, HORIZONTAL_ALIGNMENT_LEFT, -1, 8, Palette.color(Palette.PAPER))
-	var dy := r.position.y + (28 if tag != "" else 19)
-	for i in lines.size():
-		draw_string(_FONT, Vector2(tx, dy + 9 * i), lines[i], HORIZONTAL_ALIGNMENT_LEFT, -1, 8, Palette.color(Palette.MIST))
+	var tw := ceilf(Fonts.width(title, "NAME", 8))
+	var stacks := _card_stacks()
+	var sw := ceilf(Fonts.width(stacks, "BODY")) + 4.0 if stacks != "" else 0.0
+	var w := floorf(size.x)
+	var cw := minf(w - 8.0, 26.0 + tw + sw + 6.0)
+	var r := Rect2(floorf((w - cw) / 2.0) + slide, y, cw, card_height())
+	UiArt.draw(self, "info_bar", r)
+	var ir := Rect2(r.position + Vector2(3, 2), Vector2(17, 16))
+	UiArt.draw(self, "lv_frame", ir, int(_card.color))
+	if _card.art != null:
+		var art: Texture2D = _card.art
+		draw_texture(art, (ir.get_center() + Vector2(0, -1) - art.get_size() / 2.0).floor())
+	Fonts.draw(self, title, Vector2(r.position.x + 24, r.position.y + 4), "NAME", Palette.PAPER, r.size.x - 28 - sw, HORIZONTAL_ALIGNMENT_LEFT, 8)
+	if stacks != "":
+		Fonts.draw(self, stacks, Vector2(r.position.x + 24 + tw + 4, r.position.y + 6), "BODY", Palette.MIST)
+
+
+## "×2" from the card's tag ("Common item ×2"), "" for one.
+func _card_stacks() -> String:
+	var tag: String = _card.get("tag", "")
+	var m := RegEx.create_from_string("[xX×](\\d+)").search(tag)
+	return "×" + m.get_string(1) if m != null else ""
 
 
 ## Height of the pickup card now showing (0 when there's none).
 func card_height() -> float:
-	if _card.is_empty():
-		return 0.0
-	var tag_h := 9.0 if String(_card.tag) != "" else 0.0
-	return maxf(28.0, 14.0 + tag_h + 9.0 * _card.desc.size() + 2.0)
-
-
-## Word-wraps `text` in the small font.
-func _wrap_small(text: String, width: float) -> PackedStringArray:
-	var out := PackedStringArray()
-	var line := ""
-	for word in text.split(" ", false):
-		var tryl := word if line == "" else line + " " + word
-		if line != "" and _FONT.get_string_size(tryl, HORIZONTAL_ALIGNMENT_LEFT, -1, 8).x > width:
-			out.append(line)
-			line = word
-		else:
-			line = tryl
-	if line != "":
-		out.append(line)
-	return out
-
-
-## Word-wraps `text` into lines no wider than `width` in the bold font.
-func _wrap(text: String, width: float) -> PackedStringArray:
-	var out := PackedStringArray()
-	var line := ""
-	for word in text.split(" ", false):
-		var tryl := word if line == "" else line + " " + word
-		if line != "" and Fonts.BOLD.get_string_size(tryl, HORIZONTAL_ALIGNMENT_LEFT, -1, 8).x > width:
-			out.append(line)
-			line = word
-		else:
-			line = tryl
-	if line != "":
-		out.append(line)
-	return out
-
-
-func _small(text: String, at: Vector2, color: int) -> void:
-	draw_string(_FONT, at + Vector2(0, 1), text, HORIZONTAL_ALIGNMENT_LEFT, -1, 8, Palette.color(Palette.INK))
-	draw_string(_FONT, at, text, HORIZONTAL_ALIGNMENT_LEFT, -1, 8, Palette.color(color))
-
-
-func _bold_centered(text: String, cx: float, baseline: float, color: int) -> void:
-	var tw := Fonts.BOLD.get_string_size(text, HORIZONTAL_ALIGNMENT_LEFT, -1, 8).x
-	var at := Vector2(floorf(cx - tw / 2.0), baseline)
-	for o in [Vector2(0, 1), Vector2(1, 0), Vector2(-1, 0), Vector2(0, -1)]:
-		draw_string(Fonts.BOLD, at + o, text, HORIZONTAL_ALIGNMENT_LEFT, -1, 8, Palette.color(Palette.INK))
-	draw_string(Fonts.BOLD, at, text, HORIZONTAL_ALIGNMENT_LEFT, -1, 8, Palette.color(color))
-
-
-## 2x bold text with a 1px INK outline and a 2px shadow, centered on cx.
-func _big_centered(text: String, cx: float, top: float, color: int) -> void:
-	var tw := Fonts.BOLD.get_string_size(text, HORIZONTAL_ALIGNMENT_LEFT, -1, 8).x * 2.0
-	var at := Vector2(floorf(cx - tw / 2.0), top)
-	var asc := Fonts.BOLD.get_ascent(8) - 1.0
-	var passes := [[Vector2(0, 1.0), Palette.INK], [Vector2(0.5, 0), Palette.INK], [Vector2(-0.5, 0), Palette.INK],
-		[Vector2(0, -0.5), Palette.INK], [Vector2(0, 0.5), Palette.INK], [Vector2.ZERO, color]]
-	for p: Array in passes:
-		draw_set_transform(at, 0.0, Vector2(2, 2))
-		draw_string(Fonts.BOLD, Vector2(0, asc) + p[0], text, HORIZONTAL_ALIGNMENT_LEFT, -1, 8, Palette.color(p[1]))
-	draw_set_transform(Vector2.ZERO)
-
-
-## Bold right-aligned number with a UI kit icon to its left.
-func _right_with_icon(text: String, part: String, baseline: float, color: int) -> void:
-	var w := floorf(size.x)
-	var tw := Fonts.BOLD.get_string_size(text, HORIZONTAL_ALIGNMENT_LEFT, -1, 8).x
-	var x := w - 3 - tw
-	draw_string(Fonts.BOLD, Vector2(x, baseline + 1), text, HORIZONTAL_ALIGNMENT_LEFT, -1, 8, Palette.color(Palette.INK))
-	draw_string(Fonts.BOLD, Vector2(x, baseline), text, HORIZONTAL_ALIGNMENT_LEFT, -1, 8, Palette.color(color))
-	var s := Vector2(UiArt.sprite_size(part))
-	UiArt.sprite(self, part, Vector2(x - 2 - s.x, baseline - 8 - floorf((s.y - 8) / 2.0)))
+	return 0.0 if _card.is_empty() else 20.0
 
 
 ## Arrows at the screen edge for targets outside the view. Inset below the
