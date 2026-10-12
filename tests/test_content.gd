@@ -172,29 +172,15 @@ func test_items_match_brief(t) -> void:
 		t.check(tr.get("elite_only", false), "Golden Toilet only counts elite kills")
 
 
-func test_text_fits_the_pixel_font(t) -> void:
-	var allowed := " !\"#%'()+,-./0123456789:<=>?ABCDEFGHIJKLMNOPQRSTUVWXYZ_"
+func test_text_fits_the_fonts(t) -> void:
+	const FR := preload("res://tests/font_rules.gd")
 	var bad := []
-	var texts := []
-	for w: Dictionary in db.all("weapons"):
-		texts.append([w.id, w.name, 20])
-		texts.append([w.id, w.desc, 26])
-		for lv: Dictionary in w.levels:
-			texts.append([w.id, lv.desc, 26])
-	for tm: Dictionary in db.all("tomes"):
-		texts.append([tm.id, tm.name, 26])
-		texts.append([tm.id, tm.desc, 20])
-	for it: Dictionary in db.all("items"):
-		texts.append([it.id, it.name, 20])
-		texts.append([it.id, it.desc, 26])
-	for x: Array in texts:
-		var s: String = x[1]
-		if s.length() > x[2]:
-			bad.append("%s: '%s' longer than %d" % x)
-		for ch in s:
-			if not allowed.contains(ch):
-				bad.append("%s: '%s' has '%s'" % [x[0], s, ch])
-				break
+	for kind in ["weapons", "tomes", "items"]:
+		for e: Dictionary in db.all(kind):
+			bad += FR.problems(e.id, e.name, "NAME", FR.CARD_TEXT_W, 2, 9)
+			bad += FR.problems(e.id, e.desc, "BODY", FR.CARD_TEXT_W)
+			for lv: Dictionary in e.get("levels", []):
+				bad += FR.problems(e.id, lv.desc, "BODY", FR.CARD_TEXT_W)
 	t.check(bad.is_empty(), "text problems: %s" % [bad])
 
 

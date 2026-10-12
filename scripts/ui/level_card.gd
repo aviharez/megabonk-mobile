@@ -1,12 +1,14 @@
 class_name LevelCard
 extends PixelButton
-## A pick-one card (level-up, shrine bonus, merchant): a striped badge on the
-## left in the card's colour with the icon at 2x (and, for weapons and tomes,
-## level pips under it: the new level blinks), then the bold name, a tag chip
-## (NEW WEAPON / TOME LV 2 / SHRINE BONUS / RARE), the description, and a
-## LIME line with the numbers that change. Shrine bonuses show their value
-## big on the right; merchant items their price (or SOLD). NEW cards wear a
-## purple sticker over the top edge.
+## A pick-one card (level-up, shrine bonus, merchant), Phase 9 kit 3b look
+## (docs/phase9/8_kit3_levelup_concept.png): the `lv_card` plate in the
+## card's colour (GOLD while pressed), a `lv_frame` icon frame in the same
+## colour with the icon at 2x, the name in the NAME style (the colour's light
+## shade), one BODY line, and for weapons and tomes the CHANGE line ("3 → 4")
+## with the kit's level pips on the right. New cards wear a purple "New"
+## sticker on the top-right corner. Kind, rarity and New are colour and
+## stickers, not words. Shrine bonuses show their value big on the right;
+## merchant items their price (or a stamp: SOLD...).
 ##   show_card(card, icon, top_level)  a level-up card (LevelUpCards)
 ##   show_option({"title", "tag", "desc", "value", "price", "afford", "stamp",
 ##                "stamp_color", "color", "art"})    any other choice
@@ -16,9 +18,12 @@ const KIND := {
 	"tome": ["MANUAL", Palette.BLUE],
 	"fallback": ["BONUS", Palette.ORANGE],
 }
-## Left badge width (the icon at 2x, centred).
-const BADGE_W := 38
-const TEXT_X := 43
+## Name colour per card colour (the lighter shade of the card's ramp).
+const NAME_COLOR := {Palette.RED: Palette.SALMON, Palette.BLUE: Palette.SKY, Palette.ORANGE: Palette.BUTTER,
+	Palette.GOLD: Palette.BUTTER, Palette.GREEN: Palette.LIME, Palette.PURPLE: Palette.PINK, Palette.GRAY: Palette.MIST}
+## Text column, from the card's left edge.
+const TEXT_X := 42
+const PIP_STEP := 7
 
 var card := {}
 var option := {}
@@ -79,130 +84,121 @@ func _draw() -> void:
 	var mode := get_draw_mode()
 	var sunk := mode == DRAW_PRESSED or mode == DRAW_HOVER_PRESSED
 	var y := SHADOW if sunk else 0
-	var w := int(size.x)
-	var h := int(size.y) - SHADOW
+	var w := floorf(size.x)
+	var h := floorf(size.y) - SHADOW
 	var off := disabled
 	var acc := accent()
-	var dark := _dark(acc)
-	# Body: hard shadow, notched INK outline, a 1px rim in the card's colour
-	# (white while pressed), NIGHT inside with a lighter top line.
-	if not sunk:
-		_box(Rect2i(0, SHADOW, w, h), Palette.color(Palette.INK), Palette.color(Palette.INK))
-	_box(Rect2i(0, y, w, h), Palette.color(Palette.INK), Palette.color(Palette.WHITE if sunk else acc))
-	draw_rect(Rect2i(2, y + 2, w - 4, h - 4), Palette.color(Palette.NIGHT))
-	draw_rect(Rect2i(BADGE_W + 1, y + 2, w - BADGE_W - 3, 1), Palette.color(Palette.SHADE))
-	# Badge: diagonal stripes, then an INK line between it and the text.
-	var b := Rect2i(2, y + 2, BADGE_W - 2, h - 4)
-	draw_rect(b, Palette.color(acc))
-	var stripe := Palette.color(dark)
-	for py in b.size.y:
-		# 3 px of every 8 along each row, one step over per row: diagonal bands.
-		var px := -((py) % 8)
-		while px < b.size.x:
-			var x0 := maxi(px, 0)
-			var x1 := mini(px + 3, b.size.x)
-			if x1 > x0:
-				draw_rect(Rect2i(b.position.x + x0, b.position.y + py, x1 - x0, 1), stripe)
-			px += 8
-	draw_rect(Rect2i(BADGE_W, y + 2, 1, h - 4), Palette.color(Palette.INK))
-	var leveled: bool = card.get("kind", "") in ["weapon", "tome"]
-	var icon_y := y + (6 if leveled else floori((h - 32) / 2.0))
-	_draw_icon(Vector2i(2 + (BADGE_W - 2 - 32) / 2, icon_y))
-	if leveled:
-		_draw_pips(y + h - 12)
+	UiArt.draw(self, "lv_card", Rect2(0, y, w, h), Palette.GOLD if sunk else acc, -1, 0 if sunk else SHADOW)
+	# Icon frame: square, 2 px border round a 2x 16 px icon (36 px on a 42 px card).
+	var fs := minf(36.0, h - 6.0)
+	var frame := Rect2(4, y + floorf((h - fs) / 2.0) - 1.0, fs, fs)
+	UiArt.draw(self, "lv_frame", frame, acc)
+	_draw_icon(frame.get_center() + Vector2(0, -1))
 
-	var text_c := Palette.color(Palette.SHADE if off else Palette.PAPER)
-	var room := w - TEXT_X - 5
-	# Name, bold when it fits, with an INK drop.
-	var title := _title()
-	var sticker := "NEW!" if card.get("is_new", false) else ""
-	var nf := Fonts.fitting(title, room)
-	draw_string(nf, Vector2(TEXT_X, y + 13), title, HORIZONTAL_ALIGNMENT_LEFT, room, 8, Palette.color(Palette.INK))
-	draw_string(nf, Vector2(TEXT_X, y + 12), title, HORIZONTAL_ALIGNMENT_LEFT, room, 8, Palette.color(Palette.SHADE if off else Palette.BUTTER))
-	# Tag chip in the card's colour.
-	var tag := _tag()
-	var tw := int(Fonts.SMALL.get_string_size(tag, HORIZONTAL_ALIGNMENT_LEFT, -1, 8).x)
-	var chip := Rect2i(TEXT_X - 1, y + 16, tw + 5, 10)
-	_box(chip, Palette.color(Palette.INK), Palette.color(acc))
-	draw_string(Fonts.SMALL, Vector2(chip.position.x + 3, chip.position.y + 8), tag, HORIZONTAL_ALIGNMENT_LEFT, -1, 8,
-		Palette.color(Palette.INK if acc in [Palette.GOLD, Palette.BUTTER, Palette.LIME, Palette.SKY, Palette.MIST, Palette.ORANGE] else Palette.PAPER))
-	# Big value on the right (shrine bonuses).
+	var tx := frame.end.x + 5.0
+	var room := w - tx - 6.0
+	var name_c: int = Palette.SHADE if off else NAME_COLOR.get(acc, Palette.PAPER)
 	var value: String = option.get("value", "")
-	var value_w := 0
+	var value_w := 0.0
 	if value != "":
-		value_w = int(Fonts.BOLD.get_string_size(value, HORIZONTAL_ALIGNMENT_LEFT, -1, 8).x) * 2
-		var vx := w - 6 - value_w
-		draw_set_transform(Vector2(vx, y + 20), 0.0, Vector2(2, 2))
-		draw_string(Fonts.BOLD, Vector2(0, 8), value, HORIZONTAL_ALIGNMENT_LEFT, -1, 8, Palette.color(Palette.INK))
-		draw_string(Fonts.BOLD, Vector2(0, 7), value, HORIZONTAL_ALIGNMENT_LEFT, -1, 8, Palette.color(Palette.SHADE if off else acc))
-		draw_set_transform(Vector2.ZERO)
-	# Description, wrapped (beside the value, if there is one).
+		value_w = Fonts.width(value, "NAME", 16) + 6.0
+		Fonts.draw(self, value, Vector2(w - 6 - value_w + 6, y + floorf((h - 20) / 2.0)), "NAME",
+				Palette.SHADE if off else acc, -1, HORIZONTAL_ALIGNMENT_LEFT, 16)
+	# Name: NAME, shrunk down to 9; a longer one wraps to two lines at 9
+	# ("Grandma's Soup Recipes"), which moves the BODY line down.
+	var title := _title()
+	var name_room := room - value_w
+	var nfs: int = Fonts.STYLES.NAME[1]
+	while nfs > 9 and Fonts.width(title, "NAME", nfs) > name_room:
+		nfs -= 1
+	var name_lines := PackedStringArray([title])
+	if Fonts.width(title, "NAME", nfs) > name_room:
+		name_lines = _wrap(title, name_room, "NAME", nfs)
+	for k in mini(name_lines.size(), 2):
+		Fonts.draw(self, name_lines[k], Vector2(tx, y + (4 if name_lines.size() < 2 else 1) + k * 9), "NAME", name_c,
+				-1, HORIZONTAL_ALIGNMENT_LEFT, nfs)
+	# One BODY line (two when it must wrap and the name took one line).
 	var desc := _desc()
-	var desc_y := y + 35 if value == "" else y + 47
-	draw_multiline_string(Fonts.SMALL, Vector2(TEXT_X, desc_y), desc, HORIZONTAL_ALIGNMENT_LEFT, room, 8, 2, text_c)
-	# The numbers that change, in LIME at the foot.
-	var nums := stat_line()
-	if nums != "":
-		draw_string(Fonts.SMALL, Vector2(TEXT_X, y + h - 5), nums, HORIZONTAL_ALIGNMENT_LEFT, room, 8, Palette.color(Palette.SHADE if off else Palette.LIME))
+	var body_c := Palette.SHADE if off else Palette.PAPER
+	var lines := _wrap(desc, name_room)
+	var by := y + 17.0
+	if name_lines.size() > 1:
+		by = y + 20.0
+		lines = lines.slice(0, 1)
+	elif lines.size() > 1:
+		by = y + 15.0
+	for k in mini(lines.size(), 2):
+		Fonts.draw(self, lines[k], Vector2(tx, by + k * 8.0), "BODY", body_c)
+	var change := change_line()
+	var foot := y + h - 13.0
+	if change != "":
+		Fonts.draw(self, change, Vector2(tx, foot), "CHANGE", Palette.SHADE if off else -1)
+	if card.get("kind", "") in ["weapon", "tome"]:
+		_draw_pips(Vector2(w - 6 - clampi(max_level, 1, 6) * PIP_STEP, y + h - 12))
 	_draw_price(y, w, h)
-	if sticker != "" and UiArt.has("new_badge"):
-		var bw := int(Fonts.SMALL.get_string_size(sticker, HORIZONTAL_ALIGNMENT_LEFT, -1, 8).x) + 6
-		var hop := 1 if int(_t * 3.0) % 2 == 0 else 0
-		var bx := w - bw - 4
-		# Up on the top edge, clear of the name line.
-		UiArt.draw(self, "new_badge", Rect2(bx, y - 6 - hop, bw, 10))
-		draw_string(Fonts.SMALL, Vector2(bx + 3, y + 2 - hop), sticker, HORIZONTAL_ALIGNMENT_LEFT, -1, 8, Palette.color(Palette.PAPER))
+	if card.get("is_new", false):
+		var hop := 1.0 if int(_t * 3.0) % 2 == 0 else 0.0
+		var sr := Rect2(w - 20, y - 4 - hop, 21, 12)
+		UiArt.draw(self, "lv_sticker", sr)
+		Fonts.draw(self, "New", Vector2(sr.position.x, sr.position.y + 1), "TAG", -1, sr.size.x, HORIZONTAL_ALIGNMENT_CENTER)
 
 
-## The icon at 2x with an INK drop under it, or a coin when there's none.
-func _draw_icon(at: Vector2i) -> void:
-	if _icon == null:
-		draw_set_transform(Vector2(at + Vector2i(9, 9)), 0.0, Vector2(2, 2))
-		Glyphs.draw(self, "coin", Vector2.ZERO)
-		draw_set_transform(Vector2.ZERO)
+## Splits `text` into lines that fit `room` px in a style (word wrap).
+static func _wrap(text: String, room: float, style_name := "BODY", size := -1) -> PackedStringArray:
+	var out := PackedStringArray()
+	var line := ""
+	for word in text.split(" ", false):
+		var t := word if line == "" else line + " " + word
+		if line != "" and Fonts.width(t, style_name, size) > room:
+			out.append(line)
+			line = word
+		else:
+			line = t
+	if line != "":
+		out.append(line)
+	return out
+
+
+## The icon (2x up to 16 px) with an INK drop, centred on `c`; a coin when there's none.
+func _draw_icon(c: Vector2) -> void:
+	var tex := _icon if _icon != null else UiArt.texture("coin_big")
+	if tex == null:
 		return
-	var sz := Vector2(_icon.get_size()) * 2.0
-	var shadow := _shadow(_icon)
+	var k := 2.0 if tex.get_width() <= 16 else 1.0
+	var sz := Vector2(tex.get_size()) * k
+	var at := (c - sz / 2.0).floor()
+	var shadow := _shadow(tex)
 	if shadow != null:
-		draw_texture_rect(shadow, Rect2(Vector2(at) + Vector2(1, 2), sz), false)
-	draw_texture_rect(_icon, Rect2(Vector2(at), sz), false)
+		draw_texture_rect(shadow, Rect2(at + Vector2(1, 2), sz), false)
+	draw_texture_rect(tex, Rect2(at, sz), false)
 
 
-## Level pips under the icon: owned levels gold, the new one blinking.
-func _draw_pips(py: int) -> void:
+## Level pips: owned levels lit, the new one blinking.
+func _draw_pips(at: Vector2) -> void:
 	var lvl := int(card.get("level", 0))
 	var n := clampi(max_level, 1, 6)
-	var pw := 5
-	var x0 := 2 + (BADGE_W - 2 - (n * (pw + 1) + 1)) / 2
-	draw_rect(Rect2i(x0, py, n * (pw + 1) + 1, 6), Palette.color(Palette.INK))
 	for i in n:
-		var c := Palette.SHADE
-		if i < lvl - 1:
-			c = Palette.GOLD
-		elif i == lvl - 1:
-			c = Palette.LIME if int(_t * 3.0) % 2 == 0 else Palette.WHITE
-		draw_rect(Rect2i(x0 + 1 + i * (pw + 1), py + 1, pw, 4), Palette.color(c))
+		var on := i < lvl - 1 or (i == lvl - 1 and int(_t * 3.0) % 2 == 0)
+		UiArt.sprite(self, "lv_pip_on" if on else "lv_pip_off", at + Vector2(i * PIP_STEP, 0))
 
 
-## Merchant price chip at the bottom-right, or a stamp (SOLD, HAVE ONE).
-func _draw_price(y: int, w: int, h: int) -> void:
+## Merchant price (coin + number) at the bottom-right, or a stamp (SOLD...).
+func _draw_price(y: float, w: float, h: float) -> void:
 	var stamp: String = option.get("stamp", "")
 	if stamp != "":
-		var s := stamp
-		var sw := int(Fonts.BOLD.get_string_size(s, HORIZONTAL_ALIGNMENT_LEFT, -1, 8).x) + 8
-		var r := Rect2i(w - sw - 6, y + h - 16, sw, 12)
-		_box(r, Palette.color(Palette.INK), Palette.color(int(option.get("stamp_color", Palette.RED))))
-		draw_string(Fonts.BOLD, Vector2(r.position.x + 4, r.position.y + 10), s, HORIZONTAL_ALIGNMENT_LEFT, -1, 8, Palette.color(Palette.PAPER))
+		var sw := Fonts.width(stamp, "TAG") + 8.0
+		var r := Rect2(w - sw - 6, y + h - 16, sw, 12)
+		UiArt.draw(self, "lv_sticker", r, int(option.get("stamp_color", Palette.RED)))
+		Fonts.draw(self, stamp, Vector2(r.position.x, r.position.y + 1), "TAG", -1, r.size.x, HORIZONTAL_ALIGNMENT_CENTER)
 		return
 	if not option.has("price"):
 		return
 	var txt := str(int(option.price))
-	var tw := int(Fonts.BOLD.get_string_size(txt, HORIZONTAL_ALIGNMENT_LEFT, -1, 8).x)
-	var r := Rect2i(w - tw - 19, y + h - 16, tw + 14, 12)
 	var ok: bool = option.get("afford", true)
-	_box(r, Palette.color(Palette.INK), Palette.color(Palette.DEEP_BLUE))
-	Glyphs.draw(self, "coin", Vector2(r.position.x + 2, r.position.y + 2))
-	draw_string(Fonts.BOLD, Vector2(r.position.x + 11, r.position.y + 10), txt, HORIZONTAL_ALIGNMENT_LEFT, -1, 8, Palette.color(Palette.GOLD if ok else Palette.SALMON))
+	var tw := Fonts.width(txt, "NUM")
+	var at := Vector2(w - tw - 8, y + h - 15)
+	UiArt.sprite(self, "hud_coin", at - Vector2(12, -1))
+	Fonts.draw(self, txt, at, "NUM", Palette.GOLD if ok else Palette.SALMON)
 
 
 ## An all-INK copy of `tex` for the drop under the icon (cached).
@@ -229,6 +225,7 @@ func _title() -> String:
 	return option.get("title", "")
 
 
+## Kept for the shop and tests: the old tag chip text (not drawn any more).
 func _tag() -> String:
 	if not card.is_empty():
 		var kind: Array = KIND.get(card.get("kind", ""), KIND.fallback)
@@ -280,6 +277,18 @@ func stat_line() -> String:
 			if lvl == 1:
 				return "NOW %s%s%s" % [sign, _num(per), unit]
 			return "NOW %s%s%s > %s%s%s" % [sign, _num(per * (lvl - 1)), unit, sign, _num(per * lvl), unit]
+	return ""
+
+
+## The CHANGE line: "3 → 4" (level before and after) for weapons and tomes,
+## "New" cards show their first level as "0 → 1". Titan One has no →, so the
+## CHANGE style is Inter.
+func change_line() -> String:
+	if not card.is_empty():
+		var lvl := int(card.get("level", 0))
+		if card.get("kind", "") in ["weapon", "tome"] and lvl > 0:
+			return "%d → %d" % [lvl - 1, lvl]
+		return ""
 	return ""
 
 

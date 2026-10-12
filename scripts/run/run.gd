@@ -173,7 +173,6 @@ var _passive_state := {}
 var _kill_keys := {}
 var _shot_keys := {}
 var _banish_mode := false
-var _cards_title: Label
 var _action_buttons := {}  # action -> ActionButton
 var _over_list: VBoxContainer
 var _hits := PackedInt32Array()
@@ -198,7 +197,7 @@ var _later := []
 var _particle_tex := {}
 var _hud: Hud
 var _joystick: ThumbStick
-var _cards_panel: Control
+var _cards_panel: LevelUpPanel
 var _card_buttons: Array[LevelCard] = []
 var _dim: DitherDim
 var _flash: DitherDim
@@ -225,7 +224,6 @@ var _choice_panel: Control
 var _choice_title: Label
 var _choice_buttons: Array[LevelCard] = []
 var _choice_sub: Label
-var _cards_sub: Label
 ## Pick-one cards (level-up, shrine, merchant): where they sit in their panel.
 const CARD_X := 6
 const CARD_Y := 40
@@ -1324,8 +1322,9 @@ func _screen_pos(world: Vector2) -> Vector2:
 
 
 func _show_cards() -> void:
-	_cards_title.text = "BANISH WHICH?" if _banish_mode else "LEVEL UP!"
-	_cards_sub.text = "TAP A NEW ONE TO BANISH IT" if _banish_mode else ("LEVEL %d  -  PICK ONE" % level if pending_levels <= 1 else "LEVEL %d  -  PICK ONE  (+%d MORE)" % [level, pending_levels - 1])
+	_cards_panel.title = "Banish which?" if _banish_mode else "Level up!"
+	_cards_panel.hint = "Tap a card to banish it." if _banish_mode else "Choose one upgrade."
+	_cards_panel.count = maxi(1, pending_levels)
 	var fresh := not _cards_panel.visible
 	for i in _card_buttons.size():
 		var b := _card_buttons[i]
@@ -1341,7 +1340,7 @@ func _show_cards() -> void:
 			b.disabled = _banish_mode and not _can_banish(card)
 			b.ink = Palette.SALMON if _banish_mode and not b.disabled else Palette.PAPER
 			if fresh:
-				b.position.x = CARD_X
+				b.position.x = LevelUpPanel.CARD_X
 				UiFx.slide_in(b, Vector2(180, 0), 0.25, 0.06 * i)
 	for a: String in _action_buttons:
 		var ab: ActionButton = _action_buttons[a]
@@ -2446,14 +2445,15 @@ func _build_ui() -> void:
 	_flash.color = Palette.RED
 	ui.add_child(_flash)
 
-	# Level-up cards in a panel, with the Reroll / Skip / Banish actions under them.
-	_cards_panel = _panel(ui, Rect2(4, 14, 172, 296), Palette.NIGHT)
-	_cards_title = _title(_cards_panel, "LEVEL UP!", Palette.BUTTER, 4)
-	_cards_sub = _subtitle(_cards_panel, 27)
+	# Level-up cards in the kit 3b window, Reroll / Skip / Banish under them.
+	_cards_panel = LevelUpPanel.new()
+	_cards_panel.name = "LevelUpPanel"
+	_cards_panel.hide()
+	ui.add_child(_cards_panel)
 	for i in 3:
 		var b := LevelCard.new()
-		b.position = Vector2(CARD_X, CARD_Y + i * CARD_STEP)
-		b.custom_minimum_size = Vector2(CARD_W, CARD_H)
+		b.position = Vector2(LevelUpPanel.CARD_X, LevelUpPanel.CARD_Y[i])
+		b.custom_minimum_size = LevelUpPanel.CARD_SIZE
 		b.size = b.custom_minimum_size
 		b.sound = ""  # _on_card plays "card"
 		b.pressed.connect(_on_card.bind(i))
@@ -2463,8 +2463,8 @@ func _build_ui() -> void:
 	for i in actions.size():
 		var ab := ActionButton.new()
 		ab.glyph = actions[i]
-		ab.position = Vector2(CARD_X + i * 55, CARD_Y + 3 * CARD_STEP + 3)
-		ab.custom_minimum_size = Vector2(50, 33)
+		ab.position = Vector2(LevelUpPanel.ACTION_X + i * LevelUpPanel.ACTION_STEP, LevelUpPanel.ACTION_Y)
+		ab.custom_minimum_size = LevelUpPanel.ACTION_SIZE
 		ab.size = ab.custom_minimum_size
 		ab.pressed.connect(_on_action.bind(actions[i]))
 		_cards_panel.add_child(ab)
@@ -2753,6 +2753,11 @@ func _apply_safe_area() -> void:
 	_hud.safe_bottom = bottom
 	_pause_btn.offset_top = Hud.PAUSE_Y + top
 	_pause_btn.offset_bottom = Hud.PAUSE_Y + top + 21
+	# Level-up window: centred between the HUD's two rows and the bottom edge.
+	var vs := get_viewport().get_visible_rect().size
+	var room := vs.y - top - bottom - Hud.ROWS_H
+	_cards_panel.position = Vector2(floorf((vs.x - LevelUpPanel.SIZE.x) / 2.0),
+			floorf(top + Hud.ROWS_H + maxf(0.0, room - LevelUpPanel.SIZE.y) / 2.0))
 	_pause_panel.offset_top = top + 6
 	_pause_panel.offset_bottom = -(bottom + 6)
 	_layout_pause(get_viewport().get_visible_rect().size.y - top - bottom - 12)
@@ -2846,7 +2851,7 @@ func _tome_total(def: Dictionary, lvl: int) -> String:
 		return desc
 	var v := float(m.get_string()) * lvl
 	var num := str(int(v)) if v == floorf(v) else "%.1f" % v
-	return "NOW " + desc.substr(0, m.get_start()) + num + desc.substr(m.get_end())
+	return "Now " + desc.substr(0, m.get_start()) + num + desc.substr(m.get_end())
 
 
 func _draw_pause_stats() -> void:

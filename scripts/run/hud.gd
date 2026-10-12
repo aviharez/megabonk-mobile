@@ -26,6 +26,9 @@ var gold := 0
 const TOAST_TIME := 1.6
 ## Top of the pause button Run puts on the right (under the HUD rows).
 const PAUSE_Y := 38
+## Height of the two HUD rows at the top (concept: XP row + HP row), under
+## which run panels are placed.
+const ROWS_H := 32
 const XP_H := 12
 const HP_BAR := Rect2(17, 14, 54, 12)
 const BANNER_TIME := 3.0

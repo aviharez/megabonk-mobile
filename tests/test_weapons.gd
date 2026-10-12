@@ -115,20 +115,14 @@ func test_every_weapon_attacks_and_hits_at_level_1_and_5(t) -> void:
 
 
 func test_weapon_data_rules(t) -> void:
-	var allowed := " !\"#%'()+,-./0123456789:<=>?ABCDEFGHIJKLMNOPQRSTUVWXYZ_"
+	const FR := preload("res://tests/font_rules.gd")
 	for w: Dictionary in GameData.shared().all("weapons"):
 		t.check(w.levels.size() == 5, "%s has 5 levels" % w.id)
-		t.check(w.name.length() <= 20, "%s name fits" % w.id)
-		var texts: Array = [w.name, w.desc]
-		for lv: Dictionary in w.levels:
-			texts.append(lv.desc)
-		for s: String in texts:
-			var ok := true
-			for ch in s:
-				ok = ok and allowed.contains(ch)
-			t.check(ok, "%s: only pixel-font characters in '%s'" % [w.id, s])
-		for s: String in texts.slice(1):
-			t.check(s.length() <= 26, "%s: '%s' fits a card (%d)" % [w.id, s, s.length()])
+		# Card name: NAME at 9 in up to two lines; lines: BODY in up to two.
+		var bad: Array = FR.problems(w.id, w.name, "NAME", FR.CARD_TEXT_W, 2, 9)
+		for s: String in [w.desc] + w.levels.map(func(lv: Dictionary) -> String: return lv.desc):
+			bad += FR.problems(w.id, s, "BODY", FR.CARD_TEXT_W)
+		t.check(bad.is_empty(), "%s text is in its font and fits a card: %s" % [w.id, bad])
 
 
 func test_feathers_home_and_grow(t) -> void:

@@ -64,15 +64,16 @@ func test_upgrade_card_levels(t) -> void:
 
 
 func test_describe_fits_card(t) -> void:
-	# Card is 160px wide; the pixel font is 6px per character with spacing.
-	var too_long := []
+	# What a card draws: the level's line (weapons) or the desc (tomes), BODY
+	# in the card's text column, two lines at most.
+	const FR := preload("res://tests/font_rules.gd")
+	var bad := []
 	for w in db.all("weapons"):
 		for lv in w.levels.size():
-			for line in LevelUpCards.describe({"kind": "weapon", "id": w.id, "level": lv + 1, "is_new": lv == 0, "def": w}):
-				if line.length() > 26:
-					too_long.append(line)
+			var card := LevelCard.new()
+			card.card = {"kind": "weapon", "id": w.id, "level": lv + 1, "is_new": lv == 0, "def": w}
+			bad += FR.problems(w.id, card._desc(), "BODY", FR.CARD_TEXT_W)
+			card.free()
 	for tm in db.all("tomes"):
-		for line in LevelUpCards.describe({"kind": "tome", "id": tm.id, "level": 5, "is_new": false, "def": tm}):
-			if line.length() > 26:
-				too_long.append(line)
-	t.check(too_long.is_empty(), "card lines too long: %s" % [too_long])
+		bad += FR.problems(tm.id, tm.desc, "BODY", FR.CARD_TEXT_W)
+	t.check(bad.is_empty(), "card lines too long: %s" % [bad])

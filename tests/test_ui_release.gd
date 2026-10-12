@@ -203,7 +203,7 @@ func test_hud_build_strip_and_pickup_card(t) -> void:
 	t.check(run._hud._flash.has("weapons/rubber_duck"), "a new weapon flashes on the strip")
 	run.give_item("band_aid")
 	run.show_item_card("band_aid")
-	t.check(run._hud.card_height() > 0.0 and run._hud._card.title == "BAND-AID", "an item shows a pickup card")
+	t.check(run._hud.card_height() > 0.0 and run._hud._card.title == "Band-Aid", "an item shows a pickup card")
 	t.check(String(run._hud._card.tag).contains("ITEM") and run._hud._card.desc.size() >= 1, "with its rarity and what it does")
 	run.queue_free()
 	await t.process_frame
@@ -219,7 +219,7 @@ func test_pause_details_for_weapons_tomes_and_items(t) -> void:
 	t.check(run._pause_pick.size() == 2 and run._pause_pick[0] == "weapons", "pause opens on the first weapon")
 	run._pause_build.select("weapons", "rubber_duck")
 	t.check(run._pause_pick == ["weapons", "rubber_duck"], "tapping a slot picks it")
-	t.check(run._tome_total(run.db.get_entry("tomes", "muscle_magazine"), 3) == "NOW +30% DAMAGE", "a tome says its total (%s)" % run._tome_total(run.db.get_entry("tomes", "muscle_magazine"), 3))
+	t.check(run._tome_total(run.db.get_entry("tomes", "muscle_magazine"), 3) == "Now +30% damage.", "a tome says its total (%s)" % run._tome_total(run.db.get_entry("tomes", "muscle_magazine"), 3))
 	run._pause_build.select("items", "band_aid")
 	t.check(run._pause_has(run._pause_pick), "items can be picked too")
 	run.queue_free()

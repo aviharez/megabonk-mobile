@@ -75,7 +75,7 @@ func test_widgets_use_the_art(t) -> void:
 			on += 1
 		elif b.toggle == 0:
 			off += 1
-			t.check(b.label == "PINATA", "the switched-off row is Pinata (%s)" % b.label)
+			t.check(b.label == "Pinata", "the switched-off row is Pinata (%s)" % b.label)
 	t.check(off == 1 and on > 0, "Toggler rows show switches: %d on, %d off" % [on, off])
 	tg.queue_free()
 	save.free()

@@ -181,7 +181,7 @@ static func map_hint(db: GameData, data: Dictionary, id: String) -> String:
 			var prev: String = db.get_entry("maps", id).get("unlock_after", "")
 			var boss := map_boss_name(db, prev)
 			if map_state(db, data, prev) == "open" and boss != "":
-				return "DEFEAT %s" % boss
+				return "Defeat %s" % boss
 			return "???"
 	return ""
 

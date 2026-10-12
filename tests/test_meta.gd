@@ -100,27 +100,18 @@ func test_prices_scale_by_tier_and_characters_cost_more(t) -> void:
 		t.check(float(ch.price) > avg[ch.tier], "%s costs more than the %s items (%s > %s)" % [c, ch.tier, ch.price, avg[ch.tier]])
 
 
-func test_texts_fit_the_pixel_font(t) -> void:
-	var allowed := " !\"#%'()+,-./0123456789:<=>?ABCDEFGHIJKLMNOPQRSTUVWXYZ_"
+func test_texts_fit_the_fonts(t) -> void:
+	const FR := preload("res://tests/font_rules.gd")
 	var bad := []
-	var texts := []
 	for ch: Dictionary in db.all("challenges"):
-		texts.append([ch.id, ch.desc, 26])  # a 156 px ChallengeRow
+		bad += FR.problems(ch.id, ch.desc, "BODY", 140.0)  # a challenge row
 	for e: Dictionary in db.all("shop"):
-		texts.append([e.id, e.name, 14])
-		texts.append([e.id, e.desc, 27])
+		bad += FR.problems(e.id, e.name, "NAME", 80.0, 1)
+		bad += FR.problems(e.id, e.desc, "BODY", 140.0)
 	for c: Dictionary in db.all("characters"):
-		texts.append([c.id, c.name, 28])
-		texts.append([c.id, c.passive.name, 28])
-		texts.append([c.id, c.passive.desc, 28])
-	for x: Array in texts:
-		var s: String = x[1]
-		if s.length() > x[2]:
-			bad.append("%s: '%s' longer than %d" % x)
-		for ch in s:
-			if not allowed.contains(ch):
-				bad.append("%s: '%s' has '%s'" % [x[0], s, ch])
-				break
+		bad += FR.problems(c.id, c.name, "NAME", 140.0, 1)
+		bad += FR.problems(c.id, c.passive.name, "NAME", 140.0, 1)
+		bad += FR.problems(c.id, c.passive.desc, "BODY", 140.0)
 	t.check(bad.is_empty(), "text problems: %s" % [bad])
 
 
@@ -329,7 +320,7 @@ func test_closest_challenges_and_ready_to_buy(t) -> void:
 	var rows := run.find_children("*", "ChallengeRow", true, false)
 	var texts := run._over_list.get_children().filter(func(n: Node) -> bool: return n is Label).map(func(l: Label) -> String: return l.text)
 	t.check(rows.size() == 3, "game over shows 3 closest (%d)" % rows.size())
-	t.check(texts.has("READY TO BUY") and texts.any(func(s: String) -> bool: return s.contains("FIREWORKS")), "and what's ready to buy: %s" % [texts])
+	t.check(texts.has("READY TO BUY") and texts.any(func(s: String) -> bool: return s.contains("Fireworks")), "and what's ready to buy: %s" % [texts])
 	var save: Node = run._save
 	_done(t, run)
 	save.free()

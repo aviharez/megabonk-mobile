@@ -30,7 +30,7 @@ func test_maps_in_unlock_order_and_their_state(t) -> void:
 	var d := SaveManager.default_data()
 	t.check(Meta.map_state(db, d, "suburbia") == "open", "the start map is open")
 	t.check(Meta.map_state(db, d, "sewers") == "locked", "Sewers locked before Mega Mole is beaten")
-	t.check(Meta.map_hint(db, d, "sewers") == "DEFEAT MEGA MOLE", "Sewers hint names the boss (%s)" % Meta.map_hint(db, d, "sewers"))
+	t.check(Meta.map_hint(db, d, "sewers") == "Defeat Mega Mole", "Sewers hint names the boss (%s)" % Meta.map_hint(db, d, "sewers"))
 	t.check(Meta.map_hint(db, d, "farm") == "???", "Farm hint hidden while Sewers is locked")
 	t.check(Meta.picked_map(db, d) == "suburbia", "first open map picked")
 	d.map = "sewers"
