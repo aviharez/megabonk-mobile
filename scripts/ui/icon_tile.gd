@@ -1,13 +1,13 @@
 class_name IconTile
 extends PixelButton
-## A square grid tile for the unlocks and shop grids: the UI kit tile frame
-## (gold when selected) on a fill that tells the state, a 16x16 icon at 2x,
-## and small state marks:
-##   "locked"    INK silhouette on SHADE, a padlock, a gold progress strip
-##   "available" full colour on OCEAN, hops now and then, a NEW / ! badge,
-##               gold sparkles going round the frame
-##   "owned"     full colour on DEEP_BLUE, a green tick
-##   "maxed"     like owned, with MAX
+## A square grid tile for the unlocks and shop grids: the kit 3b icon frame
+## (`lv_frame`, the level-up cards' frame) in a colour that tells the state
+## (GOLD when selected), a 16x16 icon at 2x, and small state marks:
+##   "locked"    INK silhouette on a SHADE frame, a padlock, a gold progress strip
+##   "available" full colour on BLUE, hops now and then, a New sticker or the
+##               kit's red "!", gold sparkles going round the frame
+##   "owned"     full colour on OCEAN, a green tick
+##   "maxed"     like owned on GREEN, with a Max sticker
 ## Level pips along the bottom when `pips_max` > 0 (shop upgrades).
 
 const K := 2
@@ -52,15 +52,8 @@ func _draw() -> void:
 	var sunk := mode == DRAW_PRESSED or mode == DRAW_HOVER_PRESSED
 	var y := SHADOW if sunk else 0
 	var r := Rect2(0, y, size.x, size.y - SHADOW)
-	var part := "tile_selected" if selected else "tile"
-	var fill: int = {"locked": Palette.SHADE, "available": Palette.OCEAN, "owned": Palette.DEEP_BLUE, "maxed": Palette.DEEP_GREEN}.get(state, Palette.NIGHT)
-	if not sunk:
-		UiArt.draw_shadow(self, part, r, SHADOW)
-	draw_rect(r.grow(-3), Palette.color(fill))
-	if state == "available" and pips_max == 0:
-		# A brighter floor under the icon, like a spotlight.
-		draw_rect(Rect2(r.position.x + 6, r.end.y - 9, r.size.x - 12, 3), Palette.color(Palette.SKY))
-	UiArt.draw(self, part, r)
+	var face: int = {"locked": Palette.SHADE, "available": Palette.BLUE, "owned": Palette.OCEAN, "maxed": Palette.GREEN}.get(state, Palette.SHADE)
+	UiArt.draw(self, "lv_frame", r, Palette.GOLD if selected else face, -1, 0 if sunk else SHADOW)
 	if picture != null:
 		var s := Vector2(picture.get_size()) * K
 		var hop := 0.0
@@ -99,14 +92,14 @@ func _draw() -> void:
 			draw_rect(pr, Palette.color(Palette.INK))
 			draw_rect(Rect2(pr.position + Vector2.ONE, Vector2(3, 2)), Palette.color(Palette.LIME if i < pips else Palette.SHADE))
 	if tag == "!":
-		# The kit's red notification dot on the top-right corner.
-		UiArt.sprite(self, "dot", Vector2(size.x - UiArt.sprite_size("dot").x + 1, y - 2))
+		# The kit's red "!" on the top-right corner.
+		UiArt.sprite(self, "alert", Vector2(size.x - UiArt.sprite_size("alert").x + 3, y - 4))
 	elif tag != "":
-		var bf := Fonts.SMALL
-		var bw := int(bf.get_string_size(tag, HORIZONTAL_ALIGNMENT_LEFT, -1, Fonts.SIZE).x) + 6
-		var bx := size.x - bw + 1
-		UiArt.draw(self, "new_badge", Rect2(bx, y - 2, bw, 9))
-		draw_string(bf, Vector2(bx + 3, y - 1 + bf.get_ascent(Fonts.SIZE)), tag, HORIZONTAL_ALIGNMENT_LEFT, -1, Fonts.SIZE, Palette.color(Palette.PAPER if tag != "Max" else Palette.BUTTER))
+		var bw := ceilf(Fonts.width(tag, "TAG")) + 8.0
+		var br := Rect2(size.x - bw + 3, y - 5, bw, 12)
+		UiArt.draw(self, "lv_sticker", br, Palette.GOLD if tag == "Max" else -1)
+		Fonts.draw(self, tag, Vector2(br.position.x, br.position.y + 1), "TAG", Palette.INK if tag == "Max" else -1,
+				br.size.x, HORIZONTAL_ALIGNMENT_CENTER)
 
 
 ## A green tick on an INK outline, 8x7.

@@ -72,14 +72,12 @@ func _preview(c: Dictionary, owned: bool) -> void:
 	p.name = "Preview"
 	p.part = "window"
 	var k := 3
-	var title := PixelTitle.new(c.name if owned else "???", 2, Palette.BUTTER)
-	title.top_color = Palette.WHITE
-	title.shadow = 2
-	if title.text_width() > W - 12:
-		title.scale_k = 1
+	var title := Fonts.label(c.name if owned else "???", "BANNER", Palette.BUTTER)
+	title.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
 	title.position = Vector2(0, 5)
-	title.size = Vector2(W, 22)
+	title.size = Vector2(W, 20)
 	p.add_child(title)
+	Fonts.fit(title, W - 12)
 	if owned and c.get("role", "") != "":
 		_tag(p, c.role, Vector2(floorf((W - _tag_w(c.role)) / 2.0), 28))
 	elif not owned:

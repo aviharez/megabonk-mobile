@@ -8,7 +8,6 @@ extends Control
 signal picked(index: int)
 
 const H := 24
-const DOT := [".kk.", "kRRk", "kRRk", ".kk."]
 
 ## [{"name", "sub", "art", "color", "dot"}]
 var tabs: Array = []:
@@ -84,18 +83,12 @@ func _draw() -> void:
 	draw_rect(Rect2(0, H - 1, size.x, 1), Palette.color(c))
 
 
-## A tab: a PixelButton with an optional red dot at its top-right.
+## A tab: a PixelButton with the kit's red "!" on its top-right when it
+## holds something new.
 class TabButton extends PixelButton:
 	var dot := false
 
 	func _draw() -> void:
 		super._draw()
-		if not dot:
-			return
-		var at := Vector2(size.x - 6, 1)
-		var k := {"k": Palette.INK, "R": Palette.RED}
-		for y in DOT.size():
-			for x in String(DOT[y]).length():
-				var ch: String = DOT[y][x]
-				if k.has(ch):
-					draw_rect(Rect2(at + Vector2(x, y), Vector2.ONE), Palette.color(k[ch]))
+		if dot:
+			UiArt.sprite(self, "alert", Vector2(size.x - UiArt.sprite_size("alert").x + 3, -4))

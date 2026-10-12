@@ -76,7 +76,7 @@ func _init(save_node: Node, title: String) -> void:
 	_scrollbar.offset_right = W / 2.0 + 4
 	add_child(_scrollbar)
 
-	# Bottom bar: a dark strip with BACK (and the main action on its right).
+	# Bottom bar: the kit's dark plate with Back (and the main action on its right).
 	_bar = Control.new()
 	_bar.name = "BottomBar"
 	_bar.anchor_top = 1.0
@@ -84,10 +84,7 @@ func _init(save_node: Node, title: String) -> void:
 	_bar.anchor_bottom = 1.0
 	_bar.offset_top = -BAR_H
 	_bar.draw.connect(func() -> void:
-		var w := _bar.size.x
-		_bar.draw_rect(Rect2(0, 0, w, _bar.size.y), Palette.color(Palette.INK))
-		_bar.draw_rect(Rect2(0, 1, w, _bar.size.y), Palette.color(Palette.DEEP_BLUE))
-		_bar.draw_rect(Rect2(0, 2, w, 1), Palette.color(Palette.OCEAN)))
+		UiArt.draw(_bar, "plate_dark", Rect2(-3, 0, _bar.size.x + 6, _bar.size.y + 3)))
 	add_child(_bar)
 	_back = PixelButton.new()
 	_back.name = "Back"
