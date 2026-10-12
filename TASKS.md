@@ -665,9 +665,17 @@ Rules: Titan never under 6 (stickers only), Inter never under 7; text on world a
 
 ### Text pass (mixed case)
 
-- [ ] Data, one subagent per group, each returns a diff and a list of anything unclear: (1) characters + challenges + shop + rules rarity names, (2) weapons, (3) tomes, (4) items, (5) interactables + enemies + maps. Names in Title Case ("Grandma's Soup Recipes", "Band-Aid"), descriptions and challenges in sentence case with a full stop, keep HP / XP / KO / AoE as caps, simple English (brief). 230 shown strings: 86 `name`, 137 `desc`, 3 hero `role`, 4 rarity names. Ids, colour names, tome `symbol` grids and `_doc` notes untouched. Check each diff before accepting
+- [x] Data (2026-10-13, 98 files, every changed line checked to differ only in casing and the closing full stop; "Final Swarm" kept capitalised). Was: one subagent per group, each returns a diff and a list of anything unclear: (1) characters + challenges + shop + rules rarity names, (2) weapons, (3) tomes, (4) items, (5) interactables + enemies + maps. Names in Title Case ("Grandma's Soup Recipes", "Band-Aid"), descriptions and challenges in sentence case with a full stop, keep HP / XP / KO / AoE as caps, simple English (brief). 230 shown strings: 86 `name`, 137 `desc`, 3 hero `role`, 4 rarity names. Ids, colour names, tome `symbol` grids and `_doc` notes untouched. Check each diff before accepting
 - [ ] Code strings: ~415 capital literals in scripts (most in run.gd 75, action_button 27, splash 22, main_menu 16, map_layout 16; many are ids, not shown text), plus 3 `to_upper()` calls (toggler, item_system, fake_ad_backend). Shown text to mixed case; brief's player-facing names stay (Beacon, Manual)
 - [ ] Shorter words where space is tight: stat short names in data ("Dmg", "CD", "Area") used by the CHANGE line, so adding content still needs no code
+
+### Progress 2026-10-13 (session 2)
+
+- [x] Level-up panel (`LevelUpPanel`, `LevelCard` and `ActionButton` redrawn on kit 3b; the dim is a palette tint under the HUD): `docs/phase9/12_level_up_vs_concept.png`
+- [x] HUD (two concept rows, kit pause, kit build strip / item frames, name-only pickup card, BANNER text): `docs/phase9/13_hud_vs_concept.png`
+- [x] Font tests: `tests/font_rules.gd` (each string in its font, fits by measured width; level-up card rule: a two-line name leaves one body line)
+- [ ] NEXT: the rest of the screens (shared parts first: `PixelButton` on recoloured `lv_frame` + Titan labels, `PixelPanel` on `lv_window` / `plate_dark`, gold `lv_header` title instead of `PixelTitle` + ribbon, theme font Inter 7), then the code-string text pass (~415 caps literals: subagents per file group, after the restyle so files don't clash), settings / quit / heroes / maps / unlocks / shop / toggler / pause / revive / game over / unlock popup / shrine + merchant panels / splash
+- [ ] World text overlay (damage numbers still the old 3x5 digits), stress test fps with 300 enemies (not measured this session), `tests/test_text_fit.gd`, remove `TitleScene`, `Fonts.BOLD` / `SMALL` once unused
 
 ### Found while building the home (2026-10-13)
 
@@ -693,4 +701,4 @@ Rules: Titan never under 6 (stickers only), Inter never under 7; text on world a
 
 ### Docs (after the owner approves the wording)
 
-- [ ] CLAUDE.md "UI design direction" and the copy inside BRIEF.md; BRIEF.md asset table (fonts), logo line, damage numbers line, phases list (revamp = 9, release prep = 10)
+- [x] (2026-10-13) CLAUDE.md "UI design direction" and the copy inside BRIEF.md; BRIEF.md asset table (fonts), logo line, damage numbers line, phases list (revamp = 9, release prep = 10)
