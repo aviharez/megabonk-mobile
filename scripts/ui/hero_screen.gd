@@ -172,34 +172,27 @@ func _rule(y: float) -> Control:
 
 
 func _tag_w(text: String) -> float:
-	return get_theme_default_font().get_string_size(text, HORIZONTAL_ALIGNMENT_LEFT, -1, get_theme_default_font_size()).x + 8
+	return ceilf(Fonts.width(text, "TAG")) + 8
 
 
-## Meta.PIPS compact pips (6x5 boxes, INK outline), the first `n` lit SKY.
+## Meta.PIPS kit 3b pips (as on the level-up cards), the first `n` lit.
 func _pips(parent: Control, at: Vector2, n: int) -> void:
 	var bar := Control.new()
 	bar.position = at
 	bar.mouse_filter = MOUSE_FILTER_IGNORE
 	bar.draw.connect(func() -> void:
 		for i in Meta.PIPS:
-			var r := Rect2(i * 7, 0, 6, 6)
-			bar.draw_rect(r, Palette.color(Palette.INK))
-			bar.draw_rect(r.grow(-1), Palette.color(Palette.SKY if i < n else Palette.SHADE))
-			if i < n:
-				bar.draw_rect(Rect2(r.position + Vector2(1, 1), Vector2(4, 1)), Palette.color(Palette.WHITE)))
+			UiArt.sprite(bar, "lv_pip_on" if i < n else "lv_pip_off", Vector2(i * LevelCard.PIP_STEP, -1)))
 	parent.add_child(bar)
 
 
-## A small text plate (UiArt "tag") with `text` on it.
+## The role sticker (kit 3b `lv_sticker` in BLUE) with `text` on it.
 func _tag(parent: Control, text: String, at: Vector2) -> void:
 	var plate := Control.new()
 	plate.position = at
 	plate.mouse_filter = MOUSE_FILTER_IGNORE
-	var font := get_theme_default_font()
-	var tw := font.get_string_size(text, HORIZONTAL_ALIGNMENT_LEFT, -1, get_theme_default_font_size()).x
-	plate.draw.connect(func() -> void: UiArt.draw(plate, "tag", Rect2(0, -1, tw + 8, 10)))
+	plate.draw.connect(func() -> void: UiArt.sticker(plate, text, Vector2(0, -1), Palette.BLUE))
 	parent.add_child(plate)
-	label(parent, text, at + Vector2(4, 0), Palette.PAPER)
 
 
 func _wrapped(parent: Control, text: String, at: Vector2, w: float, color: int) -> Label:

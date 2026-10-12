@@ -38,5 +38,5 @@ func _draw() -> void:
 		var at := Vector2(floorf((size.x - s.x) / 2.0), y + floorf((size.y - SHADOW - s.y) / 2.0))
 		draw_texture_rect(portrait, Rect2(at, s), false)
 	if locked:
-		var ls := Vector2(UiArt.sprite_size("padlock"))
-		UiArt.sprite(self, "padlock", Vector2(size.x - ls.x - 2, y + size.y - SHADOW - ls.y - 1))
+		var ls := Vector2(UiArt.sprite_size(UiArt.PADLOCK))
+		UiArt.sprite(self, UiArt.PADLOCK, Vector2(size.x - ls.x - 2, y + size.y - SHADOW - ls.y - 1))

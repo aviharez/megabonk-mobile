@@ -21,7 +21,7 @@ func _fill() -> void:
 		var card := MapCard.new()
 		card.name = m.id
 		card.disabled = not open
-		card.face = Palette.GOLD if m.id == selected else Palette.SKY
+		card.face = Palette.GOLD if m.id == selected else Palette.BLUE
 		if open:
 			card.thumb = load(m.thumb) if m.has("thumb") else null
 			var boss := Meta.map_boss_name(db, m.id)

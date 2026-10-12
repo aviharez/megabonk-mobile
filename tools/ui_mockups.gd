@@ -165,7 +165,7 @@ func _home() -> void:
 		UiArt.draw(ci, "ribbon", Rect2(cx - 62, top + 66, 124, 20), -1, -1, 0)
 		# next unlock card
 		UiArt.draw(ci, "window", Rect2(14, next_y, sz.x - 28, 38), -1, Palette.NIGHT, 2)
-		UiArt.bar(ci, "bar", Rect2(52, next_y + 25, sz.x - 74, 8), 0.0, Palette.LIME, 2)
+		UiArt.bar(ci, Rect2(52, next_y + 25, sz.x - 74, 8), 0.0, Palette.LIME)
 		# buttons
 		UiArt.draw(ci, "button", Rect2(18, play_y, sz.x - 36, 32), Palette.GOLD, -1, 2)
 		UiArt.draw(ci, "button", Rect2(18, row_y, 69, 24), Palette.LIME, -1, 2)
@@ -276,10 +276,10 @@ func _hud(ui: Control) -> void:
 	var gx := tx + tw + 8.0
 	ui.add_child(Canvas.new(func(ci: CanvasItem) -> void:
 		# XP bar across the top, level on it
-		UiArt.bar(ci, "bar", Rect2(2, top + 1, sz.x - 4, 11), 0.62, Palette.SKY, 2)
+		UiArt.bar(ci, Rect2(2, top + 1, sz.x - 4, 11), 0.62, Palette.SKY)
 		# heart + HP bar with the number inside; the bar stops where the timer starts
 		UiArt.sprite(ci, "heart", Vector2(3, top + 15))
-		UiArt.bar(ci, "bar", Rect2(18, top + 16, hp_end - 18, 13), 0.6, Palette.LIME, 2)
+		UiArt.bar(ci, Rect2(18, top + 16, hp_end - 18, 13), 0.6, Palette.LIME)
 		# gold over kills, then pause
 		UiArt.sprite(ci, "coin", Vector2(gx, top + 15))
 		UiArt.sprite(ci, "skull", Vector2(gx, top + 29))

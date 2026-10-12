@@ -2880,21 +2880,18 @@ func _draw_over_tiles() -> void:
 	var ci := _over_tiles
 	var sec := int(minf(elapsed, rules.run_length_sec))
 	var tiles := [
-		["clock", "%d:%02d" % [sec / 60, sec % 60], "Time"],
+		["hud_clock", "%d:%02d" % [sec / 60, sec % 60], "Time"],
 		["star", str(level), "Level"],
-		["skull", str(kills), "KO"],
-		["coin", str(floori(gold)), "Gold"],
+		["hud_skull", str(kills), "KO"],
+		["hud_coin", str(floori(gold)), "Gold"],
 	]
+	# Kit 3b frames in OCEAN, the HUD's icons, the caption in BODY, the value in NUM.
 	for i in 4:
 		var at := Vector2((i % 2) * 51, (i / 2) * 27)
-		var r := Rect2(at, Vector2(49, 25))
-		ci.draw_rect(r, Palette.color(Palette.INK))
-		ci.draw_rect(r.grow(-1), Palette.color(Palette.DEEP_BLUE))
-		ci.draw_rect(Rect2(r.position + Vector2(2, 1), Vector2(r.size.x - 4, 1)), Palette.color(Palette.OCEAN))
-		Glyphs.draw(ci, tiles[i][0], at + Vector2(4, 4))
-		ci.draw_string(Fonts.SMALL, at + Vector2(14, 10), tiles[i][2], HORIZONTAL_ALIGNMENT_LEFT, -1, 8, Palette.color(Palette.MIST))
-		ci.draw_string(Fonts.BOLD, at + Vector2(5, 22), tiles[i][1], HORIZONTAL_ALIGNMENT_LEFT, -1, 8, Palette.color(Palette.INK))
-		ci.draw_string(Fonts.BOLD, at + Vector2(5, 21), tiles[i][1], HORIZONTAL_ALIGNMENT_LEFT, -1, 8, Palette.color(Palette.PAPER))
+		UiArt.draw(ci, "lv_frame", Rect2(at, Vector2(49, 25)), Palette.OCEAN)
+		UiArt.sprite(ci, tiles[i][0], at + Vector2(3, 3))
+		Fonts.draw(ci, tiles[i][2], at + Vector2(15, 3), "BODY", Palette.SKY)
+		Fonts.draw(ci, tiles[i][1], at + Vector2(5, 12), "NUM", Palette.PAPER, -1, HORIZONTAL_ALIGNMENT_LEFT, 9)
 
 
 ## A hidden panel. `rect` is in a 180x320 design frame; the panel is

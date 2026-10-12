@@ -291,7 +291,7 @@ func _draw() -> void:
 	var xr := xp_rect()
 	UiArt.draw(self, "hud_track", xr)
 	var xf := clampf(xp / maxf(xp_need, 1.0), 0.0, 1.0)
-	_fill(Rect2(xr.position + Vector2(2, 2), xr.size - Vector2(4, 4)), xf, Palette.WHITE if _xp_flash > 0.0 and int(_xp_flash * 20.0) % 2 == 0 else Palette.GOLD)
+	UiArt.fill(self, Rect2(xr.position + Vector2(2, 2), xr.size - Vector2(4, 4)), xf, Palette.WHITE if _xp_flash > 0.0 and int(_xp_flash * 20.0) % 2 == 0 else Palette.GOLD)
 	var nums := "%d/%d" % [floori(xp), ceili(xp_need)]
 	var nw := Fonts.width(nums, "NUM", 6)
 	Fonts.draw(self, nums, Vector2(xr.end.x - 4 - nw, xr.position.y + 1), "NUM", Palette.WHITE, -1, HORIZONTAL_ALIGNMENT_LEFT, 6)
@@ -313,10 +313,10 @@ func _draw() -> void:
 	UiArt.draw(self, "hud_track", bar)
 	var inner := Rect2(bar.position + Vector2(2, 2), bar.size - Vector2(4, 4))
 	if _ghost > hf:
-		_fill(inner, _ghost, Palette.PAPER)
-	_fill(inner, hf, Palette.RED)
+		UiArt.fill(self, inner, _ghost, Palette.PAPER)
+	UiArt.fill(self, inner, hf, Palette.RED)
 	if shield > 0.0:
-		_fill(Rect2(inner.position, Vector2(inner.size.x, 3)), clampf(shield / hp_max, 0.0, 1.0), Palette.SKY)
+		UiArt.fill(self, Rect2(inner.position, Vector2(inner.size.x, 3)), clampf(shield / hp_max, 0.0, 1.0), Palette.SKY)
 	Fonts.draw(self, "%d/%d" % [ceili(hp), roundi(hp_max)], bar.position + Vector2(0, 1), "BAR_NUM",
 			Palette.SALMON if low else -1, bar.size.x, HORIZONTAL_ALIGNMENT_CENTER)
 	# Coins and kills.
@@ -356,18 +356,11 @@ func _draw() -> void:
 		var y := floorf(size.y) - 16.0 - safe_bottom
 		var br := Rect2(8, y, w - 16, 10)
 		UiArt.draw(self, "hud_track", br)
-		_fill(Rect2(br.position + Vector2(2, 2), br.size - Vector2(4, 4)), boss_frac, Palette.RED)
+		UiArt.fill(self, Rect2(br.position + Vector2(2, 2), br.size - Vector2(4, 4)), boss_frac, Palette.RED)
 		var bw := ceilf(Fonts.width(boss_name, "NAME", 8)) + 12.0
 		var plate := Rect2(floorf((w - bw) / 2.0), y - 13, bw, 13)
 		UiArt.draw(self, "plate_dark", plate)
 		Fonts.draw(self, boss_name, plate.position + Vector2(0, 2), "NAME", Palette.PAPER, plate.size.x, HORIZONTAL_ALIGNMENT_CENTER, 8)
-
-
-## A kit fill (hud_fill in `face`'s ramp) over `frac` of `r`; nothing under 3 px.
-func _fill(r: Rect2, frac: float, face: int) -> void:
-	var fw := floorf(r.size.x * clampf(frac, 0.0, 1.0))
-	if fw >= 3.0 and r.size.y >= 3.0:
-		UiArt.draw(self, "hud_fill", Rect2(r.position, Vector2(fw, r.size.y)), face)
 
 
 ## The build strip at `y`: weapon frames, a gap, tome frames, each a small

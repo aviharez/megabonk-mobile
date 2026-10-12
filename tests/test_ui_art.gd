@@ -83,3 +83,29 @@ func test_widgets_use_the_art(t) -> void:
 	for p in ["user://test_ui_art.json", "user://test_ui_art.json.bak", "user://test_ui_art.json.tmp"]:
 		if FileAccess.file_exists(p):
 			DirAccess.remove_absolute(p)
+
+
+## Phase 9: the game's screens draw only kit 3 / 3b parts. No script under
+## scripts/ names a kit 1 or kit 2 part in a UiArt call.
+func test_no_old_kit_parts_in_screens(t) -> void:
+	var old := ["button", "button_small", "window", "row", "ribbon", "tag", "tile", "tile_selected", "pip_on",
+		"pip_off", "toggle_on", "toggle_off", "coin", "padlock", "dot", "bar", "boss_bar", "name_plate", "banner",
+		"card", "card_gold", "action", "action_pressed", "new_badge", "pause", "heart", "clock", "skull", "die", "ffwd", "xmark"]
+	var re := RegEx.create_from_string("UiArt\\.\\w+\\([^\"\\n]*\"([a-z0-9_/]+)\"")
+	var bad := []
+	var dirs := ["res://scripts"]
+	while not dirs.is_empty():
+		var d: String = dirs.pop_back()
+		for sub in DirAccess.get_directories_at(d):
+			dirs.append(d + "/" + sub)
+		for f in DirAccess.get_files_at(d):
+			if not f.ends_with(".gd"):
+				continue
+			var src := FileAccess.get_file_as_string(d + "/" + f)
+			for m in re.search_all(src):
+				if m.get_string(1) in old:
+					bad.append("%s: %s" % [f, m.get_string(1)])
+	t.check(bad.is_empty(), "screens use no kit 1 / kit 2 parts: %s" % [bad])
+	# The pieces built from kit parts instead.
+	t.check(UiArt.has("hud_track") and UiArt.has("hud_fill") and UiArt.has("lv_frame"), "toggle parts load")
+	t.check(UiArt.has("lv_sticker") and UiArt.sprite_size(UiArt.PADLOCK) == Vector2i(13, 16), "sticker and padlock load")

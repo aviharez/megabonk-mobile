@@ -69,8 +69,8 @@ func _draw() -> void:
 		draw_texture_rect(picture, Rect2(at, s), false)
 	match state:
 		"locked":
-			var ls := Vector2(UiArt.sprite_size("padlock"))
-			UiArt.sprite(self, "padlock", Vector2(size.x - ls.x - 3, y + r.size.y - ls.y - 3))
+			var ls := Vector2(UiArt.sprite_size(UiArt.PADLOCK))
+			UiArt.sprite(self, UiArt.PADLOCK, Vector2(size.x - ls.x - 3, y + r.size.y - ls.y - 3))
 			if progress > 0.0:
 				var bw := r.size.x - 10
 				draw_rect(Rect2(5, y + r.size.y - 6, bw, 3), Palette.color(Palette.INK))

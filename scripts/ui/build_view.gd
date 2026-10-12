@@ -1,8 +1,9 @@
 class_name BuildView
 extends Control
 ## The run's build at a glance (pause and game over): a row of weapon slots
-## and a row of tome slots (icon + level number, empty slots dashed), then the
-## items as small icons with their stack counts. Fixed width, height from
+## and a row of tome slots (icon + level number, empty slots dark), then the
+## items as small icons with their stack counts. Slots are kit 3b `lv_frame`s
+## in their kind's (rarity's) colour. Fixed width, height from
 ## `needed_height()`. Tapping a filled slot selects it (gold frame) and emits
 ## `picked(kind, id)` so the screen can say what it is.
 
@@ -108,41 +109,31 @@ func _slots(cat: String, owned: Dictionary, n: int, y: float, color: int) -> voi
 				draw_texture(tex, at + Vector2(2, 2))
 			_badge(at + Vector2(SLOT, SLOT), "%d" % int(owned[ids[i]]))
 		else:
-			# Empty slot: dashed outline.
-			for k in range(0, SLOT, 3):
-				draw_rect(Rect2(at.x + k, at.y, 1, 1), Palette.color(Palette.SHADE))
-				draw_rect(Rect2(at.x + k, at.y + SLOT - 1, 1, 1), Palette.color(Palette.SHADE))
-				draw_rect(Rect2(at.x, at.y + k, 1, 1), Palette.color(Palette.SHADE))
-				draw_rect(Rect2(at.x + SLOT - 1, at.y + k, 1, 1), Palette.color(Palette.SHADE))
+			_frame(at, Palette.NIGHT)
 
 
-## Gold corners round the selected slot.
+## A gold frame behind the selected slot, 2 px wider each side.
 func _mark(key: String, at: Vector2) -> void:
 	if key != selected:
 		return
-	draw_rect(Rect2(at - Vector2(1, 1), Vector2(SLOT + 2, SLOT + 2)), Palette.color(Palette.GOLD))
+	UiArt.draw(self, "lv_frame", Rect2(at - Vector2(2, 2), Vector2(SLOT + 4, SLOT + 4)), Palette.GOLD)
 
 
 func _frame(at: Vector2, color: int) -> void:
-	draw_rect(Rect2(at, Vector2(SLOT, SLOT)), Palette.color(Palette.INK))
-	draw_rect(Rect2(at + Vector2.ONE, Vector2(SLOT - 2, SLOT - 2)), Palette.color(color))
-	draw_rect(Rect2(at + Vector2(2, 2), Vector2(SLOT - 4, SLOT - 4)), Palette.color(Palette.NIGHT))
+	UiArt.draw(self, "lv_frame", Rect2(at, Vector2(SLOT, SLOT)), color)
 
 
-## A small number plate on a slot's bottom-right corner.
+## A slot's count on its bottom-right corner (BAR_NUM, outlined like the HUD's).
 func _badge(corner: Vector2, text: String) -> void:
-	var tw := Fonts.BOLD.get_string_size(text, HORIZONTAL_ALIGNMENT_LEFT, -1, 8).x
-	var r := Rect2(corner.x - tw - 3, corner.y - 8, tw + 4, 9)
-	draw_rect(r, Palette.color(Palette.INK))
-	draw_string(Fonts.BOLD, Vector2(r.position.x + 2, r.position.y + 8), text, HORIZONTAL_ALIGNMENT_LEFT, -1, 8, Palette.color(Palette.BUTTER))
+	var tw := ceilf(Fonts.width(text, "BAR_NUM"))
+	Fonts.draw(self, text, Vector2(corner.x - tw - 1, corner.y - Fonts.height("BAR_NUM") + 1), "BAR_NUM", Palette.BUTTER)
 
 
 func _heading(text: String, y: float, right := "") -> void:
-	draw_string(Fonts.BOLD, Vector2(0, y + 9), text, HORIZONTAL_ALIGNMENT_LEFT, -1, 8, Palette.color(Palette.INK))
-	draw_string(Fonts.BOLD, Vector2(0, y + 8), text, HORIZONTAL_ALIGNMENT_LEFT, -1, 8, Palette.color(Palette.MIST))
-	var tw := Fonts.BOLD.get_string_size(text, HORIZONTAL_ALIGNMENT_LEFT, -1, 8).x
+	Fonts.draw(self, text, Vector2(0, y), "NAME", Palette.MIST, -1, HORIZONTAL_ALIGNMENT_LEFT, 8)
+	var tw := Fonts.width(text, "NAME", 8)
 	var rw := 0.0
 	if right != "":
-		rw = Fonts.SMALL.get_string_size(right, HORIZONTAL_ALIGNMENT_LEFT, -1, 8).x + 4
-		draw_string(Fonts.SMALL, Vector2(size.x - rw + 4, y + 8), right, HORIZONTAL_ALIGNMENT_LEFT, -1, 8, Palette.color(Palette.GRAY))
+		rw = Fonts.width(right, "BODY") + 4
+		Fonts.draw(self, right, Vector2(size.x - rw + 4, y + 1), "BODY", Palette.GRAY)
 	draw_rect(Rect2(tw + 4, y + 4, size.x - tw - 4 - rw, 1), Palette.color(Palette.SHADE))

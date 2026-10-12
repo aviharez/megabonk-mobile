@@ -48,15 +48,15 @@ var label_left := 0:
 	set(v):
 		label_left = v
 		queue_redraw()
-## A toggle switch (UiArt "toggle_on" / "toggle_off") on the right: -1 none,
+## A toggle switch (UiArt.toggle) on the right: -1 none,
 ## 0 off, 1 on. The label is then centered in the space to its left.
 var toggle := -1:
 	set(v):
 		toggle = v
 		queue_redraw()
 ## The UI kit frame: "button" (the kit 3b frame recoloured to `face`) or
-## another 9-slice part drawn as is ("card", "action"); `pressed_frame`
-## replaces it while pressed ("card_gold").
+## another 9-slice part, also in `face` ("lv_card"); `pressed_frame`
+## replaces it while pressed.
 var frame := "button":
 	set(v):
 		frame = v
@@ -65,7 +65,7 @@ var pressed_frame := "":
 	set(v):
 		pressed_frame = v
 		queue_redraw()
-## Text on a small purple plate (UiArt "new_badge") at the top-right, "" none.
+## Text on a small purple sticker (UiArt "lv_sticker") at the top-right, "" none.
 var badge := "":
 	set(v):
 		badge = v
@@ -143,8 +143,7 @@ func _draw() -> void:
 		var at := Vector2i(5, y + (h - ContentIcon.SIZE) / 2)
 		if art_above:
 			at = Vector2i((w - ContentIcon.SIZE) / 2, y + 4)
-		draw_rect(Rect2i(at, Vector2i(ContentIcon.SIZE, ContentIcon.SIZE)), Palette.color(Palette.INK))
-		draw_rect(Rect2i(at + Vector2i.ONE, Vector2i(Icons.SIZE, Icons.SIZE)), Palette.color(Palette.NIGHT))
+		UiArt.draw(self, "lv_frame", Rect2(at, Vector2(ContentIcon.SIZE, ContentIcon.SIZE)), Palette.NIGHT)
 		draw_texture(art, Vector2(at + Vector2i.ONE))
 		if art_above:
 			text_top = at.y + ContentIcon.SIZE
@@ -153,16 +152,12 @@ func _draw() -> void:
 			left = at.x + ContentIcon.SIZE + 1
 
 	if badge != "":
-		var bw := ceilf(Fonts.width(badge, "TAG")) + 8.0
-		var br := Rect2(w - bw + 3, y - 5, bw, 12)
-		UiArt.draw(self, "lv_sticker", br)
-		Fonts.draw(self, badge, Vector2(br.position.x, br.position.y + 1), "TAG", -1, br.size.x, HORIZONTAL_ALIGNMENT_CENTER)
+		UiArt.sticker(self, badge, Vector2(w - ceilf(Fonts.width(badge, "TAG")) - 5, y - 5))
 	var right := plain_right
 	if toggle >= 0:
-		var sw := "toggle_on" if toggle == 1 else "toggle_off"
-		var ts := UiArt.sprite_size(sw)
-		UiArt.sprite(self, sw, Vector2(w - 5 - ts.x, y + floorf((h - 3 - ts.y) / 2.0) + 1))
-		right = ts.x + 6
+		var ts := UiArt.TOGGLE_SIZE
+		UiArt.toggle(self, Vector2(w - 5 - ts.x, y + floorf((h - ts.y) / 2.0)), toggle == 1)
+		right = int(ts.x) + 6
 	if _own_label:
 		return
 	# One centred line per "\n"-separated part of the label: the first in

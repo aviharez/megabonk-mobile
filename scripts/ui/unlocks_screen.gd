@@ -226,5 +226,5 @@ func _summary() -> void:
 		if ready > 0:
 			box.draw_string(f, Vector2(W - rw + 4, 11), rt, HORIZONTAL_ALIGNMENT_LEFT, -1, 8, Palette.color(Palette.INK))
 			box.draw_string(f, Vector2(W - rw + 4, 10), rt, HORIZONTAL_ALIGNMENT_LEFT, -1, 8, Palette.color(Palette.LIME))
-		UiArt.bar(box, "bar", Rect2(tw + 4, 1, W - tw - 8 - rw, 12), float(owned) / maxf(1.0, all.size()), Palette.GOLD))
+		UiArt.bar(box, Rect2(tw + 4, 2, W - tw - 8 - rw, 10), float(owned) / maxf(1.0, all.size()), Palette.GOLD))
 	list.add_child(box)

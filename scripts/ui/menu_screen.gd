@@ -280,7 +280,7 @@ func button(parent: Control, text: String, rect: Rect2, face: int, on_press: Cal
 func price_button(parent: Control, price: int, rect: Rect2, on_press: Callable, prefix := "") -> PixelButton:
 	var can := int(save.data.coins) >= price
 	var b := button(parent, prefix + str(price), rect, Palette.LIME if can else Palette.GRAY, on_press, can)
-	b.art = Glyphs.texture("coin")
+	b.art = UiArt.texture("hud_coin")
 	b.art_plain = true
 	return b
 

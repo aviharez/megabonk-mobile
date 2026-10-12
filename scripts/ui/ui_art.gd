@@ -1,13 +1,15 @@
 class_name UiArt
 extends RefCounted
 ## The SpriteCook UI kit parts in res://assets/ui/ (cut by tools/art/ui_kit.py, listed in
-## ui_kit.json): 9-slice templates (button, window, ribbon, tag, tiles) and small sprites
-## (pips, toggles, coin, padlock, dot). Parts are imported as Images so they can be recolored:
+## ui_kit.json): 9-slice templates (plates, windows, frames, tracks, stickers) and small
+## sprites (icons, pips). Parts are imported as Images so they can be recolored:
 ## a template's "ramp" [light, face, dark] is swapped for a face colour's ramp, its "fill" for a
 ## fill colour. Templates have a 1px middle column and row, so stretching never scales a pixel.
 ## Textures and style boxes are built once per colour and cached.
 
 const DIR := "res://assets/ui/"
+## The kit 3 padlock (re-cut at 2x pixel for the home screen) on locked tiles and cards.
+const PADLOCK := "home/icon_padlock_big"
 ## Colour ramps, dark to light: a face colour's [light, face, dark] are its neighbours here
 ## (the top of a ramp lightens to PAPER, the bottom darkens to INK).
 const RAMPS := [
@@ -118,42 +120,44 @@ static func sprite_size(part: String) -> Vector2i:
 	return img.get_size() if img != null else Vector2i.ZERO
 
 
-## A bar: the 9-slice frame `part`, filled `frac` of its inside (`inset` px
-## from each edge) in `fill_face`'s ramp: light top row, face, dark bottom row.
-static func bar(ci: CanvasItem, part: String, rect: Rect2, frac: float, fill_face: int, inset := 4) -> void:
-	draw(ci, part, rect)
-	var inner := rect.grow(-inset)
-	var fw := floorf(inner.size.x * clampf(frac, 0.0, 1.0))
-	if fw <= 0.0 or inner.size.y <= 0.0:
-		return
-	var r := ramp(fill_face)
-	ci.draw_rect(Rect2(inner.position, Vector2(fw, inner.size.y)), r[1])
-	ci.draw_rect(Rect2(inner.position, Vector2(fw, 1)), r[0])
-	if inner.size.y > 2.0:
-		ci.draw_rect(Rect2(inner.position + Vector2(0, inner.size.y - 1), Vector2(fw, 1)), r[2])
+## A kit bar: the dark `hud_track`, filled `frac` of its inside with
+## `hud_fill` in `fill_face`'s ramp (the HUD's XP / HP bars).
+static func bar(ci: CanvasItem, rect: Rect2, frac: float, fill_face: int) -> void:
+	draw(ci, "hud_track", rect)
+	fill(ci, Rect2(rect.position + Vector2(2, 2), rect.size - Vector2(4, 4)), frac, fill_face)
 
 
-## Puts a kit plate (the red title ribbon by default) behind a (2x) label, as
-## wide as its text plus `pad` (it follows text changes), `height` px tall,
-## centered on the text.
-static func ribbon_behind(label: Label, part := "ribbon", height := 20, pad := 34) -> Control:
-	var r := Control.new()
-	r.mouse_filter = Control.MOUSE_FILTER_IGNORE
-	r.draw.connect(func() -> void:
-		if label.text == "" or not label.visible:
-			return
-		var font := label.get_theme_font("font")
-		var fs := label.get_theme_font_size("font_size")
-		var tw := font.get_string_size(label.text, HORIZONTAL_ALIGNMENT_LEFT, -1, fs).x * label.scale.x
-		var cx := label.position.x + label.size.x * label.scale.x / 2.0
-		var rw := tw + pad
-		var top := label.position.y + floorf((font.get_height(fs) * label.scale.y - height) / 2.0)
-		draw(r, part, Rect2(floorf(cx - rw / 2.0), top, rw, height)))
-	label.add_sibling(r)
-	label.get_parent().move_child(r, label.get_index())
-	# The label redraws when its text, size or visibility changes: follow it.
-	label.draw.connect(r.queue_redraw)
-	label.visibility_changed.connect(r.queue_redraw)
+## `hud_fill` in `face`'s ramp over `frac` of `r` (nothing under 3 px).
+static func fill(ci: CanvasItem, r: Rect2, frac: float, face: int) -> void:
+	var fw := floorf(r.size.x * clampf(frac, 0.0, 1.0))
+	if fw >= 3.0 and r.size.y >= 3.0:
+		draw(ci, "hud_fill", Rect2(r.position, Vector2(fw, r.size.y)), face)
+
+
+const TOGGLE_SIZE := Vector2(21, 10)
+
+
+## A toggle switch from kit parts, TOGGLE_SIZE at `at`: the dark `hud_track`,
+## filled LIME when on, with a light `lv_frame` knob at the right (on) or a
+## gray one at the left (off).
+static func toggle(ci: CanvasItem, at: Vector2, on: bool) -> void:
+	var r := Rect2(at.floor(), TOGGLE_SIZE)
+	draw(ci, "hud_track", r)
+	if on:
+		fill(ci, Rect2(r.position + Vector2(2, 2), r.size - Vector2(4, 4)), 1.0, Palette.LIME)
+	var k := Vector2(8, 10)
+	var kx := r.end.x - k.x if on else r.position.x
+	draw(ci, "lv_frame", Rect2(Vector2(kx, r.position.y), k), Palette.PAPER if on else Palette.GRAY)
+
+
+## A small text sticker (`lv_sticker` in `face`'s ramp, -1 purple) with
+## `text` in TAG, `pad` px each side; returns its rect. `at` is its top-left.
+static func sticker(ci: CanvasItem, text: String, at: Vector2, face := -1, h := 12.0, pad := 4.0) -> Rect2:
+	var r := Rect2(at.floor(), Vector2(ceilf(Fonts.width(text, "TAG")) + pad * 2.0, h))
+	draw(ci, "lv_sticker", r, face)
+	var asc := Fonts.TITLE_FONT.get_ascent(Fonts.STYLES.TAG[1])
+	Fonts.draw(ci, text, Vector2(r.position.x, r.position.y + floorf((h - 1.0 - asc) / 2.0)), "TAG", -1,
+			r.size.x, HORIZONTAL_ALIGNMENT_CENTER)
 	return r
 
 
