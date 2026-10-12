@@ -607,8 +607,8 @@ Done in the planning session (2026-10-12):
 
 - Owner **approved** the plan and approved generating backdrop art, but `docs/phase9/10_v4_vs_concept.png` is "still bad, not as good as the concept". The mockups must reach the concept's quality before any game code changes. Everything on screen should be SpriteCook art, not code-drawn (the plinth, street, lamp glow, sign and logo decorations are code or missing today)
 - Why v4 falls short, side by side: (1) the concept's home is a dense, lit night scene (glowing street lamp, lit windows, plinth with lamps, manhole, street sign, foliage, round colourful critters). Ours is flat dark fill with darkened map props, a code-drawn plinth and a big empty band above Play. (2) The logo has a thick dark plum outline, an inner highlight and leaves or a critter on top; ours is a plain Titan label. (3) Hero, tile icons and critters in the concept are drawn as one piece of art at one pixel size; ours mix 1x / 2x / 3x. (4) The level-up world behind the dim reads as a dark tint in the concept and as noisy dither in ours
-- [ ] Backdrop art (approved): home backdrop scene (night street, lit houses, lamp, sign without text, manhole, foliage, an empty stone plinth with a blank name plate, no hero / UI / text), logo decorations (leaves, a critter perched on a letter), menu critters in the concept's colours. Balance 83 credits (below the old 100 floor); estimate before each call, stop if a job costs much more than estimated
-- [ ] No more mockups (owner, 2026-10-13): build the revamp in the game itself on the kit + backdrop art, following the concepts, and check the real screens side by side with them
+- [x] Backdrop art (approved; 3 NB2.1 1K calls, 36 credits as estimated, balance 83 -> 47, 2026-10-13): home backdrop (an edit of the home concept `e941feb9` without UI / hero / text: night street, lit houses, lamp, blank sign, manhole, foliage, empty plinth with lamps and a blank plate), logo decorations (3 leaf sprigs + a radish critter), 4 round critters (blue, green, purple, red). Cut by the new `tools/art/home_art.py` into `assets/ui/home/` (a plain palette snap flattened the dark backdrop: it snaps with CIELAB lightness x1.45, sky INK -> NIGHT, then widens 20 px a side and adds 120 rows of sky / road so any phone shape shows only art; `backdrop.json` = plinth anchor). Nav icons re-cut from the kit 3 sheet at a 2x pixel, play triangle hand-pixelled. All four raw kit sheets re-downloaded, sha12 match the log; `check_assets.py` 186 OK
+- [ ] No more mockups (owner, 2026-10-13): build the revamp in the game itself on the kit + backdrop art, following the concepts, and check the real screens side by side with them. Order: home (done), level-up, HUD, the rest. `tools/shoot_screens.gd --size=540x1170 --notch=12` shoots the real game at phone size
 
 ### Type scale (UI px at the 180-wide base; screens are 3x-6x). Re-tuned to the kit 3 parts and the v3 renders (2026-10-12)
 
@@ -634,10 +634,10 @@ Rules: Titan never under 6 (stickers only), Inter never under 7; text on world a
 
 ### Shared parts
 
-- [ ] Import settings for both TTFs in their `.import` files (antialiasing none, hinting none, subpixel auto, keep rounding remainders, no mipmaps, no MSDF), not set in code; test reads them
-- [ ] `Fonts` rewritten: `TITLE_FONT` / `BODY_FONT` (Inter as a `FontVariation` at wght 900) and named `LabelSettings` styles from the table (`Fonts.style("NAME")`, cached). Old `BOLD` / `SMALL` / `fitting()` removed once nothing uses them
-- [ ] `Fonts.fit(label, width, min_size)`: shrinks a style step by step until the text fits, then wraps, never clips. Used by names, buttons, tags and the HUD
-- [ ] `Fonts.draw(ci, text, pos, style)`: one call that draws drop shadow, outline and fill for the `_draw()` code (hud.gd, run.gd pause/game over, level_card.gd, icon_tile.gd...), so custom-drawn text matches Labels
+- [x] Import settings for both TTFs in their `.import` files (antialiasing none, hinting none, subpixel auto, keep rounding remainders, no mipmaps, no MSDF), not set in code (checked by loading them: aa 0, hint 0, sub 1). [ ] test reads them
+- [x] `Fonts` rewritten: `TITLE_FONT` / `body()` (Inter as a `FontVariation` at wght 900) and named `LabelSettings` styles (`Fonts.style("NAME")`, cached; `STYLES` table). [ ] Old `BOLD` / `SMALL` / `fitting()` removed once nothing uses them (77 uses left)
+- [x] `Fonts.fit(label, width, min_size)`: shrinks a style step by step until the text fits, then wraps, never clips
+- [x] `Fonts.draw(ci, text, pos, style)`: drop shadow, outline and fill for `_draw()` code. [ ] Move hud.gd, run.gd, level_card.gd, icon_tile.gd... to it
 - [ ] `assets/ui/theme.tres`: default font BODY at 7; Label line spacing checked for Inter (taller ascent than the 5x7)
 - [ ] Glyph pre-warm at boot for both fonts at the sizes in use (avoids a hitch the first time a size is drawn on a slow phone); check the font atlas memory at 6x
 - [ ] Optional: subset Inter to Latin + the symbols we use (876 KB -> ~100 KB); OFL allows it, Inter has no reserved name
@@ -656,7 +656,7 @@ Rules: Titan never under 6 (stickers only), Inter never under 7; text on world a
 
 ### Per screen
 
-- [ ] Home: mockup 1 layout (coin plate in NUM, LOGO, "Survive the swarm" on the ribbon, next-unlock card in BODY/SMALL, Play! / Unlocks / Shop / Free +25 coins)
+- [x] Home (2026-10-13), after the concept, side by side in `docs/phase9/11_home_vs_concept.png` (540x1170, notch 12, 0 off-palette pixels; fits a 338 px window too): `HomeScene` (backdrop, hero 2x on the plinth with the name on its plate, 4 critters 2x hopping), `CoinPlate` on `plate_dark` with "1,246", `KitButton` gear, `LogoTitle` (per-letter Titan, NIGHT outline + SHADE rim, lit top / shaded foot shader, letters stretched 0.92 x 1.3 like the concept's condensed lettering, leaves + radish 1x), ribbon + "survive the swarm", `NextUnlockCard` (panel, mystery 2x or the ready reward, star + `seg_track`, progress), "play" + triangle, 4 nav tiles (heroes / unlocks with "!" / shop / free coins with Ad, greyed when no ad can pay). Three groups: top under the cutout, bottom on the edge, hero group halfway. New `KitButton` (any kit 9-slice part + 2x art + styled label + sticker). `TitleScene` no longer used by the game (only the old mockup tools)
 - [ ] Settings window, QUIT? popup
 - [ ] Heroes, Maps (goals panel), Unlocks (detail panel + grid), Shop, Toggler: titles, detail panels, prices, "Collected 7/19"
 - [ ] HUD (mockup 1 right): Lv on the XP bar, HP number inside the bar (drops the line under it), BIG_NUM timer, NUM gold/kills, banners in TITLE (Swarm incoming!, Final Swarm!, Survive!), toasts and the pickup card in BODY with `Fonts.fit`, boss name on the boss bar
@@ -668,6 +668,15 @@ Rules: Titan never under 6 (stickers only), Inter never under 7; text on world a
 - [ ] Data, one subagent per group, each returns a diff and a list of anything unclear: (1) characters + challenges + shop + rules rarity names, (2) weapons, (3) tomes, (4) items, (5) interactables + enemies + maps. Names in Title Case ("Grandma's Soup Recipes", "Band-Aid"), descriptions and challenges in sentence case with a full stop, keep HP / XP / KO / AoE as caps, simple English (brief). 230 shown strings: 86 `name`, 137 `desc`, 3 hero `role`, 4 rarity names. Ids, colour names, tome `symbol` grids and `_doc` notes untouched. Check each diff before accepting
 - [ ] Code strings: ~415 capital literals in scripts (most in run.gd 75, action_button 27, splash 22, main_menu 16, map_layout 16; many are ids, not shown text), plus 3 `to_upper()` calls (toggler, item_system, fake_ad_backend). Shown text to mixed case; brief's player-facing names stay (Beacon, Manual)
 - [ ] Shorter words where space is tight: stat short names in data ("Dmg", "CD", "Area") used by the CHANGE line, so adding content still needs no code
+
+### Found while building the home (2026-10-13)
+
+- The hero is 2x (48 x 52) to keep one sprite scale with the critters and nav icons; the concept draws Sir Loaf about 1.4x bigger. 3x would match the concept's size but break the one-scale rule: owner's call
+- The logo's leaves and radish are 1x: at 2x they are twice the concept's size and cover the top bar
+- The backdrop's moon lands beside the ribbon (the concept has it by the logo); it is part of the backdrop art
+- The street sign is blank (no text in art); the concept's says "SUBURBIA DR"
+- `Meta.progress_text` and `kind_name` still return caps ("DONE", "BEST", "HERO"): text pass
+- Settings window, quit popup and every other screen still use the old pixel fonts and kit 1 plates (next: level-up, HUD, then the rest)
 
 ### Fit and overlap fixes
 

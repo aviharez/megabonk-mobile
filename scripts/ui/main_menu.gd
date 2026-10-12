@@ -1,18 +1,25 @@
 extends Control
-## Main menu: the living title scene (TitleScene) behind a top bar (coins,
-## settings gear), the logo, a teaser for the next unlock, a big PLAY, and
-## UNLOCKS / SHOP side by side. Settings open as a modal window over a
-## dithered dim; toggles write straight to the save file. PLAY opens the hero
-## select, then the map select (where the Toggler is). UNLOCKS shows a red dot
-## while something new is ready to buy.
+## Main menu, laid out after the SpriteCook home concept
+## (docs/phase9/7_kit3_home_concept.png): the night street (HomeScene) with
+## the picked hero on a plinth, a top bar (coins plate, settings gear), the
+## "Mobbed!" logo over the "survive the swarm" ribbon, the next-unlock card, a
+## big "play" and four nav tiles (heroes, unlocks, shop, free coins). Every
+## plate is kit 3 art (assets/ui/), sprites are 2x.
 ##
-## The top bar keeps clear of the camera cutout (SafeArea); the bottom block
-## keeps clear of the gesture bar and of the ad banner.
+## Boxes sit at the concept's spots (concept px / 6.4 = UI px on the 180 x 320
+## base) in three groups: the top bar and logo under the camera cutout, the
+## play button and tiles on the bottom edge, and the hero group (plinth, card,
+## two critters) halfway between them, so a taller phone shows more street.
 ##
-## Ads (scripts/autoload/ads.gd): the daily reward button shows while a
-## rewarded ad can pay for it (once per day). The bottom banner shows on the
-## menu, shop and unlocks screens only (data/rules/ads.json "banner"), and
-## the whole menu shrinks by its height so nothing sits under it.
+## Settings open as a modal window over a dithered dim; toggles write straight
+## to the save file. PLAY opens the hero select, then the map select (where
+## the Toggler is); the heroes tile opens the hero select too. Unlocks shows
+## the kit's red "!" while something new is ready to buy.
+##
+## Ads (scripts/autoload/ads.gd): the free coins tile pays out once per day
+## through a rewarded ad (greyed out when no ad can pay for it). The bottom
+## banner shows on the menu, shop and unlocks screens only (data/rules/ads.json
+## "banner"), and the whole menu shrinks by its height so nothing sits under it.
 
 const RUN_SCENE := "res://scenes/run.tscn"
 const SETTINGS := [
@@ -23,26 +30,32 @@ const SETTINGS := [
 	["screen_shake", "SCREEN SHAKE"],
 	["reduce_effects", "REDUCE FX"],
 ]
-const GAME_TITLE := "MOBBED!"
-const GAME_SUBTITLE := "SURVIVE THE SWARM"
-const TAGLINES := ["ONE TOWN. TOO MANY MUTANTS.", "BREAD VS. THE SWARM.", "THE TOWN NEEDS YOU. SORT OF.", "COLLECT. LEVEL UP. BONK."]
-const BOTTOM_H := 116
+const GAME_TITLE := "Mobbed!"
+const GAME_SUBTITLE := "survive the swarm"
+## The concept's base screen.
+const BASE := Vector2(180, 320)
+## Nav tiles: [node name, kit part, word, icon]
+const TILES := [
+	["Heroes", "nav_blue", "heroes", ""],
+	["Unlocks", "nav_green", "unlocks", "home/icon_padlock_big"],
+	["Shop", "nav_orange", "shop", "home/icon_sack"],
+	["Daily", "nav_purple", "free coins", "coin_big"],
+]
 
-var _scene: TitleScene
+var _scene: HomeScene
 var _frame: Control
 var _top: Control
 var _coins: CoinPlate
-var _logo_a: PixelTitle
-var _logo_b: PixelTitle
-var _tagline: Label
+var _logo: LogoTitle
+var _ribbon: Control
 var _buttons: Control
-var _play: PixelButton
-var _unlocks_btn: PixelButton
-var _shop_btn: PixelButton
-var _settings_btn: PixelButton
-var _teaser: PixelButton
-var _dot: Control
-var _daily: AdButton
+var _play: KitButton
+var _heroes_btn: KitButton
+var _unlocks_btn: KitButton
+var _shop_btn: KitButton
+var _daily: KitButton
+var _settings_btn: KitButton
+var _teaser: NextUnlockCard
 var _settings: Control
 var _settings_dim: DitherDim
 var _settings_win: PixelPanel
@@ -53,15 +66,16 @@ var _banner_screen := "?"
 var _t := 0.0
 ## 1 -> 0 while the menu opens (see _place()).
 var _enter := 1.0
-var _logo_y := 0.0
-var _buttons_y := 0.0
+var _top_y := 0.0
+var _bottom_y := 0.0
+var _hero_y := 0.0
 
 
 func _ready() -> void:
 	var audio := get_node_or_null("/root/Audio")
 	if audio != null:
 		audio.play_music("menu")
-	_scene = TitleScene.new()
+	_scene = HomeScene.new()
 	_scene.hero_id = Meta.picked_character(GameData.shared(), Save.data)
 	add_child(_scene)
 
@@ -73,10 +87,7 @@ func _ready() -> void:
 	_build_top()
 	_build_logo()
 	_build_buttons()
-	_version = Label.new()
-	_version.text = "V" + str(ProjectSettings.get_setting("application/config/version"))
-	_version.add_theme_color_override("font_color", Palette.color(Palette.SHADE))
-	_version.position = Vector2(3, 0)
+	_version = Fonts.label("v" + str(ProjectSettings.get_setting("application/config/version")), "BODY", Palette.SHADE)
 	_frame.add_child(_version)
 	_build_settings()
 
@@ -100,167 +111,121 @@ func _build_top() -> void:
 	_top = Control.new()
 	_top.name = "Top"
 	_top.mouse_filter = MOUSE_FILTER_IGNORE
-	_top.anchor_right = 1.0
-	_top.offset_bottom = 24
+	_top.size = Vector2(BASE.x, 24)
 	_frame.add_child(_top)
 	_coins = CoinPlate.new()
-	# Coins pinned to the left edge and the gear to the right, both on the
-	# same 16 px row 4 px in from the corners.
 	_coins.align = 0.0
-	_coins.position = Vector2(4, 4)
-	_coins.size = Vector2(60, CoinPlate.H)
+	_coins.position = Vector2(4, 3)
+	_coins.size = Vector2(80, CoinPlate.H)
 	_top.add_child(_coins)
-	_settings_btn = PixelButton.new()
+	_settings_btn = KitButton.new()
 	_settings_btn.name = "Settings"
-	_settings_btn.label = ""
-	_settings_btn.face = Palette.MIST
-	_settings_btn.art = Glyphs.texture("gear")
-	_settings_btn.art_plain = true
-	_settings_btn.anchor_left = 1.0
-	_settings_btn.anchor_right = 1.0
-	_settings_btn.offset_left = -26
-	_settings_btn.offset_right = -4
-	_settings_btn.offset_top = 4
-	_settings_btn.offset_bottom = 4 + CoinPlate.H
-	_settings_btn.custom_minimum_size = Vector2(22, CoinPlate.H)
+	_settings_btn.part = "icon_button"
+	_settings_btn.art = UiArt.texture("gear")
+	_settings_btn.art_scale = 1
+	_settings_btn.size = Vector2(22, 21)
 	_settings_btn.pressed.connect(_open_settings)
 	_top.add_child(_settings_btn)
 
 
 func _build_logo() -> void:
-	# "MOBBED!" big and jiggly, letters overlapping their outlines; the
-	# subtitle on the red ribbon under it.
-	_logo_a = PixelTitle.new(GAME_TITLE, 4, Palette.BUTTER)
-	_logo_a.top_color = Palette.WHITE
-	_logo_a.band_rows = 3
-	_logo_a.tracking = -1
-	_logo_a.wave = 2
-	_logo_a.wave_speed = 4.0
-	_logo_a.hop = true
-	_logo_a.shadow = 4
-	_frame.add_child(_logo_a)
-	_logo_b = PixelTitle.new(GAME_SUBTITLE, 1, Palette.PAPER)
-	_logo_b.shadow = 1
-	var ribbon := Control.new()
-	ribbon.mouse_filter = MOUSE_FILTER_IGNORE
-	ribbon.set_anchors_and_offsets_preset(PRESET_FULL_RECT)
-	ribbon.draw.connect(func() -> void:
-		var rw := _logo_b.text_width() + 34
-		UiArt.draw(ribbon, "ribbon", Rect2(floorf((_logo_b.size.x - rw) / 2.0), floorf((_logo_b.size.y - 18) / 2.0), rw, 18)))
-	_logo_b.add_child(ribbon)
-	ribbon.show_behind_parent = true
-	_frame.add_child(_logo_b)
-	_tagline = Label.new()
-	_tagline.text = TAGLINES[randi() % TAGLINES.size()]
-	_tagline.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
-	_tagline.add_theme_color_override("font_color", Palette.color(Palette.SKY))
-	_tagline.add_theme_color_override("font_shadow_color", Palette.color(Palette.INK))
-	_tagline.add_theme_constant_override("shadow_offset_x", 0)
-	_tagline.add_theme_constant_override("shadow_offset_y", 1)
-	_frame.add_child(_tagline)
-	# The subtitle on the ribbon says it already; the tagline only crowded
-	# the town strip.
-	_tagline.hide()
+	_logo = LogoTitle.new(GAME_TITLE)
+	_logo.name = "Logo"
+	_logo.size = Vector2(BASE.x, 46)
+	_frame.add_child(_logo)
+	# The subtitle on the kit's red ribbon (concept: 114 x 20 under the logo).
+	_ribbon = Control.new()
+	_ribbon.name = "Ribbon"
+	_ribbon.mouse_filter = MOUSE_FILTER_IGNORE
+	_ribbon.size = Vector2(114, 20)
+	_ribbon.draw.connect(func() -> void:
+		UiArt.draw(_ribbon, "ribbon_red", Rect2(Vector2.ZERO, _ribbon.size))
+		Fonts.draw(_ribbon, GAME_SUBTITLE, Vector2(0, 2), "RIBBON", -1, _ribbon.size.x, HORIZONTAL_ALIGNMENT_CENTER))
+	_frame.add_child(_ribbon)
 
 
 func _build_buttons() -> void:
 	_buttons = Control.new()
 	_buttons.name = "Buttons"
 	_buttons.mouse_filter = MOUSE_FILTER_IGNORE
+	_buttons.size = Vector2(BASE.x, 110)
 	_frame.add_child(_buttons)
-	_teaser = PixelButton.new()
+	_teaser = NextUnlockCard.new()
 	_teaser.name = "Teaser"
-	_teaser.frame = "card"
-	_teaser.pressed_frame = "card_gold"
-	_teaser.ink = Palette.PAPER
-	_teaser.small_rest = true
-	_teaser.position = Vector2(14, 0)
-	_teaser.custom_minimum_size = Vector2(152, 32)
-	_teaser.size = _teaser.custom_minimum_size
+	_teaser.size = Vector2(54, 64)
 	_teaser.pressed.connect(_open_screen.bind(UnlocksScreen))
+	# The card belongs to the hero group; it sits in Frame/Buttons so input
+	# and tests find every home button in one place.
 	_buttons.add_child(_teaser)
-	_play = PixelButton.new()
+	_play = KitButton.new()
 	_play.name = "Play"
-	_play.label = "PLAY!"
-	_play.face = Palette.GOLD
-	_play.position = Vector2(20, 36)
-	_play.custom_minimum_size = Vector2(140, 30)
-	_play.size = _play.custom_minimum_size
+	_play.part = "play_button"
+	_play.label = "play"
+	_play.style_name = "BIG_BUTTON"
+	_play.art = UiArt.texture("home/play_tri")
+	_play.art_scale = 1
+	_play.art_centre = Vector2(19, 20)
+	_play.text_box = Rect2(22, 0, 80, 40)
+	_play.size = Vector2(106, 42)
 	_play.pressed.connect(_on_play)
 	_buttons.add_child(_play)
-	_unlocks_btn = PixelButton.new()
-	_unlocks_btn.name = "Unlocks"
-	_unlocks_btn.label = "UNLOCKS"
-	_unlocks_btn.face = Palette.LIME
-	_unlocks_btn.position = Vector2(20, 70)
-	_unlocks_btn.custom_minimum_size = Vector2(68, 22)
-	_unlocks_btn.size = _unlocks_btn.custom_minimum_size
+	var nav: Array[KitButton] = []
+	for i in TILES.size():
+		var d: Array = TILES[i]
+		var b := KitButton.new()
+		b.name = d[0]
+		b.part = d[1]
+		b.label = d[2]
+		b.style_name = "NAV"
+		b.text_box = Rect2(2, 38, 36, 9)
+		b.art_centre = Vector2(20, 19)
+		if d[3] != "":
+			b.art = UiArt.texture(d[3])
+		b.size = Vector2(40, 50)
+		_buttons.add_child(b)
+		nav.append(b)
+	_heroes_btn = nav[0]
+	# The concept's heroes tile shows a hero who isn't the one on the plinth.
+	_heroes_btn.art = Icons.texture(GameData.shared(), "characters", "turbo_pigeon")
+	_unlocks_btn = nav[1]
+	_shop_btn = nav[2]
+	_daily = nav[3]
+	_daily.sticker = "ad"
+	_heroes_btn.pressed.connect(_open_screen.bind(HeroScreen))
 	_unlocks_btn.pressed.connect(_open_screen.bind(UnlocksScreen))
-	_buttons.add_child(_unlocks_btn)
-	_shop_btn = PixelButton.new()
-	_shop_btn.name = "Shop"
-	_shop_btn.label = "SHOP"
-	_shop_btn.face = Palette.SALMON
-	_shop_btn.position = Vector2(92, 70)
-	_shop_btn.custom_minimum_size = Vector2(68, 22)
-	_shop_btn.size = _shop_btn.custom_minimum_size
 	_shop_btn.pressed.connect(_open_screen.bind(ShopScreen))
-	_buttons.add_child(_shop_btn)
-	# Notification dot: the UI kit's red dot on the button's top-right corner.
-	var dot := TextureRect.new()
-	dot.texture = UiArt.texture("dot")
-	dot.stretch_mode = TextureRect.STRETCH_KEEP
-	dot.position = Vector2(_unlocks_btn.custom_minimum_size.x - 7, -3)
-	dot.mouse_filter = Control.MOUSE_FILTER_IGNORE
-	_dot = dot
-	_unlocks_btn.add_child(_dot)
-	_daily = AdButton.new()
-	_daily.name = "Daily"
-	_daily.face = Palette.BUTTER
-	_daily.position = Vector2(30, 96)
-	_daily.custom_minimum_size = Vector2(120, 18)
-	_daily.size = _daily.custom_minimum_size
 	_daily.pressed.connect(_on_daily)
-	_buttons.add_child(_daily)
 
 
-## Places the blocks for this screen height: top bar under the cutout, logo
-## below it, the buttons at the bottom, the town strip in between.
+## Places the three groups for this screen: the top bar and logo under the
+## cutout, play and the tiles on the bottom edge, the hero group halfway.
 func _layout() -> void:
 	var w := size.x
 	var h := size.y
 	var top := float(SafeArea.top(get_viewport()))
 	var bottom := float(SafeArea.bottom(get_viewport()))
-	_top.offset_top = top
-	_top.offset_bottom = top + 24
-	var cx := floorf((w - 180.0) / 2.0)
-	var logo_y := top + 28.0
-	_logo_y = logo_y
-	_logo_a.size = Vector2(w, 46)
-	_logo_b.size = Vector2(w, 20)
-	_tagline.position = Vector2(0, logo_y + 70)
-	_tagline.size = Vector2(w, 10)
-	var daily_h := 22.0 if _daily.visible else 0.0
-	var by := h - bottom - (BOTTOM_H - 22.0 + daily_h) - 4.0
-	_buttons_y = by
-	_buttons.position = Vector2(cx, by)
-	_buttons.size = Vector2(180, BOTTOM_H)
+	var cx := floorf((w - BASE.x) / 2.0)
+	_top_y = top
+	_bottom_y = h - bottom - BASE.y
+	_hero_y = floorf(top + (_bottom_y - top) / 2.0)
+	_top.position = Vector2(cx, top)
+	_settings_btn.position = Vector2(BASE.x - 26, 3)
+	_logo.size = Vector2(BASE.x, 46)
+	_ribbon.position = Vector2(cx + 33, 0)
+	_buttons.position = Vector2(cx, 0)
+	_teaser.position.x = 112
+	_play.position.x = 37
+	for i in TILES.size():
+		(_buttons.get_node(TILES[i][0]) as Control).position.x = 5 + i * 43
+	# Hero group: the plinth top at concept (77, 171), critters at the edges.
+	_scene.plinth_at = Vector2(cx + 77, _hero_y + 171)
+	_version.position = Vector2(cx + 3, h - bottom - 10.0)
+	_version.visible = false
 	_place()
-	# The town strip sits between the tagline and the buttons.
-	var gap_top := logo_y + 70.0
-	_scene.horizon = floorf(maxf(gap_top, gap_top + (by - gap_top - TitleScene.STRIP_H * TitleScene.K) * 0.5))
-	_version.position = Vector2(3, h - bottom - 11.0)
-	_version.visible = by > h - bottom - 120.0
 
 
 func _process(delta: float) -> void:
 	_t += delta
-	# PLAY! hops every so often to invite a tap.
-	var hop := 0.0
-	var ph := fmod(_t, 2.4)
-	if ph < 0.3:
-		hop = -2.0 if ph < 0.15 else -1.0
-	_play.position.y = 36.0 + hop
 	_place()
 	# The banner follows whichever screen is on top (screens open and close
 	# from several places, so check here rather than at each one).
@@ -272,9 +237,23 @@ func _process(delta: float) -> void:
 
 
 func _place() -> void:
-	_logo_a.position.y = floorf(_logo_y - 80.0 * _enter)
-	_logo_b.position.y = floorf(_logo_y + 46.0 - 100.0 * _enter)
-	_buttons.position.y = floorf(_buttons_y + 140.0 * _enter)
+	var cx := floorf((size.x - BASE.x) / 2.0)
+	var drop := floorf(80.0 * _enter)
+	var rise := floorf(140.0 * _enter)
+	_logo.position = Vector2(cx, _top_y + 31 - drop)
+	_ribbon.position.y = _top_y + 70 - drop
+	# play hops every so often to invite a tap
+	var hop := 0.0
+	var ph := fmod(_t, 2.4)
+	if ph < 0.3:
+		hop = -2.0 if ph < 0.15 else -1.0
+	_play.position.y = _bottom_y + 216 + hop + rise
+	for i in TILES.size():
+		(_buttons.get_node(TILES[i][0]) as Control).position.y = _bottom_y + 268 + rise
+	_teaser.position.y = _hero_y + 110 + rise
+	_scene.critters = [
+		Vector2(cx + 12, _hero_y + 180), Vector2(cx + 164, _hero_y + 196),
+		Vector2(cx + 14, _bottom_y + 238), Vector2(cx + 166, _bottom_y + 242)]
 
 
 func _exit_tree() -> void:
@@ -307,12 +286,10 @@ func _apply_inset(inset: int) -> void:
 
 
 func _refresh_daily() -> void:
-	var coins := int(GameData.shared().get_entry("rules", "ads").get("daily", {}).get("coins", 0))
-	_daily.label = "FREE +%d COINS" % coins
-	var was := _daily.visible
-	_daily.visible = _ads != null and _ads.can_offer("daily")
-	if was != _daily.visible and is_node_ready():
-		_layout()
+	var ok: bool = _ads != null and _ads.can_offer("daily")
+	_daily.dim = not ok
+	_daily.disabled = not ok
+	_daily.sticker = "ad" if ok else ""
 
 
 func _on_daily() -> void:
@@ -397,44 +374,42 @@ func _start_run(character: String, map: String) -> void:
 func _refresh_wallet() -> void:
 	var db := GameData.shared()
 	_coins.value = int(Save.data.coins)
-	if _dot != null:
-		_dot.visible = Meta.has_news(db, Save.data)
+	if _unlocks_btn != null:
+		_unlocks_btn.sticker = "alert" if Meta.has_news(db, Save.data) else ""
+	var hero := Meta.picked_character(db, Save.data)
 	if _scene != null:
-		_scene.set_hero(Meta.picked_character(db, Save.data))
+		_scene.set_hero(hero)
 	_refresh_teaser()
 
 
-## The teaser: something ready to buy, else the closest unlock and its bar.
+## The card: something ready to buy (its icon shows), else the closest
+## unlock (a mystery shape) and its progress; hidden once everything is owned.
 func _refresh_teaser() -> void:
 	if _teaser == null:
 		return
 	var db := GameData.shared()
 	var ready := Meta.ready_to_buy(db, Save.data)
-	for c in _teaser.get_children():
-		c.queue_free()
+	_teaser.visible = true
 	if not ready.is_empty():
-		_teaser.label = "UNLOCK READY!\n%s FOR %d COINS" % [Meta.content(db, ready[0]).name, int(Meta.challenge_for(db, ready[0]).price)]
-		_teaser.ink = Palette.LIME
+		var kind := Meta.category_of(db, ready[0])
+		_teaser.label = "unlock ready!"
+		_teaser.text_color = Palette.LIME
+		_teaser.reward = Icons.texture(db, kind, ready[0])
+		_teaser.frac = 1.0
+		_teaser.progress = "%d coins" % int(Meta.challenge_for(db, ready[0]).price)
+		_teaser.progress_color = Palette.GOLD
 		return
-	_teaser.ink = Palette.PAPER
 	var next := Meta.closest(db, Save.data, 1)
 	if next.is_empty():
-		_teaser.label = "EVERYTHING UNLOCKED!\nYOU ARE THE TOWN HERO"
+		_teaser.visible = false
 		return
 	var n: Dictionary = next[0]
-	var p: Dictionary = n.progress
-	_teaser.label = "NEXT: ??? %s\n%s  %s" % [Meta.kind_name(db, n.challenge.reward), n.challenge.desc, Meta.progress_text(n.challenge, p)]
-	var bar := Control.new()
-	bar.mouse_filter = MOUSE_FILTER_IGNORE
-	bar.position = Vector2(8, _teaser.size.y - 9)
-	bar.size = Vector2(_teaser.size.x - 16, 3)
-	var frac := clampf(float(p.frac), 0.0, 1.0)
-	bar.draw.connect(func() -> void:
-		bar.draw_rect(Rect2(0, 0, bar.size.x, 3), Palette.color(Palette.INK))
-		var fw := floorf((bar.size.x - 2) * frac)
-		if fw > 0:
-			bar.draw_rect(Rect2(1, 1, fw, 1), Palette.color(Palette.GOLD)))
-	_teaser.add_child(bar)
+	_teaser.label = "next unlock"
+	_teaser.text_color = -1
+	_teaser.reward = null
+	_teaser.frac = float(n.progress.frac)
+	_teaser.progress = Meta.progress_text(n.challenge, n.progress)
+	_teaser.progress_color = Palette.PAPER
 
 
 # --- Settings ----------------------------------------------------------------

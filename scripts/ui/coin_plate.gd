@@ -1,11 +1,11 @@
 class_name CoinPlate
 extends Control
-## The coin count on a dark plate: the kit's coin, then the number in GOLD.
+## The coin count on the kit 3 dark plate (`plate_dark`): the big kit coin,
+## then the number in the NUM style with a thousands comma ("1,246").
 ## `count_to()` rolls the number up (coins earned at the end of a run) with a
 ## tick sound every few steps. Sizes itself to its text.
 
-const FONT := preload("res://assets/fonts/pixel.fnt")
-const H := 16
+const H := 19
 
 var value := 0:
 	set(v):
@@ -45,23 +45,27 @@ func _set_shown(v: int) -> void:
 	_fit()
 
 
+## "1246" -> "1,246".
+static func grouped(n: int) -> String:
+	var digits := str(absi(n))
+	var out := ""
+	while digits.length() > 3:
+		out = "," + digits.right(3) + out
+		digits = digits.left(digits.length() - 3)
+	return ("-" if n < 0 else "") + digits + out
+
+
 func _fit() -> void:
-	var tw := int(FONT.get_string_size(str(maxi(_shown, value)), HORIZONTAL_ALIGNMENT_LEFT, -1, 8).x)
-	custom_minimum_size = Vector2(UiArt.sprite_size("coin").x + tw + 11, H)
+	var tw := ceilf(Fonts.width(grouped(maxi(_shown, value)), "NUM"))
+	custom_minimum_size = Vector2(UiArt.sprite_size("coin_big").x + tw + 13, H)
 	queue_redraw()
 
 
 func _draw() -> void:
 	var w := floorf(size.x)
-	var r := Rect2(floorf((w - custom_minimum_size.x) * align), 0, custom_minimum_size.x, H - 1)
-	# Plate: INK outline with clipped corners, NIGHT inside, 1px shadow.
-	var ink := Palette.color(Palette.INK)
-	draw_rect(Rect2(r.position.x + 1, r.position.y + 1, r.size.x - 2, r.size.y), ink)
-	draw_rect(Rect2(r.position.x + 1, r.position.y, r.size.x - 2, r.size.y), ink)
-	draw_rect(Rect2(r.position.x, r.position.y + 1, r.size.x, r.size.y - 2), ink)
-	draw_rect(r.grow(-1), Palette.color(Palette.DEEP_BLUE))
-	draw_rect(Rect2(r.position.x + 2, r.position.y + 1, r.size.x - 4, 1), Palette.color(Palette.OCEAN))
-	var cs := Vector2(UiArt.sprite_size("coin"))
-	UiArt.sprite(self, "coin", Vector2(r.position.x + 1, r.position.y + floorf((r.size.y - cs.y) / 2.0)))
-	draw_string(FONT, Vector2(r.position.x + cs.x + 5, r.position.y + 12), str(_shown), HORIZONTAL_ALIGNMENT_LEFT, -1, 8, Palette.color(Palette.INK))
-	draw_string(FONT, Vector2(r.position.x + cs.x + 5, r.position.y + 11), str(_shown), HORIZONTAL_ALIGNMENT_LEFT, -1, 8, Palette.color(Palette.GOLD))
+	var r := Rect2(floorf((w - custom_minimum_size.x) * align), 0, custom_minimum_size.x, H)
+	UiArt.draw(self, "plate_dark", r)
+	var cs := Vector2(UiArt.sprite_size("coin_big"))
+	UiArt.sprite(self, "coin_big", Vector2(r.position.x + 4, r.position.y + floorf((r.size.y - cs.y) / 2.0) - 1))
+	var asc := Fonts.TITLE_FONT.get_ascent(Fonts.STYLES.NUM[1])
+	Fonts.draw(self, grouped(_shown), Vector2(r.position.x + cs.x + 8, r.position.y + floorf((r.size.y - asc) / 2.0)), "NUM")

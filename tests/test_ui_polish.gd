@@ -117,9 +117,9 @@ func test_unlock_popup_and_menu(t) -> void:
 	var menu: Control = load("res://scenes/main_menu.tscn").instantiate()
 	t.root.add_child(menu)
 	await t.process_frame
-	for n in ["Frame/Buttons/Play", "Frame/Buttons/Unlocks", "Frame/Buttons/Shop", "Frame/Buttons/Daily", "Frame/Top/Settings"]:
+	for n in ["Frame/Buttons/Play", "Frame/Buttons/Heroes", "Frame/Buttons/Unlocks", "Frame/Buttons/Shop", "Frame/Buttons/Daily", "Frame/Top/Settings"]:
 		t.check(menu.has_node(n), "menu has %s" % n)
-	t.check(menu.find_children("*", "TitleScene", true, false).size() == 1, "the title scene plays behind the menu")
+	t.check(menu.find_children("*", "HomeScene", true, false).size() == 1, "the night street plays behind the menu")
 	t.check(menu.get_node("SettingsPanel/" + menu.get_node("SettingsPanel").get_child(1).name).find_child("vibration", true, false) != null, "settings has a vibration toggle")
 	t.check(menu.get_node("Frame/Buttons/Teaser").label != "", "the next-unlock teaser has text")
 	menu.queue_free()

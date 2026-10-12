@@ -39,8 +39,9 @@ func test_menu_shows_the_name_and_no_engine_credit(t) -> void:
 	var menu: Control = load("res://scenes/main_menu.tscn").instantiate()
 	t.root.add_child(menu)
 	await t.process_frame
-	var titles := menu.find_children("*", "PixelTitle", true, false).map(func(p: PixelTitle) -> String: return p.text)
-	t.check(titles.has("MOBBED!") and titles.has("SURVIVE THE SWARM"), "the logo says MOBBED! / SURVIVE THE SWARM (%s)" % [titles])
+	var logos := menu.find_children("*", "LogoTitle", true, false).map(func(p: LogoTitle) -> String: return p.text)
+	t.check(logos == ["Mobbed!"], "the logo says Mobbed! (%s)" % [logos])
+	t.check(menu.get("GAME_SUBTITLE") == "survive the swarm", "the ribbon says survive the swarm")
 	var texts := menu.find_children("*", "Label", true, false).map(func(l: Label) -> String: return l.text)
 	t.check(not texts.any(func(s: String) -> bool: return s.contains("GODOT")), "no MADE WITH GODOT label")
 	t.check(ProjectSettings.get_setting("application/config/name") == "Mobbed!", "the app is named Mobbed!")

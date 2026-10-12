@@ -3,12 +3,15 @@ extends SceneTree
 ## save (some coins, a few runs, one unlock ready) and the real window, so it
 ## needs a display (not --headless). Pass a phone-like resolution and a fake
 ## camera cutout (UI pixels) to check the safe area:
-##   godot --path . --resolution 540x1170 -s res://tools/shoot_screens.gd -- [--out=user://screens] [--notch=12] [--only=menu,run]
+##   godot --path . --resolution 540x1170 -s res://tools/shoot_screens.gd -- [--out=user://screens] [--notch=12] [--only=menu,run] [--size=540x1170]
+## --size forces the window to that size (borderless) when it is taller than the
+## screen (the compositor clamps --resolution to the screen height).
 
 const TEST_SAVE := "user://shoot_screens_save.json"
 
 var out := "user://screens"
 var only: PackedStringArray = []
+var force_size := Vector2i.ZERO
 
 
 func _initialize() -> void:
@@ -22,8 +25,25 @@ func _initialize() -> void:
 	if args.has("notch"):
 		SafeArea.debug_top = int(args.notch)
 		SafeArea.debug_bottom = int(args.get("chin", "4"))
+	if args.has("size"):
+		var wh := String(args.size).split("x")
+		force_size = Vector2i(int(wh[0]), int(wh[1]))
 	DirAccess.make_dir_recursive_absolute(out)
 	_run.call_deferred()
+
+
+## Borderless first, then the size, then the root viewport (in that order, or
+## the window or the viewport stays at the clamped size).
+func _force_size() -> void:
+	if force_size == Vector2i.ZERO:
+		return
+	DisplayServer.window_set_flag(DisplayServer.WINDOW_FLAG_BORDERLESS, true)
+	await create_timer(0.2).timeout
+	DisplayServer.window_set_min_size(force_size)
+	DisplayServer.window_set_size(force_size)
+	await create_timer(0.2).timeout
+	root.size = force_size
+	await create_timer(0.2).timeout
 
 
 func _want(name: String) -> bool:
@@ -31,6 +51,7 @@ func _want(name: String) -> bool:
 
 
 func _run() -> void:
+	await _force_size()
 	var save := root.get_node("/root/Save")
 	var real_path: String = save.path
 	save.path = TEST_SAVE
