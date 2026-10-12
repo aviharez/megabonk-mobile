@@ -674,8 +674,13 @@ Rules: Titan never under 6 (stickers only), Inter never under 7; text on world a
 - [x] Level-up panel (`LevelUpPanel`, `LevelCard` and `ActionButton` redrawn on kit 3b; the dim is a palette tint under the HUD): `docs/phase9/12_level_up_vs_concept.png`
 - [x] HUD (two concept rows, kit pause, kit build strip / item frames, name-only pickup card, BANNER text): `docs/phase9/13_hud_vs_concept.png`
 - [x] Font tests: `tests/font_rules.gd` (each string in its font, fits by measured width; level-up card rule: a two-line name leaves one body line)
-- [ ] NEXT: the rest of the screens (shared parts first: `PixelButton` on recoloured `lv_frame` + Titan labels, `PixelPanel` on `lv_window` / `plate_dark`, gold `lv_header` title instead of `PixelTitle` + ribbon, theme font Inter 7), then the code-string text pass (~415 caps literals: subagents per file group, after the restyle so files don't clash), settings / quit / heroes / maps / unlocks / shop / toggler / pause / revive / game over / unlock popup / shrine + merchant panels / splash
-- [ ] World text overlay (damage numbers still the old 3x5 digits), stress test fps with 300 enemies (not measured this session), `tests/test_text_fit.gd`, remove `TitleScene`, `Fonts.BOLD` / `SMALL` once unused
+- [x] Shared parts: `PixelButton` on the recoloured `lv_frame` with Titan / Inter labels, `PixelPanel` windows on `lv_window` and rows on `plate_dark`, `HeaderTitle` (gold `lv_header` + TITLE) on every panel and menu screen, theme font Inter 900 at 7 (`assets/fonts/inter/inter_900.tres`), `Fonts.BOLD` / `SMALL` now point at Titan / Inter
+- [x] Code-string text pass (two subagents, scripts/run and scripts/ui + core; every non-casing change reviewed; tests updated)
+- [x] World text in UI space: `DamageNumbers` in the UI layer (HIT / CRIT / NUM_WORLD), chest prices and Shop / Risk labels on the dark plate; 3x5 digit atlas gone
+- [x] Menu screens: hero name in Titan, tiles on `lv_frame` by state, kit "!" and stickers, dark plate bottom bar; splash name in Titan (SPLASH style)
+- [x] `tests/test_text_fit.gd` (labels on screen, inside their panel, no overlaps; self-check that it catches both). Every shot 0 off-palette pixels (`docs/phase9/15_other_screens.png`; fixed a GRAY-modulated rim on locked tiles)
+- [x] Stress test (300 enemies, full build, Final Swarm, low HP, all effects; 540x1014 window): 75.0 fps vsync (1% low 67.4, 0 missed vsync frames), 353.9 uncapped; phase 8 was 75.0 / ~350
+- [ ] Left: kit 1 parts still on the game-over stat tiles, the 2x-coins / revive AdButton, settings toggles, map card frame, "Tank" role tag; pause build-slot dashes code-drawn; `TitleScene`, `PixelTitle` and the bonk / pixel fonts only used by the old mockup tools now (remove with them); glyph pre-warm and Inter subsetting not done; owner phone check
 
 ### Found while building the home (2026-10-13)
 
