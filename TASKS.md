@@ -697,6 +697,7 @@ Rules: Titan never under 6 (stickers only), Inter never under 7; text on world a
 - [x] Tests: `test_kit_parts_as_drawn`, `test_hero_screen_browse_only`, bonus / merchant panel checks; 2204 checks pass. Shots 0 off-palette (17 screens). Stress 300 enemies: 75.0 fps vsync, 1% low 66.8, 0 missed frames
 - [x] Owner OK (2026-10-13): Inter 6 on popup cards and damage numbers; CLAUDE.md and BRIEF.md updated
 - [x] Home (owner, phone): nav tile labels and the next-unlock title Titan 7 -> 6 (hero plate name stays 7), progress text 9 -> 7, a ready reward at 1x 16 px in its slot (shrinking it to 11 px broke the clock icon); checked on the Xiaomi 15T
+- [x] In-run HUD (owner): weapon / manual strip, item row and pickup card back on the plain `lv_frame` plate with 12 px icons (cards, pause and menus keep `icon_frame`)
 - [ ] Not switched yet (still the coarse cut): `lv_window`, `lv_card`, `lv_header`, `lv_sticker`, `plate_dark`, `panel_dark`, HUD tracks; their fine cuts look close but have stray pixels on the dark faces. Buttons / toggles keep `lv_frame`
 
 ### Found while building the home (2026-10-13)

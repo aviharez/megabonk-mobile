@@ -48,8 +48,8 @@ const TOAST_SIZE := 8
 ## a frame flashes white when it's new or levels up.
 const STRIP_Y := 33
 const SLOT := 16
-## Icons in the 16 px kit frames: a little smaller than the frame's face.
-const ICON_PX := 11
+## Icons in the 16 px plain lv_frame plates (owner: plain, not icon_frame, in the HUD).
+const ICON_PX := 12
 const FLASH_TIME := 0.9
 const CARD_TIME := 3.2
 ## Item row at the bottom, centred: 16 px kit frames (lv_frame in the item's
@@ -379,7 +379,7 @@ func _draw_strip(y: float) -> float:
 			var r := Rect2(x, y, SLOT, SLOT)
 			var id: String = ids[i]
 			var lvl := int(pair[1][id])
-			UiArt.draw(self, "icon_frame", r, pair[3])
+			UiArt.draw(self, "lv_frame", r, pair[3])
 			var tex := Icons.small(db, pair[0], id, ICON_PX)
 			if tex != null:
 				draw_texture(tex, _icon_at(r, tex))
@@ -391,7 +391,7 @@ func _draw_strip(y: float) -> float:
 				draw_rect(Rect2(r.position.x + 2 + k * 3, r.end.y + 1, 2, 2), Palette.color(c))
 			var fl: float = _flash.get(pair[0] + "/" + id, 0.0)
 			if fl > 0.0 and int(fl * 12.0) % 2 == 0:
-				UiArt.draw(self, "icon_frame", r, Palette.MIST)
+				UiArt.draw(self, "lv_frame", r, Palette.MIST)
 				if tex != null:
 					draw_texture(tex, _icon_at(r, tex))
 			x += SLOT + 2
@@ -399,7 +399,7 @@ func _draw_strip(y: float) -> float:
 	return x - 4
 
 
-## Top-left for `tex` centred on a kit icon frame's face `r` (a pixel above
+## Top-left for `tex` centred on a 16 px icon plate `r` (a pixel above
 ## the middle: the frame's bevel is at its foot).
 static func _icon_at(r: Rect2, tex: Texture2D) -> Vector2:
 	return (r.get_center() + Vector2(0, -1) - tex.get_size() / 2.0).floor()
@@ -426,7 +426,7 @@ func _draw_items() -> void:
 		var r := item_rect(i, n)
 		var fl: float = _flash.get("items/" + id, 0.0)
 		var lit := fl > 0.0 and int(fl * 12.0) % 2 == 0
-		UiArt.draw(_items_view, "icon_frame", r, Palette.MIST if lit else _rarity_color(id))
+		UiArt.draw(_items_view, "lv_frame", r, Palette.MIST if lit else _rarity_color(id))
 		var tex := Icons.small(db, "items", id, ICON_PX)
 		if tex != null:
 			_items_view.draw_texture(tex, _icon_at(r, tex))
@@ -482,11 +482,11 @@ func _draw_card(y: float) -> void:
 	var r := Rect2(floorf((w - cw) / 2.0) + slide, y, cw, card_height())
 	UiArt.draw(self, "info_bar", r)
 	var ir := Rect2(r.position + Vector2(3, 2), Vector2(16, 16))
-	UiArt.draw(self, "icon_frame", ir, int(_card.color))
+	UiArt.draw(self, "lv_frame", ir, int(_card.color))
 	if _card.art != null:
 		var art: Texture2D = _card.art
-		if art.get_width() > ICON_PX + 1 and art.get_width() <= 16:
-			art = LevelCard._small(art, ICON_PX + 1)
+		if art.get_width() > ICON_PX and art.get_width() <= 16:
+			art = LevelCard._small(art, ICON_PX)
 		draw_texture(art, _icon_at(ir, art))
 	Fonts.draw(self, title, Vector2(r.position.x + 23, Fonts.cap_y("CARD_NAME", r.position.y, r.size.y - 1)), "CARD_NAME", Palette.PAPER, r.size.x - 27 - sw)
 	if stacks != "":

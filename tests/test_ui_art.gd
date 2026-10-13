@@ -136,7 +136,10 @@ func test_kit_parts_as_drawn(t) -> void:
 		t.check(sz.x <= LevelUpPanel.ACTION_SIZE.x + 1 and sz.y + ActionButton.SHADOW <= LevelUpPanel.ACTION_SIZE.y,
 			"the kit's %s button fits the action slot (%s)" % [g, sz])
 		t.check(UiArt.has("act_%s_pressed" % g), "and has its pressed art")
-	# Weapon, manual and item icons sit in the kit's icon frame, not the button frame.
-	for f in ["res://scripts/ui/level_card.gd", "res://scripts/ui/build_view.gd", "res://scripts/run/hud.gd"]:
+	# Weapon, manual and item icons sit in the kit's icon frame on cards and
+	# the pause screen; the in-run HUD keeps the plain lv_frame (owner's call).
+	for f in ["res://scripts/ui/level_card.gd", "res://scripts/ui/build_view.gd"]:
 		var src := FileAccess.get_file_as_string(f)
 		t.check(src.contains("\"icon_frame\"") and not src.contains("\"lv_frame\""), "%s draws content icons in icon_frame" % f.get_file())
+	var hud := FileAccess.get_file_as_string("res://scripts/run/hud.gd")
+	t.check(hud.contains("\"lv_frame\"") and not hud.contains("\"icon_frame\""), "the HUD draws its icons on the plain lv_frame")
