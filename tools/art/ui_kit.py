@@ -176,41 +176,10 @@ PARTS3B = {
 #   "grid": hand-pixelled here (GRIDS), where the sheet's art doesn't survive the cut.
 #   "fill": the palette name of the inside that ui_art.gd swaps for a fill colour.
 SHIP = {
-    "button": ("button_grey", "slice", {"slice": [6, 7, 6, 8], "mid": [36, 9], "ramp": ["MIST", "GRAY", "NIGHT"]}),
-    "button_small": ("button_grey", "slice", {"slice": [3, 3, 3, 4], "mid": [36, 9], "ramp": ["MIST", "GRAY", "NIGHT"]}),
-    "window": ("window", "slice", {"slice": [7, 7, 7, 9], "mid": [49, 30], "fill": "NIGHT"}),
-    "row": ("plate", "slice", {"slice": [5, 5, 5, 5], "mid": [16, 6], "fill": "SHADE"}),
-    "ribbon": ("ribbon", "slice", {"slice": [12, 9, 12, 9], "mid": [41, 9]}),
-    "tag": ("tag", "slice", {"slice": [4, 4, 4, 4], "mid": [18, 4], "ramp": ["SKY", "BLUE", "OCEAN"]}),
-    "tile": ("tile", "slice", {"slice": [5, 5, 5, 5], "mid": [13, 12]}),
-    "tile_selected": ("tile_selected", "slice", {"slice": [5, 5, 5, 5], "mid": [13, 12]}),
-    "pip_on": ("pip_on", "sprite", {}),
-    "pip_off": ("pip_off", "sprite", {}),
-    "toggle_on": ("toggle_on", "sprite", {}),
-    "toggle_off": ("toggle_off", "sprite", {}),
-    "coin": ("coin", "sprite", {}),
-    "padlock": ("padlock", "sprite", {}),
-    "dot": ("dot", "sprite", {}),
     # Kit 2 (in-run).
-    "bar": ("xp_frame", "slice", {"slice": [4, 4, 4, 4], "mid": [50, 5]}),
-    "boss_bar": ("boss_frame", "slice", {"slice": [4, 4, 4, 4], "mid": [60, 5]}),
-    "name_plate": ("name_plate", "slice", {"slice": [4, 4, 4, 4], "mid": [18, 5]}),
-    "banner": ("banner", "slice", {"slice": [7, 7, 7, 7], "mid": [58, 11]}),
-    "card": ("card", "slice", {"slice": [6, 6, 6, 7], "mid": [19, 30]}),
-    "card_gold": ("card_gold", "slice", {"slice": [6, 6, 6, 7], "mid": [19, 30]}),
-    "action": ("action", "slice", {"slice": [4, 5, 5, 6], "mid": [20, 10]}),
-    "action_pressed": ("action_pressed", "slice", {"slice": [4, 5, 5, 6], "mid": [20, 10]}),
-    "new_badge": ("new_badge", "slice", {"slice": [2, 4, 2, 4], "mid": [15, 5]}),
-    "pause": ("pause", "sprite", {}),
     "stick_base": ("stick_base", "sprite", {}),
     "stick_knob": ("stick_knob", "sprite", {}),
-    "heart": ("heart", "sprite", {}),
-    "clock": ("clock", "sprite", {}),
-    "skull": ("skull", "sprite", {}),
     "key": ("key", "sprite", {}),
-    "die": ("die", "sprite", {}),
-    "ffwd": ("ffwd", "sprite", {}),
-    "xmark": ("xmark", "sprite", {}),
     # Kit 3 (Phase 9 dark UI). The second row of nav tiles on the sheet only differs by noise
     # (4-26 px), so there is one tile per colour; pressed = the usual 1px sink.
     "play_button": ("k3_play_button", "slice", {"slice": [4, 4, 4, 4], "mid": [20, 8]}),
@@ -270,12 +239,9 @@ SHIP = {
     "hud_skull": ("k3b_skull", "sprite", {}),
     "hud_clock": ("k3b_clock", "sprite", {}),
 }
-# Hand touch-ups after shrinking: name -> [(x, y, palette index)]. The pips get a 1px top-left
-# glint like the buttons' bevel (as plain blocks they also read as upscaled to check_assets.py).
-TOUCH = {
-    "pip_on": [(1, 1, 5)],
-    "pip_off": [(1, 1, 2)],
-}
+# Hand touch-ups after shrinking: name -> [(x, y, palette index)] (none since the kit 1 pips
+# were dropped in Phase 9).
+TOUCH = {}
 
 
 def palette_names():

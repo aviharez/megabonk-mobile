@@ -16,8 +16,8 @@ func _on_palette(img: Image) -> bool:
 func test_parts_load_and_recolor_on_palette(t) -> void:
 	UiArt.clear()
 	var meta := UiArt.meta()
-	for part: String in ["button", "button_small", "window", "row", "ribbon", "tag", "tile", "tile_selected",
-			"pip_on", "pip_off", "toggle_on", "toggle_off", "coin", "padlock", "dot"]:
+	for part: String in ["lv_window", "lv_frame", "lv_card", "lv_sticker", "plate_dark", "hud_track", "hud_fill",
+			"lv_pip_on", "lv_pip_off", "hud_coin", "stick_base", "stick_knob", "key"]:
 		t.check(meta.has(part) and UiArt.has(part), "UI part %s is listed and loads" % part)
 	for part: String in meta:
 		var info: Dictionary = meta[part]
@@ -28,16 +28,14 @@ func test_parts_load_and_recolor_on_palette(t) -> void:
 			t.check(img.get_width() == int(sl[0] + sl[2]) + 1 and img.get_height() == int(sl[1] + sl[3]) + 1,
 				"%s is a template: borders + a 1px middle (%s, %s)" % [part, img.get_size(), sl])
 	for face in [Palette.GOLD, Palette.LIME, Palette.SALMON, Palette.SKY, Palette.RED, Palette.PURPLE, Palette.MIST, Palette.GREEN]:
-		var img: Image = UiArt.texture("button", face).get_image()
-		t.check(_on_palette(img), "button recolored to %d stays on the palette" % face)
+		var img: Image = UiArt.texture("lv_frame", face).get_image()
+		t.check(_on_palette(img), "lv_frame recolored to %d stays on the palette" % face)
 		var has_face := false
 		for y in img.get_height():
 			for x in img.get_width():
 				has_face = has_face or img.get_pixel(x, y).to_rgba32() == Palette.color(face).to_rgba32()
-		t.check(has_face, "the recolored button uses the face colour %d" % face)
-	var row: Image = UiArt.texture("row", -1, Palette.OCEAN).get_image()
-	t.check(row.get_pixel(5, 5).to_rgba32() == Palette.color(Palette.OCEAN).to_rgba32(), "row fill recolors to OCEAN")
-	var sil: Image = UiArt.texture("button", -1, -1, true).get_image()
+		t.check(has_face, "the recolored frame uses the face colour %d" % face)
+	var sil: Image = UiArt.texture("lv_frame", -1, -1, true).get_image()
 	var all_ink := true
 	for y in sil.get_height():
 		for x in sil.get_width():
@@ -56,9 +54,9 @@ func test_ramps(t) -> void:
 
 
 func test_widgets_use_the_art(t) -> void:
-	t.check(UiArt.fits("button", Vector2(112, 16)), "a normal 112x18 button fits the riveted art")
-	t.check(not UiArt.fits("button", Vector2(58, 12)) and UiArt.fits("button_small", Vector2(58, 12)), "a 14px BUY button uses the small art")
-	t.check(not UiArt.fits("button_small", Vector2(5, 5)), "tiny buttons fall back to the plain box")
+	t.check(UiArt.fits("lv_frame", Vector2(112, 16)) and UiArt.fits("lv_frame", Vector2(58, 12)), "normal and small buttons fit the kit frame")
+	t.check(not UiArt.fits("lv_frame", Vector2(4, 4)), "tiny buttons fall back to the plain box")
+	t.check(not UiArt.has("button") and not UiArt.has("toggle_on"), "the kit 1 parts are gone")
 	var save: Node = preload("res://scripts/autoload/save_manager.gd").new()
 	save.path = "user://test_ui_art.json"
 	save.data = save.default_data()

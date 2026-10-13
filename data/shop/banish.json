@@ -3,7 +3,7 @@
 	"name": "Banish",
 	"desc": "Remove a card for the run.",
 	"kind": "action",
-	"icon": "ui/xmark",
+	"icon": "ui/lv_x",
 	"action": "banish",
 	"needs": {
 		"runs": 3

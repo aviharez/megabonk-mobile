@@ -3,7 +3,7 @@
 	"name": "Reroll",
 	"desc": "New level-up cards.",
 	"kind": "action",
-	"icon": "ui/die",
+	"icon": "ui/lv_die",
 	"action": "reroll",
 	"prices": [
 		25,

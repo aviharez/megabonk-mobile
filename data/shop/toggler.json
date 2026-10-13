@@ -3,7 +3,7 @@
 	"name": "Toggler",
 	"desc": "Turn content off for runs.",
 	"kind": "toggler",
-	"icon": "ui/toggle_on",
+	"icon": "ui/gear",
 	"needs": {
 		"unlocks": 12
 	},
