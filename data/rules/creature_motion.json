@@ -1,0 +1,39 @@
+{
+	"id": "creature_motion",
+	"_doc": "How regular enemies move on screen (scripts/run/enemy_system.gd, render path only: no gameplay effect). Times in seconds, sizes in world pixels, squash / stretch / grow as fractions of the sprite's size. 'types' overrides any 'hop' / 'fly' number per enemy id. 'cycles_per_hop': walk-cycle loops per hop for sheets with a multi-frame walk (the legs step with the hop, so they speed up with the walker and stop when it stands). 'reduced' multiplies squash, stretch, lean and shake when Settings > Reduce effects is on. Bosses don't use this (their controller animates them).",
+	"hop": {
+		"per_speed": 0.075,
+		"rate_min": 1.4,
+		"rate_max": 4.5,
+		"rate_jitter": 0.18,
+		"idle_rate": 0.9,
+		"height": 2.0,
+		"squash": 0.14,
+		"stretch": 0.10,
+		"idle_squash": 0.05
+	},
+	"fly": {"bob_px": 1.5, "bob_rate": 2.2, "rate_jitter": 0.25},
+	"face": {"turn_rate": 9.0, "lean": 0.35, "deadzone": 0.15},
+	"blink": {"every": [2.0, 6.0], "time": 0.2},
+	"hit": {"squash": 0.22, "time": 0.12},
+	"telegraph": {
+		"charger_shrink": 0.16,
+		"charger_shake_px": 1.0,
+		"charger_shake_rate": 30.0,
+		"charge_stretch": 0.28,
+		"exploder_grow": 0.35,
+		"exploder_flash_rate": [5.0, 16.0],
+		"shooter_puff_time": 0.4,
+		"shooter_puff": 0.22,
+		"shooter_recoil": 0.15,
+		"shooter_recoil_time": 0.3
+	},
+	"reduced": {"squash": 0.35, "shake": 0.0},
+	"types": {
+		"blob": {"height": 2.0, "squash": 0.16},
+		"skitter": {"height": 0.5, "squash": 0.04, "stretch": 0.03, "per_speed": 0.11, "rate_max": 3.5, "cycles_per_hop": 1.0},
+		"spitter": {"height": 1.5},
+		"bloater": {"height": 1.0, "squash": 0.18, "stretch": 0.06, "rate_max": 2.4},
+		"chomper": {"height": 1.5, "squash": 0.12}
+	}
+}

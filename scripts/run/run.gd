@@ -1074,7 +1074,7 @@ func _on_enemy_event(kind: int, slot: int, dir: Vector2) -> void:
 	match kind:
 		EnemySystem.EV_SHOOT:
 			juice.sfx(_enemy_sfx(def, "shoot"))
-			fx.puff(at + dir * enemies.radius[slot], 2.0, Palette.index_of(def.color), 0.15)
+			fx.puff(at + dir * enemies.radius[slot], 2.0, enemies.body_color[enemies.type_of[slot]], 0.15)
 			var sh: Dictionary = def.shot
 			enemy_shots.fire(at + dir * enemies.radius[slot], dir * float(sh.speed), float(sh.damage) * power, float(sh.radius), float(sh.life), sh.get("sprite", "bullet"), def.id)
 		EnemySystem.EV_SWELL:
@@ -1156,7 +1156,7 @@ func _kill(slot: int, source := "") -> void:
 		add_gold(rules.gold.kill_amount)
 		numbers.show_text(at + Vector2(0, -4), "+G", Palette.GOLD)
 		juice.sfx("gold")
-	_death_particles(at, Palette.index_of(def.color))
+	_death_particles(at, enemies.body_color[type_id])
 	juice.sfx(_enemy_sfx(def, "death") if def.get("sfx", {}).has("death") else "kill")
 	if elite:
 		fx.sparks(at, 16.0, enemies.outline[slot], 0.5)
@@ -2223,7 +2223,8 @@ func _build_world() -> void:
 	gems.setup_effects(fx_rules, not _reduce_fx)
 	world_viewport.add_child(gems)
 	enemies = EnemySystem.new()
-	enemies.setup(db.all("enemies"), int(rules.enemy_cap), bounds, int(rules.get("enemy_reserve", 48)))
+	enemies.setup(db.all("enemies"), int(rules.enemy_cap), bounds, int(rules.get("enemy_reserve", 48)), db.get_entry("rules", "creature_motion"))
+	enemies.reduced = _reduce_fx
 	enemies.map = map
 	enemies.event_fn = _on_enemy_event
 	enemies.rng.seed = rng.seed ^ 0x5eed

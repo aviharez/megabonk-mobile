@@ -1,0 +1,26 @@
+{
+	"format": "game.sheet",
+	"frame_w": 19,
+	"frame_h": 25,
+	"frames": 8,
+	"fps": 12.0,
+	"loop": 4,
+	"blink": 4,
+	"origin": [
+		9,
+		21
+	],
+	"poses": {},
+	"source": {
+		"generator": "SpriteCook",
+		"asset_id": "8c30f9d2-2d38-4f81-b37e-8f25628615a9",
+		"cell": "top-right",
+		"walk": {
+			"generator": "SpriteCook animate_game_art",
+			"upload": "8cc36f64-50de-4c83-bd4e-ab654ab5b7c5",
+			"asset_id": "94b30e55-8b4b-4de4-ae04-36655235c033",
+			"frames": 4
+		},
+		"hand_edit": "tools/art/critters.py"
+	}
+}

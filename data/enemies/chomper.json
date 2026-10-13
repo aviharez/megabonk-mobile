@@ -8,9 +8,7 @@
 	"damage": 10,
 	"radius": 6,
 	"xp": 4,
-	"sheet": "res://assets/creatures/chomper.png",
-	"shape": "chomper",
-	"color": "RUST",
+	"sheet": "res://assets/enemies/chomper.png",
 	"charge": {"range": 85, "windup": 0.7, "speed": 140, "time": 0.6, "recover": 0.7},
 	"sfx": {"windup": "windup"}
 }

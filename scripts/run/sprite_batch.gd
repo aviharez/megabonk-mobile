@@ -10,11 +10,19 @@ extends MultiMeshInstance2D
 ## floats carry flash, mirror, frame index and outline color (see the shader,
 ## assets/shaders/batch_flash.gdshader). Copies can be scaled by a whole
 ## number (elites), which keeps every texel on the pixel grid.
+##
+## push_xform() takes a full 2D basis instead (enemy squash, stretch and
+## lean, scripts/run/enemy_system.gd). The world is drawn into its own
+## pixel-sized viewport, so a squashed copy still lands on whole pixels.
 
 const FLOATS := 12  # 8 for the 2D transform + 4 custom data
 const FLASH_SHADER := preload("res://assets/shaders/batch_flash.gdshader")
 
 var frames := 1
+## Frame size in pixels and the quad's offset from its centre to the texture's
+## top-left (push_xform pivots around points given in texture pixels).
+var frame_size := Vector2.ONE
+var top_left := Vector2.ZERO
 var _buf := PackedFloat32Array()
 var _n := 0
 var _last_n := -1
@@ -29,6 +37,8 @@ func setup(tex: Texture2D, capacity: int, frame_count := 1) -> void:
 	var h := tex.get_height()
 	var x0 := -floorf(w / 2.0)
 	var y0 := -floorf(h / 2.0)
+	frame_size = Vector2(w, h)
+	top_left = Vector2(x0, y0)
 	var arrays := []
 	arrays.resize(Mesh.ARRAY_MAX)
 	arrays[Mesh.ARRAY_VERTEX] = PackedVector2Array([
@@ -68,10 +78,38 @@ func push(pos: Vector2, flash: bool = false, flip: bool = false, frame := 0, out
 		return
 	var o := _n * FLOATS
 	_buf[o] = scale
+	_buf[o + 1] = 0.0
 	_buf[o + 3] = roundf(pos.x)
+	_buf[o + 4] = 0.0
 	_buf[o + 5] = scale
 	_buf[o + 7] = roundf(pos.y)
 	_buf[o + 8] = 1.0 if flash else 0.0
+	_buf[o + 9] = 1.0 if flip else 0.0
+	_buf[o + 10] = float(frame % frames)
+	_buf[o + 11] = float(outline + 1)
+	_n += 1
+
+
+## One copy with basis columns `bx` (x axis) and `by` (y axis), placed so the
+## texture pixel `pivot` (e.g. the feet) sits on `at` (rounded to whole
+## pixels). flash: 0 none, 1 white, 2 red.
+func push_xform(at: Vector2, bx: Vector2, by: Vector2, pivot: Vector2, flash := 0, flip := false, frame := 0, outline := -1) -> void:
+	if _n >= _cap:
+		return
+	var o := _n * FLOATS
+	# Pivot pixel in quad space (mirroring flips the texture, not the quad, so
+	# the pivot pixel mirrors too).
+	var pv := pivot + top_left
+	if flip:
+		pv.x = top_left.x + frame_size.x - 1.0 - pivot.x
+	var origin := at - (bx * pv.x + by * pv.y)
+	_buf[o] = bx.x
+	_buf[o + 1] = by.x
+	_buf[o + 3] = roundf(origin.x)
+	_buf[o + 4] = bx.y
+	_buf[o + 5] = by.y
+	_buf[o + 7] = roundf(origin.y)
+	_buf[o + 8] = float(flash)
 	_buf[o + 9] = 1.0 if flip else 0.0
 	_buf[o + 10] = float(frame % frames)
 	_buf[o + 11] = float(outline + 1)

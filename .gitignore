@@ -9,7 +9,4 @@ build/
 # Android custom build
 android/build/
 android/.build_version
-# creature_export (.NET) build output
-tools/creature_export/bin/
-tools/creature_export/obj/
 __pycache__/

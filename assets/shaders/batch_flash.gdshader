@@ -1,6 +1,7 @@
 shader_type canvas_item;
 // MultiMesh sprites (SpriteBatch). Per instance, INSTANCE_CUSTOM holds:
-//   r > 0.5  hit flash: the sprite draws as solid palette WHITE
+//   r        flash: > 0.5 the sprite draws as solid palette WHITE (hit),
+//            > 1.5 as palette RED, INK kept (a Bloater about to burst)
 //   g > 0.5  mirrored horizontally
 //   b        frame index into a horizontal strip of `frames` frames
 //   a        outline: palette index + 1 (0 = none). Drawn on transparent
@@ -10,6 +11,7 @@ shader_type canvas_item;
 
 uniform int frames = 1;
 uniform sampler2D palette : filter_nearest;
+const int RED = 9;
 
 varying flat float flash;
 varying flat float outline;
@@ -37,5 +39,13 @@ void fragment() {
 			c.a = 1.0;
 		}
 	}
-	COLOR = flash > 0.5 ? vec4(1.0, 1.0, 1.0, c.a) : c;
+	if (flash > 1.5) {
+		// Red keeps the INK outline and pupils, so the critter stays readable.
+		if (dot(c.rgb, vec3(0.333)) > 0.12) {
+			c.rgb = texelFetch(palette, ivec2(RED, 0), 0).rgb;
+		}
+	} else if (flash > 0.5) {
+		c.rgb = vec3(1.0);
+	}
+	COLOR = c;
 }

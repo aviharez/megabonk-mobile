@@ -2,16 +2,16 @@
 
 importer="texture"
 type="CompressedTexture2D"
-uid="uid://bkn8ar8c26fu0"
-path="res://.godot/imported/skitter.png-749b2e1d8eb6c4debc3c6a21b6fa459f.ctex"
+uid="uid://om0s5s7r1vi"
+path="res://.godot/imported/gnat.png-600684f465129fc0ca74a957e51af374.ctex"
 metadata={
 "vram_texture": false
 }
 
 [deps]
 
-source_file="res://assets/creatures/skitter.png"
-dest_files=["res://.godot/imported/skitter.png-749b2e1d8eb6c4debc3c6a21b6fa459f.ctex"]
+source_file="res://assets/enemies/gnat.png"
+dest_files=["res://.godot/imported/gnat.png-600684f465129fc0ca74a957e51af374.ctex"]
 
 [params]
 

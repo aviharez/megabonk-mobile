@@ -8,8 +8,7 @@
 	"damage": 5,
 	"radius": 5,
 	"xp": 3,
-	"shape": "bloater",
-	"color": "LIME",
+	"sheet": "res://assets/enemies/bloater.png",
 	"explode": {"trigger_range": 22, "fuse": 1.0, "radius": 28, "damage": 20},
 	"sfx": {"swell": "fuse", "explode": "pop"}
 }

@@ -1,33 +1,14 @@
 class_name PlaceholderArt
 extends RefCounted
 ## Phase 1 placeholder sprites: small geometric shapes built from ASCII masks
-## at runtime, colored only from the palette. Replaced by real art in phase 6.
+## at runtime, colored only from the palette. Most are replaced by real art;
+## what is left is used where data names a "shape".
 ## Mask key: "." empty, "o" outline (INK), "x" body, "d" body shade,
 ## "h" highlight (WHITE), "e" eye (INK). Fixed colors (not tinted): "p" PINK,
 ## "g" GOLD, "b" WOOD, "k" BARK, "s" SKY, "m" MIST, "r" RED, "y" BUTTER,
 ## "l" LEAF.
 
 const MASKS := {
-	"blob": [
-		"..ooooo..",
-		".oxxxxxo.",
-		"oxhxxxxxo",
-		"oxxexxexo",
-		"oxxxxxxxo",
-		"oxxxxxxxo",
-		"odxxxxxdo",
-		".oddddo..",
-		"..ooo....",
-	],
-	"skitter": [
-		"...o...",
-		"..oxo..",
-		".oxexo.",
-		".oxxxo.",
-		"oxxxxxo",
-		"oddddo.",
-		"o.o.o.o",
-	],
 	"gem_small": [
 		".o.",
 		"oho",
@@ -98,47 +79,8 @@ const MASKS := {
 		"ooo",
 		"o.o",
 	],
-	# Phase 3 enemies.
-	"spitter": [
-		"...ooo...",
-		"..oxxxo..",
-		".oxhxxxo.",
-		".oxexexo.",
-		".oxxxxxoo",
-		"oxxxxxxoo",
-		"oxxxxxxo.",
-		".oddddo..",
-		"..oooo...",
-	],
-	"bloater": [
-		"...ooooo...",
-		"..oxxxxxo..",
-		".oxhxxxxxo.",
-		"oxhxxxxxxxo",
-		"oxxexxxexxo",
-		"oxxxxxxxxxo",
-		"oxxxoooxxxo",
-		"oxxxxxxxxxo",
-		".oxxxxxxxo.",
-		"..odddddo..",
-		"...ooooo...",
-	],
-	"chomper": [
-		"..oooooo..",
-		".oxxxxxxo.",
-		"oxhxexxexo",
-		"oxxxxxxxxo",
-		"oohohohooo",
-		"o........o",
-		"oohohohooo",
-		".oddddddo.",
-		"..o.oo.o..",
-	],
-	"gnat": [
-		"h.h",
-		"oxo",
-		".o.",
-	],
+	# Enemies are sprite sheets (assets/enemies/); the boss and the Overdue
+	# Bill keep shapes here.
 	"bill": [
 		"ooooooo",
 		"ohhhhho",

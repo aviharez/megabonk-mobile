@@ -13,7 +13,7 @@ const ROOT := "res://data"
 const SCHEMA := {
 	"characters": {"id": TYPE_STRING, "name": TYPE_STRING, "status": TYPE_STRING, "signature_weapon": TYPE_STRING, "stats": TYPE_DICTIONARY, "radius": TYPE_FLOAT, "passive": TYPE_DICTIONARY},
 	"weapons": {"id": TYPE_STRING, "name": TYPE_STRING, "pattern": TYPE_STRING, "status": TYPE_STRING, "levels": TYPE_ARRAY},
-	"enemies": {"id": TYPE_STRING, "name": TYPE_STRING, "role": TYPE_STRING, "hp": TYPE_FLOAT, "speed": TYPE_FLOAT, "damage": TYPE_FLOAT, "radius": TYPE_FLOAT, "xp": TYPE_FLOAT, "shape": TYPE_STRING, "color": TYPE_STRING},
+	"enemies": {"id": TYPE_STRING, "name": TYPE_STRING, "role": TYPE_STRING, "hp": TYPE_FLOAT, "speed": TYPE_FLOAT, "damage": TYPE_FLOAT, "radius": TYPE_FLOAT, "xp": TYPE_FLOAT},
 	"tomes": {"id": TYPE_STRING, "name": TYPE_STRING, "status": TYPE_STRING, "group": TYPE_STRING, "desc": TYPE_STRING, "modifiers_per_level": TYPE_ARRAY},
 	"items": {"id": TYPE_STRING, "name": TYPE_STRING, "rarity": TYPE_STRING, "status": TYPE_STRING, "desc": TYPE_STRING},
 	"maps": {"id": TYPE_STRING, "name": TYPE_STRING},
@@ -154,12 +154,14 @@ func _check_entry(category: String, e: Dictionary) -> void:
 				errors.append("%s: unknown role \"%s\"" % [file, e.role])
 			if e.has("one_hit") and typeof(e.one_hit) != TYPE_BOOL:
 				errors.append("%s: \"one_hit\" must be true or false" % file)
-			if Palette.index_of(e.color) < 0:
+			# Drawn from its "sheet" (critter sprites); only an enemy without
+			# one names a code-drawn PlaceholderArt "shape" + "color".
+			if e.has("color") and (typeof(e.color) != TYPE_STRING or Palette.index_of(e.color) < 0):
 				errors.append("%s: unknown palette color \"%s\"" % [file, e.color])
-			if not PlaceholderArt.has_shape(e.shape):
-				errors.append("%s: unknown shape \"%s\"" % [file, e.shape])
 			if e.has("sheet"):
 				_check_sheet(file, e.sheet)
+			elif not (e.get("shape") is String and PlaceholderArt.has_shape(e.shape) and e.has("color")):
+				errors.append("%s: needs a \"sheet\" (or a known \"shape\" and a \"color\")" % file)
 			for k: String in ROLE_KEYS.get(e.role, {}):
 				if typeof(e.get(k)) != ROLE_KEYS[e.role][k]:
 					errors.append("%s: role \"%s\" needs \"%s\"" % [file, e.role, k])

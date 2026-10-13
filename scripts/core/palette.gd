@@ -82,6 +82,16 @@ static func has(c: Color) -> bool:
 	return false
 
 
+## Palette index of an exact palette colour (-1 if it isn't one).
+static func index_of_color(c: Color) -> int:
+	var c8 := c.to_rgba32() | 0xff
+	var cols := colors()
+	for i in cols.size():
+		if cols[i].to_rgba32() | 0xff == c8:
+			return i
+	return -1
+
+
 ## Palette index for a constant name used in data files ("GREEN", "SKY"...).
 ## Returns -1 for unknown names and for ENEMY_SHOT (reserved, not for data).
 static func index_of(name: String) -> int:

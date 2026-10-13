@@ -257,7 +257,7 @@ Every asset follows one locked palette (picked from Lospec), a 180×320 portrait
 
 | Asset | Source | Notes |
 | --- | --- | --- |
-| Enemies and elites | [procedural-pixel-creatures](https://github.com/idlerunner00/procedural-pixel-creatures) | Offline generator, exports PNG sprite sheets + JSON. Elite = enemy sprite scaled up and recolored |
+| Enemies and elites | SpriteCook (owner direction 2026-10-13: one family with the home critters) | Two 2x2 critter sheets, halved and cleaned by hand in `tools/art/critters.py` -> `assets/enemies/`; closed-eye blink frames and the Gnat hand-pixelled; Skitter walk cycle and Spitter mouth poses animated with SpriteCook. Motion (hop, squash, telegraphs) is code. Elite = enemy sprite scaled up with a glowing outline. See "Creature art rules" |
 | Player characters | SpriteCook | Sprite + idle, walk, and hit animations |
 | Mega Mole | SpriteCook | Sprite + burrow, attack, and hit animations |
 | Weapon and item icons | SpriteCook | One style-reference icon first, the rest follow it |
@@ -265,7 +265,26 @@ Every asset follows one locked palette (picked from Lospec), a 180×320 portrait
 | Suburbia tiles and props | SpriteCook or drawn in code | Remapped to the palette |
 | UI | SpriteCook UI kits (9-slice plates, frames, stickers, icons; kit 3 + 3b for the Phase 9 dark look) + SpriteCook home art (night street backdrop, logo leaves, critters) | Snapped to the palette (`tools/art/ui_kit.py`, `tools/art/home_art.py`). Fonts (OFL, Google Fonts): Titan One for titles, buttons, names and numbers; Inter at weight 900 for body text (7 px or more; 6 px on popup cards and damage numbers). Both import with antialiasing off, so text stays on the palette at device resolution |
 
-The procedural generator uses Godot 4.5.2 .NET and .NET 8, and has only been validated on Windows. Run it as a separate tool, not as part of the game project.
+### Creature art rules (owner direction 2026-10-13)
+
+Every creature (the heroes, every enemy, the boss) belongs to one family: the goofy mutant critters on the home screen (`assets/ui/home/critter_*.png`).
+
+- A 1 px dark INK outline all the way round.
+- Big eyes are the family trait. 2-3 tone shading, light from the top left.
+- Sizes: player ~24 px; regular enemies 12-20 px; Gnat 6-8 px. Elites keep the current system (scaled up, glowing outline, one trait).
+- One colour per role, so a role reads from its colour and shape. No green on enemies (the ground is green).
+
+| Enemy | Role | Look | Colour |
+| --- | --- | --- | --- |
+| Blob | slow chaser | small round critter, one big eye (like `critter_blue`) | blue |
+| Skitter | fast pack | leaner, antennae, leans forward | purple |
+| Spitter | shooter | big mouth (like `critter_red`) | red |
+| Bloater | exploder | fat, puffy | yellow / orange |
+| Chomper | charger | biggest, wide toothy jaw | pink-berry (the palette has no darker magenta) |
+| Gnat | wave filler | tiny eyeball with wings | pale / white |
+
+- Static sprites, no walk animations: the motion is code (hop and bob with squash and stretch, facing, lean, blinks, telegraphs, hit squash), tuned in `data/rules/creature_motion.json`. Each sheet has its open-eye frame(s), the same frames with the eyes shut (hand-pixelled, for blinks) and any extra pose (the Chomper's open-jaw charge). Sheets: `assets/enemies/`, built by `tools/art/critters.py`.
+- Palette and grid rules as for every asset.
 
 ### SpriteCook rules (Starter plan, 800 credits per month)
 
@@ -430,7 +449,7 @@ Stop and ask before entering real ad unit or IAP product IDs.
 
 ```
 Replace every placeholder with real assets from the Assets, audio, and VFX section of docs/BRIEF.md.
-Start with Sir Loaf from SpriteCook and wait for my approval before any other asset. Enemies come from the sprite sheets in assets/creatures/ that I export from procedural-pixel-creatures. Tome icons are made in code from one book sprite.
+Start with Sir Loaf from SpriteCook and wait for my approval before any other asset. Enemies are SpriteCook critters in assets/enemies/ (see "Creature art rules"). Tome icons are made in code from one book sprite.
 Done means: no placeholders remain, every asset passes the palette and grid check, and docs/ASSET_LOG.md records the credits used.
 Stop and ask before every SpriteCook generation, and when remaining credits drop below 100.
 ```
@@ -480,9 +499,7 @@ Also flag anything that departs from docs/BRIEF.md.
 ## Open items
 
 - [ ] Final game name (check availability on Play Store and App Store, add a keyword subtitle).
-- [ ] Check the procedural-pixel-creatures license: can generated sprites be used in a commercial game?
 - [ ] Pick the final palette from Lospec.
-- [ ] Set up Godot 4.5.2 .NET and .NET 8 on the Mac to run the procedural generator.
 - [ ] Subscribe to SpriteCook Starter during phase 6, then cancel.
 - [ ] Replace placeholder music with commercially licensed music before release.
 - [ ] Register Google Play and Apple developer accounts, and line up at least 12 testers for closed testing.

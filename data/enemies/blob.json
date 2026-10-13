@@ -9,7 +9,5 @@
 	"damage": 6,
 	"radius": 5,
 	"xp": 1,
-	"sheet": "res://assets/creatures/blob.png",
-	"shape": "blob",
-	"color": "PURPLE"
+	"sheet": "res://assets/enemies/blob.png"
 }

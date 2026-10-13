@@ -1,0 +1,32 @@
+{
+	"format": "game.sheet",
+	"frame_w": 24,
+	"frame_h": 24,
+	"frames": 4,
+	"fps": 8.0,
+	"loop": 1,
+	"blink": 1,
+	"origin": [
+		11,
+		22
+	],
+	"poses": {
+		"mouth_open": 2,
+		"mouth_half": 3
+	},
+	"source": {
+		"generator": "SpriteCook",
+		"asset_id": "8c30f9d2-2d38-4f81-b37e-8f25628615a9",
+		"cell": "bottom-left",
+		"mouth": {
+			"generator": "SpriteCook animate_game_art",
+			"upload": "1a6b6f52-20cc-44b6-9cba-55bc583edc54",
+			"asset_id": "9922cc80-978a-49e6-b6c1-5f726c54a8dd",
+			"frames_used": [
+				3,
+				4
+			]
+		},
+		"hand_edit": "tools/art/critters.py"
+	}
+}

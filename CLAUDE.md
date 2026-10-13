@@ -21,6 +21,7 @@ The full spec is in docs/BRIEF.md. The brief is the source of truth for content 
 - Every asset uses the palette in assets/palette.png. No off-palette colors, no off-grid pixels.
 - SpriteCook: ask me before every generation, log estimated credits in docs/ASSET_LOG.md, no variations by default.
 - Don't use names, characters, or assets from other games.
+- Creatures (player, enemies, boss) are one family of mutant critters: 1 px INK outline, big eyes, 2-3 tone shading lit from the top left, one colour per enemy role, no green on enemies. Player ~24 px, regular enemies 12-20 px, Gnat 6-8 px. Static sprites; motion is code (`data/rules/creature_motion.json`). Full rules: docs/BRIEF.md "Creature art rules".
 
 ## UI design direction
 The UI is dark, chunky pixel art from the SpriteCook kits in assets/ui/ (deep night panels, thick INK outlines, hard drop shadows, toy-bright gold / blue / green / orange / purple accents). Only the text is smooth: Titan One for titles, buttons, names and numbers; Inter 900 for body text (7 px; 6 px only for popup card names and descriptions and damage numbers, never smaller). Little text: kind, rarity and New are shown by colour and stickers, not words. Don't use: gradient pill buttons, glass or blur, soft shadows, emoji as icons, smooth rounded corners, colours outside the palette, or code-drawn plates where a kit part exists.

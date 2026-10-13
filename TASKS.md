@@ -727,3 +727,37 @@ Rules: Titan never under 6 (stickers only), Inter never under 7; text on world a
 ### Docs (after the owner approves the wording)
 
 - [x] (2026-10-13) CLAUDE.md "UI design direction" and the copy inside BRIEF.md; BRIEF.md asset table (fonts), logo line, damage numbers line, phases list (revamp = 9, release prep = 10)
+
+## Enemy redesign: one family of mutant critters (owner request 2026-10-13)
+
+- [x] "Creature art rules" in docs/BRIEF.md (Assets) + short version in CLAUDE.md
+- [x] SpriteCook sheet 1 (Blob, Skitter, Spitter, Bloater), 12 credits, owner-approved, logged
+- [x] SpriteCook sheet 2 (Chomper shut + open jaw, two eyeball spares), 12 credits, owner-approved, logged
+- [x] Halve + clean by hand: `tools/art/critters.py` holds the final grids -> `assets/enemies/*.png` + sidecars (loop, blink, poses, origin)
+- [x] Closed-eye blink frame per critter (hand-pixelled from the sprite); Gnat hand-pixelled (2 wing frames + blinks)
+- [x] Enemy data: sheets + role colours (BLUE, PURPLE, RED, GOLD, PINK, PAPER); `assets/enemies/*.json` in both export include filters
+- [x] Motion in the render path (`EnemySystem.render` + `SpriteBatch.push_xform`, red flash in `batch_flash.gdshader`): hop / bob with squash and stretch on own phase and rate (rate from speed), facing + lean on turns, blink 2-6 s, hit squash, Chomper crouch + shake then stretch along the charge (open jaw), Bloater swell + red flash, Spitter puff + recoil; Reduce effects tones squash down and stops shake
+- [x] All motion numbers in `data/rules/creature_motion.json` (per-enemy overrides under "types")
+- [x] Tests: critter sheets load with blink frames, Chomper charge pose, push_xform basis / pivot / red, motion (phases, hop rate, facing, blink, hit squash, three telegraphs, reduce effects), no enemy code-drawn (Overdue Bill named exception); 2248 checks pass; asset check 0 failed
+- [x] Shots: `tools/shoot_screens.gd --only=crowd`, old vs new side by side at 540x1170 (`build/review/critters/`)
+- [x] Captures: `tools/motion_capture.gd`, GIFs per enemy + crowd + crowd with reduce effects (`build/review/critters/`)
+- [x] Stress, 300 enemies, full build, Final Swarm, low HP, 540x1014: vsync 75.0 fps, 1% low 67.2, 0 missed (was 75.0 / 66.8-67.4). Uncapped, alternating old / new on the same machine: old ~295 fps (logic 1.70 ms), new ~275 (logic 1.95 ms). The owner's Steam game was running during the uncapped runs, so they are not comparable with the recorded 353.9
+- [x] Blink made easier to see (0.2 s) + close-up blink capture (`motion_blink_closeup.gif`)
+- [x] Skitter walk cycle from SpriteCook (owner request; 20 credits): 4 frames, legs step with the hop (stop when it stands), hop cut to a small bob; closed eyes found per frame
+- [x] Spitter mouth from SpriteCook (owner request; 20 credits): walks mouth shut, puffs, mouth pops open on the spit and eases shut (half-open frame)
+- [x] Owner review of the new look (shots + GIFs): approved 2026-10-13
+- [x] Removed `assets/creatures/`, `tools/creature_export/` (+ its .gitignore lines and the export include filter); BRIEF asset sources table, setup note and the two open items updated; data/README enemies row; old rows struck in ASSET_LOG
+- [x] Removed the six code-drawn enemy masks; "shape" / "color" dropped from those six enemy files. Validation: an enemy needs a "sheet", or a known "shape" + "color" (only the Overdue Bill). Death particles and the spit puff take the sprite's main body colour (`EnemySystem.body_color`)
+- [x] Tests: no enemy code-drawn and no leftover "shape" (Bill and the boss excepted), body colour from the sprite, an enemy with no art fails validation; 2263 checks pass; asset check 166, 0 failed
+- [x] Stress after the clean-up (300 enemies, full build, Final Swarm, low HP, 540x1014, machine idle): vsync 75.0 fps, 1% low 67.1, 0 missed; uncapped 280.3 / 280.2 (logic 1.88 ms). The old build measured ~295-313 on this machine earlier the same day; the recorded 353.9 is not reproducible today
+- [ ] Mega Mole vs the rules: owner decides (see Found)
+
+### Found during the enemy redesign
+
+- Blob and Skitter are 21 px tall with their antennae, the Chomper 21 px wide: 1 px over the 12-20 range. The Gnat is 11x8 with its wings out (body 7x6)
+- The palette has no dark magenta: the Chomper is PINK with WINE shading (pink-berry), clearly apart from the red Spitter and the purple Skitter
+- In a dense crowd the orange hero gets lost among the orange Bloaters (crowd shots)
+- The first motion version cost +0.88 ms per frame for 300 enemies (dictionary reads in the loop); now one pass in render with cached numbers, +0.19 ms in the headless benchmark
+- SpriteCook was reconnected to another account (`lurch_brim_speller`, free tier); the two animations used its 40 credits, balance 0. The critter sheets and all older assets are on `tarnish_lived_cofounder` (11 credits left)
+- Spitter animation frames 1-2 came back with the mouth interior cut out by background removal (holes); only frames 3-4 are used. The shut / half frames have a taller eye than the wide-open sheet 1 frame, so the eye grows a little for the ~0.15 s the mouth is wide open
+- Mega Mole: outline 84% INK (white claws, toes and helmet shine sit on the edge without one); small squinting eyes, not the big-eyed family trait. Sir Loaf: 22 px tall (rule ~24), outline 74% INK

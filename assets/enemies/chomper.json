@@ -1,0 +1,22 @@
+{
+	"format": "game.sheet",
+	"frame_w": 23,
+	"frame_h": 25,
+	"frames": 3,
+	"fps": 8.0,
+	"loop": 1,
+	"blink": 1,
+	"origin": [
+		11,
+		20
+	],
+	"poses": {
+		"charge": 2
+	},
+	"source": {
+		"generator": "SpriteCook",
+		"asset_id": "60df65eb-cfd6-4fee-ad52-e1632b074182",
+		"cell": "top-left + bottom-left",
+		"hand_edit": "tools/art/critters.py"
+	}
+}

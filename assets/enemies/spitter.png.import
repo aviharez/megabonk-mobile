@@ -2,16 +2,16 @@
 
 importer="texture"
 type="CompressedTexture2D"
-uid="uid://xjecju0lle7b"
-path="res://.godot/imported/chomper.png-5a6bdda280dac4f9f9fac1b1eae356c4.ctex"
+uid="uid://bss12nfcdq3e6"
+path="res://.godot/imported/spitter.png-e6d6924c7acc5f037f508aea4081c4ef.ctex"
 metadata={
 "vram_texture": false
 }
 
 [deps]
 
-source_file="res://assets/creatures/chomper.png"
-dest_files=["res://.godot/imported/chomper.png-5a6bdda280dac4f9f9fac1b1eae356c4.ctex"]
+source_file="res://assets/enemies/spitter.png"
+dest_files=["res://.godot/imported/spitter.png-e6d6924c7acc5f037f508aea4081c4ef.ctex"]
 
 [params]
 

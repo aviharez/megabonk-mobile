@@ -228,6 +228,23 @@ func _run() -> void:
 				await _wait(0.3)
 				await _shot("40_weapons_%d_%d" % [k, i])
 
+	if _want("crowd"):
+		# A crowded run: a ring of every regular enemy round the hero (the
+		# critter redesign review: same seed and layout before and after).
+		Run.next_options = {"seed": 3, "invincible": true, "character": "sir_loaf", "start_at": 330.0,
+			"first_run": false, "auto_cards": true}
+		change_scene_to_file("res://scenes/run.tscn")
+		await _wait(0.3)
+		var run := current_scene as Run
+		var p := run.player_pos()
+		var ids := ["blob", "skitter", "spitter", "bloater", "chomper", "gnat", "blob", "skitter"]
+		for i in 120:
+			var at := p + Vector2.from_angle(TAU * i / 120.0 * 7.0) * (46.0 + float(i % 11) * 8.0)
+			run.spawn_enemy(ids[i % ids.size()], run.free_spot_near(at))
+		for i in 3:
+			await _wait(0.45)
+			await _shot("50_crowd_%d" % i)
+
 	save.path = real_path
 	save.load_game()
 	if ads != null:

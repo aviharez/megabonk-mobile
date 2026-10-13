@@ -304,5 +304,33 @@
 		"asset_id": "71468ff7-7dc2-4d4c-8760-edbb21312a2a",
 		"sha12": "95c5eabca420",
 		"label": "Home critters 2x2 (100x100): blue, green, purple, red; 12 credits. tools/art/home_art.py -> assets/ui/home/critter_*.png"
+	},
+	"enemy_critters_1": {
+		"asset_id": "8c30f9d2-2d38-4f81-b37e-8f25628615a9",
+		"sha12": "5a2acaa1b590",
+		"label": "Enemy critters 2x2 (100x100): blob, skitter, spitter, bloater; 12 credits. tools/art/critters.py -> assets/enemies/"
+	},
+	"enemy_critters_2": {
+		"asset_id": "60df65eb-cfd6-4fee-ad52-e1632b074182",
+		"sha12": "edbacc6f7d56",
+		"label": "Enemy critters 2x2 (100x100): chomper shut / open, two winged eyeballs (unused); 12 credits. tools/art/critters.py -> assets/enemies/chomper.png"
+	},
+	"skitter_upload_2x": {
+		"asset_id": "8cc36f64-50de-4c83-bd4e-ab654ab5b7c5",
+		"label": "Account lurch_brim_speller. Upload of the cleaned Skitter at 2x (animation source)"
+	},
+	"skitter_walk": {
+		"asset_id": "94b30e55-8b4b-4de4-ae04-36655235c033",
+		"sha12": "c6ee0c42a02c",
+		"label": "Account lurch_brim_speller. Skitter run cycle, 4 x 50x50; 20 credits. tools/art/critters.py SKITTER_WALK"
+	},
+	"spitter_upload_2x": {
+		"asset_id": "1a6b6f52-20cc-44b6-9cba-55bc583edc54",
+		"label": "Account lurch_brim_speller. Upload of the cleaned Spitter at 2x (animation source)"
+	},
+	"spitter_mouth": {
+		"asset_id": "9922cc80-978a-49e6-b6c1-5f726c54a8dd",
+		"sha12": "3abd965a84e4",
+		"label": "Account lurch_brim_speller. Spitter mouth cycle, 4 x 48x48; 20 credits; frames 3-4 used (SPITTER_HALF, SPITTER_SHUT)"
 	}
 }

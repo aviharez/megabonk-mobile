@@ -1,0 +1,18 @@
+{
+	"format": "game.sheet",
+	"frame_w": 13,
+	"frame_h": 10,
+	"frames": 4,
+	"fps": 12.0,
+	"loop": 2,
+	"blink": 2,
+	"origin": [
+		6,
+		8
+	],
+	"poses": {},
+	"source": {
+		"generator": "hand-pixelled",
+		"hand_edit": "tools/art/critters.py"
+	}
+}

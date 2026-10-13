@@ -8,9 +8,7 @@
 	"damage": 4,
 	"radius": 4,
 	"xp": 1,
-	"sheet": "res://assets/creatures/skitter.png",
-	"shape": "skitter",
-	"color": "ORANGE",
+	"sheet": "res://assets/enemies/skitter.png",
 	"pack_size": [4, 6],
 	"pack_spread": 10
 }

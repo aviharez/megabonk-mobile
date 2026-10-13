@@ -13,6 +13,15 @@ extends Node2D
 ##
 ## Things that reach outside the enemy list (shots, explosions, telegraphs)
 ## go through `event_fn.call(kind, slot, dir)` with the EV_* kinds below.
+##
+## Motion (render only, numbers in data/rules/creature_motion.json): every
+## regular enemy hops or bobs with squash and stretch on its own phase and
+## rate (rate follows its speed), faces where it travels and leans while it
+## turns, blinks (sheets with closed-eye frames), squashes when hit, and
+## shows its role's telegraph: a Chomper shrinks and shakes, then stretches
+## along its charge; a Bloater swells and flashes red; a Spitter puffs up
+## before it spits. All of it is the per-copy transform and colour of the
+## type's SpriteBatch, so no node per enemy.
 
 const CELL := 16
 const FLASH_TIME := 0.08
@@ -108,6 +117,79 @@ var _fps := PackedFloat32Array()  # per type, animation frames per second
 var _clips: Array[Dictionary] = []
 var _default_clip: Array[String] = []
 var _anim := {}
+## Per type, from the sheet sidecar (tools/art/critters.py): frames in the
+## open-eye loop, index of the first closed-eye frame (-1 = no blink), the
+## Chomper's charge pose (-1 = none) and the feet pixel the squash pivots on.
+var _loop := PackedInt32Array()
+var _blink_at := PackedInt32Array()
+var _charge_frame := PackedInt32Array()
+## The Spitter's mouth poses after a spit: wide open, then half (-1 = none).
+var _open_frame := PackedInt32Array()
+var _half_frame := PackedInt32Array()
+var _pivot := PackedVector2Array()
+## Motion numbers (data/rules/creature_motion.json), per type where data
+## allows an override. motion_on = false: plain old drawing (tests, tools).
+var motion_on := false
+## Settings "reduce effects": squash, stretch, lean and shake are scaled down.
+var reduced := false
+var _mo := {}
+## The same numbers read once at setup (the per-enemy loops read these, not
+## the dictionary).
+var _hop_min := 1.4
+var _hop_jit := 0.2
+var _idle_rate := 0.9
+var _idle_squash := 0.05
+var _fly_px := 1.5
+var _fly_rate := 2.2
+var _fly_jit := 0.25
+var _turn_rate := 9.0
+var _lean := 0.35
+var _deadzone := 0.15
+var _blink_min := 2.0
+var _blink_max := 6.0
+var _blink_time := 0.13
+var _hit_squash := 0.22
+var _hit_time := 0.12
+var _tg_shrink := 0.16
+var _tg_shake_px := 1.0
+var _tg_shake_rate := 30.0
+var _tg_charge := 0.28
+var _tg_grow := 0.35
+var _tg_flash_lo := 5.0
+var _tg_flash_hi := 16.0
+var _tg_puff_time := 0.4
+var _tg_puff := 0.22
+var _tg_recoil := 0.15
+var _tg_recoil_time := 0.12
+var _rd_squash := 0.35
+var _rd_shake := 0.0
+var _m_height := PackedFloat32Array()
+var _m_squash := PackedFloat32Array()
+var _m_stretch := PackedFloat32Array()
+var _m_per_speed := PackedFloat32Array()
+var _m_rate_max := PackedFloat32Array()
+var _m_fly := PackedByteArray()
+## Walk-cycle loops per hop (sheets with a multi-frame walk, e.g. Skitter).
+var _m_steps := PackedFloat32Array()
+## Per slot motion state: hop / bob phase (0..1), its rate jitter, facing
+## (-1 left .. 1 right, eased) and where it is turning to, its own velocity
+## this frame (no knockback), and the times (_time) its next blink starts and
+## its hit squash and spit recoil end. Absolute times: nothing counts down
+## per frame.
+var _phase := PackedFloat32Array()
+var _rate_j := PackedFloat32Array()
+var _face := PackedFloat32Array()
+var _face_goal := PackedFloat32Array()
+var _vel := PackedVector2Array()
+var _blink_next := PackedFloat32Array()
+var _squash_end := PackedFloat32Array()
+var _recoil_end := PackedFloat32Array()
+## Per type: feet pixel row offset from the quad centre (texture pixels).
+var _feet_y := PackedFloat32Array()
+## Per type: palette index of its body colour (death particles, spit puff):
+## data "color" if given, else the most common body colour of its sprite.
+var body_color := PackedInt32Array()
+var _render_time := 0.0
 ## Per-type role numbers from data, cached at setup (hot loop reads these).
 var _kd_lo := PackedFloat32Array()
 var _kd_hi := PackedFloat32Array()
@@ -141,7 +223,9 @@ var _q := PackedInt32Array()
 var _explode := PackedInt32Array()
 
 
-func setup(enemy_defs: Array, capacity: int, area: Rect2, reserve := 0) -> void:
+## motion: data/rules/creature_motion.json ({} = no motion, sprites drawn
+## still as before).
+func setup(enemy_defs: Array, capacity: int, area: Rect2, reserve := 0, motion := {}) -> void:
 	cap = capacity
 	var total := capacity + reserve
 	pool = SlotPool.new(total)
@@ -149,7 +233,8 @@ func setup(enemy_defs: Array, capacity: int, area: Rect2, reserve := 0) -> void:
 	# Packed arrays are copied on write, so each one is resized by name.
 	for arr: String in ["pos", "knock", "hp", "max_hp", "speed", "damage", "radius", "flash", "wobble", "type_of",
 			"role_of", "state", "timer", "aim", "flags", "last_hit", "one_hit", "elite", "trait_of", "shield", "split",
-			"outline", "draw_scale", "knock_taken", "burn_dps", "burn_left", "_cell_next", "_stuck", "stalled", "_free", "_anchor", "_anchor_t"]:
+			"outline", "draw_scale", "knock_taken", "burn_dps", "burn_left", "_cell_next", "_stuck", "stalled", "_free", "_anchor", "_anchor_t",
+			"_phase", "_rate_j", "_face", "_face_goal", "_vel", "_blink_next", "_squash_end", "_recoil_end"]:
 		var a = get(arr)
 		a.resize(total)
 		set(arr, a)
@@ -157,6 +242,9 @@ func setup(enemy_defs: Array, capacity: int, area: Rect2, reserve := 0) -> void:
 	_rows = int(ceil(area.size.y / CELL)) + 1
 	_cell_head.resize(_cols * _rows)
 	_cell_head.fill(-1)
+	_mo = motion
+	motion_on = not motion.is_empty()
+	_cache_motion()
 	for def: Dictionary in enemy_defs:
 		_max_radius = maxf(_max_radius, def.radius)
 		var kd: Array = def.get("keep_distance", [60, 90])
@@ -186,8 +274,98 @@ func setup(enemy_defs: Array, capacity: int, area: Rect2, reserve := 0) -> void:
 			_fps.append(sheet.fps)
 		_clips.append(sheet.get("clips", {}))
 		_default_clip.append(sheet.get("default", ""))
+		_loop.append(int(sheet.get("loop", b.frames)))
+		_blink_at.append(int(sheet.get("blink", -1)))
+		_charge_frame.append(int(sheet.get("poses", {}).get("charge", -1)))
+		_open_frame.append(int(sheet.get("poses", {}).get("mouth_open", -1)))
+		_half_frame.append(int(sheet.get("poses", {}).get("mouth_half", -1)))
+		_pivot.append(sheet.get("origin", Vector2(floorf(b.frame_size.x / 2.0), b.frame_size.y - 2.0)))
+		_feet_y.append(_pivot[-1].y + b.top_left.y)
+		body_color.append(Palette.index_of(def.color) if def.has("color") else main_color(b.texture, b.frames))
+		_add_motion_type(def)
 		add_child(b)
 		_batches.append(b)
+
+
+func _cache_motion() -> void:
+	var hop: Dictionary = _mo.get("hop", {})
+	var fly: Dictionary = _mo.get("fly", {})
+	var face: Dictionary = _mo.get("face", {})
+	var blink: Dictionary = _mo.get("blink", {})
+	var hit: Dictionary = _mo.get("hit", {})
+	var tg: Dictionary = _mo.get("telegraph", {})
+	var rd: Dictionary = _mo.get("reduced", {})
+	_hop_min = float(hop.get("rate_min", _hop_min))
+	_hop_jit = float(hop.get("rate_jitter", _hop_jit))
+	_idle_rate = float(hop.get("idle_rate", _idle_rate))
+	_idle_squash = float(hop.get("idle_squash", _idle_squash))
+	_fly_px = float(fly.get("bob_px", _fly_px))
+	_fly_rate = float(fly.get("bob_rate", _fly_rate))
+	_fly_jit = float(fly.get("rate_jitter", _fly_jit))
+	_turn_rate = float(face.get("turn_rate", _turn_rate))
+	_lean = float(face.get("lean", _lean))
+	_deadzone = float(face.get("deadzone", _deadzone))
+	var every: Array = blink.get("every", [_blink_min, _blink_max])
+	_blink_min = float(every[0])
+	_blink_max = float(every[1])
+	_blink_time = float(blink.get("time", _blink_time))
+	_hit_squash = float(hit.get("squash", _hit_squash))
+	_hit_time = float(hit.get("time", _hit_time))
+	_tg_shrink = float(tg.get("charger_shrink", _tg_shrink))
+	_tg_shake_px = float(tg.get("charger_shake_px", _tg_shake_px))
+	_tg_shake_rate = float(tg.get("charger_shake_rate", _tg_shake_rate))
+	_tg_charge = float(tg.get("charge_stretch", _tg_charge))
+	_tg_grow = float(tg.get("exploder_grow", _tg_grow))
+	var fr: Array = tg.get("exploder_flash_rate", [_tg_flash_lo, _tg_flash_hi])
+	_tg_flash_lo = float(fr[0])
+	_tg_flash_hi = float(fr[1])
+	_tg_puff_time = float(tg.get("shooter_puff_time", _tg_puff_time))
+	_tg_puff = float(tg.get("shooter_puff", _tg_puff))
+	_tg_recoil = float(tg.get("shooter_recoil", _tg_recoil))
+	_tg_recoil_time = float(tg.get("shooter_recoil_time", _tg_recoil_time))
+	_rd_squash = float(rd.get("squash", _rd_squash))
+	_rd_shake = float(rd.get("shake", _rd_shake))
+
+
+## The most common palette colour in a sheet's first frame, leaving out the
+## outline and eye colours (INK, NIGHT, WHITE).
+static func main_color(tex: Texture2D, frames: int) -> int:
+	var img := tex.get_image()
+	if img == null:
+		return Palette.GRAY
+	if img.is_compressed():
+		img.decompress()
+	var counts := {}
+	var w := img.get_width() / maxi(1, frames)
+	for y in img.get_height():
+		for x in w:
+			var c := img.get_pixel(x, y)
+			if c.a > 0.5:
+				counts[c] = counts.get(c, 0) + 1
+	var best := Palette.GRAY
+	var most := 0
+	for c: Color in counts:
+		var i := Palette.index_of_color(c)
+		if i in [Palette.INK, Palette.NIGHT, Palette.WHITE, -1]:
+			continue
+		if counts[c] > most:
+			most = counts[c]
+			best = i
+	return best
+
+
+## Per-type motion numbers: "hop" (or "fly" for fliers) with the type's
+## overrides from "types".
+func _add_motion_type(def: Dictionary) -> void:
+	var hop: Dictionary = _mo.get("hop", {})
+	var over: Dictionary = _mo.get("types", {}).get(def.id, {})
+	_m_height.append(float(over.get("height", hop.get("height", 2.0))))
+	_m_squash.append(float(over.get("squash", hop.get("squash", 0.12))))
+	_m_stretch.append(float(over.get("stretch", hop.get("stretch", 0.1))))
+	_m_per_speed.append(float(over.get("per_speed", hop.get("per_speed", 0.07))))
+	_m_rate_max.append(float(over.get("rate_max", hop.get("rate_max", 4.0))))
+	_m_fly.append(1 if def.get("flying", false) else 0)
+	_m_steps.append(float(over.get("cycles_per_hop", hop.get("cycles_per_hop", 1.0))))
 
 
 ## Animated sprite sheet for an enemy ("sheet": path to a PNG strip with a
@@ -211,6 +389,13 @@ static func load_sheet(def: Dictionary) -> Dictionary:
 	if not meta is Dictionary:
 		return {}
 	var sheet := {"texture": tex, "frames": int(meta.get("frames", 1)), "fps": float(meta.get("fps", 10))}
+	# Critter sheets (tools/art/critters.py): open-eye loop, closed-eye
+	# frames and extra poses.
+	for k: String in ["loop", "blink"]:
+		if meta.get(k) is float:
+			sheet[k] = int(meta[k])
+	if meta.get("poses") is Dictionary:
+		sheet.poses = meta.poses
 	if meta.get("clips") is Dictionary and meta.get("default") is String:
 		sheet.clips = meta.clips
 		sheet.default = meta.default
@@ -278,6 +463,16 @@ func spawn(type_id: int, at: Vector2, hp_mult: float, dmg_mult: float, speed_mul
 	knock_taken[s] = 0.0 if role_of[s] == ROLE_BOSS or f & F_GHOST else 1.0
 	burn_dps[s] = 0.0
 	burn_left[s] = 0.0
+	# Own phase and timing, so a crowd never hops or blinks in step.
+	var jit := _fly_jit if _m_fly[type_id] == 1 else _hop_jit
+	_phase[s] = rng.randf()
+	_rate_j[s] = 1.0 + rng.randf_range(-jit, jit)
+	_face[s] = 1.0 if _target.x >= at.x else -1.0
+	_face_goal[s] = _face[s]
+	_vel[s] = Vector2.ZERO
+	_blink_next[s] = _time + _next_blink()
+	_squash_end[s] = 0.0
+	_recoil_end[s] = 0.0
 	if f & F_GHOST:
 		ghosts.append(s)
 	return s
@@ -372,6 +567,7 @@ func hurt(slot: int, amount: float, push: Vector2) -> bool:
 	if flags[slot] & (F_GHOST | F_HIDDEN):
 		return false
 	flash[slot] = FLASH_TIME
+	_squash_end[slot] = _time + _hit_time
 	knock[slot] += push * knock_taken[slot]
 	if shield[slot] > 0.0:
 		shield[slot] -= amount
@@ -412,6 +608,7 @@ func update(delta: float, target: Vector2) -> void:
 				vel = _charger(s, d, dir, delta)
 			ROLE_BOSS:
 				pass  # its controller moves it
+		_vel[s] = vel
 		var k := knock[s]
 		var step := (vel + k) * delta
 		knock[s] = k * decay
@@ -468,6 +665,7 @@ func _shooter(s: int, d: float, dir: Vector2, delta: float) -> Vector2:
 	timer[s] -= delta
 	if timer[s] <= 0.0 and d < _shot_range[t]:
 		timer[s] = _shot_every[t]
+		_recoil_end[s] = _time + _tg_recoil_time
 		if event_fn.is_valid():
 			event_fn.call(EV_SHOOT, s, dir)
 	return vel
@@ -639,22 +837,159 @@ func render() -> void:
 	for b in _batches:
 		b.begin()
 	var blink := int(_time * 12.0) % 2 == 0
+	# Motion runs here, once per drawn frame, over the time since the last.
+	var dt := clampf(_time - _render_time, 0.0, 0.1)
+	_render_time = _time
+	var turn := minf(1.0, _turn_rate * dt)
 	for s in pool.active:
 		if flags[s] & F_HIDDEN:
 			continue
-		var t := type_of[s]
-		var fl := flash[s] > 0.0 or (state[s] == ST_WINDUP and blink and role_of[s] != ROLE_SHOOTER)
-		var frame := 0
-		if not _clips[t].is_empty():
-			frame = _clip_frame(s)
-		elif _fps[t] > 0.0:
-			frame = int(_time * _fps[t] + wobble[s] * 4.0)
 		var out := outline[s]
 		if shield[s] > 0.0 and blink:
 			out = Palette.WHITE
-		_batches[t].push(pos[s], fl, _flip(s), frame, out, draw_scale[s])
+		var t := type_of[s]
+		var role := role_of[s]
+		if not motion_on or role == ROLE_BOSS:
+			var fl := flash[s] > 0.0 or (state[s] == ST_WINDUP and blink and role != ROLE_SHOOTER)
+			var frame := 0
+			if not _clips[t].is_empty():
+				frame = _clip_frame(s)
+			elif _fps[t] > 0.0:
+				frame = int(_time * _fps[t] + wobble[s] * 4.0) % _loop[t]
+			_batches[t].push(pos[s], fl, _flip(s), frame, out, draw_scale[s])
+			continue
+		# --- Motion (data/rules/creature_motion.json) ---
+		var p := pos[s]
+		var v := _vel[s]
+		var spd := v.length()
+		var st := state[s]
+		# Face where it travels; standing still (or a Spitter, who aims)
+		# faces the player; a Chomper faces its charge.
+		var goal := _face_goal[s]
+		if role == ROLE_CHARGER and (st == ST_WINDUP or st == ST_CHARGE):
+			goal = -1.0 if aim[s].x < 0.0 else 1.0
+		elif role == ROLE_SHOOTER or spd <= 1.0:
+			if absf(_target.x - p.x) > 1.0:
+				goal = signf(_target.x - p.x)
+		elif absf(v.x) > spd * _deadzone:
+			goal = signf(v.x)
+		_face_goal[s] = goal
+		var face := _face[s]
+		face += (goal - face) * turn
+		_face[s] = face
+		# Hop rate follows speed; fliers bob at their own rate.
+		var fly := _m_fly[t] == 1
+		var rate := _idle_rate
+		if fly:
+			rate = _fly_rate
+		elif spd > 1.0:
+			rate = clampf(spd * _m_per_speed[t], _hop_min, _m_rate_max[t])
+		var ph := fposmod(_phase[s] + rate * _rate_j[s] * dt, 1.0)
+		_phase[s] = ph
+		var sx := 1.0
+		var sy := 1.0
+		var lift := 0.0
+		var shake := 0.0
+		var red := false
+		var frame := 0
+		if _loop[t] > 1:
+			if fly:
+				# Wings beat on the clock.
+				frame = int(_time * _fps[t] * _rate_j[s] + wobble[s] * 4.0) % _loop[t]
+			elif spd > 1.0:
+				# A walk cycle steps with the hop, so legs speed up with the
+				# walker and stop when it stands.
+				frame = int(ph * _loop[t] * _m_steps[t]) % _loop[t]
+		if fly:
+			lift = _fly_px * (0.5 + 0.5 * sin(TAU * ph))
+		elif spd > 1.0:
+			# Up and down once per hop: squashed on landing, stretched in the air.
+			var h := sin(PI * ph)
+			lift = _m_height[t] * h
+			var k := h * 2.0 - 1.0
+			sy = 1.0 + (_m_stretch[t] if k > 0.0 else _m_squash[t]) * k
+		else:
+			sy = 1.0 - _idle_squash * (0.5 + 0.5 * sin(TAU * ph))
+		if role == ROLE_CHARGER:
+			if st == ST_WINDUP:
+				# Crouches smaller and shakes, harder as the charge nears.
+				var g := 1.0 - _tg_shrink * (1.0 - clampf(timer[s] / _ch_windup[t], 0.0, 1.0))
+				sx = g
+				sy = g
+				lift = 0.0
+				shake = _tg_shake_px * signf(sin(_time * TAU * _tg_shake_rate + wobble[s]))
+			elif st == ST_CHARGE:
+				lift = 0.0
+				sy = 1.0
+				if _charge_frame[t] >= 0:
+					frame = _charge_frame[t]
+		elif role == ROLE_EXPLODER:
+			if st != ST_MOVE:
+				# Swells up and flashes red faster and faster.
+				var pr := 1.0 - clampf(timer[s] / _ex_fuse[t], 0.0, 1.0)
+				var g := 1.0 + _tg_grow * pr
+				sx = g
+				sy = g
+				lift = 0.0
+				red = fposmod(_time * lerpf(_tg_flash_lo, _tg_flash_hi, pr), 1.0) < 0.5
+		elif role == ROLE_SHOOTER:
+			if timer[s] < _tg_puff_time and _target.distance_squared_to(p) < _shot_range[t] * _shot_range[t]:
+				# Cheeks puff up wide before the spit...
+				var pr := 1.0 - clampf(timer[s] / _tg_puff_time, 0.0, 1.0)
+				sx *= 1.0 + _tg_puff * pr
+				sy *= 1.0 + _tg_puff * 0.4 * pr
+			if _recoil_end[s] > _time:
+				# ...and snap thin after it, mouth popping wide open and
+				# easing shut (it walks with its mouth closed).
+				var q := (_recoil_end[s] - _time) / _tg_recoil_time
+				sx *= 1.0 - _tg_recoil * q
+				sy *= 1.0 + _tg_recoil * q
+				var pose := _open_frame[t] if q > 0.45 else _half_frame[t]
+				if pose >= 0:
+					frame = pose
+		if _squash_end[s] > _time:
+			var q := (_squash_end[s] - _time) / _hit_time
+			sy *= 1.0 - _hit_squash * q
+			sx *= 1.0 + _hit_squash * 0.8 * q
+		# Blink: eyes shut for a moment, then the next one is 2-6 s away.
+		var bn := _blink_next[s]
+		if _time >= bn:
+			if _time > bn + _blink_time:
+				_blink_next[s] = _time + _next_blink()
+			elif _blink_at[t] >= 0 and frame < _loop[t]:
+				frame += _blink_at[t]
+		# Keep the volume: what gets taller gets thinner (unless a telegraph
+		# set both on purpose, as the swell and the crouch do).
+		if sx == 1.0:
+			sx = 1.0 - (sy - 1.0) * 0.8
+		var lean := _lean * (goal - face) * 0.5
+		if reduced:
+			sx = 1.0 + (sx - 1.0) * _rd_squash
+			sy = 1.0 + (sy - 1.0) * _rd_squash
+			lean *= _rd_squash
+			shake *= _rd_shake
+		var sc := draw_scale[s]
+		var bx := Vector2(sx * sc, 0.0)
+		# The top leans toward where it is turning (y is up = negative).
+		var by := Vector2(-lean * sc, sy * sc)
+		if role == ROLE_CHARGER and st == ST_CHARGE:
+			# Stretched along the charge, thinner across it.
+			var cs := _tg_charge * (_rd_squash if reduced else 1.0)
+			var d := aim[s]
+			var across := 1.0 - cs * 0.5
+			var diff := cs * 1.5
+			bx = Vector2(across + diff * d.x * d.x, diff * d.x * d.y) * sc
+			by = Vector2(diff * d.x * d.y, across + diff * d.y * d.y) * sc
+		# The feet stay where the still sprite's feet are (its centre is the
+		# enemy's position).
+		_batches[t].push_xform(Vector2(p.x + shake, p.y + _feet_y[t] * sc - lift), bx, by, _pivot[t],
+			2 if red else (1 if flash[s] > 0.0 else 0), face < 0.0, frame, out)
 	for b in _batches:
 		b.commit()
+
+
+func _next_blink() -> float:
+	return rng.randf_range(_blink_min, _blink_max)
 
 
 ## Sprites face east; mirror the ones facing west (their aim while charging,

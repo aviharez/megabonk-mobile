@@ -1,8 +1,8 @@
 #!/usr/bin/env python3
-"""Snap a procedural-pixel-creatures sheet to the game palette and repack it as a game sheet.
+"""Snap a sprite sheet to the game palette and repack it as a game sheet.
 
-Input: a sheet PNG written by tools/creature_export (or the generator itself) and its metadata
-JSON (ppc.spritesheet). Output: one horizontal row of equally sized frames, each with at least a
+Input: a sheet PNG and its metadata JSON (frame size and count; originally the procedural-pixel-
+creatures exports, which the critter sprites replaced on 2026-10-13). Output: one horizontal row of equally sized frames, each with at least a
 1px fully transparent border, plus a sidecar JSON:
 
   {"format": "game.sheet", "frame_w": W, "frame_h": H, "frames": N, "fps": F,
