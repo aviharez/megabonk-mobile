@@ -107,3 +107,36 @@ func test_no_old_kit_parts_in_screens(t) -> void:
 	# The pieces built from kit parts instead.
 	t.check(UiArt.has("hud_track") and UiArt.has("hud_fill") and UiArt.has("lv_frame"), "toggle parts load")
 	t.check(UiArt.has("lv_sticker") and UiArt.sprite_size(UiArt.PADLOCK) == Vector2i(13, 16), "sticker and padlock load")
+
+
+func _colours(part: String) -> Dictionary:
+	var img: Image = UiArt.texture(part).get_image()
+	var out := {}
+	for y in img.get_height():
+		for x in img.get_width():
+			if img.get_pixel(x, y).a > 0.0:
+				out[img.get_pixel(x, y).to_rgba32()] = true
+	return out
+
+
+## The kit's parts as drawn (fine cut): light rims and bevels survive, the
+## nav tiles keep their label strip, and the reroll / skip / banish buttons
+## are the kit's own at the level-up's button size.
+func test_kit_parts_as_drawn(t) -> void:
+	UiArt.clear()
+	var rim := {"icon_frame": [Palette.SALMON, Palette.RED, Palette.BLOOD], "nav_blue": [Palette.SKY, Palette.BLUE, Palette.NIGHT],
+		"nav_green": [Palette.GREEN, Palette.NIGHT], "play_button": [Palette.BUTTER, Palette.GOLD, Palette.ORANGE, Palette.RUST]}
+	for part: String in rim:
+		var have := _colours(part)
+		for c: int in rim[part]:
+			t.check(have.has(Palette.color(c).to_rgba32()), "%s keeps the kit's %s shade" % [part, Palette.color(c).to_html()])
+	t.check(UiArt.min_size("nav_blue").y <= 44 and UiArt.min_size("icon_frame").x <= 16, "nav tiles fit 44 px, icon frames 16 px")
+	for g in ["reroll", "skip", "banish"]:
+		var sz := UiArt.sprite_size("act_" + g)
+		t.check(sz.x <= LevelUpPanel.ACTION_SIZE.x + 1 and sz.y + ActionButton.SHADOW <= LevelUpPanel.ACTION_SIZE.y,
+			"the kit's %s button fits the action slot (%s)" % [g, sz])
+		t.check(UiArt.has("act_%s_pressed" % g), "and has its pressed art")
+	# Weapon, manual and item icons sit in the kit's icon frame, not the button frame.
+	for f in ["res://scripts/ui/level_card.gd", "res://scripts/ui/build_view.gd", "res://scripts/run/hud.gd"]:
+		var src := FileAccess.get_file_as_string(f)
+		t.check(src.contains("\"icon_frame\"") and not src.contains("\"lv_frame\""), "%s draws content icons in icon_frame" % f.get_file())

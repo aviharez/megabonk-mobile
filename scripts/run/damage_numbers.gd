@@ -9,7 +9,7 @@ extends Node2D
 ##
 ## Plain hits: HIT (Inter 900, INK outline), small so a crowd of hits doesn't
 ## bury the fight. Crits: CRIT (Titan One, BUTTER with a RED edge, "!"),
-## flashing WHITE. Words and gold: NUM_WORLD. Everything hops up and out in a
+## flashing WHITE. Words and gold: POP. Everything hops up and out in a
 ## small arc (whole pixels). When the pool is full the oldest number is
 ## reused. Numbers can be turned off in settings; labels can't.
 
@@ -113,7 +113,7 @@ func _draw() -> void:
 		# Blink out over the last few frames instead of fading.
 		if _life[i] < 0.1 and int(_life[i] * 40.0) % 2 == 0:
 			continue
-		var style := "NUM_WORLD"
+		var style := "POP"
 		var c := _color[i]
 		if _crit[i] == 1:
 			style = "CRIT"

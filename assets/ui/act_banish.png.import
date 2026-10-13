@@ -1,0 +1,14 @@
+[remap]
+
+importer="image"
+type="Image"
+uid="uid://h7mrbvwxps7q"
+path="res://.godot/imported/act_banish.png-3f55d21adf1b2caf91aabb2408bba28e.image"
+
+[deps]
+
+source_file="res://assets/ui/act_banish.png"
+dest_files=["res://.godot/imported/act_banish.png-3f55d21adf1b2caf91aabb2408bba28e.image"]
+
+[params]
+

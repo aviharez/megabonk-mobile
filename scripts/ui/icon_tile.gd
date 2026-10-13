@@ -1,8 +1,8 @@
 class_name IconTile
 extends PixelButton
-## A square grid tile for the unlocks and shop grids: the kit 3b icon frame
-## (`lv_frame`, the level-up cards' frame) in a colour that tells the state
-## (GOLD when selected), a 16x16 icon at 2x, and small state marks:
+## A square grid tile for the unlocks and shop grids: the kit's icon frame
+## (`icon_frame`, as on the level-up cards) in a colour that tells the state
+## (GOLD when selected), the icon (shrunk to LevelCard.ICON_PX) at 2x, and small state marks:
 ##   "locked"    INK silhouette on a SHADE frame, a padlock, a gold progress strip
 ##   "available" full colour on BLUE, hops now and then, a New sticker or the
 ##               kit's red "!", gold sparkles going round the frame
@@ -53,20 +53,21 @@ func _draw() -> void:
 	var y := SHADOW if sunk else 0
 	var r := Rect2(0, y, size.x, size.y - SHADOW)
 	var face: int = {"locked": Palette.SHADE, "available": Palette.BLUE, "owned": Palette.OCEAN, "maxed": Palette.GREEN}.get(state, Palette.SHADE)
-	UiArt.draw(self, "lv_frame", r, Palette.GOLD if selected else face, -1, 0 if sunk else SHADOW)
+	UiArt.draw(self, "icon_frame", r, Palette.GOLD if selected else face, -1, 0 if sunk else SHADOW)
 	if picture != null:
-		var s := Vector2(picture.get_size()) * K
+		var pic := LevelCard._small(picture) if picture.get_width() == Icons.SIZE else picture
+		var s := Vector2(pic.get_size()) * K
 		var hop := 0.0
 		if state == "available" and fmod(_t, 1.6) < 0.2:
 			hop = -2.0
-		var at := Vector2(floorf((size.x - s.x) / 2.0), y + floorf((r.size.y - s.y) / 2.0) + hop)
+		var at := Vector2(floorf((size.x - s.x) / 2.0), y + floorf((r.size.y - s.y) / 2.0) - 1.0 + hop)
 		if state == "locked":
 			# A 1px lighter rim round the silhouette so the shape reads on SHADE
 			# (a GRAY copy, not a modulate: INK x GRAY would leave the palette).
-			var rim := _recolored(picture, Palette.GRAY)
+			var rim := _recolored(pic, Palette.GRAY)
 			for o in [Vector2(-1, 0), Vector2(1, 0), Vector2(0, -1), Vector2(0, 1)]:
 				draw_texture_rect(rim, Rect2(at + o, s), false)
-		draw_texture_rect(picture, Rect2(at, s), false)
+		draw_texture_rect(pic, Rect2(at, s), false)
 	match state:
 		"locked":
 			var ls := Vector2(UiArt.sprite_size(UiArt.PADLOCK))

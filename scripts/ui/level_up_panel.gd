@@ -7,8 +7,11 @@ extends Control
 ## one-line hint (BODY). Boxes at the concept's spots (concept px / 6.4),
 ## relative to the header's top-left at concept (15, 78). Run adds the cards
 ## and buttons as children at CARD_AT / ACTION_AT and keeps the logic.
+## The beacon bonus and the merchant use the same panel: no "+N" sticker
+## (count 0), and without the button row (`rows` false) the info bar moves
+## up under the window.
 
-const SIZE := Vector2(150, 226)
+const SIZE := Vector2(150, 229)
 const HEADER := Rect2(26, 0, 95, 23)
 const STICKER := Rect2(114, 7, 21, 14)
 const WINDOW := Rect2(0, 12, 150, 158)
@@ -18,8 +21,9 @@ const CARD_SIZE := Vector2(132, 44)
 const ACTION_X := 13.0
 const ACTION_STEP := 44.0
 const ACTION_Y := 175.0
-const ACTION_SIZE := Vector2(34, 32)
-const INFO := Rect2(11, 207, 128, 19)
+## The kit's action buttons are 34 x 33, plus the 2 px drop.
+const ACTION_SIZE := Vector2(34, 35)
+const INFO := Rect2(11, 210, 128, 19)
 
 var title := "Level up!":
 	set(v):
@@ -34,11 +38,22 @@ var hint := "Choose one upgrade.":
 	set(v):
 		hint = v
 		queue_redraw()
+## The button row under the window (Reroll / Skip / Banish, the merchant's Leave).
+var rows := true:
+	set(v):
+		rows = v
+		size = Vector2(SIZE.x, info_rect().end.y)
+		queue_redraw()
 
 
 func _init() -> void:
 	size = SIZE
 	mouse_filter = MOUSE_FILTER_IGNORE
+
+
+## Where the info bar is (under the button row, or under the window without it).
+func info_rect() -> Rect2:
+	return INFO if rows else Rect2(INFO.position.x, ACTION_Y, INFO.size.x, INFO.size.y)
 
 
 func _draw() -> void:
@@ -54,6 +69,7 @@ func _draw() -> void:
 		UiArt.draw(self, "lv_sticker", STICKER)
 		Fonts.draw(self, "+%d" % count, Vector2(STICKER.position.x, STICKER.position.y + 2), "TAG", -1,
 				STICKER.size.x, HORIZONTAL_ALIGNMENT_CENTER, 8)
-	UiArt.draw(self, "info_bar", INFO)
-	UiArt.sprite(self, "info_icon", INFO.position + Vector2(4, 4))
-	Fonts.draw(self, hint, INFO.position + Vector2(22, 5), "BODY", Palette.PAPER)
+	var info := info_rect()
+	UiArt.draw(self, "info_bar", info)
+	UiArt.sprite(self, "info_icon", info.position + Vector2(4, 4))
+	Fonts.draw(self, hint, info.position + Vector2(22, 5), "BODY", Palette.PAPER)

@@ -46,23 +46,16 @@ func _init(db: GameData, id: String) -> void:
 		icon.position = Vector2(74, 72) - icon.size / 2.0
 		icon.mouse_filter = MOUSE_FILTER_IGNORE
 		win.add_child(icon)
-	var name_l := Label.new()
-	name_l.text = Meta.content(db, id).get("name", id)
+	var name_l := Fonts.label(Meta.content(db, id).get("name", id), "CARD_NAME")
 	name_l.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
-	name_l.position = Vector2(0, 120)
+	name_l.position = Vector2(0, 121)
 	name_l.size = Vector2(148, 10)
-	Fonts.bold(name_l)
-	name_l.add_theme_color_override("font_color", Palette.color(Palette.PAPER))
-	name_l.add_theme_color_override("font_shadow_color", Palette.color(Palette.INK))
-	name_l.add_theme_constant_override("shadow_offset_y", 1)
 	win.add_child(name_l)
-	var kind := Label.new()
 	var kn := Meta.kind_name(db, id)
-	kind.text = "New %s for your runs." % (kn if kn == "Manual" else kn.to_lower())
+	var kind := Fonts.label("New %s for your runs." % (kn if kn == "Manual" else kn.to_lower()), "CARD_BODY", Palette.LIME)
 	kind.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
 	kind.position = Vector2(0, 132)
-	kind.size = Vector2(148, 10)
-	kind.add_theme_color_override("font_color", Palette.color(Palette.LIME))
+	kind.size = Vector2(148, 9)
 	win.add_child(kind)
 	var ok := PixelButton.new()
 	ok.name = "Nice"

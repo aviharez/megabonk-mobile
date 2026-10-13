@@ -2,7 +2,7 @@ class_name BuildView
 extends Control
 ## The run's build at a glance (pause and game over): a row of weapon slots
 ## and a row of tome slots (icon + level number, empty slots dark), then the
-## items as small icons with their stack counts. Slots are kit 3b `lv_frame`s
+## items as small icons with their stack counts. Slots are the kit's `icon_frame`s
 ## in their kind's (rarity's) colour. Fixed width, height from
 ## `needed_height()`. Tapping a filled slot selects it (gold frame) and emits
 ## `picked(kind, id)` so the screen can say what it is.
@@ -10,6 +10,7 @@ extends Control
 signal picked(kind: String, id: String)
 
 const SLOT := 20
+const ICON_PX := 14
 const GAP := 3
 
 var db: GameData
@@ -88,9 +89,9 @@ func _draw() -> void:
 		_mark("items/" + id, Vector2(x, y))
 		_frame(Vector2(x, y), rc if rc >= 0 else Palette.GRAY)
 		_hit.append([Rect2(x, y, SLOT, SLOT), "items", id])
-		var tex := Icons.texture(db, "items", id)
+		var tex := Icons.small(db, "items", id, ICON_PX)
 		if tex != null:
-			draw_texture(tex, Vector2(x + 2, y + 2))
+			draw_texture(tex, (Vector2(x, y) + Vector2(SLOT, SLOT) / 2.0 + Vector2(0, -1) - tex.get_size() / 2.0).floor())
 		if int(items[id]) > 1:
 			_badge(Vector2(x + SLOT, y + SLOT), "%d" % int(items[id]))
 		x += SLOT + GAP
@@ -104,9 +105,10 @@ func _slots(cat: String, owned: Dictionary, n: int, y: float, color: int) -> voi
 			_mark(cat + "/" + ids[i], at)
 			_frame(at, color)
 			_hit.append([Rect2(at, Vector2(SLOT, SLOT)), cat, ids[i]])
-			var tex := Icons.texture(db, cat, ids[i])
+			# Icons a little under the frame's face (16 px art shrunk to ICON_PX).
+			var tex := Icons.small(db, cat, ids[i], ICON_PX)
 			if tex != null:
-				draw_texture(tex, at + Vector2(2, 2))
+				draw_texture(tex, (at + Vector2(SLOT, SLOT) / 2.0 + Vector2(0, -1) - tex.get_size() / 2.0).floor())
 			_badge(at + Vector2(SLOT, SLOT), "%d" % int(owned[ids[i]]))
 		else:
 			_frame(at, Palette.NIGHT)
@@ -116,11 +118,11 @@ func _slots(cat: String, owned: Dictionary, n: int, y: float, color: int) -> voi
 func _mark(key: String, at: Vector2) -> void:
 	if key != selected:
 		return
-	UiArt.draw(self, "lv_frame", Rect2(at - Vector2(2, 2), Vector2(SLOT + 4, SLOT + 4)), Palette.GOLD)
+	UiArt.draw(self, "icon_frame", Rect2(at - Vector2(2, 2), Vector2(SLOT + 4, SLOT + 4)), Palette.GOLD)
 
 
 func _frame(at: Vector2, color: int) -> void:
-	UiArt.draw(self, "lv_frame", Rect2(at, Vector2(SLOT, SLOT)), color)
+	UiArt.draw(self, "icon_frame", Rect2(at, Vector2(SLOT, SLOT)), color)
 
 
 ## A slot's count on its bottom-right corner (BAR_NUM, outlined like the HUD's).

@@ -66,6 +66,7 @@ func _draw() -> void:
 	var r := Rect2(floorf((w - custom_minimum_size.x) * align), 0, custom_minimum_size.x, H)
 	UiArt.draw(self, "plate_dark", r)
 	var cs := Vector2(UiArt.sprite_size("coin_big"))
-	UiArt.sprite(self, "coin_big", Vector2(r.position.x + 4, r.position.y + floorf((r.size.y - cs.y) / 2.0) - 1))
-	var asc := Fonts.TITLE_FONT.get_ascent(Fonts.STYLES.NUM[1])
-	Fonts.draw(self, grouped(_shown), Vector2(r.position.x + cs.x + 8, r.position.y + floorf((r.size.y - asc) / 2.0)), "NUM")
+	# The plate's face is its height less the 1 px bevel under it; digits are caps.
+	var face_h := r.size.y - 1.0
+	UiArt.sprite(self, "coin_big", Vector2(r.position.x + 4, r.position.y + floorf((face_h - cs.y) / 2.0)))
+	Fonts.draw(self, grouped(_shown), Vector2(r.position.x + cs.x + 7, Fonts.cap_y("NUM", r.position.y, face_h)), "NUM")

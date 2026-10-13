@@ -25,18 +25,26 @@ const STYLES := {
 	"TITLE": ["T", 15, Palette.INK, 0, Palette.INK, 0],
 	"BANNER": ["T", 14, Palette.RED, 4, Palette.INK, 2],
 	"NAME": ["T", 10, Palette.PAPER, 0, Palette.INK, 0],
+	## Names and descriptions on popup cards (level-up, bonus, merchant, pause details).
+	"CARD_NAME": ["T", 8, Palette.PAPER, 0, Palette.INK, 0],
+	"CARD_BODY": ["I", 6, Palette.PAPER, 0, Palette.INK, 0],
 	"NUM": ["T", 10, Palette.WHITE, 0, Palette.INK, 0],
 	"NUM_WORLD": ["T", 9, Palette.WHITE, 3, Palette.INK, 0],
+	## Words and gold popping out of the world ("+5", "Shield!").
+	"POP": ["T", 8, Palette.WHITE, 2, Palette.INK, 0],
 	"BAR_NUM": ["T", 7, Palette.WHITE, 3, Palette.INK, 0],
 	"RIBBON": ["T", 8, Palette.PAPER, 3, Palette.WINE, 0],
 	"NAV": ["T", 7, Palette.PAPER, 0, Palette.INK, 0],
 	"TAG": ["T", 7, Palette.WHITE, 0, Palette.INK, 0],
 	"BODY": ["I", 7, Palette.MIST, 0, Palette.INK, 0],
 	"CHANGE": ["I", 8, Palette.LIME, 0, Palette.INK, 0],
-	"HIT": ["I", 7, Palette.WHITE, 3, Palette.INK, 0],
-	"CRIT": ["T", 12, Palette.BUTTER, 4, Palette.RED, 2],
+	"HIT": ["I", 6, Palette.WHITE, 2, Palette.INK, 0],
+	"CRIT": ["T", 9, Palette.BUTTER, 3, Palette.RED, 1],
 	"SPLASH": ["T", 22, Palette.GOLD, 4, Palette.INK, 2],
 }
+## Cap height per font, in ems (OS/2 sCapHeight): centring on the caps lines
+## text up with what's beside it (the ascent includes room above the letters).
+const CAP := {"T": 0.71, "I": 0.7275}
 ## Smallest sizes fit() may shrink to.
 const MIN_TITLE := 6
 const MIN_BODY := 7
@@ -100,6 +108,15 @@ static func width(text: String, style_name: String, size := -1) -> float:
 static func height(style_name: String, size := -1) -> float:
 	var fs: int = STYLES[style_name][1] if size < 0 else size
 	return font_of(style_name).get_height(fs)
+
+
+## The y to draw `style_name` at (Label / draw() top) so its capitals sit
+## centred in a box from `box_y`, `box_h` tall (lowercase sits on the same line).
+static func cap_y(style_name: String, box_y: float, box_h: float, size := -1) -> float:
+	var d: Array = STYLES[style_name]
+	var fs: int = d[1] if size < 0 else size
+	var cap: float = CAP[d[0]] * fs
+	return roundf(box_y + (box_h - cap) / 2.0 - (font_of(style_name).get_ascent(fs) - cap))
 
 
 ## Shrinks `l`'s style one size at a time until its text fits `max_width`

@@ -1,0 +1,14 @@
+[remap]
+
+importer="image"
+type="Image"
+uid="uid://dnb8gpe788hkg"
+path="res://.godot/imported/coin_nav.png-23a38f5a9e0e1b0ee16476ab7fc74295.image"
+
+[deps]
+
+source_file="res://assets/ui/coin_nav.png"
+dest_files=["res://.godot/imported/coin_nav.png-23a38f5a9e0e1b0ee16476ab7fc74295.image"]
+
+[params]
+

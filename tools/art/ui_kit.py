@@ -130,6 +130,12 @@ PARTS3 = {
 
 # Kit 3b (Phase 9, level-up + HUD; child of kit 3) sheet: art pixel about 13 source px, soft alpha.
 SCALE3B = 13
+# Kits 3 and 3b are really drawn on an ~8 source px grid (rivets, light rims, the nav tiles'
+# label-strip bevel are one 8 px step); SCALE3 / SCALE3B lose those. Parts SHIP marks "fine" are
+# cut at FINE with a lightness-weighted snap (FINE_L) so rims and bevels keep their own shade:
+# the kit's frames as drawn, with a 2 px INK outline.
+FINE = 8
+FINE_L = 2.5
 PARTS3B = {
     "level_ring": (33, 25, 192, 190, None),
     "pause_btn": (1815, 25, 200, 190, None),
@@ -182,13 +188,8 @@ SHIP = {
     "key": ("key", "sprite", {}),
     # Kit 3 (Phase 9 dark UI). The second row of nav tiles on the sheet only differs by noise
     # (4-26 px), so there is one tile per colour; pressed = the usual 1px sink.
-    "play_button": ("k3_play_button", "slice", {"slice": [4, 4, 4, 4], "mid": [20, 8]}),
     "button_orange": ("k3_button_orange", "slice", {"slice": [4, 4, 4, 3], "mid": [19, 7]}),
     "button_off": ("k3_button_off", "slice", {"slice": [4, 4, 4, 4], "mid": [19, 8]}),
-    "nav_blue": ("k3_nav_blue", "slice", {"slice": [2, 2, 2, 9], "mid": [9, 6]}),
-    "nav_green": ("k3_nav_green", "slice", {"slice": [2, 2, 2, 9], "mid": [9, 6]}),
-    "nav_orange": ("k3_nav_orange", "slice", {"slice": [2, 2, 2, 9], "mid": [9, 6]}),
-    "nav_purple": ("k3_nav_purple", "slice", {"slice": [2, 2, 2, 9], "mid": [9, 6]}),
     "plate_dark": ("k3_coin_plate", "slice", {"slice": [2, 2, 3, 3], "mid": [20, 6]}),
     "panel_dark": ("k3_side_panel", "slice", {"slice": [3, 4, 3, 4], "mid": [20, 4]}),
     "icon_button": ("k3_gear_button", "slice", {"slice": [2, 2, 2, 2], "mid": [3, 3]}),
@@ -238,6 +239,27 @@ SHIP = {
     "hud_coin": ("k3b_coin", "sprite", {}),
     "hud_skull": ("k3b_skull", "sprite", {}),
     "hud_clock": ("k3b_clock", "sprite", {}),
+    # Fine cuts (FINE): the kit's parts as drawn, light rims and bevels kept. The nav tiles
+    # (39 x 44, the home's size) and the play button replace the coarse ones; `icon_frame` is
+    # the kit's square icon frame behind every weapon, manual and item icon (any colour through
+    # the ramp, WINE bevel folded into BLOOD); `act_*` are the kit's reroll / skip / banish
+    # buttons with their icons, at the level-up's button size.
+    "nav_blue": ("k3f_nav_blue", "slice", {"slice": [4, 4, 4, 16], "mid": [7, 15], "mirror": True}),
+    "nav_green": ("k3f_nav_green", "slice", {"slice": [4, 4, 4, 16], "mid": [7, 15], "mirror": True}),
+    "nav_orange": ("k3f_nav_orange", "slice", {"slice": [4, 4, 4, 16], "mid": [7, 15], "mirror": True}),
+    "nav_purple": ("k3f_nav_purple", "slice", {"slice": [4, 4, 4, 16], "mid": [7, 15], "mirror": True}),
+    "play_button": ("k3f_play_button", "slice", {"slice": [6, 8, 6, 8], "mid": [40, 15], "mirror": True,
+                                                 "recolor": {"BARK": "RUST", "WOOD": "RUST"}}),
+    "icon_frame": ("k3bf_frame_red", "slice", {"slice": [4, 5, 4, 5], "mid": [8, 10], "mirror": True,
+                                               "recolor": {"WINE": "BLOOD"}, "ramp": ["SALMON", "RED", "BLOOD"]}),
+    # the kit coin at the padlock / sack's height, for the home's free coins tile
+    "coin_nav": ("k3m_coin_big", "sprite", {}),
+    "act_reroll": ("k3bf_reroll", "sprite", {}),
+    "act_reroll_pressed": ("k3bf_reroll_pressed", "sprite", {}),
+    "act_skip": ("k3bf_skip", "sprite", {}),
+    "act_skip_pressed": ("k3bf_skip_pressed", "sprite", {}),
+    "act_banish": ("k3bf_banish", "sprite", {}),
+    "act_banish_pressed": ("k3bf_banish_pressed", "sprite", {}),
 }
 # Hand touch-ups after shrinking: name -> [(x, y, palette index)] (none since the kit 1 pips
 # were dropped in Phase 9).
@@ -250,16 +272,34 @@ def palette_names():
     return {int(i): n for n, i in re.findall(r"^const ([A-Z_]+) := (\d+)$", src, re.M)}
 
 
-def cut(sheet, pal, allowed, rect, scale=SCALE, cutoff=None):
+def cut(sheet, pal, allowed, rect, scale=SCALE, cutoff=None, weight_l=None):
     x, y, w, h = rect[:4]
     im = sheet.crop((x, y, x + w, y + h))
     if cutoff is not None:
         c = np.array(im)
         c[..., 3] = np.where(c[..., 3] >= cutoff, 255, 0)
         im = Image.fromarray(c)
-    a = snap(im, pal, allowed)
+    a = snap(im, pal, allowed) if weight_l is None else snap_lightness(im, pal, allowed, weight_l)
     a = shrink_mode(a, max(1, round(w / scale)), max(1, round(h / scale)))
     return trim(defringe(a, pal))
+
+
+def snap_lightness(im, pal, allowed, weight_l):
+    """Like snap(), but CIELAB lightness counts `weight_l` times: the kit's light rims and
+    dark bevels are a shade off the face, and a plain snap folds them into the face colour."""
+    a = np.array(im.convert("RGBA"))
+    op = a[..., 3] >= 128
+    out = np.zeros_like(a)
+    if op.any():
+        targets = pal[allowed]
+        lab_t = ps.srgb_to_lab(targets)
+        uniq, inv = np.unique(a[op][:, :3], axis=0, return_inverse=True)
+        lab_u = ps.srgb_to_lab(uniq)
+        wt = np.array([weight_l, 1.0, 1.0])
+        d = (((lab_u[:, None, :] - lab_t[None, :, :]) * wt) ** 2).sum(-1)
+        out[op, :3] = targets[d.argmin(1)][inv.reshape(-1)]
+        out[op, 3] = 255
+    return out
 
 
 def defringe(a, pal):
@@ -384,6 +424,11 @@ def main():
         parts.update({"k3_" + name: cut(sheets[2], pal, allowed, rect, SCALE3, CUTOFF3) for name, rect in PARTS3.items()})
     if len(sheets) > 3:
         parts.update({"k3b_" + name: cut(sheets[3], pal, allowed, rect, SCALE3B, CUTOFF3) for name, rect in PARTS3B.items()})
+    if len(sheets) > 3:
+        parts.update({"k3f_" + name: cut(sheets[2], pal, allowed, rect, FINE, CUTOFF3, FINE_L) for name, rect in PARTS3.items()})
+        parts.update({"k3bf_" + name: cut(sheets[3], pal, allowed, rect, FINE, CUTOFF3, FINE_L) for name, rect in PARTS3B.items()})
+        # the coin cut a little bigger than SCALE3 (as tall as the padlock and sack at 1x)
+        parts["k3m_coin_big"] = cut(sheets[2], pal, allowed, PARTS3["coin_big"], 11, CUTOFF3)
     names = palette_names()
     meta = {}
     out = parts if ap_all else {}

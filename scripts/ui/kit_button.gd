@@ -96,10 +96,9 @@ func _draw() -> void:
 		var pad: float = Fonts.STYLES[style_name][3] * 2
 		while fs > Fonts.MIN_TITLE and Fonts.width(label, style_name, fs) + pad > box.size.x:
 			fs -= 1
-		var f := Fonts.font_of(style_name)
-		# Centre the ascent (caps and x-height read as the text's body).
-		var y := box.position.y + floorf((box.size.y - f.get_ascent(fs)) / 2.0)
-		Fonts.draw(self, label, Vector2(box.position.x, roundf(y)), style_name,
+		# Centred on the caps (the ascent has room above the letters).
+		var y := Fonts.cap_y(style_name, box.position.y, box.size.y, fs)
+		Fonts.draw(self, label, Vector2(box.position.x, y), style_name,
 				Palette.SHADE if dim else text_color, box.size.x, HORIZONTAL_ALIGNMENT_CENTER, fs)
 	match sticker:
 		"alert":

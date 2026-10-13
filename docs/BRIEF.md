@@ -263,7 +263,7 @@ Every asset follows one locked palette (picked from Lospec), a 180×320 portrait
 | Weapon and item icons | SpriteCook | One style-reference icon first, the rest follow it |
 | Tome icons | SpriteCook + code | One book sprite, then 16 cover-color and symbol variants made in code |
 | Suburbia tiles and props | SpriteCook or drawn in code | Remapped to the palette |
-| UI | SpriteCook UI kits (9-slice plates, frames, stickers, icons; kit 3 + 3b for the Phase 9 dark look) + SpriteCook home art (night street backdrop, logo leaves, critters) | Snapped to the palette (`tools/art/ui_kit.py`, `tools/art/home_art.py`). Fonts (OFL, Google Fonts): Titan One for titles, buttons, names and numbers; Inter at weight 900 for body text (7 px or more). Both import with antialiasing off, so text stays on the palette at device resolution |
+| UI | SpriteCook UI kits (9-slice plates, frames, stickers, icons; kit 3 + 3b for the Phase 9 dark look) + SpriteCook home art (night street backdrop, logo leaves, critters) | Snapped to the palette (`tools/art/ui_kit.py`, `tools/art/home_art.py`). Fonts (OFL, Google Fonts): Titan One for titles, buttons, names and numbers; Inter at weight 900 for body text (7 px or more; 6 px on popup cards and damage numbers). Both import with antialiasing off, so text stays on the palette at device resolution |
 
 The procedural generator uses Godot 4.5.2 .NET and .NET 8, and has only been validated on Windows. Run it as a separate tool, not as part of the game project.
 
@@ -364,7 +364,7 @@ The full spec is in docs/BRIEF.md. The brief is the source of truth for content 
 - Don't use names, characters, or assets from other games.
 
 ## UI design direction
-The UI is dark, chunky pixel art from the SpriteCook kits in assets/ui/ (deep night panels, thick INK outlines, hard drop shadows, toy-bright gold / blue / green / orange / purple accents). Only the text is smooth: Titan One for titles, buttons, names and numbers; Inter 900 for body text (7 px, never smaller). Little text: kind, rarity and New are shown by colour and stickers, not words. Don't use: gradient pill buttons, glass or blur, soft shadows, emoji as icons, smooth rounded corners, colours outside the palette, or code-drawn plates where a kit part exists.
+The UI is dark, chunky pixel art from the SpriteCook kits in assets/ui/ (deep night panels, thick INK outlines, hard drop shadows, toy-bright gold / blue / green / orange / purple accents). Only the text is smooth: Titan One for titles, buttons, names and numbers; Inter 900 for body text (7 px; 6 px only for popup card names and descriptions and damage numbers, never smaller). Little text: kind, rarity and New are shown by colour and stickers, not words. Don't use: gradient pill buttons, glass or blur, soft shadows, emoji as icons, smooth rounded corners, colours outside the palette, or code-drawn plates where a kit part exists.
 
 ## Verification
 - Before calling a phase done, run the project and the existing tests. Report fps with 300 enemies on screen.

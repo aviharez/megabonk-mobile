@@ -48,7 +48,8 @@ const TOAST_SIZE := 8
 ## a frame flashes white when it's new or levels up.
 const STRIP_Y := 33
 const SLOT := 16
-const ICON_PX := 12
+## Icons in the 16 px kit frames: a little smaller than the frame's face.
+const ICON_PX := 11
 const FLASH_TIME := 0.9
 const CARD_TIME := 3.2
 ## Item row at the bottom, centred: 16 px kit frames (lv_frame in the item's
@@ -378,10 +379,10 @@ func _draw_strip(y: float) -> float:
 			var r := Rect2(x, y, SLOT, SLOT)
 			var id: String = ids[i]
 			var lvl := int(pair[1][id])
-			UiArt.draw(self, "lv_frame", r, pair[3])
+			UiArt.draw(self, "icon_frame", r, pair[3])
 			var tex := Icons.small(db, pair[0], id, ICON_PX)
 			if tex != null:
-				draw_texture(tex, r.position + Vector2(2, 1))
+				draw_texture(tex, _icon_at(r, tex))
 			# Level pips under the frame: five 2 px pips on an INK strip.
 			var maxed := lvl >= 5
 			draw_rect(Rect2(r.position.x + 1, r.end.y + 1, 15, 3), Palette.color(Palette.INK))
@@ -390,12 +391,18 @@ func _draw_strip(y: float) -> float:
 				draw_rect(Rect2(r.position.x + 2 + k * 3, r.end.y + 1, 2, 2), Palette.color(c))
 			var fl: float = _flash.get(pair[0] + "/" + id, 0.0)
 			if fl > 0.0 and int(fl * 12.0) % 2 == 0:
-				UiArt.draw(self, "lv_frame", r, Palette.MIST)
+				UiArt.draw(self, "icon_frame", r, Palette.MIST)
 				if tex != null:
-					draw_texture(tex, r.position + Vector2(2, 1))
+					draw_texture(tex, _icon_at(r, tex))
 			x += SLOT + 2
 		x += 3
 	return x - 4
+
+
+## Top-left for `tex` centred on a kit icon frame's face `r` (a pixel above
+## the middle: the frame's bevel is at its foot).
+static func _icon_at(r: Rect2, tex: Texture2D) -> Vector2:
+	return (r.get_center() + Vector2(0, -1) - tex.get_size() / 2.0).floor()
 
 
 ## A 1 px frame round `r` on `ci`.
@@ -419,10 +426,10 @@ func _draw_items() -> void:
 		var r := item_rect(i, n)
 		var fl: float = _flash.get("items/" + id, 0.0)
 		var lit := fl > 0.0 and int(fl * 12.0) % 2 == 0
-		UiArt.draw(_items_view, "lv_frame", r, Palette.MIST if lit else _rarity_color(id))
+		UiArt.draw(_items_view, "icon_frame", r, Palette.MIST if lit else _rarity_color(id))
 		var tex := Icons.small(db, "items", id, ICON_PX)
 		if tex != null:
-			_items_view.draw_texture(tex, r.position + Vector2(2, 1))
+			_items_view.draw_texture(tex, _icon_at(r, tex))
 		var stacks := int(_items[id])
 		if stacks > 1:
 			Fonts.draw(_items_view, str(stacks), Vector2(r.end.x - 7, r.end.y - 7), "BAR_NUM", Palette.BUTTER, -1, HORIZONTAL_ALIGNMENT_LEFT, 6)
@@ -467,21 +474,23 @@ func _draw_card(y: float) -> void:
 	var age := CARD_TIME - left
 	var slide := floorf(maxf(0.0, 1.0 - age / 0.18) * -170.0)
 	var title: String = _card.title
-	var tw := ceilf(Fonts.width(title, "NAME", 8))
+	var tw := ceilf(Fonts.width(title, "CARD_NAME"))
 	var stacks := _card_stacks()
-	var sw := ceilf(Fonts.width(stacks, "BODY")) + 4.0 if stacks != "" else 0.0
+	var sw := ceilf(Fonts.width(stacks, "CARD_BODY")) + 3.0 if stacks != "" else 0.0
 	var w := floorf(size.x)
-	var cw := minf(w - 8.0, 26.0 + tw + sw + 6.0)
+	var cw := minf(w - 8.0, 25.0 + tw + sw + 6.0)
 	var r := Rect2(floorf((w - cw) / 2.0) + slide, y, cw, card_height())
 	UiArt.draw(self, "info_bar", r)
-	var ir := Rect2(r.position + Vector2(3, 2), Vector2(17, 16))
-	UiArt.draw(self, "lv_frame", ir, int(_card.color))
+	var ir := Rect2(r.position + Vector2(3, 2), Vector2(16, 16))
+	UiArt.draw(self, "icon_frame", ir, int(_card.color))
 	if _card.art != null:
 		var art: Texture2D = _card.art
-		draw_texture(art, (ir.get_center() + Vector2(0, -1) - art.get_size() / 2.0).floor())
-	Fonts.draw(self, title, Vector2(r.position.x + 24, r.position.y + 4), "NAME", Palette.PAPER, r.size.x - 28 - sw, HORIZONTAL_ALIGNMENT_LEFT, 8)
+		if art.get_width() > ICON_PX + 1 and art.get_width() <= 16:
+			art = LevelCard._small(art, ICON_PX + 1)
+		draw_texture(art, _icon_at(ir, art))
+	Fonts.draw(self, title, Vector2(r.position.x + 23, Fonts.cap_y("CARD_NAME", r.position.y, r.size.y - 1)), "CARD_NAME", Palette.PAPER, r.size.x - 27 - sw)
 	if stacks != "":
-		Fonts.draw(self, stacks, Vector2(r.position.x + 24 + tw + 4, r.position.y + 6), "BODY", Palette.MIST)
+		Fonts.draw(self, stacks, Vector2(r.position.x + 23 + tw + 3, Fonts.cap_y("CARD_BODY", r.position.y, r.size.y - 1)), "CARD_BODY", Palette.MIST)
 
 
 ## "×2" from the card's tag ("Common item ×2"), "" for one.

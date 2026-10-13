@@ -13,7 +13,8 @@ extends Control
 ##
 ## Settings open as a modal window over a dithered dim; toggles write straight
 ## to the save file. PLAY opens the hero select, then the map select (where
-## the Toggler is); the heroes tile opens the hero select too. Unlocks shows
+## the Toggler is); the heroes tile opens the heroes' details (browse only,
+## no play from there). Unlocks shows
 ## the kit's red "!" while something new is ready to buy.
 ##
 ## Ads (scripts/autoload/ads.gd): the free coins tile pays out once per day
@@ -34,13 +35,17 @@ const GAME_TITLE := "Mobbed!"
 const GAME_SUBTITLE := "survive the swarm"
 ## The concept's base screen.
 const BASE := Vector2(180, 320)
-## Nav tiles: [node name, kit part, word, icon]
+## Nav tiles: [node name, kit part, word, icon (kit sprite at 1x)]
 const TILES := [
 	["Heroes", "nav_blue", "heroes", ""],
-	["Unlocks", "nav_green", "unlocks", "home/icon_padlock_big"],
-	["Shop", "nav_orange", "shop", "home/icon_sack"],
-	["Daily", "nav_purple", "free coins", "coin_big"],
+	["Unlocks", "nav_green", "unlocks", "padlock_big"],
+	["Shop", "nav_orange", "shop", "sack"],
+	["Daily", "nav_purple", "free coins", "coin_nav"],
 ]
+## A nav tile: the kit's tile (39 x 44 as drawn) with its face 4 px taller
+## for the icon, plus the 2 px drop. The label strip is its bottom 16 rows.
+const TILE_SIZE := Vector2(39, 50)
+const TILE_STEP := 43
 
 var _scene: HomeScene
 var _frame: Control
@@ -164,8 +169,10 @@ func _build_buttons() -> void:
 	_play.style_name = "BIG_BUTTON"
 	_play.art = UiArt.texture("home/play_tri")
 	_play.art_scale = 1
-	_play.art_centre = Vector2(19, 20)
-	_play.text_box = Rect2(22, 0, 80, 40)
+	# The kit button's face is its height less the 3 px bevel at its foot:
+	# the triangle and the word's caps are centred on what's left.
+	_play.art_centre = Vector2(19, 18)
+	_play.text_box = Rect2(24, 2, 76, 31)
 	_play.size = Vector2(106, 42)
 	_play.pressed.connect(_on_play)
 	_buttons.add_child(_play)
@@ -177,21 +184,28 @@ func _build_buttons() -> void:
 		b.part = d[1]
 		b.label = d[2]
 		b.style_name = "NAV"
-		b.text_box = Rect2(2, 38, 36, 9)
-		b.art_centre = Vector2(20, 19)
+		# The strip's dark inside: rows 3..13 from the tile's foot.
+		b.text_box = Rect2(2, TILE_SIZE.y - 2 - 13, TILE_SIZE.x - 4, 10)
+		b.art_scale = 1
+		# Centre of the coloured face (inside its outline and rim).
+		b.art_centre = Vector2(20, floorf((TILE_SIZE.y - 2 - 16) / 2.0) + 1)
 		if d[3] != "":
 			b.art = UiArt.texture(d[3])
-		b.size = Vector2(40, 50)
+		b.size = TILE_SIZE
 		_buttons.add_child(b)
 		nav.append(b)
 	_heroes_btn = nav[0]
-	# The concept's heroes tile shows a hero who isn't the one on the plinth.
-	_heroes_btn.art = Icons.texture(GameData.shared(), "characters", "turbo_pigeon")
+	# The concept's heroes tile shows a hero who isn't the one on the plinth
+	# (the whole hero at 1x, like the kit icons beside it).
+	var pigeon := Icons.idle_frame(GameData.shared().get_entry("characters", "turbo_pigeon"))
+	if pigeon != null:
+		var used := pigeon.get_used_rect()
+		_heroes_btn.art = ImageTexture.create_from_image(pigeon.get_region(used) if used.size != Vector2i.ZERO else pigeon)
 	_unlocks_btn = nav[1]
 	_shop_btn = nav[2]
 	_daily = nav[3]
 	_daily.sticker = "ad"
-	_heroes_btn.pressed.connect(_open_screen.bind(HeroScreen))
+	_heroes_btn.pressed.connect(_open_heroes)
 	_unlocks_btn.pressed.connect(_open_screen.bind(UnlocksScreen))
 	_shop_btn.pressed.connect(_open_screen.bind(ShopScreen))
 	_daily.pressed.connect(_on_daily)
@@ -216,7 +230,7 @@ func _layout() -> void:
 	_teaser.position.x = 112
 	_play.position.x = 37
 	for i in TILES.size():
-		(_buttons.get_node(TILES[i][0]) as Control).position.x = 5 + i * 43
+		(_buttons.get_node(TILES[i][0]) as Control).position.x = floorf((BASE.x - (TILES.size() - 1) * TILE_STEP - TILE_SIZE.x) / 2.0) + i * TILE_STEP
 	# Hero group: the plinth top at concept (77, 171), critters at the edges.
 	_scene.plinth_at = Vector2(cx + 77, _hero_y + 171)
 	_version.position = Vector2(cx + 3, h - bottom - 10.0)
@@ -357,6 +371,14 @@ func _open_screen(kind: GDScript) -> MenuScreen:
 func _on_play() -> void:
 	var hero: HeroScreen = _open_screen(HeroScreen)
 	hero.picked.connect(_start_run)
+
+
+## The heroes tile: every hero's details, browse only (Back, no Next).
+func _open_heroes() -> HeroScreen:
+	var hero := HeroScreen.new(Save, true)
+	hero.closed.connect(_refresh_wallet)
+	add_child(hero)
+	return hero
 
 
 func _start_run(character: String, map: String) -> void:

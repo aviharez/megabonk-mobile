@@ -684,6 +684,20 @@ Rules: Titan never under 6 (stickers only), Inter never under 7; text on world a
 - [x] Deleted (owner OK) the 31 unused kit 1 / kit 2 parts and `Glyphs`; kit 2 `key`, `stick_base`, `stick_knob` stay (HUD key count, joystick). Shop icons for banish / reroll / skip now `lv_x` / `lv_die` / `lv_ffwd`, Toggler `gear`. Cutter re-run reproduces `assets/ui/` byte for byte (49 parts). Debug APK installed on the Xiaomi 15T (2026-10-13), home screen checked
 - [ ] Left: `TitleScene`, `PixelTitle` and the bonk / pixel fonts only used by the old mockup tools now (remove with them); glyph pre-warm and Inter subsetting not done; code-drawn bits left: item detail icon frame, section rule lines; owner phone check
 
+### Owner fixes (2026-10-13, session 3)
+
+- [x] Kit parts as drawn: kits 3 / 3b are drawn on an ~8 source px grid, not 16 / 13, so the old cut lost the light rims, rivets and the nav tiles' strip bevel. `tools/art/ui_kit.py` now also cuts them at FINE = 8 with a lightness-weighted snap (FINE_L 2.5). Shipped from it: `nav_*` (39 x 44 tile, label strip), `play_button`, `icon_frame` (the kit's square frame, any colour), `act_reroll/skip/banish` (+ pressed), `coin_nav` (coin at scale 11). The other 49 parts are byte-for-byte the same
+- [x] Home: nav tiles are the kit tile at its own size (39 x 50 with the drop), icons inside the face at 1x (pigeon, kit padlock / sack / coin), labels in the strip; "play" and "1,240" centred on the caps (`Fonts.cap_y`)
+- [x] Heroes tile opens a browse-only hero screen (`HeroScreen.new(save, true)`: details, no Next); PLAY still goes hero -> map
+- [x] Beacon bonus ("Pick a bonus") and merchant use `LevelUpPanel` (same header, window, cards, info bar); bonus has no button row (`rows` false), merchant's Leave sits in it; "Your gold: N" in the info bar
+- [x] Popup text smaller: `CARD_NAME` (Titan 8, shrinks to 7) and `CARD_BODY` (Inter 6) on level-up / bonus / merchant cards, pickup card, unlock popup, pause details (name, kind line, desc, Dmg / KO) and pause stats; value on bonus cards 16 -> 12, change line 8 -> 7
+- [x] Damage numbers smaller: HIT Inter 6 (2 px outline), CRIT Titan 9, words / gold `POP` Titan 8 (HUD's NUM_WORLD unchanged)
+- [x] Weapon / manual / item / hero backgrounds on the kit `icon_frame` (level cards, HUD strip and items, pickup card, pause build and details, unlocks / shop tiles, hero tiles, `ContentIcon`, PixelButton art); icons a step smaller (2x 14 on cards and tiles, 14 in pause slots, 13 in 18 px frames, 11 in the HUD)
+- [x] Level-up Reroll / Skip / Banish drawn with the kit's own buttons (disabled / banish-armed fall back to the plate)
+- [x] Tests: `test_kit_parts_as_drawn`, `test_hero_screen_browse_only`, bonus / merchant panel checks; 2204 checks pass. Shots 0 off-palette (17 screens). Stress 300 enemies: 75.0 fps vsync, 1% low 66.8, 0 missed frames
+- [x] Owner OK (2026-10-13): Inter 6 on popup cards and damage numbers; CLAUDE.md and BRIEF.md updated
+- [ ] Not switched yet (still the coarse cut): `lv_window`, `lv_card`, `lv_header`, `lv_sticker`, `plate_dark`, `panel_dark`, HUD tracks; their fine cuts look close but have stray pixels on the dark faces. Buttons / toggles keep `lv_frame`
+
 ### Found while building the home (2026-10-13)
 
 - The hero is 2x (48 x 52) to keep one sprite scale with the critters and nav icons; the concept draws Sir Loaf about 1.4x bigger. 3x would match the concept's size but break the one-scale rule: owner's call

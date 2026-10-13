@@ -1,7 +1,7 @@
 class_name FaceTile
 extends PixelButton
-## A square character tile for the character select grid: the kit 3b icon
-## frame (`lv_frame`) in `face` (GOLD for the selected one), and the
+## A square character tile for the character select grid: the kit's icon
+## frame (`icon_frame`) in `face` (GOLD for the selected one), and the
 ## character's head (Icons.head) at PORTRAIT_SCALE, all sinking when pressed.
 ## Locked characters show the INK silhouette and a padlock.
 
@@ -32,7 +32,7 @@ func _draw() -> void:
 	var mode := get_draw_mode()
 	var y := SHADOW if mode == DRAW_PRESSED or mode == DRAW_HOVER_PRESSED else 0
 	var r := Rect2(0, y, size.x, size.y - SHADOW)
-	UiArt.draw(self, "lv_frame", r, Palette.GOLD if selected else (Palette.SHADE if locked else face), -1, 0 if y > 0 else SHADOW)
+	UiArt.draw(self, "icon_frame", r, Palette.GOLD if selected else (Palette.SHADE if locked else face), -1, 0 if y > 0 else SHADOW)
 	if portrait != null:
 		var s := Vector2(portrait.get_size()) * PORTRAIT_SCALE
 		var at := Vector2(floorf((size.x - s.x) / 2.0), y + floorf((size.y - SHADOW - s.y) / 2.0))

@@ -23,7 +23,7 @@ The full spec is in docs/BRIEF.md. The brief is the source of truth for content 
 - Don't use names, characters, or assets from other games.
 
 ## UI design direction
-The UI is dark, chunky pixel art from the SpriteCook kits in assets/ui/ (deep night panels, thick INK outlines, hard drop shadows, toy-bright gold / blue / green / orange / purple accents). Only the text is smooth: Titan One for titles, buttons, names and numbers; Inter 900 for body text (7 px, never smaller). Little text: kind, rarity and New are shown by colour and stickers, not words. Don't use: gradient pill buttons, glass or blur, soft shadows, emoji as icons, smooth rounded corners, colours outside the palette, or code-drawn plates where a kit part exists.
+The UI is dark, chunky pixel art from the SpriteCook kits in assets/ui/ (deep night panels, thick INK outlines, hard drop shadows, toy-bright gold / blue / green / orange / purple accents). Only the text is smooth: Titan One for titles, buttons, names and numbers; Inter 900 for body text (7 px; 6 px only for popup card names and descriptions and damage numbers, never smaller). Little text: kind, rarity and New are shown by colour and stickers, not words. Don't use: gradient pill buttons, glass or blur, soft shadows, emoji as icons, smooth rounded corners, colours outside the palette, or code-drawn plates where a kit part exists.
 
 ## Verification
 - Before calling a phase done, run the project and the existing tests. Report fps with 300 enemies on screen.

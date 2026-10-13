@@ -2,8 +2,10 @@
 class_name ActionButton
 extends PixelButton
 ## Level-up action button (Reroll, Skip, Banish), Phase 9 kit 3b look: the
-## `lv_frame` plate in the action's colour (BLUE / GOLD / RED), its kit icon
-## at 2x (lv_die / lv_ffwd / lv_x), no word (the concept is icon-only), and on
+## kit's own button (`act_reroll` / `act_skip` / `act_banish`, and its pressed
+## art while held). Disabled or armed (banish mode) it falls back to the
+## `lv_frame` plate in GRAY / PURPLE with the kit icon at 2x (lv_die /
+## lv_ffwd / lv_x). No word (the concept is icon-only), and on
 ## the top-right corner the red `lv_bubble` with the charges left, or the
 ## purple "Ad" sticker when a rewarded ad can buy one. `active` (banish mode)
 ## turns it PURPLE.
@@ -97,9 +99,17 @@ func _draw() -> void:
 	var w := floorf(size.x)
 	var h := floorf(size.y) - SHADOW
 	var r := Rect2(0, y, w, h)
-	UiArt.draw(self, "lv_frame", r, Palette.GRAY if disabled else face, -1, 0 if sunk else SHADOW)
+	var kit := "act_" + glyph + ("_pressed" if sunk else "")
 	var sprite: String = SPRITES.get(glyph, "")
-	if sprite != "" and UiArt.has(sprite):
+	if not disabled and not active and UiArt.has(kit):
+		# The kit's button as drawn, centred, over its INK drop.
+		var ks := Vector2(UiArt.sprite_size(kit))
+		var at := Vector2(floorf((w - ks.x) / 2.0), y)
+		if not sunk:
+			draw_texture(UiArt.texture(kit, -1, -1, true), at + Vector2(0, SHADOW))
+		UiArt.sprite(self, kit, at)
+	elif sprite != "" and UiArt.has(sprite):
+		UiArt.draw(self, "lv_frame", r, Palette.GRAY if disabled else face, -1, 0 if sunk else SHADOW)
 		var tex := UiArt.texture(sprite)
 		var sz := tex.get_size() * 2.0
 		var at := (r.get_center() + Vector2(0, -1) - sz / 2.0).floor()
@@ -108,6 +118,7 @@ func _draw() -> void:
 			draw_texture_rect(drop, Rect2(at + Vector2(1, 2), sz), false)
 		draw_texture_rect(tex, Rect2(at, sz), false)
 	else:
+		UiArt.draw(self, "lv_frame", r, Palette.GRAY if disabled else face, -1, 0 if sunk else SHADOW)
 		var rows: Array = ICONS.get(glyph, [])
 		if not rows.is_empty():
 			var left := floori((w - String(rows[0]).length()) / 2.0)

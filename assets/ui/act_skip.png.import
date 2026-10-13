@@ -1,0 +1,14 @@
+[remap]
+
+importer="image"
+type="Image"
+uid="uid://cn8s1usmr63ph"
+path="res://.godot/imported/act_skip.png-4cb26bff7723223f1d014e1071361cd2.image"
+
+[deps]
+
+source_file="res://assets/ui/act_skip.png"
+dest_files=["res://.godot/imported/act_skip.png-4cb26bff7723223f1d014e1071361cd2.image"]
+
+[params]
+

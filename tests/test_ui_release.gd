@@ -316,6 +316,9 @@ func test_pick_one_cards_for_shrine_and_merchant(t) -> void:
 	await t.process_frame
 	run.open_shrine_choice(run.db.get_entry("interactables", "charge_shrine"))
 	t.check(run.state == "choice" and run._choice_panel.visible, "the shrine asks")
+	t.check(run._choice_panel is LevelUpPanel and run._choice_panel.title == "Pick a bonus" and not run._choice_panel.rows,
+		"the bonus uses the level-up panel, no button row")
+	t.check(run._choice_buttons[0].size == LevelUpPanel.CARD_SIZE, "with the level-up's cards")
 	for i in run._choice.opts.size():
 		var b: LevelCard = run._choice_buttons[i]
 		t.check(b.option.get("value", "") != "" and String(b.option.get("desc", "")).begins_with("Now "), "shrine card %d shows its value and now > after (%s)" % [i, b.option.get("desc", "")])
@@ -327,6 +330,8 @@ func test_pick_one_cards_for_shrine_and_merchant(t) -> void:
 	m.stock[0].sold = true
 	run.gold = 0
 	run.open_merchant(m)
+	t.check(run._choice_panel.title == "Merchant" and run._choice_panel.rows and run._choice_leave.visible
+		and run._choice_leave.get_parent() == run._choice_panel, "the merchant: same panel, Leave in the button row")
 	var sold: LevelCard = run._choice_buttons[0]
 	t.check(sold.option.get("stamp", "") == "Sold" and sold.disabled, "a sold item is stamped SOLD")
 	var other: LevelCard = run._choice_buttons[1]

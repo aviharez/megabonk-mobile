@@ -143,8 +143,9 @@ func _draw() -> void:
 		var at := Vector2i(5, y + (h - ContentIcon.SIZE) / 2)
 		if art_above:
 			at = Vector2i((w - ContentIcon.SIZE) / 2, y + 4)
-		UiArt.draw(self, "lv_frame", Rect2(at, Vector2(ContentIcon.SIZE, ContentIcon.SIZE)), Palette.NIGHT)
-		draw_texture(art, Vector2(at + Vector2i.ONE))
+		UiArt.draw(self, "icon_frame", Rect2(at, Vector2(ContentIcon.SIZE, ContentIcon.SIZE)), Palette.SHADE)
+		var pic := LevelCard._small(art, ContentIcon.ICON_PX) if art.get_width() == Icons.SIZE else art
+		draw_texture(pic, (Vector2(at) + Vector2(ContentIcon.SIZE, ContentIcon.SIZE) / 2.0 + Vector2(0, -1) - pic.get_size() / 2.0).floor())
 		if art_above:
 			text_top = at.y + ContentIcon.SIZE
 			text_h = y + h - text_top

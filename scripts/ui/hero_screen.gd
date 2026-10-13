@@ -5,6 +5,8 @@ extends MenuScreen
 ## then a grid of face tiles for every character. Locked ones are
 ## silhouettes; selecting one shows how to unlock it. NEXT opens the map
 ## select (MapScreen); picking a map there emits `picked`.
+## With `browse` (the home's heroes tile) it only shows each hero's details:
+## no NEXT, the coins in the bottom bar.
 
 signal picked(character_id: String, map_id: String)
 
@@ -12,9 +14,11 @@ const PREVIEW_H := 180
 const COLUMNS := 4
 
 var selected := ""
+var browse := false
 
 
-func _init(save_node: Node) -> void:
+func _init(save_node: Node, browse_only := false) -> void:
+	browse = browse_only
 	super(save_node, "Heroes")
 	selected = Meta.picked_character(db, save.data)
 	fills_height = true
@@ -51,6 +55,8 @@ func _fill() -> void:
 		t.pressed.connect(select.bind(c.id))
 		grid.add_child(t)
 
+	if browse:
+		return
 	var next := primary("Next" if owned else "Locked", Palette.GREEN, _open_maps, "Next")
 	next.disabled = not owned
 

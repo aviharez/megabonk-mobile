@@ -220,16 +220,8 @@ var _over_mult: Label
 var _over_scroll: ScrollContainer
 var _again_btn: PixelButton
 var _cards: Array = []
-var _choice_panel: Control
-var _choice_title: Label
+var _choice_panel: LevelUpPanel
 var _choice_buttons: Array[LevelCard] = []
-var _choice_sub: Label
-## Pick-one cards (level-up, shrine, merchant): where they sit in their panel.
-const CARD_X := 6
-const CARD_Y := 40
-const CARD_W := 160
-const CARD_H := 66
-const CARD_STEP := 70
 var _choice_leave: PixelButton
 var _choice := {}
 var _over_panel: Control
@@ -1677,7 +1669,9 @@ func _show_choice(title: String, opts: Array, leave: String, on_pick: Callable) 
 	state = "choice"
 	_joystick.release()
 	get_tree().paused = true
-	_set_title(_choice_title, title)
+	_choice_panel.title = title
+	_choice_panel.rows = leave != ""
+	_place_choice_panel()
 	_set_choice_options(opts)
 	_choice_leave.visible = leave != ""
 	_choice_leave.label = leave
@@ -1698,10 +1692,10 @@ func _set_choice_options(opts: Array) -> void:
 			b.disabled = not o.enabled
 			b.show_option(o)
 			if fresh:
-				b.position.x = CARD_X
+				b.position.x = LevelUpPanel.CARD_X
 				UiFx.slide_in(b, Vector2(180, 0), 0.25, 0.06 * i)
-	# The merchant shows your gold (it changes as you buy); shrines just ask.
-	_choice_sub.text = ("Your gold  %d" % gold) if _choice.get("leave", "") != "" else "Pick one"
+	# The merchant shows your gold (it changes as you buy); beacons just ask.
+	_choice_panel.hint = ("Your gold: %d" % floori(gold)) if _choice.get("leave", "") != "" else "Choose one bonus."
 
 
 func _on_choice(i: int) -> void:
@@ -2475,21 +2469,24 @@ func _build_ui() -> void:
 		_cards_panel.add_child(ab)
 		_action_buttons[actions[i]] = ab
 
-	# Shrine bonus / merchant choices: the same cards, up to 3, and a leave button.
-	_choice_panel = _panel(ui, Rect2(4, 14, 172, 296), Palette.NIGHT)
-	_choice_title = _title(_choice_panel, "", Palette.BUTTER, 4)
-	_choice_sub = _subtitle(_choice_panel, 27)
+	# Beacon bonus / merchant: the level-up panel again (same header, window,
+	# cards and info bar), with the merchant's Leave in the button row.
+	_choice_panel = LevelUpPanel.new()
+	_choice_panel.name = "ChoicePanel"
+	_choice_panel.count = 0
+	_choice_panel.hide()
+	ui.add_child(_choice_panel)
 	for i in 3:
 		var b := LevelCard.new()
-		b.position = Vector2(CARD_X, CARD_Y + i * CARD_STEP)
-		b.custom_minimum_size = Vector2(CARD_W, CARD_H)
+		b.position = Vector2(LevelUpPanel.CARD_X, LevelUpPanel.CARD_Y[i])
+		b.custom_minimum_size = LevelUpPanel.CARD_SIZE
 		b.size = b.custom_minimum_size
 		b.pressed.connect(_on_choice.bind(i))
 		_choice_panel.add_child(b)
 		_choice_buttons.append(b)
 	_choice_leave = PixelButton.new()
-	_choice_leave.position = Vector2(36, CARD_Y + 3 * CARD_STEP + 4)
-	_choice_leave.custom_minimum_size = Vector2(100, 24)
+	_choice_leave.position = Vector2(LevelUpPanel.ACTION_X, LevelUpPanel.ACTION_Y + 2)
+	_choice_leave.custom_minimum_size = Vector2(LevelUpPanel.SIZE.x - 2 * LevelUpPanel.ACTION_X, 26)
 	_choice_leave.size = _choice_leave.custom_minimum_size
 	_choice_leave.face = Palette.MIST
 	_choice_leave.pressed.connect(_close_choice)
@@ -2561,7 +2558,7 @@ func _build_pause(ui: CanvasLayer) -> void:
 	_pause_panel.add_child(_pause_build)
 	_pause_build.hint = "Tap to see"
 	_pause_info = Control.new()
-	_pause_info.size = Vector2(152, 46)
+	_pause_info.size = Vector2(152, 43)
 	_pause_info.mouse_filter = Control.MOUSE_FILTER_IGNORE
 	_pause_info.draw.connect(_draw_pause_info)
 	_pause_panel.add_child(_pause_info)
@@ -2632,7 +2629,7 @@ func _layout_pause(h: float) -> void:
 	for key: String in _pause_toggles:
 		_pause_toggles[key].position.y = _pause_resume.position.y - 3 - 16
 		_pause_toggles[key].size.y = 16
-	_pause_stats.visible = _pause_stats.position.y + 36 <= _pause_resume.position.y - 19
+	_pause_stats.visible = _pause_stats.position.y + 34 <= _pause_resume.position.y - 19
 
 
 func _disarm_give_up() -> void:
@@ -2763,6 +2760,7 @@ func _apply_safe_area() -> void:
 	var room := vs.y - top - bottom - Hud.ROWS_H
 	_cards_panel.position = Vector2(floorf((vs.x - LevelUpPanel.SIZE.x) / 2.0),
 			floorf(top + Hud.ROWS_H + maxf(0.0, room - LevelUpPanel.SIZE.y) / 2.0))
+	_place_choice_panel()
 	_pause_panel.offset_top = top + 6
 	_pause_panel.offset_bottom = -(bottom + 6)
 	_layout_pause(get_viewport().get_visible_rect().size.y - top - bottom - 12)
@@ -2782,6 +2780,17 @@ func _apply_safe_area() -> void:
 	_menu_btn.size.x = 52
 
 
+## The beacon / merchant panel where the level-up one sits (its own height:
+## shorter without the button row).
+func _place_choice_panel() -> void:
+	var top := SafeArea.top(get_viewport())
+	var bottom := SafeArea.bottom(get_viewport())
+	var vs := get_viewport().get_visible_rect().size
+	var room := vs.y - top - bottom - Hud.ROWS_H
+	_choice_panel.position = Vector2(floorf((vs.x - LevelUpPanel.SIZE.x) / 2.0),
+			floorf(top + Hud.ROWS_H + maxf(0.0, room - _choice_panel.size.y) / 2.0))
+
+
 func _pause_has(pick: Array) -> bool:
 	match pick[0]:
 		"weapons":
@@ -2798,32 +2807,21 @@ func _pause_has(pick: Array) -> bool:
 func _draw_pause_info() -> void:
 	var ci := _pause_info
 	var r := Rect2(Vector2.ZERO, ci.size)
-	ci.draw_rect(r, Palette.color(Palette.INK))
-	ci.draw_rect(r.grow(-1), Palette.color(Palette.DEEP_BLUE))
-	ci.draw_rect(Rect2(2, 1, r.size.x - 4, 1), Palette.color(Palette.OCEAN))
 	if _pause_pick.is_empty():
+		UiArt.draw(ci, "lv_card", r, Palette.SHADE)
 		return
 	var kind: String = _pause_pick[0]
 	var id: String = _pause_pick[1]
 	var def := db.get_entry(kind, id)
-	var tex := Icons.texture(db, kind, id)
-	ci.draw_rect(Rect2(4, 4, 18, 18), Palette.color(Palette.INK))
-	ci.draw_rect(Rect2(5, 5, 16, 16), Palette.color(Palette.NIGHT))
-	if tex != null:
-		ci.draw_texture(tex, Vector2(5, 5))
-	var name_t: String = def.get("name", id)
-	var nf := Fonts.fitting(name_t, r.size.x - 30)
-	ci.draw_string(nf, Vector2(26, 12), name_t, HORIZONTAL_ALIGNMENT_LEFT, -1, 8, Palette.color(Palette.INK))
-	ci.draw_string(nf, Vector2(26, 11), name_t, HORIZONTAL_ALIGNMENT_LEFT, -1, 8, Palette.color(Palette.BUTTER))
 	var sub := ""
 	var desc: String = def.get("desc", "")
 	var extra := ""
-	var sub_c := Palette.MIST
+	var face := Palette.GRAY
 	match kind:
 		"weapons":
 			var lvl := int(owned_weapons[id])
 			sub = "Weapon  Lv %d/%d" % [lvl, def.levels.size()]
-			sub_c = Palette.SALMON
+			face = Palette.RED
 			var ld: Dictionary = def.levels[lvl - 1]
 			if ld.has("damage"):
 				extra = "Dmg %d   " % roundi(float(ld.damage) * stat("damage"))
@@ -2831,18 +2829,31 @@ func _draw_pause_info() -> void:
 		"tomes":
 			var lvl := int(owned_tomes[id])
 			sub = "Manual  Lv %d/%d" % [lvl, int(rules.get("max_level", 5))]
-			sub_c = Palette.SKY
+			face = Palette.BLUE
 			extra = "Each level: " + desc
 			desc = _tome_total(def, lvl)
 		"items":
 			var loot := db.get_entry("rules", "loot")
 			sub = "%s item" % String(loot.rarity_names.get(def.rarity, ""))
-			sub_c = Palette.index_of(loot.rarity_colors.get(def.rarity, "MIST"))
+			face = Palette.index_of(loot.rarity_colors.get(def.rarity, "MIST"))
 			if int(items.stacks[id]) > 1:
 				sub += "  ×%d" % int(items.stacks[id])
-	ci.draw_string(Fonts.SMALL, Vector2(26, 20), sub, HORIZONTAL_ALIGNMENT_LEFT, -1, 8, Palette.color(sub_c))
-	ci.draw_string(Fonts.SMALL, Vector2(5, 32), desc, HORIZONTAL_ALIGNMENT_LEFT, r.size.x - 8, 8, Palette.color(Palette.PAPER))
-	ci.draw_string(Fonts.SMALL, Vector2(5, 42), extra, HORIZONTAL_ALIGNMENT_LEFT, r.size.x - 8, 8, Palette.color(Palette.LIME))
+	# The kit card plate and icon frame in the kind's colour (rarity for items).
+	UiArt.draw(ci, "lv_card", r, face)
+	var fr := Rect2(4, 4, 20, 20)
+	UiArt.draw(ci, "icon_frame", fr, face)
+	var tex := Icons.small(db, kind, id, 13)
+	if tex != null:
+		ci.draw_texture(tex, (fr.get_center() + Vector2(0, -1) - tex.get_size() / 2.0).floor())
+	var light: int = LevelCard.NAME_COLOR.get(face, Palette.PAPER)
+	var name_t: String = def.get("name", id)
+	var nfs: int = Fonts.STYLES.CARD_NAME[1]
+	while nfs > 7 and Fonts.width(name_t, "CARD_NAME", nfs) > r.size.x - 32:
+		nfs -= 1
+	Fonts.draw(ci, name_t, Vector2(28, 5), "CARD_NAME", Palette.BUTTER, -1, HORIZONTAL_ALIGNMENT_LEFT, nfs)
+	Fonts.draw(ci, sub, Vector2(28, 15), "CARD_BODY", light)
+	Fonts.draw(ci, desc, Vector2(6, 27), "CARD_BODY", Palette.PAPER, r.size.x - 12)
+	Fonts.draw(ci, extra, Vector2(6, 34), "CARD_BODY", Palette.LIME, r.size.x - 12)
 
 
 ## What a tome gives in total at `lvl`: the first number in its per-level
@@ -2866,14 +2877,13 @@ func _draw_pause_stats() -> void:
 		["Speed", "%d" % int(stat("move_speed"))], ["Regen", "%.1f" % stat("regen")],
 		["Crit", "%d%%" % roundi(stat("crit_chance") * 100.0)], ["Luck", "%d%%" % roundi(stat("luck") * 100.0)],
 	]
-	ci.draw_string(Fonts.BOLD, Vector2(0, 8), "Stats", HORIZONTAL_ALIGNMENT_LEFT, -1, 8, Palette.color(Palette.MIST))
-	ci.draw_rect(Rect2(38, 4, ci.size.x - 38, 1), Palette.color(Palette.SHADE))
+	Fonts.draw(ci, "Stats", Vector2(0, 0), "CARD_NAME", Palette.MIST)
+	var hw := ceilf(Fonts.width("Stats", "CARD_NAME")) + 4.0
+	ci.draw_rect(Rect2(hw, 5, ci.size.x - hw, 1), Palette.color(Palette.SHADE))
 	for i in rows.size():
-		var at := Vector2((i % 2) * 74, 18 + (i / 2) * 9)
-		ci.draw_string(Fonts.SMALL, at, rows[i][0], HORIZONTAL_ALIGNMENT_LEFT, -1, 8, Palette.color(Palette.GRAY))
-		var v: String = rows[i][1]
-		var vw := Fonts.BOLD.get_string_size(v, HORIZONTAL_ALIGNMENT_LEFT, -1, 8).x
-		ci.draw_string(Fonts.BOLD, at + Vector2(68 - vw, 0), v, HORIZONTAL_ALIGNMENT_LEFT, -1, 8, Palette.color(Palette.PAPER))
+		var at := Vector2((i % 2) * 74, 12 + (i / 2) * 8)
+		Fonts.draw(ci, rows[i][0], at, "CARD_BODY", Palette.GRAY)
+		Fonts.draw(ci, rows[i][1], at, "CARD_BODY", Palette.PAPER, 68, HORIZONTAL_ALIGNMENT_RIGHT)
 
 
 func _draw_over_tiles() -> void:
@@ -2910,20 +2920,6 @@ func _panel(parent: Node, rect: Rect2, fill: int) -> PixelPanel:
 	p.hide()
 	parent.add_child(p)
 	return p
-
-
-## A small centred line under a panel title ("PICK ONE"), MIST.
-func _subtitle(parent: Control, y: int) -> Label:
-	var l := Label.new()
-	l.position = Vector2(0, y)
-	l.size = Vector2(parent.size.x, 10)
-	l.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
-	l.add_theme_color_override("font_color", Palette.color(Palette.PAPER))
-	l.add_theme_color_override("font_shadow_color", Palette.color(Palette.INK))
-	l.add_theme_constant_override("shadow_offset_x", 0)
-	l.add_theme_constant_override("shadow_offset_y", 1)
-	parent.add_child(l)
-	return l
 
 
 ## A panel title on the gold kit header plate (HeaderTitle). Returns a hidden

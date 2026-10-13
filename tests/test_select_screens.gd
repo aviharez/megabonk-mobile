@@ -87,6 +87,25 @@ func test_hero_select_grid_and_preview(t) -> void:
 	save.free()
 
 
+## The home's heroes tile: the same details, browse only (no Next, no play).
+func test_hero_screen_browse_only(t) -> void:
+	var save := _save()
+	var hero := HeroScreen.new(save, true)
+	t.root.add_child(hero)
+	await t.process_frame
+	t.check(hero.browse and hero.find_child("Next", true, false) == null, "browsing heroes has no NEXT")
+	t.check(hero.find_children("*", "SheetView", true, false).size() == 1, "it shows the hero's details")
+	hero.select("gary")
+	await t.process_frame
+	t.check(hero.find_child("Next", true, false) == null and hero.find_children("*", "ChallengeRow", true, false).size() == 1,
+		"a locked hero shows how to unlock it, still no NEXT")
+	hero.queue_free()
+	save.free()
+	var src := FileAccess.get_file_as_string("res://scripts/ui/main_menu.gd")
+	t.check(src.contains("_heroes_btn.pressed.connect(_open_heroes)") and src.contains("HeroScreen.new(Save, true)"),
+		"the home's heroes tile opens the browse-only screen, not the play flow")
+
+
 func test_map_select_cards_and_toggler(t) -> void:
 	var save := _save()
 	var maps := MapScreen.new(save)
