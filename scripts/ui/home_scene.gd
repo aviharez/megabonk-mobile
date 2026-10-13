@@ -103,7 +103,7 @@ func _draw() -> void:
 	if _hero_name != "":
 		var plate := plinth_at + Vector2(_plate - _anchor)
 		var room := 30.0
-		var fs: int = Fonts.STYLES.NAV[1]
+		var fs := 7  # the plate's name stays at 7 (the tiles' NAV went to 6)
 		while fs > Fonts.MIN_TITLE and Fonts.width(_hero_name, "NAV", fs) > room:
 			fs -= 1
 		var top := plate.y - floorf(Fonts.TITLE_FONT.get_ascent(fs) / 2.0) - 1.0

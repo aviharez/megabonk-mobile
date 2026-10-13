@@ -34,7 +34,7 @@ const STYLES := {
 	"POP": ["T", 8, Palette.WHITE, 2, Palette.INK, 0],
 	"BAR_NUM": ["T", 7, Palette.WHITE, 3, Palette.INK, 0],
 	"RIBBON": ["T", 8, Palette.PAPER, 3, Palette.WINE, 0],
-	"NAV": ["T", 7, Palette.PAPER, 0, Palette.INK, 0],
+	"NAV": ["T", 6, Palette.PAPER, 0, Palette.INK, 0],
 	"TAG": ["T", 7, Palette.WHITE, 0, Palette.INK, 0],
 	"BODY": ["I", 7, Palette.MIST, 0, Palette.INK, 0],
 	"CHANGE": ["I", 8, Palette.LIME, 0, Palette.INK, 0],

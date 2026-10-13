@@ -9,6 +9,8 @@ extends KitButton
 const SEGS := [[2, 11], [14, 24], [27, 37]]
 const SEG_Y := 2
 const SEG_H := 5
+## Progress text ("0/3", "30 coins") size.
+const PROGRESS_SIZE := 7
 
 ## 0..1
 var frac := 0.0:
@@ -23,7 +25,7 @@ var progress_color := Palette.PAPER:
 	set(v):
 		progress_color = v
 		queue_redraw()
-## The reward's icon (shown at 1x up to 16 px, else as is); null: mystery.
+## The reward's icon (its 16 px art at 1x, so it sits inside the slot); null: mystery (2x).
 var reward: Texture2D:
 	set(v):
 		reward = v
@@ -45,9 +47,9 @@ func _draw() -> void:
 	UiArt.draw(self, "icon_button", slot)
 	var icon := reward if reward != null else UiArt.texture("home/icon_mystery")
 	if icon != null:
-		var k := 2 if icon.get_width() <= 16 else 1
+		var k := 1 if reward != null or icon.get_width() > 16 else 2
 		var s := icon.get_size() * k
-		draw_texture_rect(icon, Rect2((slot.get_center() - s / 2.0).floor(), s), false)
+		draw_texture_rect(icon, Rect2((slot.get_center() + Vector2(0, -1) - s / 2.0).floor(), s), false)
 	var bar_at := Vector2(cx - 21 + 6, r.position.y + 41)
 	UiArt.sprite(self, "star", Vector2(bar_at.x - 8, bar_at.y))
 	UiArt.sprite(self, "seg_track", bar_at)
@@ -58,8 +60,8 @@ func _draw() -> void:
 		if w >= 5.0:
 			UiArt.draw(self, "fill_gold", Rect2(bar_at.x + seg[0], bar_at.y + SEG_Y, w, SEG_H))
 	if progress != "":
-		var fs: int = Fonts.STYLES.NUM[1] - 1
+		var fs: int = PROGRESS_SIZE
 		while fs > Fonts.MIN_TITLE and Fonts.width(progress, "NUM", fs) > r.size.x - 6:
 			fs -= 1
-		Fonts.draw(self, progress, Vector2(r.position.x + 2, r.position.y + 50), "NUM",
+		Fonts.draw(self, progress, Vector2(r.position.x + 2, r.position.y + 51), "NUM",
 				progress_color, r.size.x - 4, HORIZONTAL_ALIGNMENT_CENTER, fs)
