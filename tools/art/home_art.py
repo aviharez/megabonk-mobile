@@ -4,7 +4,8 @@
     python3 tools/art/home_art.py RAW_DIR [--out assets/ui/home] [--preview DIR]
 
 RAW_DIR holds the downloaded SpriteCook images (asset ids in docs/spritecook-assets.json):
-  backdrop_px.png   "home_backdrop"   160x274 night street (edit of the home concept, no UI / hero)
+  backdrop_px.png   "home_backdrop"   152x272 night street (edit of the first backdrop: no sign, no
+                                      name plate, no UI / hero)
   logo_deco.png     "logo_deco"       68x68 2x2 sheet: leaf sprigs x3, radish critter
   critters.png      "home_critters"   100x100 2x2 sheet: blue, green, purple, red critters
   kit3_sheet1.png   "ui_kit3_sheet1"  kit 3 component sheet (nav icons cut again at a 2x pixel)
@@ -16,16 +17,17 @@ source px per art px instead of kit 3's 16.
 
 The backdrop is very dark and sits between the palette's dark steps, so a plain snap flattens it
 (the sky turns to one INK / NIGHT field). It is snapped with its CIELAB lightness lifted by LIFT
-first, which keeps the lit windows, sign, stone plinth and the purple glow behind the houses.
+first, which keeps the lit windows, stone plinth and the purple glow behind the houses.
 Its sky (rows above SKY_ROWS) still snaps to INK with a noisy INK / NIGHT edge; the concept's sky
 is night blue-purple all the way up, so INK there becomes NIGHT (the stars and moon stay).
 
 It is then widened and heightened so any phone shape shows only art: 20 px more each side, in
 bands (SIDES): sky rows copy a starry stretch of the same rows from inside the picture (mirroring
 would double the moon), the left house rows copy the houses behind the lamp post (it stands at
-x 1), and the road rows are mirrored. Above and below go bands of sky and of road, repeated from
+x 0), and the road rows are mirrored. Above and below go bands of sky and of road, repeated from
 the top and bottom rows with every other copy flipped. backdrop.json gives the plinth top centre
-and the name plate centre in the extended image, so the game can stand the hero on it.
+in the extended image, so the game can stand the hero on it. The art has no sign, plate or
+other text container: the home screen shows no names over the scene.
 """
 import argparse
 import json
@@ -51,12 +53,11 @@ SKY_ROWS = 64  # source rows of open sky (above the lamp and roofs)
 # (first row, last row, source column to copy from, None = mirror the edge, "edge" = repeat the
 # edge column: the right edge's manhole rows, where a mirror would make a second manhole)
 SIDES = {
-    "left": [(0, 52, 30), (52, 130, 28), (130, 274, None)],
-    "right": [(0, 64, 110), (64, 158, None), (158, 182, "edge"), (182, 274, None)],
+    "left": [(0, 52, 30), (52, 130, 28), (130, 272, None)],
+    "right": [(0, 64, 110), (64, 165, None), (165, 182, "edge"), (182, 272, None)],
 }
-# Plinth top centre and name plate centre in the 160x274 source (measured on the image).
-PLINTH = (71, 146)
-PLATE = (72, 162)
+# Plinth top centre in the 152x272 source (measured on the image).
+PLINTH = (68, 147)
 
 ICONS = {"sack": 22, "padlock_big": 22, "mystery": 28}  # source px per art px
 CRITTERS = ["critter_blue", "critter_green", "critter_purple", "critter_red"]  # quadrants, reading order
@@ -128,7 +129,6 @@ def backdrop(src, pal, allowed):
         out[y:end] = band[:end - y]
     meta = {
         "plinth": [PLINTH[0] + SIDE, PLINTH[1] + SKY],
-        "plate": [PLATE[0] + SIDE, PLATE[1] + SKY],
         "art": [SIDE, SKY, w, h],
     }
     return out, meta

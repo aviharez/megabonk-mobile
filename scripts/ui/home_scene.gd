@@ -3,8 +3,8 @@ extends Control
 ## The home screen's backdrop (Phase 9, after the SpriteCook home concept): a
 ## night street with lit houses, a street lamp and an empty stone plinth
 ## (assets/ui/home/backdrop.png, 1 art px = 1 UI px, cut by
-## tools/art/home_art.py), the picked hero standing on the plinth with their
-## name on its plate, and round critters peeking in at the edges. Sprites are
+## tools/art/home_art.py), the picked hero standing on the plinth (no name:
+## the art has no sign or plate), and round critters peeking in at the edges. Sprites are
 ## 2x, like the concept. The menu places it: `plinth_at` is where the plinth's
 ## top centre goes, `critters` where each critter's feet go.
 
@@ -26,11 +26,9 @@ var critters: Array[Vector2] = [Vector2.ZERO, Vector2.ZERO, Vector2.ZERO, Vector
 var hero_id := "sir_loaf"
 
 var _backdrop: Texture2D
-var _anchor := Vector2i(91, 266)  # plinth top centre in the backdrop
-var _plate := Vector2i(92, 282)  # name plate centre in the backdrop
+var _anchor := Vector2i(88, 267)  # plinth top centre in the backdrop
 var _critter_tex: Array[Texture2D] = []
 var _hero := {}
-var _hero_name := ""
 var _t := 0.0
 var _frame := 0
 
@@ -45,7 +43,6 @@ func _ready() -> void:
 	var meta = JSON.parse_string(FileAccess.get_file_as_string(DIR + "backdrop.json"))
 	if meta is Dictionary:
 		_anchor = Vector2i(int(meta.plinth[0]), int(meta.plinth[1]))
-		_plate = Vector2i(int(meta.plate[0]), int(meta.plate[1]))
 	for c: String in CRITTERS:
 		_critter_tex.append(_tex(DIR + c + ".png"))
 	set_hero(hero_id)
@@ -58,13 +55,12 @@ static func _tex(path: String) -> Texture2D:
 	return ImageTexture.create_from_image(res) if res is Image else res
 
 
-## Shows this hero's idle sheet on the plinth and their name on its plate.
+## Shows this hero's idle sheet on the plinth.
 func set_hero(id: String) -> void:
 	hero_id = id
 	var c := GameData.shared().get_entry("characters", id)
 	var sheets: Dictionary = c.get("sheets", {})
 	_hero = EnemySystem.load_sheet({"sheet": sheets.get("idle", sheets.get("walk", ""))})
-	_hero_name = String(c.get("name", ""))
 	queue_redraw()
 
 
@@ -100,11 +96,3 @@ func _draw() -> void:
 		var origin: Vector2 = _hero.get("origin", Vector2(fw / 2.0, fh))
 		draw_texture_rect_region(tex, Rect2(plinth_at - origin.floor() * K, Vector2(fw, fh) * K),
 				Rect2(_frame * fw, 0, fw, fh))
-	if _hero_name != "":
-		var plate := plinth_at + Vector2(_plate - _anchor)
-		var room := 30.0
-		var fs := 7  # the plate's name stays at 7 (the tiles' NAV went to 6)
-		while fs > Fonts.MIN_TITLE and Fonts.width(_hero_name, "NAV", fs) > room:
-			fs -= 1
-		var top := plate.y - floorf(Fonts.TITLE_FONT.get_ascent(fs) / 2.0) - 1.0
-		Fonts.draw(self, _hero_name, Vector2(plate.x - 30, top), "NAV", Palette.GRAY, 60, HORIZONTAL_ALIGNMENT_CENTER, fs)

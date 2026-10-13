@@ -383,6 +383,8 @@ func _cross_check() -> void:
 		if er.has("key") and entries.interactables.get(er.key.get("drop", ""), {}).get("behavior", "") != "key":
 			errors.append("%s: key \"drop\" must name a key interactable" % er._file)
 	for e: Dictionary in entries.interactables.values():
+		if e.has("hide_when_unlocked") and Meta.content(self, e.hide_when_unlocked).is_empty():
+			errors.append("%s: \"hide_when_unlocked\" names unknown content \"%s\"" % [e._file, e.hide_when_unlocked])
 		if e.has("boss") and entries.enemies.get(e.boss, {}).get("role", "") != "boss":
 			errors.append("%s: \"%s\" is not a boss enemy" % [e._file, e.boss])
 		if e.has("chest") and not entries.rules.get("loot", {}).get("chests", {}).has(e.chest):

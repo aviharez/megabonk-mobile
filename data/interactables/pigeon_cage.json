@@ -8,5 +8,6 @@
 	"color": "GRAY",
 	"arrow": "MIST",
 	"beam": {"color": "MIST", "height": 30},
-	"stat_event": "pigeon_cage_opened"
+	"stat_event": "pigeon_cage_opened",
+	"hide_when_unlocked": "turbo_pigeon"
 }

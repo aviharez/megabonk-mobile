@@ -699,6 +699,8 @@ Rules: Titan never under 6 (stickers only), Inter never under 7; text on world a
 - [x] Home (owner, phone): nav tile labels and the next-unlock title Titan 7 -> 6 (hero plate name stays 7), progress text 9 -> 7, a ready reward at 1x 16 px in its slot (shrinking it to 11 px broke the clock icon); checked on the Xiaomi 15T
 - [x] In-run HUD (owner): weapon / manual strip, item row and pickup card back on the plain `lv_frame` plate with 12 px icons (cards, pause and menus keep `icon_frame`)
 - [ ] Not switched yet (still the coarse cut): `lv_window`, `lv_card`, `lv_header`, `lv_sticker`, `plate_dark`, `panel_dark`, HUD tracks; their fine cuts look close but have stray pixels on the dark faces. Buttons / toggles keep `lv_frame`
+- [x] Pigeon cage (owner): `hide_when_unlocked` on `data/interactables/pigeon_cage.json` ("turbo_pigeon") leaves the cage off the map once Turbo Pigeon is available or owned; with no cage, elites drop no key (already gated in `Run._elite_killed`). Validated in `game_data.gd`; test `test_no_cage_or_key_once_the_pigeon_is_unlocked`
+- [x] Home (owner): no hero name over the plinth; backdrop regenerated without the street sign and the plinth's name plate (SpriteCook edit `c52e2ecc`, 12 credits), `home_art.py` re-measured (plinth 68,147) and its right edge band fixed (no foliage bar). 2208 checks pass
 
 ### Found while building the home (2026-10-13)
 

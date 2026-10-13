@@ -318,3 +318,23 @@ func _final_swarm(run: Run, _ch: Dictionary, need: float) -> void:
 func _copies(run: Run, _ch: Dictionary, need: float) -> void:
 	for i in int(need):
 		run.give_item("protein_bar")
+
+
+## Once Turbo Pigeon is unlocked (ready to buy or owned) the map has no pigeon
+## cage, so elites never drop its key.
+func test_no_cage_or_key_once_the_pigeon_is_unlocked(t) -> void:
+	for st: String in ["available", "owned"]:
+		var save := _fresh_save()
+		save.data.unlocks["turbo_pigeon"] = st
+		var run := _start(t, save, {})
+		run.weapons.clear()
+		t.check(run.interactables.find("pigeon_cage").is_empty(), "%s: no pigeon cage on the map" % st)
+		for i in int(run.elite_rules.key.pity) + 2:
+			var s: int = run.enemies.spawn(run.enemies.type_index["blob"], run.player_pos() + Vector2(100, 0), 1.0, 1.0, 0.0, true)
+			run.enemies.make_elite(s, "vicious", run.elite_rules)
+			run.hit_enemy(s, 1.0e6, Vector2.ZERO, "test")
+		t.check(run.interactables.count_of("cage_key") == 0, "%s: elites drop no key" % st)
+		_end(t, run)
+		run.free()
+		save.free()
+	cleanup()

@@ -286,6 +286,11 @@
 		"label": "Finalized kit 3b components (SpriteCook assets, not shipped as-is): hud_level_ring 54192b60, hud_pause a5ee14e0, hud_timer_plate 2059f1bd, icon_heart 27c432fc, hp_track 18cdd362, xp_track 25042e57, hp_fill 20ce72c6, xp_fill 687b6b00, header_gold 2e2e433d, icon_coin 9c5a322b, icon_skull 70801216, icon_clock 155cb128, sticker_plus fc201834, card_red 1ff55caf, window_dark 3e57753b, card_blue f9d7ae29, card_gold 992edf27, frame_red bcf6c2be, frame_blue 02c172cc, frame_green cc9b867c, frame_purple 806d6e0b, frame_gold 65e21b28, pip_on 82a1c3af, pip_off 54e209d6, sticker_new ca975204, count_bubble c9a6a05b, reroll_button 508d958d (+pressed 46753108), skip_button ed875b61 (+pressed 3cf0e904), banish_button 88dfbd39 (+pressed 8b887f5e), sticker_ad 7dcca618, info_bar b85924f9"
 	},
 	"home_backdrop": {
+		"asset_id": "c52e2ecc-5f92-4b2d-897b-ccc92c68211b",
+		"sha12": "2ad348064030",
+		"label": "Home backdrop v2 (152x272, NB2.1 1K, edit of 5d717373): same street, no street sign, no plinth name plate; 12 credits. tools/art/home_art.py -> assets/ui/home/backdrop.png"
+	},
+	"home_backdrop_v1": {
 		"asset_id": "5d717373-4685-46ec-a473-5142e1d207f2",
 		"sha12": "5f00ef94aab5",
 		"label": "Home backdrop (160x274, NB2.1 1K, edit of home concept e941feb9): night street, lamp, blank sign, lit houses, manhole, empty plinth with blank plate; 12 credits. tools/art/home_art.py -> assets/ui/home/backdrop.png"

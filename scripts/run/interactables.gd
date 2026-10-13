@@ -39,12 +39,17 @@ func setup(owner_run: Node, data: GameData) -> void:
 
 
 ## Places the map's objects: at a fixed "at": [x, y] from the map, or on
-## random free spots (seeded by the run).
+## random free spots (seeded by the run). An object with "hide_when_unlocked"
+## (a content id) is left out once that content is unlocked (the pigeon cage
+## after Turbo Pigeon); with no cage, elites drop no key either.
 func place_from_map(map_def: Dictionary, layout: MapLayout, rng: RandomNumberGenerator, start: Vector2) -> void:
 	var taken: Array = []
 	var clear: float = map_def.get("start_clear_radius", 60.0)
 	for entry: Dictionary in map_def.get("interactables", []):
 		var def := db.get_entry("interactables", entry.id)
+		var gate: String = def.get("hide_when_unlocked", "")
+		if gate != "" and Meta.state(db, run.meta, gate) != "locked":
+			continue
 		if entry.has("at"):
 			# A fixed spot from the map (the altar on the sports field...).
 			var fixed := Vector2(entry.at[0], entry.at[1])
