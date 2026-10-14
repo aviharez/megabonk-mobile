@@ -119,7 +119,7 @@ var end_reason := ""
 var boss: MegaMole
 var boss_summoned := false
 var boss_defeated := false
-var _pause_btn: SpriteButton
+var _pause_btn: KitButton
 ## Time the last _process (logic + render prep) took, for the stress test.
 var last_frame_usec := 0
 ## With options.profile: microseconds per section of the last frame.
@@ -228,6 +228,9 @@ var _over_panel: Control
 var _over_text: Label
 var _over_title: Label
 var _pause_panel: Control
+var _pause_win: PixelPanel
+var _over_win: PixelPanel
+var _over_bg: HomeScene
 var _revive_panel: Control
 var _revive_btn: AdButton
 var _double_btn: AdButton
@@ -1314,7 +1317,7 @@ func _screen_pos(world: Vector2) -> Vector2:
 
 
 func _show_cards() -> void:
-	_cards_panel.title = "Banish which?" if _banish_mode else "Level up!"
+	_cards_panel.title = "Banish which?" if _banish_mode else "Level Up!"
 	_cards_panel.hint = "Tap a card to banish it." if _banish_mode else "Choose one upgrade."
 	_cards_panel.count = maxi(1, pending_levels)
 	var fresh := not _cards_panel.visible
@@ -1629,7 +1632,7 @@ func open_merchant(o: Dictionary) -> void:
 				price_text = "You have one"
 			var label := "%s\n%s\n%s  %s" % [item.name, item.get("desc", ""), loot.rarity_names[item.rarity], price_text]
 			var opt := {"label": label, "face": Palette.index_of(loot.rarity_colors[item.rarity]), "enabled": not st.sold and ok and gold >= st.price,
-				"art": Icons.texture(db, "items", st.item), "title": item.name, "tag": loot.rarity_names[item.rarity] + " item",
+				"art": Icons.texture(db, "items", st.item), "title": item.name, "tag": loot.rarity_names[item.rarity],
 				"desc": item.get("desc", ""), "price": st.price, "afford": gold >= st.price}
 			if st.sold:
 				opt.stamp = "Sold"
@@ -1638,6 +1641,7 @@ func open_merchant(o: Dictionary) -> void:
 				opt.stamp_color = Palette.SHADE
 			opts.append(opt)
 		return opts
+	var left := float(o.get("left", 0.0))
 	_show_choice("Merchant", refresh.call(), "Leave", func(i: int) -> bool:
 		var st: Dictionary = o.stock[i]
 		if st.sold or gold < st.price or not _can_hold(st.item):
@@ -1650,12 +1654,12 @@ func open_merchant(o: Dictionary) -> void:
 		fx.sparks(_pos, 10.0, Palette.GOLD)
 		show_item_card(st.item)
 		_set_choice_options(refresh.call())
-		return false)
+		return false, "Leaves in %d:%02d" % [int(left) / 60, int(left) % 60])
 
 
 ## Shows the choice panel. on_pick(i) returns true to close the panel.
 ## leave = label of a close button ("" = none). Bots pick automatically.
-func _show_choice(title: String, opts: Array, leave: String, on_pick: Callable) -> void:
+func _show_choice(title: String, opts: Array, leave: String, on_pick: Callable, info := "") -> void:
 	_choice = {"opts": opts, "on_pick": on_pick, "leave": leave}
 	if options.get("auto_cards", false):
 		# Take the first enabled option; at a shop, buy all it can afford.
@@ -1670,11 +1674,14 @@ func _show_choice(title: String, opts: Array, leave: String, on_pick: Callable) 
 	_joystick.release()
 	get_tree().paused = true
 	_choice_panel.title = title
+	_choice_panel.info = info
+	_choice_panel.gold = floori(gold) if info != "" else -1
 	_choice_panel.rows = leave != ""
 	_place_choice_panel()
 	_set_choice_options(opts)
 	_choice_leave.visible = leave != ""
 	_choice_leave.label = leave
+	_choice_leave.position.y = _choice_panel.row_y()
 	_choice_panel.show()
 
 
@@ -1691,11 +1698,14 @@ func _set_choice_options(opts: Array) -> void:
 			b.label = o.label
 			b.disabled = not o.enabled
 			b.show_option(o)
+			b.position.y = _choice_panel.card_y(i)
 			if fresh:
 				b.position.x = LevelUpPanel.CARD_X
 				UiFx.slide_in(b, Vector2(180, 0), 0.25, 0.06 * i)
 	# The merchant shows your gold (it changes as you buy); beacons just ask.
 	_choice_panel.hint = ("Your gold: %d" % floori(gold)) if _choice.get("leave", "") != "" else "Choose one bonus."
+	if _choice_panel.info != "":
+		_choice_panel.gold = floori(gold)
 
 
 func _on_choice(i: int) -> void:
@@ -1752,7 +1762,7 @@ func _end(reason: String) -> void:
 		"final_swarm_seconds": director.final_time, "boss_defeated": boss_defeated, "stats": run_stats.duplicate(),
 		"character": char_def.id, "completed": []}
 	if _save != null:
-		result.completed = Meta.commit_run(db, meta, result.stats, char_def.id, coins, map_def.id)
+		result.completed = Meta.commit_run(db, meta, result.stats, char_def.id, coins, map_def.id, elapsed)
 		_save.save_game()
 	if ads != null:
 		ads.end_run()
@@ -1761,28 +1771,24 @@ func _end(reason: String) -> void:
 		return  # headless sims read `result`; no screen to show
 	_joystick.release()
 	get_tree().paused = true
-	var title := "Toasted!"
-	var color := Palette.PAPER  # titles sit on the red ribbon
+	var title := "Swarmed!"
 	match reason:
 		"portal":
 			title = "Escaped!"
-			color = Palette.BUTTER
 		"bills":
 			title = "Overdue!"
-			color = Palette.PAPER
 		"gave_up":
-			title = "Gave up"
+			title = "Gave Up"
 		_:
 			if reached_final:
-				title = "Swarmed!"
-				color = Palette.PAPER
+				title = "Survived!"
 	_set_title(_over_title, title)
 	_over_text.text = _over_lines()
 	_over_reason.text = {
 		"portal": "You got out. The town thanks you.",
 		"bills": "The bills caught up with you.",
 		"gave_up": "Even heroes need a nap.",
-	}.get(reason, "The swarm was too much." if not reached_final else "You held on to the very end!")
+	}.get(reason, "Even heroes need a nap." if not reached_final else "You held on to the very end!")
 	_show_over_hero(won)
 	_over_tiles.queue_redraw()
 	_sync_over_coins(false)
@@ -1803,6 +1809,7 @@ func _end(reason: String) -> void:
 func _reveal_over() -> void:
 	if state != "over":
 		return
+	_over_bg.show()
 	_over_panel.show()
 	UiFx.slide_in(_over_panel, Vector2(0, 60), 0.3)
 	var earned := int(result.coins) * (2 if result.get("coins_doubled", false) else 1)
@@ -1820,7 +1827,7 @@ func _show_over_hero(won_run: bool) -> void:
 	var sv := SheetView.new(sh)
 	sv.scale = Vector2(2, 2)
 	var fs := sv.frame_size()
-	sv.position = Vector2(floorf(28 - fs.x), 48 - fs.y * 2)
+	sv.position = Vector2(floorf(_over_hero.size.x / 2.0 - fs.x), _over_hero.size.y - fs.y * 2)
 	_over_hero.add_child(sv)
 
 
@@ -1831,7 +1838,7 @@ func _sync_over_coins(roll: bool) -> void:
 	if result.get("coins_doubled", false):
 		mult = "Doubled!"
 	elif director.coin_mult() > 1.0:
-		mult = "Final Swarm ×%.1f" % director.coin_mult()
+		mult = "Final Swarm x%.1f" % director.coin_mult()
 	# Only what this run earned: the wallet total is the menu's business.
 	_over_mult.text = mult
 	if roll:
@@ -1878,37 +1885,41 @@ func _on_double_pressed() -> void:
 		_double_btn.visible = _can_double())
 
 
-## Game over: progress toward the closest unlocks, and what's ready to buy
-## (just unlocked ones marked NEW).
+## Game over: progress toward the closest unlocks ("Almost there", with the
+## reward's icon), then the first thing ready to unlock on its own card.
 func _fill_over_progress() -> void:
 	for c in _over_list.get_children():
 		c.queue_free()
-	# The build you ended with (tap a slot: nothing to see here, so no hint).
-	var bv := BuildView.new()
-	bv.name = "OverBuild"
-	bv.size = Vector2(156, 0)
-	bv.mouse_filter = Control.MOUSE_FILTER_PASS
-	bv.setup(db, owned_weapons, owned_tomes, items.stacks, int(rules.weapon_slots), int(rules.tome_slots))
-	_over_list.add_child(bv)
-	var next := Meta.closest(db, meta, 3)
-	if not next.is_empty():
-		_over_list.add_child(_small_label("Next unlocks", Palette.BUTTER))
-		for n: Dictionary in next:
-			var row := ChallengeRow.new().setup(n.challenge, n.progress, Meta.kind_name(db, n.challenge.reward))
-			_over_list.add_child(row)
+	for n: Dictionary in Meta.closest(db, meta, 2):
+		var reward: String = n.challenge.reward
+		var row := ChallengeRow.new().setup(n.challenge, n.progress, Meta.kind_name(db, reward))
+		row.art = Icons.texture(db, Meta.category_of(db, reward), reward)
+		row.custom_minimum_size.x = 150
+		_over_list.add_child(row)
 	var ready := Meta.ready_to_buy(db, meta)
 	if not ready.is_empty():
-		_over_list.add_child(_small_label("Ready to buy", Palette.LIME))
-		var just := {}
-		for id: String in result.get("completed", []):
-			just[db.get_entry("challenges", id).reward] = true
-		for i in mini(ready.size(), 3):
-			var id: String = ready[i]
-			var price := int(Meta.challenge_for(db, id).price)
-			var tag := "New! " if just.has(id) else ""
-			_over_list.add_child(_small_label("%s%s  C %d" % [tag, Meta.content(db, id).name, price], Palette.LIME if just.has(id) else Palette.PAPER))
-		if ready.size() > 3:
-			_over_list.add_child(_small_label("+%d more in Unlocks" % (ready.size() - 3), Palette.MIST))
+		var id: String = ready[0]
+		var card := Control.new()
+		card.name = "ReadyCard"
+		card.set_meta("id", id)
+		card.custom_minimum_size = Vector2(150, 34)
+		card.mouse_filter = Control.MOUSE_FILTER_IGNORE
+		var tex := Icons.texture(db, Meta.category_of(db, id), id)
+		var name_t: String = Meta.content(db, id).get("name", id)
+		var price := str(int(Meta.challenge_for(db, id).price))
+		card.draw.connect(func() -> void:
+			UiArt.card(card, Rect2(0, 0, 150, 32))
+			var sr := Rect2(5, 4, 24, 24)
+			UiArt.slot(card, sr, "ready", 0)
+			if tex != null:
+				var sm := LevelCard._small(tex, 12) if tex.get_width() > 12 else tex
+				card.draw_texture(sm, (sr.get_center() - sm.get_size() / 2.0).floor())
+			Fonts.draw(card, "Ready to unlock", Vector2(34, 5), "SMALL", Palette.LIME)
+			Fonts.draw(card, name_t, Vector2(34, 13), "NAME", -1, 80)
+			var pw := ceilf(Fonts.width(price, "NUM"))
+			Fonts.draw(card, price, Vector2(145 - pw, Fonts.cap_y("NUM", 0, 30)), "NUM")
+			UiArt.sprite(card, "hud_coin", Vector2(145 - pw - 13, 10)))
+		_over_list.add_child(card)
 
 
 func _small_label(text: String, color: int) -> Label:
@@ -1926,11 +1937,15 @@ func _pause(on: bool) -> void:
 		_disarm_give_up()
 		_sync_pause()
 		_pause_panel.show()
+		_hud.hide()
+		_pause_btn.hide()
 		UiFx.slide_in(_pause_panel, Vector2(0, 30), 0.2)
 	elif not on and state == "paused":
 		state = "live"
 		get_tree().paused = false
 		_pause_panel.hide()
+		_hud.show()
+		_pause_btn.show()
 
 
 func _notification(what: int) -> void:
@@ -2423,24 +2438,30 @@ func _build_ui() -> void:
 	# Every modal panel sits over a tint of the frozen world. The HUD and the
 	# pause button stay bright above it (as in the level-up concept); the
 	# panels draw over all of them.
-	_dim = DitherDim.new()
-	_dim.hide()
-	ui.add_child(_dim)
 	_hud = Hud.new()
 	_hud.db = db
 	_hud.world_zoom = float(world_scale) / float(ui_scale)
 	ui.add_child(_hud)
 	juice.build_burst(ui)
 	# Pause on screen (iOS has no back key), top right in the HUD's first row.
-	_pause_btn = SpriteButton.new()
+	_pause_btn = KitButton.new()
 	_pause_btn.name = "PauseButton"
-	_pause_btn.part = "hud_pause"
+	_pause_btn.part = "secondary"
+	_pause_btn.art = UiArt.texture("kit/pause")
+	_pause_btn.art_scale = 1
+	_pause_btn.art_centre = Vector2(13, 11)
 	_pause_btn.anchor_left = 1.0
 	_pause_btn.anchor_right = 1.0
-	_pause_btn.offset_left = -20
-	_pause_btn.offset_right = -3
+	_pause_btn.offset_left = -30
+	_pause_btn.offset_right = -4
 	_pause_btn.pressed.connect(_pause.bind(true))
 	ui.add_child(_pause_btn)
+	# Kit v2: modal panels dim the world, the HUD and the pause button alike
+	# (one step down each colour's ramp).
+	_dim = DitherDim.new()
+	_dim.watch_level = 4
+	_dim.hide()
+	ui.add_child(_dim)
 	_flash = DitherDim.new(true)
 	_flash.color = Palette.RED
 	ui.add_child(_flash)
@@ -2475,6 +2496,7 @@ func _build_ui() -> void:
 	_choice_panel = LevelUpPanel.new()
 	_choice_panel.name = "ChoicePanel"
 	_choice_panel.count = 0
+	_choice_panel.lamp = false
 	_choice_panel.hide()
 	ui.add_child(_choice_panel)
 	for i in 3:
@@ -2486,13 +2508,20 @@ func _build_ui() -> void:
 		_choice_panel.add_child(b)
 		_choice_buttons.append(b)
 	_choice_leave = PixelButton.new()
-	_choice_leave.position = Vector2(LevelUpPanel.ACTION_X, LevelUpPanel.ACTION_Y + 2)
-	_choice_leave.custom_minimum_size = Vector2(LevelUpPanel.SIZE.x - 2 * LevelUpPanel.ACTION_X, 26)
+	_choice_leave.name = "Leave"
+	_choice_leave.position = Vector2(floorf((LevelUpPanel.SIZE.x - 90.0) / 2.0), LevelUpPanel.ACTION_Y)
+	_choice_leave.custom_minimum_size = Vector2(90, 26)
 	_choice_leave.size = _choice_leave.custom_minimum_size
-	_choice_leave.face = Palette.MIST
+	_choice_leave.face = Palette.FRAME
 	_choice_leave.pressed.connect(_close_choice)
 	_choice_panel.add_child(_choice_leave)
 
+	# Game over sits on the night town, like the menus.
+	_over_bg = HomeScene.new()
+	_over_bg.name = "OverBackdrop"
+	_over_bg.show_hero = false
+	_over_bg.hide()
+	ui.add_child(_over_bg)
 	_build_over(ui)
 
 	# Revive offer (rewarded ad) after a death.
@@ -2535,76 +2564,90 @@ func _build_ui() -> void:
 	get_viewport().size_changed.connect(_apply_safe_area)
 
 
-## Pause: run facts, the build so far (tap a slot to see what it is and how
-## it's doing), stats, sound toggles, RESUME and GIVE UP (asks for a second
-## tap). The panel is as tall as the safe area; the buttons sit at its foot.
+## Pause, kit v2 (docs/ui/paused.png): the "Paused" plate over a window with
+## the run facts (time, level, KO), the build (4 weapon and 4 manual slots
+## with level badges; tap one to see it), the picked slot's details, stats,
+## music / sound buttons and Give Up (asks for a second tap); Resume (the lamp
+## button) under the window. Fills the safe area.
 func _build_pause(ui: CanvasLayer) -> void:
-	_pause_panel = _panel(ui, Rect2(6, 26, 168, 270), Palette.NIGHT)
-	_pause_panel.anchor_top = 0.0
-	_pause_panel.anchor_bottom = 1.0
-	_title(_pause_panel, "Paused", Palette.PAPER, 6)
+	var holder := Control.new()
+	holder.name = "PausePanel"
+	holder.anchor_left = 0.5
+	holder.anchor_right = 0.5
+	holder.anchor_bottom = 1.0
+	holder.offset_left = -85
+	holder.offset_right = 85
+	holder.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	holder.hide()
+	ui.add_child(holder)
+	_pause_panel = holder
+	_pause_win = PixelPanel.new()
+	_pause_win.name = "Window"
+	_pause_win.part = "window"
+	_pause_win.position = Vector2(0, 11)
+	_pause_win.size = Vector2(170, 250)
+	holder.add_child(_pause_win)
+	_title(holder, "Paused", Palette.PAPER, 2, 170.0)
 	_pause_facts = Label.new()
-	_pause_facts.position = Vector2(0, 31)
-	_pause_facts.size = Vector2(168, 10)
-	_pause_facts.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
-	Fonts.bold(_pause_facts)
-	_pause_facts.add_theme_color_override("font_color", Palette.color(Palette.BUTTER))
-	_pause_panel.add_child(_pause_facts)
+	_pause_facts.visible = false
+	holder.add_child(_pause_facts)
+	var facts := Control.new()
+	facts.name = "Facts"
+	facts.position = Vector2(0, 19)
+	facts.size = Vector2(170, 12)
+	facts.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	facts.draw.connect(_draw_pause_facts.bind(facts))
+	_pause_win.add_child(facts)
 	_pause_build = BuildView.new()
-	_pause_build.position = Vector2(12, 46)
-	_pause_build.size = Vector2(144, 120)
+	_pause_build.position = Vector2(11, 35)
+	_pause_build.size = Vector2(148, 90)
+	_pause_build.show_items = false
 	_pause_build.picked.connect(func(kind: String, id: String) -> void:
 		_pause_pick = [kind, id]
 		_pause_info.queue_redraw())
-	_pause_panel.add_child(_pause_build)
-	_pause_build.hint = "Tap to see"
+	_pause_win.add_child(_pause_build)
 	_pause_info = Control.new()
-	_pause_info.size = Vector2(152, 43)
+	_pause_info.size = Vector2(148, 40)
 	_pause_info.mouse_filter = Control.MOUSE_FILTER_IGNORE
 	_pause_info.draw.connect(_draw_pause_info)
-	_pause_panel.add_child(_pause_info)
+	_pause_win.add_child(_pause_info)
 	_pause_stats = Control.new()
-	_pause_stats.position = Vector2(12, 120)
-	_pause_stats.size = Vector2(144, 40)
+	_pause_stats.position = Vector2(11, 170)
+	_pause_stats.size = Vector2(148, 30)
 	_pause_stats.mouse_filter = Control.MOUSE_FILTER_IGNORE
 	_pause_stats.draw.connect(_draw_pause_stats)
-	_pause_panel.add_child(_pause_stats)
+	_pause_win.add_child(_pause_stats)
 	for i in 2:
 		var key: String = ["music", "sfx"][i]
-		var t := PixelButton.new()
+		var t := KitButton.new()
 		t.name = "Toggle_" + key
-		t.label = ["Music", "Sound"][i]
-		t.face = Palette.MIST
-		t.small_text = true
-		t.position = Vector2(10 + i * 76, 182)
-		t.custom_minimum_size = Vector2(72, 18)
-		t.size = t.custom_minimum_size
+		t.part = "secondary"
+		t.art = UiArt.texture("kit/" + ["music", "sound"][i])
+		t.art_scale = 1
+		t.size = Vector2(30, 27)
+		t.position = Vector2(10 + i * 35, 210)
 		t.pressed.connect(func() -> void:
 			if _save != null:
-				_save.set_setting(key, not _save.get_setting(key))
+				var on := not bool(_save.get_setting(key))
+				_save.set_setting(key, on)
+				var lk := key + "_level"
+				if on and int(_save.get_setting(lk)) <= 0:
+					_save.set_setting(lk, 5)
 			_sync_pause())
-		_pause_panel.add_child(t)
+		_pause_win.add_child(t)
 		_pause_toggles[key] = t
-	var resume := PixelButton.new()
-	resume.label = "Resume"
-	resume.face = Palette.GREEN
-	resume.position = Vector2(10, 204)
-	resume.custom_minimum_size = Vector2(148, 28)
-	resume.size = resume.custom_minimum_size
-	resume.pressed.connect(_pause.bind(false))
-	_pause_panel.add_child(resume)
-	_pause_resume = resume
 	_give_up = PixelButton.new()
-	_give_up.label = "Give up"
-	_give_up.face = Palette.SALMON
-	_give_up.position = Vector2(30, 238)
-	_give_up.custom_minimum_size = Vector2(108, 20)
+	_give_up.name = "GiveUp"
+	_give_up.label = "Give Up"
+	_give_up.face = Palette.FRAME
+	_give_up.position = Vector2(80, 210)
+	_give_up.custom_minimum_size = Vector2(80, 27)
 	_give_up.size = _give_up.custom_minimum_size
 	_give_up.pressed.connect(func() -> void:
 		if not _give_up_armed:
 			_give_up_armed = true
-			_give_up.label = "Really? Tap again"
-			_give_up.face = Palette.RED
+			_give_up.label = "Really?"
+			_give_up.face = Palette.FRAME
 			get_tree().create_timer(2.5, true).timeout.connect(_disarm_give_up)
 			return
 		_disarm_give_up()
@@ -2612,31 +2655,41 @@ func _build_pause(ui: CanvasLayer) -> void:
 		get_tree().paused = false
 		state = "live"
 		_end("gave_up"))
-	_pause_panel.add_child(_give_up)
+	_pause_win.add_child(_give_up)
+	var resume := PixelButton.new()
+	resume.name = "Resume"
+	resume.label = "Resume"
+	resume.face = Palette.GOLD
+	resume.big = true
+	resume.custom_minimum_size = Vector2(158, 35)
+	resume.size = resume.custom_minimum_size
+	resume.position = Vector2(6, 270)
+	resume.pressed.connect(_pause.bind(false))
+	holder.add_child(resume)
+	_pause_resume = resume
 
 
-## Pause layout for the panel's height `h`: build, hint, info box and stats
-## from the top; toggles, RESUME and GIVE UP from the bottom.
+## Pause layout for the holder's height `h`: Resume at the foot, the window
+## above it; in the window the facts, build, details and stats from the top,
+## the music / sound / Give Up row at its foot (stats drop out when short).
 func _layout_pause(h: float) -> void:
-	var y := 44.0 + _pause_build.needed_height()
-	_pause_info.position = Vector2(8, y)
-	y += _pause_info.size.y + 3
-	_pause_stats.position.y = y
-	var bottom := h - 2.0
-	_give_up.position.y = bottom - 5 - 18
-	_give_up.size.y = 18
-	_pause_resume.position.y = _give_up.position.y - 3 - 26
-	_pause_resume.size.y = 26
+	_pause_resume.position.y = h - _pause_resume.size.y
+	_pause_win.size.y = maxf(200.0, _pause_resume.position.y - 8.0 - _pause_win.position.y)
+	var foot := _pause_win.size.y - UiArt.DROP_WINDOW - 8.0 - 27.0
 	for key: String in _pause_toggles:
-		_pause_toggles[key].position.y = _pause_resume.position.y - 3 - 16
-		_pause_toggles[key].size.y = 16
-	_pause_stats.visible = _pause_stats.position.y + 34 <= _pause_resume.position.y - 19
+		_pause_toggles[key].position.y = foot
+	_give_up.position.y = foot
+	var y := _pause_build.position.y + _pause_build.needed_height() + 2.0
+	_pause_info.position = Vector2(11, y)
+	y += _pause_info.size.y + 7
+	_pause_stats.position.y = y
+	_pause_stats.visible = y + _pause_stats.size.y <= foot - 4.0
 
 
 func _disarm_give_up() -> void:
 	_give_up_armed = false
-	_give_up.label = "Give up"
-	_give_up.face = Palette.SALMON
+	_give_up.label = "Give Up"
+	_give_up.face = Palette.FRAME
 
 
 ## Fills the pause panel with the run so far.
@@ -2650,102 +2703,118 @@ func _sync_pause() -> void:
 	_layout_pause(_pause_panel.size.y)
 	_pause_info.queue_redraw()
 	_pause_stats.queue_redraw()
+	_pause_win.find_child("Facts", false, false).queue_redraw()
 	for key: String in _pause_toggles:
 		var on: bool = _save.get_setting(key) if _save != null else true
-		_pause_toggles[key].toggle = int(on)
+		_pause_toggles[key].dim = not on
 
 
-## Game over: title and reason, the hero, stat tiles, coins (rolling up),
-## 2X COINS, closest unlocks, then PLAY AGAIN and MENU. Fills the screen
-## inside the safe area.
+## Game over, kit v2 (docs/ui/game-over.png): the result title in lamp gold
+## and one line, the hero (hit pose after a loss), then a window with four
+## stat tiles, the coins earned (rolling up) with AD x2, "Almost there" (the
+## closest unlocks with their bars) and what's ready to unlock; Home and the
+## lamp Play Again at the foot. Fills the safe area; the list scrolls.
 func _build_over(ui: CanvasLayer) -> void:
-	var p := PixelPanel.new()
-	p.fill = Palette.NIGHT
+	var p := Control.new()
+	p.name = "OverPanel"
 	p.anchor_left = 0.5
 	p.anchor_right = 0.5
 	p.anchor_bottom = 1.0
 	p.offset_left = -86
 	p.offset_right = 86
+	p.mouse_filter = Control.MOUSE_FILTER_STOP
 	p.hide()
 	ui.add_child(p)
 	_over_panel = p
-	_over_title = _title(p, "", Palette.BUTTER, 6)
-	_over_title.size.x = 86
-	_over_reason = Label.new()
-	_over_reason.position = Vector2(0, 30)
-	_over_reason.size = Vector2(172, 10)
+	_over_title = Fonts.label("", "RESULT", Palette.GOLD)
+	_over_title.name = "Title"
+	_over_title.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
+	_over_title.position = Vector2(0, 8)
+	_over_title.size = Vector2(172, 26)
+	p.add_child(_over_title)
+	_over_reason = Fonts.label("", "BODY")
 	_over_reason.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
-	_over_reason.add_theme_color_override("font_color", Palette.color(Palette.MIST))
+	_over_reason.position = Vector2(0, 38)
+	_over_reason.size = Vector2(172, 10)
 	p.add_child(_over_reason)
 	_over_hero = Control.new()
-	_over_hero.position = Vector2(8, 42)
-	_over_hero.size = Vector2(56, 52)
+	_over_hero.position = Vector2(58, 50)
+	_over_hero.size = Vector2(56, 56)
 	_over_hero.mouse_filter = Control.MOUSE_FILTER_IGNORE
 	p.add_child(_over_hero)
+	_over_win = PixelPanel.new()
+	_over_win.name = "Window"
+	_over_win.part = "window"
+	_over_win.position = Vector2(1, 112)
+	_over_win.size = Vector2(170, 200)
+	p.add_child(_over_win)
 	_over_tiles = Control.new()
-	_over_tiles.position = Vector2(66, 42)
-	_over_tiles.size = Vector2(100, 52)
+	_over_tiles.position = Vector2(10, 10)
+	_over_tiles.size = Vector2(150, 29)
 	_over_tiles.mouse_filter = Control.MOUSE_FILTER_IGNORE
 	_over_tiles.draw.connect(_draw_over_tiles)
-	p.add_child(_over_tiles)
+	_over_win.add_child(_over_tiles)
 	# The old one-block summary, kept for tests and screen readers of the result.
 	_over_text = Label.new()
 	_over_text.visible = false
 	p.add_child(_over_text)
-	var coins_cap := Label.new()
-	coins_cap.text = "Coins earned"
-	coins_cap.position = Vector2(10, 101)
-	Fonts.bold(coins_cap)
-	coins_cap.add_theme_color_override("font_color", Palette.color(Palette.GOLD))
-	p.add_child(coins_cap)
+	var coins := Control.new()
+	coins.name = "Coins"
+	coins.position = Vector2(10, 46)
+	coins.size = Vector2(150, 33)
+	coins.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	coins.draw.connect(func() -> void:
+		UiArt.card(coins, Rect2(0, 0, coins.size.x, coins.size.y - UiArt.DROP_CARD))
+		Fonts.draw(coins, "Coins earned", Vector2(6, Fonts.cap_y("NAME", 0, 22)), "NAME"))
+	_over_win.add_child(coins)
 	_over_coins = CoinPlate.new()
-	_over_coins.position = Vector2(100, 98)
-	_over_coins.size = Vector2(66, CoinPlate.H)
-	p.add_child(_over_coins)
-	_over_mult = Label.new()
-	_over_mult.position = Vector2(10, 112)
-	_over_mult.size = Vector2(152, 10)
-	_over_mult.horizontal_alignment = HORIZONTAL_ALIGNMENT_RIGHT
-	_over_mult.add_theme_color_override("font_color", Palette.color(Palette.PINK))
-	p.add_child(_over_mult)
-	# 2x coins (rewarded ad), right under the coins it doubles.
+	_over_coins.plain = true
+	_over_coins.align = 0.0
+	_over_coins.position = Vector2(68, 4)
+	_over_coins.size = Vector2(40, 22)
+	coins.add_child(_over_coins)
+	_over_mult = Fonts.label("", "SMALL", Palette.PINK)
+	_over_mult.position = Vector2(6, 20)
+	_over_mult.size = Vector2(60, 8)
+	coins.add_child(_over_mult)
+	# AD x2 (rewarded ad) on the coins it doubles.
 	_double_btn = AdButton.new()
-	_double_btn.label = "2× coins"
-	_double_btn.face = Palette.GOLD
-	_double_btn.position = Vector2(26, 122)
-	_double_btn.custom_minimum_size = Vector2(120, 20)
+	_double_btn.name = "Double"
+	_double_btn.label = "x2"
+	_double_btn.position = Vector2(108, 4)
+	_double_btn.custom_minimum_size = Vector2(38, 23)
 	_double_btn.size = _double_btn.custom_minimum_size
 	_double_btn.pressed.connect(_on_double_pressed)
 	_double_btn.hide()
-	p.add_child(_double_btn)
+	coins.add_child(_double_btn)
+	var head := Fonts.label("Almost there", "NAME")
+	head.name = "AlmostThere"
+	head.position = Vector2(11, 85)
+	_over_win.add_child(head)
 	var scroll := DragScroll.new()
-	scroll.position = Vector2(8, 146)
-	scroll.size = Vector2(156, 100)
-	p.add_child(scroll)
+	scroll.position = Vector2(10, 98)
+	scroll.size = Vector2(150, 90)
+	_over_win.add_child(scroll)
 	_over_scroll = scroll
-	var bar := scroll.make_bar()
-	bar.position = Vector2(165, 146)
-	bar.size = Vector2(2, 100)
-	p.add_child(bar)
-	scroll.resized.connect(func() -> void:
-		bar.position = scroll.position + Vector2(scroll.size.x + 1, 0)
-		bar.size = Vector2(2, scroll.size.y))
 	_over_list = VBoxContainer.new()
-	_over_list.custom_minimum_size = Vector2(156, 0)
-	_over_list.add_theme_constant_override("separation", 2)
+	_over_list.custom_minimum_size = Vector2(150, 0)
+	_over_list.add_theme_constant_override("separation", 4)
 	scroll.add_child(_over_list)
-	_again_btn = PixelButton.new()
-	_again_btn.name = "PlayAgain"
-	_again_btn.label = "Play again"
-	_again_btn.face = Palette.GREEN
-	_again_btn.pressed.connect(_play_again)
-	p.add_child(_again_btn)
 	_menu_btn = PixelButton.new()
 	_menu_btn.name = "Menu"
-	_menu_btn.label = "Menu"
-	_menu_btn.face = Palette.MIST
+	_menu_btn.label = ""
+	_menu_btn.face = Palette.FRAME
+	_menu_btn.art = UiArt.texture("kit/house")
+	_menu_btn.art_plain = true
 	_menu_btn.pressed.connect(_to_menu)
 	p.add_child(_menu_btn)
+	_again_btn = PixelButton.new()
+	_again_btn.name = "PlayAgain"
+	_again_btn.label = "Play Again"
+	_again_btn.face = Palette.GOLD
+	_again_btn.big = true
+	_again_btn.pressed.connect(_play_again)
+	p.add_child(_again_btn)
 
 
 ## Run panels and the pause button keep clear of the cutout and gesture bar.
@@ -2755,7 +2824,7 @@ func _apply_safe_area() -> void:
 	_hud.safe_top = top
 	_hud.safe_bottom = bottom
 	_pause_btn.offset_top = Hud.PAUSE_Y + top
-	_pause_btn.offset_bottom = Hud.PAUSE_Y + top + 16
+	_pause_btn.offset_bottom = Hud.PAUSE_Y + top + 28
 	# Level-up window: centred between the HUD's two rows and the bottom edge.
 	var vs := get_viewport().get_visible_rect().size
 	var room := vs.y - top - bottom - Hud.ROWS_H
@@ -2767,18 +2836,27 @@ func _apply_safe_area() -> void:
 	_layout_pause(get_viewport().get_visible_rect().size.y - top - bottom - 12)
 	_over_panel.offset_top = top + 4
 	_over_panel.offset_bottom = -(bottom + 4)
-	var h := get_viewport().get_visible_rect().size.y - top - bottom - 8
-	_over_scroll.size.y = maxf(40.0, h - 2 - 146 - 40)
-	for b: PixelButton in [_again_btn, _menu_btn]:
-		b.position.y = h - 2 - 34
-		b.custom_minimum_size.y = 26
-		b.size.y = 26
-	_again_btn.position.x = 8
-	_again_btn.custom_minimum_size.x = 100
-	_again_btn.size.x = 100
-	_menu_btn.position.x = 112
-	_menu_btn.custom_minimum_size.x = 52
-	_menu_btn.size.x = 52
+	_layout_over(get_viewport().get_visible_rect().size.y - top - bottom - 8)
+
+
+## Game over layout for the holder's height `h`: buttons at the foot, the
+## window above them; the hero shows when there's room for it.
+func _layout_over(h: float) -> void:
+	var btn_y := h - 38.0
+	_menu_btn.position = Vector2(4, btn_y)
+	_menu_btn.custom_minimum_size = Vector2(32, 34)
+	_menu_btn.size = _menu_btn.custom_minimum_size
+	_again_btn.position = Vector2(40, btn_y)
+	_again_btn.custom_minimum_size = Vector2(128, 34)
+	_again_btn.size = _again_btn.custom_minimum_size
+	# Title + line 50, hero 60 when it fits, then the window down to the buttons.
+	var win_h := 228.0
+	var hero := btn_y - 8.0 - win_h - 50.0 >= 52.0
+	_over_hero.visible = hero
+	var top := 112.0 if hero else 52.0
+	_over_win.position.y = top
+	_over_win.size.y = maxf(150.0, btn_y - 8.0 - top)
+	_over_scroll.size.y = maxf(30.0, _over_win.size.y - UiArt.DROP_WINDOW - 8.0 - _over_scroll.position.y)
 
 
 ## The beacon / merchant panel where the level-up one sits (its own height:
@@ -2803,13 +2881,28 @@ func _pause_has(pick: Array) -> bool:
 	return false
 
 
-## The picked slot: icon, name, kind and level, what it does now, and for a
-## weapon how hard it hits and how many it has knocked out this run.
+## The run facts row in the pause window: clock + time, star + level, skull + KO.
+func _draw_pause_facts(ci: Control) -> void:
+	var sec := int(minf(elapsed, rules.run_length_sec))
+	var parts := [["hud_clock", "%d:%02d" % [sec / 60, sec % 60]], ["star", "Lv %d" % level], ["hud_skull", str(kills)]]
+	var total := 0.0
+	for pt: Array in parts:
+		total += 12.0 + ceilf(Fonts.width(pt[1], "NUM")) + 12.0
+	var x := floorf((ci.size.x - total + 12.0) / 2.0)
+	for pt: Array in parts:
+		var ss := Vector2(UiArt.sprite_size(pt[0]))
+		UiArt.sprite(ci, pt[0], Vector2(x, floorf((ci.size.y - ss.y) / 2.0)))
+		Fonts.draw(ci, pt[1], Vector2(x + ss.x + 3, Fonts.cap_y("NUM", 0, ci.size.y)), "NUM")
+		x += 12.0 + ceilf(Fonts.width(pt[1], "NUM")) + 12.0
+
+
+## The picked slot in a well: name, kind and level on the right, what it
+## does now, and for a weapon how hard it hits and how many it has knocked out.
 func _draw_pause_info() -> void:
 	var ci := _pause_info
 	var r := Rect2(Vector2.ZERO, ci.size)
+	UiArt.well(ci, r)
 	if _pause_pick.is_empty():
-		UiArt.draw(ci, "lv_card", r, Palette.SHADE)
 		return
 	var kind: String = _pause_pick[0]
 	var id: String = _pause_pick[1]
@@ -2817,44 +2910,33 @@ func _draw_pause_info() -> void:
 	var sub := ""
 	var desc: String = def.get("desc", "")
 	var extra := ""
-	var face := Palette.GRAY
 	match kind:
 		"weapons":
 			var lvl := int(owned_weapons[id])
-			sub = "Weapon  Lv %d/%d" % [lvl, def.levels.size()]
-			face = Palette.RED
+			sub = "Weapon · Lv %d/%d" % [lvl, def.levels.size()]
 			var ld: Dictionary = def.levels[lvl - 1]
 			if ld.has("damage"):
-				extra = "Dmg %d   " % roundi(float(ld.damage) * stat("damage"))
-			extra += "KO %d" % int(run_stats.get("kills." + id, 0.0))
+				extra = "Damage %d · " % roundi(float(ld.damage) * stat("damage"))
+			extra += "%d KO" % int(run_stats.get("kills." + id, 0.0))
 		"tomes":
 			var lvl := int(owned_tomes[id])
-			sub = "Manual  Lv %d/%d" % [lvl, int(rules.get("max_level", 5))]
-			face = Palette.BLUE
+			sub = "Manual · Lv %d/%d" % [lvl, int(rules.get("max_level", 5))]
 			extra = "Each level: " + desc
 			desc = _tome_total(def, lvl)
 		"items":
 			var loot := db.get_entry("rules", "loot")
 			sub = "%s item" % String(loot.rarity_names.get(def.rarity, ""))
-			face = Palette.index_of(loot.rarity_colors.get(def.rarity, "MIST"))
 			if int(items.stacks[id]) > 1:
-				sub += "  ×%d" % int(items.stacks[id])
-	# The kit card plate and icon frame in the kind's colour (rarity for items).
-	UiArt.draw(ci, "lv_card", r, face)
-	var fr := Rect2(4, 4, 20, 20)
-	UiArt.draw(ci, "icon_frame", fr, face)
-	var tex := Icons.small(db, kind, id, 13)
-	if tex != null:
-		ci.draw_texture(tex, (fr.get_center() + Vector2(0, -1) - tex.get_size() / 2.0).floor())
-	var light: int = LevelCard.NAME_COLOR.get(face, Palette.PAPER)
+				sub += " x%d" % int(items.stacks[id])
 	var name_t: String = def.get("name", id)
+	var sw := ceilf(Fonts.width(sub, "SMALL"))
 	var nfs: int = Fonts.STYLES.CARD_NAME[1]
-	while nfs > 7 and Fonts.width(name_t, "CARD_NAME", nfs) > r.size.x - 32:
+	while nfs > 7 and Fonts.width(name_t, "CARD_NAME", nfs) > r.size.x - 18 - sw:
 		nfs -= 1
-	Fonts.draw(ci, name_t, Vector2(28, 5), "CARD_NAME", Palette.BUTTER, -1, HORIZONTAL_ALIGNMENT_LEFT, nfs)
-	Fonts.draw(ci, sub, Vector2(28, 15), "CARD_BODY", light)
-	Fonts.draw(ci, desc, Vector2(6, 27), "CARD_BODY", Palette.PAPER, r.size.x - 12)
-	Fonts.draw(ci, extra, Vector2(6, 34), "CARD_BODY", Palette.LIME, r.size.x - 12)
+	Fonts.draw(ci, name_t, Vector2(7, 4), "CARD_NAME", -1, -1, HORIZONTAL_ALIGNMENT_LEFT, nfs)
+	Fonts.draw(ci, sub, Vector2(r.size.x - 7 - sw, 6), "SMALL")
+	Fonts.draw(ci, desc, Vector2(7, 17), "BODY", -1, r.size.x - 14)
+	Fonts.draw(ci, extra, Vector2(7, 28), "BODY", Palette.LIME, r.size.x - 14)
 
 
 ## What a tome gives in total at `lvl`: the first number in its per-level
@@ -2874,19 +2956,17 @@ func _tome_total(def: Dictionary, lvl: int) -> String:
 func _draw_pause_stats() -> void:
 	var ci := _pause_stats
 	var rows := [
-		["Dmg", "×%.2f" % stat("damage")], ["Armor", "%d" % int(stat("armor"))],
+		["Damage", "x%.2f" % stat("damage")], ["Armor", "%d" % int(stat("armor"))],
 		["Speed", "%d" % int(stat("move_speed"))], ["Regen", "%.1f" % stat("regen")],
 		["Crit", "%d%%" % roundi(stat("crit_chance") * 100.0)], ["Luck", "%d%%" % roundi(stat("luck") * 100.0)],
 	]
-	Fonts.draw(ci, "Stats", Vector2(0, 0), "CARD_NAME", Palette.MIST)
-	var hw := ceilf(Fonts.width("Stats", "CARD_NAME")) + 4.0
-	ci.draw_rect(Rect2(hw, 5, ci.size.x - hw, 1), Palette.color(Palette.SHADE))
 	for i in rows.size():
-		var at := Vector2((i % 2) * 74, 12 + (i / 2) * 8)
-		Fonts.draw(ci, rows[i][0], at, "CARD_BODY", Palette.GRAY)
-		Fonts.draw(ci, rows[i][1], at, "CARD_BODY", Palette.PAPER, 68, HORIZONTAL_ALIGNMENT_RIGHT)
+		var at := Vector2((i % 2) * 80, (i / 2) * 10)
+		Fonts.draw(ci, rows[i][0], at, "BODY", Palette.MUTED)
+		Fonts.draw(ci, rows[i][1], at, "BODY", Palette.PAPER, 68, HORIZONTAL_ALIGNMENT_RIGHT)
 
 
+## Four stat tiles in wells: icon + value (NUM), caption (SMALL) under it.
 func _draw_over_tiles() -> void:
 	var ci := _over_tiles
 	var sec := int(minf(elapsed, rules.run_length_sec))
@@ -2896,13 +2976,16 @@ func _draw_over_tiles() -> void:
 		["hud_skull", str(kills), "KO"],
 		["hud_coin", str(floori(gold)), "Gold"],
 	]
-	# Kit 3b frames in OCEAN, the HUD's icons, the caption in BODY, the value in NUM.
 	for i in 4:
-		var at := Vector2((i % 2) * 51, (i / 2) * 27)
-		UiArt.draw(ci, "lv_frame", Rect2(at, Vector2(49, 25)), Palette.OCEAN)
-		UiArt.sprite(ci, tiles[i][0], at + Vector2(3, 3))
-		Fonts.draw(ci, tiles[i][2], at + Vector2(15, 3), "BODY", Palette.SKY)
-		Fonts.draw(ci, tiles[i][1], at + Vector2(5, 12), "NUM", Palette.PAPER, -1, HORIZONTAL_ALIGNMENT_LEFT, 9)
+		var r := Rect2(i * 38, 0, 36, 29)
+		UiArt.well(ci, r)
+		var v: String = tiles[i][1]
+		var vw := ceilf(Fonts.width(v, "NUM"))
+		var ss := Vector2(UiArt.sprite_size(tiles[i][0]))
+		var x := r.position.x + floorf((r.size.x - ss.x - 2 - vw) / 2.0)
+		UiArt.sprite(ci, tiles[i][0], Vector2(x, 4 + floorf((12 - ss.y) / 2.0)))
+		Fonts.draw(ci, v, Vector2(x + ss.x + 2, Fonts.cap_y("NUM", 3, 12)), "NUM")
+		Fonts.draw(ci, tiles[i][2], Vector2(r.position.x, 18), "SMALL", -1, r.size.x, HORIZONTAL_ALIGNMENT_CENTER)
 
 
 ## A hidden panel. `rect` is in a 180x320 design frame; the panel is
@@ -2925,14 +3008,14 @@ func _panel(parent: Node, rect: Rect2, fill: int) -> PixelPanel:
 
 ## A panel title on the gold kit header plate (HeaderTitle). Returns a hidden
 ## Label holding the text (tests read it); the header follows its text.
-func _title(parent: Control, text: String, color: int, y: int) -> Label:
+func _title(parent: Control, text: String, color: int, y: int, width := -1.0) -> Label:
 	var l := Label.new()
 	l.text = text
 	l.visible = false
 	parent.add_child(l)
 	var head := HeaderTitle.new(text)
 	head.position = Vector2(0, y - 2)
-	head.size = Vector2(parent.size.x, HeaderTitle.H + 2)
+	head.size = Vector2(width if width > 0.0 else parent.size.x, HeaderTitle.H + 2)
 	parent.add_child(head)
 	l.set_meta("big", head)
 	l.set_meta("color", color)
@@ -2942,7 +3025,8 @@ func _title(parent: Control, text: String, color: int, y: int) -> Label:
 ## Sets a _title() label's text (and the header that shows it).
 func _set_title(l: Label, text: String) -> void:
 	l.text = text
-	(l.get_meta("big") as HeaderTitle).text = text
+	if l.has_meta("big"):
+		(l.get_meta("big") as HeaderTitle).text = text
 
 
 ## Again with the same hero and map. A break like the way to the menu, so

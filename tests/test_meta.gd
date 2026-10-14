@@ -318,9 +318,9 @@ func test_closest_challenges_and_ready_to_buy(t) -> void:
 	run.meta.merge(d, true)
 	run._end("died")
 	var rows := run.find_children("*", "ChallengeRow", true, false)
-	var texts := run._over_list.get_children().filter(func(n: Node) -> bool: return n is Label).map(func(l: Label) -> String: return l.text)
-	t.check(rows.size() == 3, "game over shows 3 closest (%d)" % rows.size())
-	t.check(texts.has("Ready to buy") and texts.any(func(s: String) -> bool: return s.contains("Fireworks")), "and what's ready to buy: %s" % [texts])
+	var ready: Node = run._over_list.get_node_or_null("ReadyCard")
+	t.check(rows.size() == 2, "game over shows the 2 closest, \"Almost there\" (%d)" % rows.size())
+	t.check(ready != null and ready.get_meta("id") == "fireworks", "and what's ready to unlock: %s" % [ready.get_meta("id") if ready != null else null])
 	var save: Node = run._save
 	_done(t, run)
 	save.free()

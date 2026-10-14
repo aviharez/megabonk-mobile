@@ -33,6 +33,9 @@ static func default_data() -> Dictionary:
 			"screen_shake": true,
 			"reduce_effects": false,
 			"vibration": true,
+			# Volume steps 0..5 (Settings pips); 0 also turns "music" / "sfx" off.
+			"music_level": 5,
+			"sfx_level": 5,
 		},
 		# Meta progression (phase 4); the keys are explained in scripts/core/meta.gd.
 		# Cumulative stat tracker totals, keyed by stat key ("kills.hot_coffee@gary").
@@ -52,6 +55,8 @@ static func default_data() -> Dictionary:
 		# Map picked last, and maps whose boss was defeated (see meta.gd).
 		"map": "",
 		"maps_cleared": {},
+		# Longest run per map id, in seconds (Home's "Best 6:12").
+		"best_times": {},
 		# Ad pacing, daily reward, Remove Ads (phase 5; see scripts/autoload/ads.gd).
 		"ads": {
 			# Remove Ads bought (no interstitials, no banners; rewarded ads stay).

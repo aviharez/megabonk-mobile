@@ -1,11 +1,12 @@
 class_name CoinPlate
 extends Control
-## The coin count on the kit 3 dark plate (`plate_dark`): the big kit coin,
-## then the number in the NUM style with a thousands comma ("1,246").
+## The coin count on the kit v2 coin plate (a slot: INK, frame ring, WELL
+## inside): the big kit coin, then the number in NUM with a thousands comma
+## ("1,246").
 ## `count_to()` rolls the number up (coins earned at the end of a run) with a
 ## tick sound every few steps. Sizes itself to its text.
 
-const H := 19
+const H := 20
 
 var value := 0:
 	set(v):
@@ -15,6 +16,11 @@ var value := 0:
 var _shown := 0
 ## Where the plate sits when the control is wider than it (0 left, 0.5 centre).
 var align := 0.5
+## No plate: the coin and a bigger number (game over's "Coins earned").
+var plain := false:
+	set(v):
+		plain = v
+		_fit()
 var _tween: Tween
 
 
@@ -57,16 +63,20 @@ static func grouped(n: int) -> String:
 
 func _fit() -> void:
 	var tw := ceilf(Fonts.width(grouped(maxi(_shown, value)), "NUM"))
-	custom_minimum_size = Vector2(UiArt.sprite_size("coin_big").x + tw + 13, H)
+	custom_minimum_size = Vector2(UiArt.sprite_size("coin_big").x + tw + 17, H)
 	queue_redraw()
 
 
 func _draw() -> void:
+	if plain:
+		var cs0 := Vector2(UiArt.sprite_size("coin_big"))
+		UiArt.sprite(self, "coin_big", Vector2(0, floorf((size.y - cs0.y) / 2.0)))
+		Fonts.draw(self, grouped(_shown), Vector2(cs0.x + 4, Fonts.cap_y("NUM", 0, size.y, 16)), "NUM", -1, -1,
+				HORIZONTAL_ALIGNMENT_LEFT, 16)
+		return
 	var w := floorf(size.x)
 	var r := Rect2(floorf((w - custom_minimum_size.x) * align), 0, custom_minimum_size.x, H)
-	UiArt.draw(self, "plate_dark", r)
+	UiArt.slot(self, r, "", 0)
 	var cs := Vector2(UiArt.sprite_size("coin_big"))
-	# The plate's face is its height less the 1 px bevel under it; digits are caps.
-	var face_h := r.size.y - 1.0
-	UiArt.sprite(self, "coin_big", Vector2(r.position.x + 4, r.position.y + floorf((face_h - cs.y) / 2.0)))
-	Fonts.draw(self, grouped(_shown), Vector2(r.position.x + cs.x + 7, Fonts.cap_y("NUM", r.position.y, face_h)), "NUM")
+	UiArt.sprite(self, "coin_big", Vector2(r.position.x + 5, r.position.y + floorf((H - cs.y) / 2.0)))
+	Fonts.draw(self, grouped(_shown), Vector2(r.position.x + cs.x + 9, Fonts.cap_y("NUM", r.position.y + 1, H - 2)), "NUM")

@@ -6,7 +6,7 @@ extends MenuScreen
 
 
 func _init(save_node: Node) -> void:
-	super(save_node, "Toggler")
+	super(save_node, "Switchboard")
 
 
 func _fill() -> void:

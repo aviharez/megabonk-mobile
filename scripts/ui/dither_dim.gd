@@ -20,11 +20,12 @@ uniform sampler2D screen_tex : hint_screen_texture, filter_nearest;
 uniform sampler2D palette_tex : filter_nearest;
 uniform sampler2D lut_tex : filter_nearest;
 uniform int steps = 2;
+uniform int count = 32;
 void fragment() {
 	vec3 c = texture(screen_tex, SCREEN_UV).rgb;
 	int best = 0;
 	float bd = 10.0;
-	for (int i = 0; i < 32; i++) {
+	for (int i = 0; i < count; i++) {
 		vec3 p = texelFetch(palette_tex, ivec2(i, 0), 0).rgb;
 		float d = dot(c - p, c - p);
 		if (d < bd) { bd = d; best = i; }
@@ -90,6 +91,7 @@ func _draw() -> void:
 			m.shader = tint_shader()
 			m.set_shader_parameter("palette_tex", Palette.texture())
 			m.set_shader_parameter("lut_tex", darker_lut())
+			m.set_shader_parameter("count", Palette.colors().size())
 			material = m
 		m.set_shader_parameter("steps", steps)
 		draw_rect(Rect2(Vector2.ZERO, size), Color.WHITE)

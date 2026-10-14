@@ -16,24 +16,6 @@ func _start(t, opts: Dictionary) -> Run:
 	return run
 
 
-func test_bonk_font_covers_the_ui_text(t) -> void:
-	var missing := []
-	for ch in "ABCDEFGHIJKLMNOPQRSTUVWXYZabcz0123456789!?.,:-+=/'%()<>#*_$&\"":
-		if not Fonts.BOLD.has_char(ch.unicode_at(0)):
-			missing.append(ch)
-	t.check(missing.is_empty(), "Bonk has every character the UI uses (missing %s)" % [missing])
-	t.check(Fonts.BOLD.get_height(8) == Fonts.SMALL.get_height(8), "both fonts share the 10px line")
-	t.check(Fonts.fitting("OK", 100) == Fonts.BOLD and Fonts.fitting("A VERY LONG LINE OF TEXT HERE", 40) == Fonts.SMALL, "long lines fall back to the small font")
-	var page: Image = load("res://assets/fonts/bonk.png").get_image()
-	var off := 0
-	for y in page.get_height():
-		for x in page.get_width():
-			var c := page.get_pixel(x, y)
-			if c.a > 0.0 and not Palette.has(c):
-				off += 1
-	t.check(off == 0, "the font page is on the palette (%d off)" % off)
-
-
 func test_dither_dim_stays_on_the_palette(t) -> void:
 	for lvl in [1, 4, 8, 12, 15]:
 		var img := DitherDim.pattern(Palette.INK, lvl).get_image()
@@ -82,7 +64,7 @@ func test_pause_shows_the_build_and_give_up_asks_twice(t) -> void:
 	t.check(run.state == "paused" and run._give_up_armed, "first GIVE UP tap only asks")
 	run._give_up.pressed.emit()
 	t.check(run.state == "over" and run.end_reason == "gave_up", "second tap gives up (state %s)" % run.state)
-	t.check(run._again_btn != null and run._again_btn.label == "Play again", "game over offers PLAY AGAIN")
+	t.check(run._again_btn != null and run._again_btn.label == "Play Again", "game over offers PLAY AGAIN")
 	t.check(run.find_child("Menu", true, false) != null, "and MENU")
 	run.queue_free()
 	await t.process_frame
@@ -110,17 +92,20 @@ func test_unlock_popup_and_menu(t) -> void:
 	t.root.add_child(pop)
 	await t.process_frame
 	var nice: PixelButton = pop.find_child("Nice", true, false)
-	t.check(nice != null and pop.find_children("*", "TextureRect", true, false).size() >= 1, "popup shows the icon and NICE!")
+	t.check(nice != null and pop.find_child("Slot", true, false) != null, "popup shows the icon in its slot and Nice!")
 	nice.pressed.emit()
 	await t.process_frame
 	t.check(not is_instance_valid(pop), "NICE! closes it")
 	var menu: Control = load("res://scenes/main_menu.tscn").instantiate()
 	t.root.add_child(menu)
 	await t.process_frame
-	for n in ["Frame/Buttons/Play", "Frame/Buttons/Heroes", "Frame/Buttons/Unlocks", "Frame/Buttons/Shop", "Frame/Buttons/Daily", "Frame/Top/Settings"]:
+	for n in ["Frame/Buttons/Play", "Frame/Buttons/Daily", "Frame/Top/Settings", "Frame/Top/Coins", "Frame/District",
+			"Nav/Shop", "Nav/Characters", "Nav/Battle", "Nav/Town", "Nav/Collection"]:
 		t.check(menu.has_node(n), "menu has %s" % n)
+	t.check((menu.get_node("Nav") as BottomNav).current == "battle" and (menu.get_node("Nav/Battle") as KitButton).label == "Battle",
+		"Home is the Battle tab: its tile is the labelled one")
 	t.check(menu.find_children("*", "HomeScene", true, false).size() == 1, "the night street plays behind the menu")
-	t.check(menu.get_node("SettingsPanel/" + menu.get_node("SettingsPanel").get_child(1).name).find_child("vibration", true, false) != null, "settings has a vibration toggle")
-	t.check(menu.get_node("Frame/Buttons/Teaser").label != "", "the next-unlock teaser has text")
+	t.check(menu.get_node("SettingsPanel").find_child("vibration", true, false) != null, "settings has a vibration toggle")
+	t.check(menu.get_node("SettingsPanel").find_child("music_level", true, false) != null, "and music volume pips")
 	menu.queue_free()
 	await t.process_frame

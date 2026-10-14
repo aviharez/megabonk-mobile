@@ -1,0 +1,260 @@
+{
+ "ad": {
+  "slice": [
+   1,
+   1,
+   1,
+   1
+  ]
+ },
+ "badge": {
+  "slice": [
+   1,
+   1,
+   1,
+   1
+  ]
+ },
+ "bolt": {},
+ "bolt_lamp": {},
+ "btn_disabled": {
+  "slice": [
+   2,
+   2,
+   2,
+   3
+  ]
+ },
+ "btn_go": {
+  "slice": [
+   6,
+   7,
+   2,
+   4
+  ]
+ },
+ "btn_primary": {
+  "slice": [
+   6,
+   7,
+   2,
+   4
+  ]
+ },
+ "btn_secondary": {
+  "slice": [
+   6,
+   7,
+   2,
+   4
+  ]
+ },
+ "card": {
+  "slice": [
+   2,
+   2,
+   2,
+   3
+  ]
+ },
+ "check": {},
+ "chip": {
+  "slice": [
+   1,
+   1,
+   1,
+   2
+  ]
+ },
+ "chip_go": {
+  "slice": [
+   1,
+   1,
+   1,
+   1
+  ]
+ },
+ "close": {},
+ "count": {
+  "slice": [
+   1,
+   1,
+   1,
+   1
+  ]
+ },
+ "dot": {},
+ "fill_go": {
+  "slice": [
+   0,
+   2,
+   0,
+   1
+  ]
+ },
+ "fill_hp": {
+  "slice": [
+   0,
+   2,
+   0,
+   1
+  ]
+ },
+ "fill_lamp": {
+  "slice": [
+   0,
+   2,
+   0,
+   1
+  ]
+ },
+ "hatch": {},
+ "house": {},
+ "lock": {},
+ "music": {},
+ "nav_bar": {
+  "slice": [
+   0,
+   3,
+   0,
+   0
+  ]
+ },
+ "no_ads": {},
+ "pause": {},
+ "pip_new": {},
+ "pip_off": {},
+ "pip_on": {},
+ "plate_frame": {
+  "slice": [
+   1,
+   2,
+   1,
+   3
+  ]
+ },
+ "plate_lamp": {
+  "slice": [
+   1,
+   2,
+   1,
+   3
+  ]
+ },
+ "play": {},
+ "slot": {
+  "slice": [
+   3,
+   3,
+   3,
+   3
+  ]
+ },
+ "slot_common": {
+  "slice": [
+   4,
+   4,
+   4,
+   4
+  ]
+ },
+ "slot_epic": {
+  "slice": [
+   4,
+   4,
+   4,
+   4
+  ]
+ },
+ "slot_legend": {
+  "slice": [
+   4,
+   4,
+   4,
+   4
+  ]
+ },
+ "slot_rare": {
+  "slice": [
+   4,
+   4,
+   4,
+   4
+  ]
+ },
+ "slot_ready": {
+  "slice": [
+   4,
+   4,
+   4,
+   4
+  ]
+ },
+ "slot_sel": {
+  "slice": [
+   4,
+   4,
+   4,
+   4
+  ]
+ },
+ "sound": {},
+ "sticker": {
+  "slice": [
+   1,
+   1,
+   1,
+   1
+  ]
+ },
+ "tab_off": {
+  "slice": [
+   2,
+   2,
+   2,
+   3
+  ]
+ },
+ "tab_on": {
+  "slice": [
+   1,
+   4,
+   1,
+   4
+  ]
+ },
+ "toggle_off": {},
+ "toggle_on": {},
+ "track": {
+  "slice": [
+   1,
+   1,
+   1,
+   1
+  ]
+ },
+ "well": {
+  "slice": [
+   1,
+   1,
+   1,
+   1
+  ]
+ },
+ "well_ink": {
+  "slice": [
+   1,
+   1,
+   1,
+   1
+  ]
+ },
+ "window": {
+  "slice": [
+   5,
+   5,
+   5,
+   5
+  ]
+ }
+}

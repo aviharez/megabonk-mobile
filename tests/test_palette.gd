@@ -1,11 +1,13 @@
 extends RefCounted
-## Palette is 32 unique colors, and every PNG under assets/ uses only those
+## Palette is 43 unique colors (32 + the 11 UI kit v2 tones), and every PNG under assets/ uses only those
 ## colors (fully transparent pixels are ignored).
 
 
-func test_palette_has_32_unique_colors(t) -> void:
+func test_palette_has_43_unique_colors(t) -> void:
 	var cols := Palette.colors()
-	t.check(cols.size() == 32, "32 colors, got %d" % cols.size())
+	t.check(cols.size() == 43, "43 colors, got %d" % cols.size())
+	t.check(cols[Palette.ENEMY_SHOT].to_html(false) == "ff2bd6", "enemy-shot magenta stays at 31")
+	t.check(cols[Palette.BG].to_html(false) == "0b1020" and cols[Palette.R_COMMON].to_html(false) == "a9b6cf", "UI tones at 32..42")
 	var seen := {}
 	for c in cols:
 		seen[c.to_rgba32()] = true

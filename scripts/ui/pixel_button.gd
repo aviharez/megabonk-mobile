@@ -1,13 +1,15 @@
 @tool
 class_name PixelButton
 extends Button
-## Chunky pixel button, Phase 9 kit look: the kit 3b `lv_frame` plate
-## recoloured to `face` (any palette colour, through UiArt's ramps) with a hard
-## 2 px drop, sinking when pressed. Draws its own label so the text moves with
-## the face: the first line in Titan One (NAME, shrunk to fit), further lines
-## in Inter (BODY). All colours come from the palette. Set `label`, not `text`.
+## Kit v2 block button (docs/BRIEF.md "Update 1"): INK outline, top and
+## bottom bevels, a 2x2 shine and a 3 px INK drop, sinking 2 px when pressed.
+## The look comes from `face`: GOLD (or ORANGE / BUTTER) = the lamp primary,
+## GREEN / LIME = go (AD x2 rewards only), anything else = the blue secondary;
+## disabled = the flat disabled block. Draws its own label so the text moves
+## with the face: the first line in Lilita One (BUTTON, white with an INK
+## outline, shrunk to fit), further lines in Inter (BODY). Set `label`, not `text`.
 
-const SHADOW := 2
+const SHADOW := 3
 ## Titan size of a button's first line before it shrinks to fit.
 const BUTTON_SIZE := 9
 
@@ -20,10 +22,17 @@ const BUTTON_SIZE := 9
 	set(v):
 		face = v
 		queue_redraw()
-## Palette index of the label.
-@export var ink := Palette.INK:
+## Palette index of the label (INK, the old default, draws PAPER: kit v2
+## button labels are white with an INK outline).
+@export var ink := Palette.PAPER:
 	set(v):
 		ink = v
+		queue_redraw()
+## Palette index of the label while disabled (alert red on a price you
+## can't pay yet).
+var disabled_ink := Palette.MUTED:
+	set(v):
+		disabled_ink = v
 		queue_redraw()
 ## Optional 16x16 picture (Icons) on the left, in an 18x18 frame; the label is
 ## then centered in the space to its right. (Not Button.icon, which Button
@@ -70,6 +79,11 @@ var badge := "":
 	set(v):
 		badge = v
 		queue_redraw()
+## The first line in BIG_BUTTON (Play, Resume, Play Again, Nice!).
+var big := false:
+	set(v):
+		big = v
+		queue_redraw()
 ## Every line in BODY (dense buttons).
 var small_text := false:
 	set(v):
@@ -98,33 +112,33 @@ func _pressed() -> void:
 	UiArt.click(self, sound)
 
 
+## The kit v2 block for this button: "primary", "secondary", "go" or "disabled".
+func kind() -> String:
+	if disabled:
+		return "disabled"
+	if face in [Palette.GOLD, Palette.ORANGE, Palette.BUTTER]:
+		return "primary"
+	if face in [Palette.GREEN, Palette.LIME, Palette.LEAF]:
+		return "go"
+	return "secondary"
+
+
 func _draw() -> void:
 	var mode := get_draw_mode()
 	var sunk := mode == DRAW_PRESSED or mode == DRAW_HOVER_PRESSED
 	var off := disabled
 	var w := int(size.x)
 	var h := int(size.y) - SHADOW
-	var y := SHADOW if sunk else 0
+	var y := 2 if sunk and not off else 0
 
-	# The UI kit's riveted button (UiArt), recolored to the face; the plain
-	# box when the button is smaller than the art.
-	var part := ""
-	if frame != "button":
-		var f := pressed_frame if sunk and pressed_frame != "" else frame
-		part = f if UiArt.fits(f, Vector2(w, h)) else ""
-	else:
-		part = "lv_frame" if UiArt.fits("lv_frame", Vector2(w, h)) else ""
-	if part != "":
-		UiArt.draw(self, part, Rect2(0, y, w, h), Palette.GRAY if off else face, -1, 0 if sunk else SHADOW)
-	else:
-		if not sunk:
-			_box(Rect2i(0, SHADOW, w, h), Palette.color(Palette.INK), Palette.color(Palette.INK))
-		var fill := Palette.color(Palette.GRAY if off else face)
-		_box(Rect2i(0, y, w, h), Palette.color(Palette.INK), fill)
-		# 1px highlight under the top edge, 1px shade above the bottom edge.
-		if not off:
-			draw_rect(Rect2i(2, y + 1, w - 4, 1), _lighter(fill))
-			draw_rect(Rect2i(2, y + h - 2, w - 4, 1), _darker(fill))
+	match frame:
+		"button":
+			UiArt.button(self, Rect2(0, 0, w, h), kind(), sunk)
+		"lv_card", "card":
+			UiArt.card(self, Rect2(0, y, w, h), UiArt.DROP_CARD if not sunk else 0)
+		_:
+			var f := pressed_frame if sunk and pressed_frame != "" else frame
+			UiArt.draw(self, f, Rect2(0, y, w, h), -1, -1, 0 if sunk else UiArt.DROP_CARD)
 
 	var left := label_left
 	var plain_right := 0
@@ -133,7 +147,7 @@ func _draw() -> void:
 	if art != null and art_plain:
 		# A small icon with no frame, centered together with the label.
 		var asz := Vector2i(art.get_size())
-		var lw := int(ceilf(Fonts.width(label, "NAME", _name_size(label, w - asz.x - 10))))
+		var lw := int(ceilf(Fonts.width(label, "BUTTON", _name_size(label, w - asz.x - 10))))
 		var ax := (w - asz.x - 3 - lw) / 2
 		draw_texture(art, Vector2(ax, y + (h - 2 - asz.y) / 2))
 		# The label's centering span is exactly its width, right after the icon.
@@ -143,7 +157,7 @@ func _draw() -> void:
 		var at := Vector2i(5, y + (h - ContentIcon.SIZE) / 2)
 		if art_above:
 			at = Vector2i((w - ContentIcon.SIZE) / 2, y + 4)
-		UiArt.draw(self, "icon_frame", Rect2(at, Vector2(ContentIcon.SIZE, ContentIcon.SIZE)), Palette.SHADE)
+		UiArt.slot(self, Rect2(at, Vector2(ContentIcon.SIZE, ContentIcon.SIZE)), "", 0)
 		var pic := LevelCard._small(art, ContentIcon.ICON_PX) if art.get_width() == Icons.SIZE else art
 		draw_texture(pic, (Vector2(at) + Vector2(ContentIcon.SIZE, ContentIcon.SIZE) / 2.0 + Vector2(0, -1) - pic.get_size() / 2.0).floor())
 		if art_above:
@@ -153,7 +167,7 @@ func _draw() -> void:
 			left = at.x + ContentIcon.SIZE + 1
 
 	if badge != "":
-		UiArt.sticker(self, badge, Vector2(w - ceilf(Fonts.width(badge, "TAG")) - 5, y - 5))
+		UiArt.sticker(self, badge, Vector2(w - ceilf(Fonts.width(badge, "TAG")) - 4, y - 5))
 	var right := plain_right
 	if toggle >= 0:
 		var ts := UiArt.TOGGLE_SIZE
@@ -162,63 +176,34 @@ func _draw() -> void:
 	if _own_label:
 		return
 	# One centred line per "\n"-separated part of the label: the first in
-	# Titan One (NAME, shrunk to fit), the rest in Inter (BODY).
+	# Lilita One (BUTTON, shrunk to fit), the rest in Inter (BODY).
 	var lines := label.split("\n")
 	var room := w - right - left - (0 if plain_right > 0 else 8)
-	var c := Palette.SHADE if off else ink
+	var c := disabled_ink if off else (Palette.PAPER if ink == Palette.INK else ink)
 	var sizes := []
 	var styles := []
 	var total := 0.0
 	for i in lines.size():
 		var body := small_text or i > 0
-		var st := "BODY" if body else "NAME"
-		var fs: int = Fonts.STYLES.BODY[1] if body else _name_size(lines[i], room)
+		var st := "BODY" if body else ("BIG_BUTTON" if big and i == 0 else "BUTTON")
+		var fs: int = Fonts.STYLES.BODY[1] if body else (Fonts.STYLES.BIG_BUTTON[1] if st == "BIG_BUTTON" else _name_size(lines[i], room))
 		styles.append(st)
 		sizes.append(fs)
 		total += _line_h(st, fs)
-	var ty := text_top + floorf((text_h - total) / 2.0)
+	# Centre on the face above the bottom bevel (3 px) when it's one line.
+	var ty := text_top + floorf((text_h - 3 - total) / 2.0) + 1
 	for i in lines.size():
 		Fonts.draw(self, lines[i], Vector2(left, ty), styles[i], c, w - right - left, HORIZONTAL_ALIGNMENT_CENTER, sizes[i])
 		ty += _line_h(styles[i], sizes[i])
 
 
-## The NAME size (9 down to Titan's minimum) at which `text` fits `room`.
+## The BUTTON size (9 down to the display minimum) at which `text` fits `room`.
 func _name_size(text: String, room: float) -> int:
 	var fs := BUTTON_SIZE
-	while fs > Fonts.MIN_TITLE and Fonts.width(text, "NAME", fs) > room:
+	while fs > Fonts.MIN_TITLE and Fonts.width(text, "BUTTON", fs) + 2 > room:
 		fs -= 1
 	return fs
 
 
 static func _line_h(style_name: String, size: int) -> float:
-	return size + 2.0 if style_name == "NAME" else size + 1.0
-
-
-## Filled rect with a 1px outline and the four corner pixels left empty.
-func _box(r: Rect2i, outline: Color, fill: Color) -> void:
-	draw_rect(Rect2i(r.position.x + 1, r.position.y, r.size.x - 2, r.size.y), outline)
-	draw_rect(Rect2i(r.position.x, r.position.y + 1, r.size.x, r.size.y - 2), outline)
-	draw_rect(Rect2i(r.position.x + 1, r.position.y + 1, r.size.x - 2, r.size.y - 2), fill)
-
-
-# Light/dark neighbours for the bevel, picked from the palette by brightness.
-func _lighter(c: Color) -> Color:
-	return _nearest_by_luma(c, 1)
-
-
-func _darker(c: Color) -> Color:
-	return _nearest_by_luma(c, -1)
-
-
-func _nearest_by_luma(c: Color, dir: int) -> Color:
-	var best := c
-	var best_score := INF
-	for p in Palette.colors():
-		var dl := (p.get_luminance() - c.get_luminance()) * dir
-		if dl <= 0.05 or p.to_rgba32() == Palette.color(Palette.ENEMY_SHOT).to_rgba32():
-			continue
-		var score := dl + (Vector3(p.r, p.g, p.b) - Vector3(c.r, c.g, c.b)).length()
-		if score < best_score:
-			best_score = score
-			best = p
-	return best
+	return size + 2.0 if style_name in ["BUTTON", "BIG_BUTTON"] else size + 1.0

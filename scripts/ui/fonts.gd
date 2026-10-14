@@ -1,53 +1,71 @@
 class_name Fonts
 extends RefCounted
-## Phase 9 type: Titan One (TITLE_FONT) for titles, buttons, names and numbers,
-## Inter at weight 900 (body()) for body text, never under 7 px. Both import
-## with antialiasing off, no hinting and subpixel positioning (see their
-## .import files): the root viewport draws UI text at device resolution, so
-## text is smooth and every pixel stays a palette colour.
+## Kit v2 type (docs/BRIEF.md "Update 1"): Lilita One (TITLE_FONT, "D" in
+## STYLES) for titles, names, numbers and button labels, outlined in INK with
+## a hard drop; Inter at weight 800 (body()) for body text, never outlined,
+## never under 6 px. Sizes in game px: hero names 20, screen titles 14, names
+## and buttons 9, numbers 10, body 7, small 6. Both fonts import with
+## antialiasing off, no hinting and subpixel positioning (their .import
+## files): the root viewport draws UI text at device resolution, so text is
+## smooth and every pixel stays a palette colour.
 ##
 ## Text is styled by name, never by number: style("NAME") is a cached
 ## LabelSettings from STYLES. Custom _draw() code uses draw(), which draws the
 ## same drop, outline and fill. fit() shrinks a label until its text fits.
 ##
-## BOLD / SMALL / bold() / fitting() are the old names, kept while code moves
-## to the styles: BOLD is now Titan One and SMALL Inter 900 (both at SIZE).
+## BOLD / SMALL / bold() / fitting() are the old names: BOLD is Lilita One,
+## SMALL Inter 800.
 
-const TITLE_FONT := preload("res://assets/fonts/titan_one/TitanOne-Regular.ttf")
-## Inter at weight 900 (a FontVariation of the variable font); also the
+const TITLE_FONT := preload("res://assets/fonts/lilita_one/LilitaOne-Regular.ttf")
+## Inter at weight 800 (a FontVariation of the variable font); also the
 ## theme's default font (assets/ui/theme.tres) at 7 px.
-const BODY_FONT := preload("res://assets/fonts/inter/inter_900.tres")
+const BODY_FONT := preload("res://assets/fonts/inter/inter_800.tres")
+## Outline thickness per game px of outline (LabelSettings / draw_string
+## outline sizes count both sides of the stroke).
+const OUTLINE_K := 6
 
-## name: [font ("T" Titan / "I" Inter), size, colour, outline px, outline colour, drop px]
+## name: [font ("D" Lilita / "I" Inter), size, colour, outline px, outline colour, drop px]
+## Display text is outlined in INK (1 game px) with a 1 px drop unless noted.
 const STYLES := {
-	"LOGO": ["T", 34, Palette.GOLD, 5, Palette.NIGHT, 3],
-	"BIG_BUTTON": ["T", 26, Palette.INK, 0, Palette.INK, 0],
-	"TITLE": ["T", 15, Palette.INK, 0, Palette.INK, 0],
-	"BANNER": ["T", 14, Palette.RED, 4, Palette.INK, 2],
-	"NAME": ["T", 10, Palette.PAPER, 0, Palette.INK, 0],
-	## Names and descriptions on popup cards (level-up, bonus, merchant, pause details).
-	"CARD_NAME": ["T", 8, Palette.PAPER, 0, Palette.INK, 0],
-	"CARD_BODY": ["I", 6, Palette.PAPER, 0, Palette.INK, 0],
-	"NUM": ["T", 10, Palette.WHITE, 0, Palette.INK, 0],
-	"NUM_WORLD": ["T", 9, Palette.WHITE, 3, Palette.INK, 0],
+	"LOGO": ["D", 34, Palette.GOLD, 3, Palette.INK, 2],
+	## Hero names on stages and result titles ("Swarmed!", "Unlocked!").
+	"HERO": ["D", 20, Palette.PAPER, 1, Palette.INK, 1],
+	## Result titles over the world (Swarmed!, Unlocked!).
+	"RESULT": ["D", 24, Palette.GOLD, 1, Palette.INK, 1],
+	## The big primary button (Play, Resume, Play Again, Nice!).
+	"BIG_BUTTON": ["D", 16, Palette.PAPER, 1, Palette.INK, 1],
+	## Screen titles and title plates.
+	"TITLE": ["D", 14, Palette.PAPER, 1, Palette.INK, 1],
+	"BANNER": ["D", 14, Palette.RED, 1, Palette.INK, 1],
+	"NAME": ["D", 9, Palette.PAPER, 1, Palette.INK, 1],
+	"BUTTON": ["D", 9, Palette.PAPER, 1, Palette.INK, 1],
+	## Names on popup cards (level-up, bonus, merchant, pause details).
+	"CARD_NAME": ["D", 9, Palette.PAPER, 1, Palette.INK, 1],
+	"CARD_BODY": ["I", 7, Palette.PAPER, 0, Palette.INK, 0],
+	"NUM": ["D", 10, Palette.PAPER, 1, Palette.INK, 1],
+	"NUM_WORLD": ["D", 9, Palette.WHITE, 1, Palette.INK, 1],
 	## Words and gold popping out of the world ("+5", "Shield!").
-	"POP": ["T", 8, Palette.WHITE, 2, Palette.INK, 0],
-	"BAR_NUM": ["T", 7, Palette.WHITE, 3, Palette.INK, 0],
-	"RIBBON": ["T", 8, Palette.PAPER, 3, Palette.WINE, 0],
-	"NAV": ["T", 6, Palette.PAPER, 0, Palette.INK, 0],
-	"TAG": ["T", 7, Palette.WHITE, 0, Palette.INK, 0],
-	"BODY": ["I", 7, Palette.MIST, 0, Palette.INK, 0],
-	"CHANGE": ["I", 8, Palette.LIME, 0, Palette.INK, 0],
-	"HIT": ["I", 6, Palette.WHITE, 2, Palette.INK, 0],
-	"CRIT": ["T", 9, Palette.BUTTER, 3, Palette.RED, 1],
-	"SPLASH": ["T", 22, Palette.GOLD, 4, Palette.INK, 2],
+	"POP": ["D", 8, Palette.WHITE, 1, Palette.INK, 0],
+	"BAR_NUM": ["D", 7, Palette.PAPER, 1, Palette.INK, 0],
+	"RIBBON": ["D", 9, Palette.PAPER, 1, Palette.INK, 1],
+	## The active bottom-nav tile's word.
+	"NAV": ["D", 8, Palette.PAPER, 1, Palette.INK, 1],
+	## Stickers and badges (New, AD, level and stack counts): INK on a light plate.
+	"TAG": ["D", 7, Palette.INK, 0, Palette.INK, 0],
+	"BODY": ["I", 7, Palette.PAPER, 0, Palette.INK, 0],
+	## Muted secondary lines (kind lines, captions, timers).
+	"SMALL": ["I", 6, Palette.MUTED, 0, Palette.INK, 0],
+	"CHANGE": ["I", 7, Palette.LIME, 0, Palette.INK, 0],
+	"HIT": ["I", 6, Palette.WHITE, 1, Palette.INK, 0],
+	"CRIT": ["D", 9, Palette.BUTTER, 1, Palette.RED, 1],
+	"SPLASH": ["D", 22, Palette.GOLD, 2, Palette.INK, 2],
 }
 ## Cap height per font, in ems (OS/2 sCapHeight): centring on the caps lines
 ## text up with what's beside it (the ascent includes room above the letters).
-const CAP := {"T": 0.71, "I": 0.7275}
+const CAP := {"D": 0.68, "I": 0.7275}
 ## Smallest sizes fit() may shrink to.
-const MIN_TITLE := 6
-const MIN_BODY := 7
+const MIN_TITLE := 7
+const MIN_BODY := 6
 
 const BOLD := TITLE_FONT
 const SMALL := BODY_FONT
@@ -56,13 +74,13 @@ const SIZE := 8
 static var _styles := {}
 
 
-## Inter at weight 900.
+## Inter at weight 800.
 static func body() -> Font:
 	return BODY_FONT
 
 
 static func font_of(style_name: String) -> Font:
-	return TITLE_FONT if STYLES[style_name][0] == "T" else body()
+	return TITLE_FONT if STYLES[style_name][0] == "D" else body()
 
 
 ## The named style (shared, don't edit it), optionally in another colour or size.
@@ -77,10 +95,10 @@ static func style(style_name: String, color := -1, size := -1) -> LabelSettings:
 	s.font_color = Palette.color(d[2] if color < 0 else color)
 	s.line_spacing = -1
 	if d[3] > 0:
-		s.outline_size = d[3]
+		s.outline_size = d[3] * OUTLINE_K
 		s.outline_color = Palette.color(d[4])
 	if d[5] > 0:
-		s.shadow_size = maxi(d[3], 1)
+		s.shadow_size = maxi(d[3] * OUTLINE_K, 1)
 		s.shadow_color = Palette.color(Palette.INK)
 		s.shadow_offset = Vector2(0, d[5])
 	s.set_meta("style", style_name)
@@ -127,7 +145,7 @@ static func fit(l: Label, max_width: float, min_size := -1) -> int:
 	var sname: String = s.get_meta("style", "BODY") if s != null else "BODY"
 	var color: int = s.get_meta("color", -1) if s != null else -1
 	var fs: int = STYLES[sname][1]
-	var floor_size := min_size if min_size > 0 else (MIN_TITLE if STYLES[sname][0] == "T" else MIN_BODY)
+	var floor_size := min_size if min_size > 0 else (MIN_TITLE if STYLES[sname][0] == "D" else MIN_BODY)
 	var pad: float = STYLES[sname][3] * 2
 	while fs > floor_size and width(l.text, sname, fs) + pad > max_width:
 		fs -= 1
@@ -148,7 +166,7 @@ static func draw(ci: CanvasItem, text: String, pos: Vector2, style_name: String,
 	var f := font_of(style_name)
 	var fs: int = d[1] if size < 0 else size
 	var base := Vector2(pos.x, pos.y + f.get_ascent(fs)).round()
-	var outline: int = d[3]
+	var outline: int = d[3] * OUTLINE_K
 	if d[5] > 0:
 		var sp: Vector2 = base + Vector2(0, d[5])
 		if outline > 0:
@@ -159,14 +177,14 @@ static func draw(ci: CanvasItem, text: String, pos: Vector2, style_name: String,
 	ci.draw_string(f, base, text, align, max_width, fs, Palette.color(d[2] if color < 0 else color))
 
 
-## Puts a label in Titan One (NAME size).
+## Puts a label in Lilita One (NAME size).
 static func bold(l: Control) -> Control:
 	l.add_theme_font_override("font", TITLE_FONT)
 	l.add_theme_font_size_override("font_size", 9)
 	return l
 
 
-## BOLD (Titan) if `text` fits in `width` px at SIZE, else SMALL (Inter).
+## BOLD (Lilita) if `text` fits in `width` px at SIZE, else SMALL (Inter).
 static func fitting(text: String, width_px: float) -> Font:
 	if BOLD.get_string_size(text, HORIZONTAL_ALIGNMENT_LEFT, -1, SIZE).x <= width_px:
 		return BOLD

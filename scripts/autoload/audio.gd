@@ -93,13 +93,17 @@ func _bus(bus_name: String) -> int:
 	return i
 
 
-## Mutes the buses whose setting is off.
+## Mutes the buses whose setting is off and sets their volume step (0..5).
 func apply_settings() -> void:
 	var save := get_node_or_null("/root/Save")
-	var sfx_on: bool = save.get_setting("sfx") if save != null else true
-	var music_on: bool = save.get_setting("music") if save != null else true
+	var sfx_lv := int(save.get_setting("sfx_level")) if save != null else 5
+	var music_lv := int(save.get_setting("music_level")) if save != null else 5
+	var sfx_on: bool = (save.get_setting("sfx") if save != null else true) and sfx_lv > 0
+	var music_on: bool = (save.get_setting("music") if save != null else true) and music_lv > 0
 	AudioServer.set_bus_mute(_sfx_bus, not sfx_on)
 	AudioServer.set_bus_mute(_music_bus, not music_on)
+	AudioServer.set_bus_volume_db(_sfx_bus, linear_to_db(maxf(sfx_lv, 1) / 5.0))
+	AudioServer.set_bus_volume_db(_music_bus, linear_to_db(maxf(music_lv, 1) / 5.0))
 
 
 func sfx_enabled() -> bool:

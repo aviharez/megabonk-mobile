@@ -16,7 +16,7 @@ func _on_palette(img: Image) -> bool:
 func test_parts_load_and_recolor_on_palette(t) -> void:
 	UiArt.clear()
 	var meta := UiArt.meta()
-	for part: String in ["lv_window", "lv_frame", "lv_card", "lv_sticker", "plate_dark", "hud_track", "hud_fill",
+	for part: String in ["icon_frame", "lv_card", "lv_sticker", "plate_dark", "hud_track", "hud_fill",
 			"lv_pip_on", "lv_pip_off", "hud_coin", "stick_base", "stick_knob", "key"]:
 		t.check(meta.has(part) and UiArt.has(part), "UI part %s is listed and loads" % part)
 	for part: String in meta:
@@ -28,14 +28,14 @@ func test_parts_load_and_recolor_on_palette(t) -> void:
 			t.check(img.get_width() == int(sl[0] + sl[2]) + 1 and img.get_height() == int(sl[1] + sl[3]) + 1,
 				"%s is a template: borders + a 1px middle (%s, %s)" % [part, img.get_size(), sl])
 	for face in [Palette.GOLD, Palette.LIME, Palette.SALMON, Palette.SKY, Palette.RED, Palette.PURPLE, Palette.MIST, Palette.GREEN]:
-		var img: Image = UiArt.texture("lv_frame", face).get_image()
-		t.check(_on_palette(img), "lv_frame recolored to %d stays on the palette" % face)
+		var img: Image = UiArt.texture("icon_frame", face).get_image()
+		t.check(_on_palette(img), "icon_frame recolored to %d stays on the palette" % face)
 		var has_face := false
 		for y in img.get_height():
 			for x in img.get_width():
 				has_face = has_face or img.get_pixel(x, y).to_rgba32() == Palette.color(face).to_rgba32()
 		t.check(has_face, "the recolored frame uses the face colour %d" % face)
-	var sil: Image = UiArt.texture("lv_frame", -1, -1, true).get_image()
+	var sil: Image = UiArt.texture("icon_frame", -1, -1, true).get_image()
 	var all_ink := true
 	for y in sil.get_height():
 		for x in sil.get_width():
@@ -54,9 +54,10 @@ func test_ramps(t) -> void:
 
 
 func test_widgets_use_the_art(t) -> void:
-	t.check(UiArt.fits("lv_frame", Vector2(112, 16)) and UiArt.fits("lv_frame", Vector2(58, 12)), "normal and small buttons fit the kit frame")
-	t.check(not UiArt.fits("lv_frame", Vector2(4, 4)), "tiny buttons fall back to the plain box")
-	t.check(not UiArt.has("button") and not UiArt.has("toggle_on"), "the kit 1 parts are gone")
+	t.check(UiArt.fits("kit/btn_secondary", Vector2(112, 16)) and UiArt.fits("kit/btn_secondary", Vector2(58, 12)), "normal and small buttons fit the kit v2 block")
+	t.check(not UiArt.fits("kit/btn_secondary", Vector2(4, 4)), "a box smaller than the block's borders doesn't fit")
+	t.check(not UiArt.has("button") and not UiArt.has("toggle_on") and not UiArt.has("lv_window") and not UiArt.has("nav_blue"),
+		"the kit 1 parts and the replaced kit 3 / 3b parts are gone")
 	var save: Node = preload("res://scripts/autoload/save_manager.gd").new()
 	save.path = "user://test_ui_art.json"
 	save.data = save.default_data()
@@ -105,7 +106,7 @@ func test_no_old_kit_parts_in_screens(t) -> void:
 					bad.append("%s: %s" % [f, m.get_string(1)])
 	t.check(bad.is_empty(), "screens use no kit 1 / kit 2 parts: %s" % [bad])
 	# The pieces built from kit parts instead.
-	t.check(UiArt.has("hud_track") and UiArt.has("hud_fill") and UiArt.has("lv_frame"), "toggle parts load")
+	t.check(UiArt.has("kit/toggle_on") and UiArt.has("kit/toggle_off"), "toggle parts load")
 	t.check(UiArt.has("lv_sticker") and UiArt.sprite_size(UiArt.PADLOCK) == Vector2i(13, 16), "sticker and padlock load")
 
 
@@ -124,22 +125,18 @@ func _colours(part: String) -> Dictionary:
 ## are the kit's own at the level-up's button size.
 func test_kit_parts_as_drawn(t) -> void:
 	UiArt.clear()
-	var rim := {"icon_frame": [Palette.SALMON, Palette.RED, Palette.BLOOD], "nav_blue": [Palette.SKY, Palette.BLUE, Palette.NIGHT],
-		"nav_green": [Palette.GREEN, Palette.NIGHT], "play_button": [Palette.BUTTER, Palette.GOLD, Palette.ORANGE, Palette.RUST]}
+	var rim := {"icon_frame": [Palette.SALMON, Palette.RED, Palette.BLOOD]}
 	for part: String in rim:
 		var have := _colours(part)
 		for c: int in rim[part]:
 			t.check(have.has(Palette.color(c).to_rgba32()), "%s keeps the kit's %s shade" % [part, Palette.color(c).to_html()])
-	t.check(UiArt.min_size("nav_blue").y <= 44 and UiArt.min_size("icon_frame").x <= 16, "nav tiles fit 44 px, icon frames 16 px")
-	for g in ["reroll", "skip", "banish"]:
-		var sz := UiArt.sprite_size("act_" + g)
-		t.check(sz.x <= LevelUpPanel.ACTION_SIZE.x + 1 and sz.y + ActionButton.SHADOW <= LevelUpPanel.ACTION_SIZE.y,
-			"the kit's %s button fits the action slot (%s)" % [g, sz])
-		t.check(UiArt.has("act_%s_pressed" % g), "and has its pressed art")
-	# Weapon, manual and item icons sit in the kit's icon frame on cards and
-	# the pause screen; the in-run HUD keeps the plain lv_frame (owner's call).
-	for f in ["res://scripts/ui/level_card.gd", "res://scripts/ui/build_view.gd"]:
+	# Kit v2: content icons sit in kit slots everywhere (cards, pause, HUD).
+	for f in ["res://scripts/ui/level_card.gd", "res://scripts/ui/build_view.gd", "res://scripts/run/hud.gd"]:
 		var src := FileAccess.get_file_as_string(f)
-		t.check(src.contains("\"icon_frame\"") and not src.contains("\"lv_frame\""), "%s draws content icons in icon_frame" % f.get_file())
-	var hud := FileAccess.get_file_as_string("res://scripts/run/hud.gd")
-	t.check(hud.contains("\"lv_frame\"") and not hud.contains("\"icon_frame\""), "the HUD draws its icons on the plain lv_frame")
+		t.check(src.contains("UiArt.slot(") and not src.contains("\"icon_frame\"") and not src.contains("\"lv_frame\""),
+			"%s draws content icons in kit v2 slots" % f.get_file())
+	# Kit v2 parts: windows, buttons, slots, bars are the generated templates.
+	for part in ["window", "hatch", "card", "slot", "slot_rare", "btn_primary", "btn_secondary", "btn_go", "btn_disabled",
+			"plate_lamp", "plate_frame", "track", "fill_lamp", "fill_hp", "fill_go", "pip_on", "pip_off", "pip_new",
+			"tab_on", "tab_off", "toggle_on", "toggle_off", "sticker", "dot", "chip"]:
+		t.check(UiArt.has("kit/" + part), "kit v2 has %s" % part)

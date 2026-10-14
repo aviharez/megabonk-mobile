@@ -1,22 +1,22 @@
 class_name LevelCard
 extends PixelButton
-## A pick-one card (level-up, shrine bonus, merchant), Phase 9 kit 3b look
-## (docs/phase9/8_kit3_levelup_concept.png): the `lv_card` plate in the
-## card's colour (GOLD while pressed), the kit's `icon_frame` in the same
-## colour with the icon (shrunk to ICON_PX) at 2x, the name in CARD_NAME (the
-## colour's light shade), one CARD_BODY line, and for weapons and tomes the CHANGE line ("3 → 4")
-## with the kit's level pips on the right. New cards wear a purple "New"
-## sticker on the top-right corner. Kind, rarity and New are colour and
-## stickers, not words. Shrine bonuses show their value big on the right;
-## merchant items their price (or a stamp: SOLD...).
+## A pick-one card (level-up, beacon bonus, merchant), kit v2
+## (docs/ui/level-up.png, merchant.png): a raised card with the icon 2x in a
+## slot (a rarity ring for merchant wares), a muted kind line ("New weapon",
+## "Manual", "Rare"), the name (CARD_NAME), one body line (what it does, or
+## "Damage 10 > 14" on a level-up), and for weapons and manuals the level pips
+## with the new one ringed. New cards wear the "New" sticker on the top-right
+## corner. Beacon bonuses show their value big on the right; merchant wares a
+## price button (disabled with the price in red when too dear) or a stamp
+## (Sold).
 ##   show_card(card, icon, top_level)  a level-up card (LevelUpCards)
 ##   show_option({"title", "tag", "desc", "value", "price", "afford", "stamp",
 ##                "stamp_color", "color", "art"})    any other choice
 
 const KIND := {
-	"weapon": ["Weapon", Palette.RED],
-	"tome": ["Manual", Palette.BLUE],
-	"fallback": ["Bonus", Palette.ORANGE],
+	"weapon": ["Weapon", Palette.MUTED],
+	"tome": ["Manual", Palette.MUTED],
+	"fallback": ["Bonus", Palette.MUTED],
 }
 ## Name colour per card colour (the lighter shade of the card's ramp).
 const NAME_COLOR := {Palette.RED: Palette.SALMON, Palette.BLUE: Palette.SKY, Palette.ORANGE: Palette.BUTTER,
@@ -88,72 +88,73 @@ func _draw() -> void:
 		return
 	var mode := get_draw_mode()
 	var sunk := mode == DRAW_PRESSED or mode == DRAW_HOVER_PRESSED
-	var y := SHADOW if sunk else 0
+	var y := 1.0 if sunk else 0.0
 	var w := floorf(size.x)
-	var h := floorf(size.y) - SHADOW
+	var h := floorf(size.y) - UiArt.DROP_CARD
 	var off := disabled
-	var acc := accent()
-	UiArt.draw(self, "lv_card", Rect2(0, y, w, h), Palette.GOLD if sunk else acc, -1, 0 if sunk else SHADOW)
-	# The kit's icon frame (36 px on a 42 px card), the icon centred on its
-	# face (above the bevel at its foot).
-	var fs := minf(36.0, h - 6.0)
-	var frame := Rect2(4, y + floorf((h - fs) / 2.0) - 1.0, fs, fs)
-	UiArt.draw(self, "icon_frame", frame, acc)
-	_draw_icon(frame.get_center() + Vector2(0, -2))
+	UiArt.card(self, Rect2(0, y, w, h), 0 if sunk else UiArt.DROP_CARD)
+	var frame := Rect2(7, y + 7, 38, 38)
+	UiArt.slot(self, frame, _ring(), 0)
+	_draw_icon(frame.get_center())
 
-	var tx := frame.end.x + 5.0
+	var tx := frame.end.x + 7.0
 	var room := w - tx - 6.0
-	var name_c: int = Palette.SHADE if off else NAME_COLOR.get(acc, Palette.PAPER)
 	var value: String = option.get("value", "")
 	var value_w := 0.0
 	if value != "":
 		value_w = Fonts.width(value, "NAME", 12) + 6.0
-		Fonts.draw(self, value, Vector2(w - 6 - value_w + 6, Fonts.cap_y("NAME", y, h, 12)), "NAME",
-				Palette.SHADE if off else acc, -1, HORIZONTAL_ALIGNMENT_LEFT, 12)
-	# Name: CARD_NAME, shrunk down to 7; a longer one wraps to two lines at 7
-	# ("Grandma's Soup Recipes"), which moves the body line down.
+		Fonts.draw(self, value, Vector2(w - value_w, Fonts.cap_y("NAME", y, h, 12)), "NAME",
+				Palette.MUTED if off else accent(), -1, HORIZONTAL_ALIGNMENT_LEFT, 12)
+	var price_w := 42.0 if option.has("price") or option.get("stamp", "") != "" else 0.0
+	var name_room := room - value_w - price_w
+	Fonts.draw(self, kind_line(), Vector2(tx, y + 7), "SMALL", Palette.MUTED if off else kind_color(), name_room)
 	var title := _title()
-	var name_room := room - value_w
-	# The New sticker sits over the card's top-right corner: names keep clear.
-	var title_room := name_room - (8.0 if card.get("is_new", false) else 0.0)
 	var nfs: int = Fonts.STYLES.CARD_NAME[1]
-	while nfs > 7 and Fonts.width(title, "CARD_NAME", nfs) > title_room:
+	while nfs > 7 and Fonts.width(title, "CARD_NAME", nfs) + 2 > name_room:
 		nfs -= 1
-	var name_lines := PackedStringArray([title])
-	if Fonts.width(title, "CARD_NAME", nfs) > title_room:
-		name_lines = _wrap(title, title_room, "CARD_NAME", nfs)
-	# One body line; a longer one wraps to two (then the name moves up 1 px),
-	# never into the change line at the foot. A two-line name keeps one.
-	var desc := _desc()
-	var body_c := Palette.SHADE if off else Palette.PAPER
-	var lines := _wrap(desc, name_room, "CARD_BODY")
-	var name_y := 4.0
-	var by := y + 14.0
-	if name_lines.size() > 1:
-		name_y = 2.0
-		by = y + 19.0
-		lines = lines.slice(0, 1)
-	elif lines.size() > 1:
-		name_y = 3.0
-		by = y + 13.0
-	for k in mini(name_lines.size(), 2):
-		Fonts.draw(self, name_lines[k], Vector2(tx, y + name_y + k * 8), "CARD_NAME", name_c,
-				-1, HORIZONTAL_ALIGNMENT_LEFT, nfs)
-	for k in mini(lines.size(), 2):
-		Fonts.draw(self, lines[k], Vector2(tx, by + k * 7.0), "CARD_BODY", body_c)
-	var change := change_line()
-	var foot := y + h - 11.0
-	if change != "":
-		Fonts.draw(self, change, Vector2(tx, foot), "CHANGE", Palette.SHADE if off else -1,
-				-1, HORIZONTAL_ALIGNMENT_LEFT, CHANGE_SIZE)
-	if card.get("kind", "") in ["weapon", "tome"]:
-		_draw_pips(Vector2(w - 6 - clampi(max_level, 1, 6) * PIP_STEP, y + h - 12))
+	Fonts.draw(self, title, Vector2(tx, y + 14), "CARD_NAME", Palette.MUTED if off else -1, -1, HORIZONTAL_ALIGNMENT_LEFT, nfs)
+	var lines := _wrap(body_line(), name_room, "BODY")
+	var pips: bool = card.get("kind", "") in ["weapon", "tome"]
+	for k in mini(lines.size(), 1 if pips else 2):
+		Fonts.draw(self, lines[k], Vector2(tx, y + 26 + k * 9), "BODY", Palette.MUTED if off else (Palette.MUTED if option.has("price") else Palette.PAPER))
+	if pips:
+		var lvl := int(card.get("level", 0))
+		UiArt.pips(self, Vector2(tx, y + 39), clampi(max_level, 1, 6), lvl - 1, lvl - 1)
 	_draw_price(y, w, h)
 	if card.get("is_new", false):
-		var hop := 1.0 if int(_t * 3.0) % 2 == 0 else 0.0
-		var sr := Rect2(w - 20, y - 6 - hop, 21, 12)
-		UiArt.draw(self, "lv_sticker", sr)
-		Fonts.draw(self, "New", Vector2(sr.position.x, sr.position.y + 1), "TAG", -1, sr.size.x, HORIZONTAL_ALIGNMENT_CENTER)
+		UiArt.sticker(self, "New", Vector2(w - 22, y - 5))
+
+
+## The muted line over the name: "New weapon", "Manual", a rarity, "Bonus".
+func kind_line() -> String:
+	if not card.is_empty():
+		var kind: String = KIND.get(card.get("kind", ""), KIND.fallback)[0]
+		return ("New " + kind.to_lower()) if card.get("is_new", false) else kind
+	return option.get("tag", "")
+
+
+## The kind line's colour: muted, or a ware's rarity colour.
+func kind_color() -> int:
+	if not card.is_empty() or not option.has("color"):
+		return Palette.MUTED
+	var c := int(option.color)
+	return c if c in [Palette.R_COMMON, Palette.BLUE, Palette.PURPLE, Palette.GOLD] else Palette.MUTED
+
+
+## What it does, or the level change ("Damage 10 > 14") on a level-up.
+func body_line() -> String:
+	if not card.is_empty() and not card.get("is_new", false):
+		var st := stat_line(true)
+		if st != "":
+			return st
+	return _desc()
+
+
+## The slot ring: a ware's rarity, else the plain slot.
+func _ring() -> String:
+	if not option.is_empty() and option.has("color"):
+		return Hud._ring_for_color(int(option.color))
+	return ""
 
 
 ## Splits `text` into lines that fit `room` px in a style (word wrap).
@@ -183,38 +184,29 @@ func _draw_icon(c: Vector2) -> void:
 	var k := 2.0 if tex.get_width() <= 16 else 1.0
 	var sz := Vector2(tex.get_size()) * k
 	var at := (c - sz / 2.0).floor()
-	var shadow := _shadow(tex)
-	if shadow != null:
-		draw_texture_rect(shadow, Rect2(at + Vector2(1, 2), sz), false)
 	draw_texture_rect(tex, Rect2(at, sz), false)
 
 
-## Level pips: owned levels lit, the new one blinking.
-func _draw_pips(at: Vector2) -> void:
-	var lvl := int(card.get("level", 0))
-	var n := clampi(max_level, 1, 6)
-	for i in n:
-		var on := i < lvl - 1 or (i == lvl - 1 and int(_t * 3.0) % 2 == 0)
-		UiArt.sprite(self, "lv_pip_on" if on else "lv_pip_off", at + Vector2(i * PIP_STEP, 0))
-
-
-## Merchant price (coin + number) at the bottom-right, or a stamp (SOLD...).
+## A ware's price button (coin + number; disabled with the number in red
+## when too dear) at the card's right, or a stamp (Sold) in its place.
 func _draw_price(y: float, w: float, h: float) -> void:
+	var r := Rect2(w - 41, y + floorf((h - 23) / 2.0), 35, 20)
 	var stamp: String = option.get("stamp", "")
 	if stamp != "":
-		var sw := Fonts.width(stamp, "TAG") + 8.0
-		var r := Rect2(w - sw - 6, y + h - 16, sw, 12)
-		UiArt.draw(self, "lv_sticker", r, int(option.get("stamp_color", Palette.RED)))
-		Fonts.draw(self, stamp, Vector2(r.position.x, r.position.y + 1), "TAG", -1, r.size.x, HORIZONTAL_ALIGNMENT_CENTER)
+		UiArt.button(self, r, "disabled")
+		Fonts.draw(self, stamp, Vector2(r.position.x, Fonts.cap_y("BUTTON", r.position.y, r.size.y - 1)), "BUTTON",
+				Palette.MUTED, r.size.x, HORIZONTAL_ALIGNMENT_CENTER)
 		return
 	if not option.has("price"):
 		return
-	var txt := str(int(option.price))
 	var ok: bool = option.get("afford", true)
-	var tw := Fonts.width(txt, "NUM")
-	var at := Vector2(w - tw - 8, y + h - 15)
-	UiArt.sprite(self, "hud_coin", at - Vector2(12, -1))
-	Fonts.draw(self, txt, at, "NUM", Palette.GOLD if ok else Palette.SALMON)
+	UiArt.button(self, r, "secondary" if ok else "disabled")
+	var txt := str(int(option.price))
+	var tw := ceilf(Fonts.width(txt, "BUTTON"))
+	var x := r.position.x + floorf((r.size.x - tw - 12) / 2.0)
+	var face_h := r.size.y - (3.0 if ok else 1.0)
+	UiArt.sprite(self, "hud_coin", Vector2(x, r.position.y + floorf((face_h - 10) / 2.0)))
+	Fonts.draw(self, txt, Vector2(x + 12, Fonts.cap_y("BUTTON", r.position.y, face_h)), "BUTTON", Palette.PAPER if ok else Palette.SALMON)
 
 
 ## `tex` shrunk to `px` (Icons.shrink: palette colours only, cached).
@@ -264,14 +256,15 @@ func _tag() -> String:
 
 
 ## Weapon level keys worth showing on a card, with their short names.
-const STAT_NAMES := [["damage", "Dmg"], ["cooldown", "CD"], ["radius", "Area"], ["count", "Count"],
-	["projectiles", "Shots"], ["swings", "Swings"], ["bounces", "Bounce"], ["pierce", "Pierce"],
-	["duration", "Time"], ["jumps", "Jumps"], ["range", "Range"]]
+const STAT_NAMES := [["damage", "Dmg", "Damage"], ["cooldown", "CD", "Cooldown"], ["radius", "Area", "Area"],
+	["count", "Count", "Count"], ["projectiles", "Shots", "Shots"], ["swings", "Swings", "Swings"],
+	["bounces", "Bounce", "Bounces"], ["pierce", "Pierce", "Pierce"], ["duration", "Time", "Time"],
+	["jumps", "Jumps", "Jumps"], ["range", "Range", "Range"]]
 
 
 ## "Dmg 14 > 16  CD 1.2 > 1.1" for a weapon level-up (the first two keys that
 ## change), "Dmg 10  CD 1.3" for a new weapon, "+10% > +20%" for a tome.
-func stat_line() -> String:
+func stat_line(long_names := false) -> String:
 	var def: Dictionary = card.get("def", {})
 	var lvl := int(card.get("level", 0))
 	match card.get("kind", ""):
@@ -283,13 +276,13 @@ func stat_line() -> String:
 			var parts := []
 			if lvl == 1:
 				for kn: Array in STAT_NAMES:
-					if now.has(kn[0]) and parts.size() < 2:
-						parts.append("%s %s" % [kn[1], _num(now[kn[0]])])
+					if now.has(kn[0]) and parts.size() < (1 if long_names else 2):
+						parts.append("%s %s" % [kn[2 if long_names else 1], _num(now[kn[0]])])
 			else:
 				var was: Dictionary = levels[lvl - 2]
 				for kn: Array in STAT_NAMES:
-					if now.has(kn[0]) and was.has(kn[0]) and not is_equal_approx(float(now[kn[0]]), float(was[kn[0]])) and parts.size() < 2:
-						parts.append("%s %s>%s" % [kn[1], _num(was[kn[0]]), _num(now[kn[0]])])
+					if now.has(kn[0]) and was.has(kn[0]) and not is_equal_approx(float(now[kn[0]]), float(was[kn[0]])) and parts.size() < (1 if long_names else 2):
+						parts.append(("%s %s > %s" if long_names else "%s %s>%s") % [kn[2 if long_names else 1], _num(was[kn[0]]), _num(now[kn[0]])])
 			return "  ".join(parts)
 		"tome":
 			var re := RegEx.new()

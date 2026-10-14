@@ -1,15 +1,16 @@
 class_name PixelTabs
 extends Control
-## A row of chunky tabs over a coloured rule: the picked tab stands taller in
-## its own colour and joins the rule, the others sit lower in SHADE. Each tab
-## has a small icon and a count (or a name and a second line when it has no
-## icon), and a red dot when it holds something new. Emits `picked(index)`.
+## A row of kit v2 tabs (docs/ui/shop.png, collection.png): the picked tab is
+## a blue block with a lamp bar along its foot, the others sit flat and muted.
+## Each tab shows a name (Shop: Upgrades / Actions / Offers) or a small icon
+## and a count (Collection: kinds with owned / total), and the red dot when it
+## holds something new. Emits `picked(index)`.
 
 signal picked(index: int)
 
-const H := 24
+const H := 22
 
-## [{"name", "sub", "art", "color", "dot"}]
+## [{"name", "sub", "art", "dot"}] ("color" is ignored: tabs are kit colours)
 var tabs: Array = []:
 	set(v):
 		tabs = v
@@ -17,12 +18,12 @@ var tabs: Array = []:
 var current := 0:
 	set(v):
 		current = v
-		_style()
+		_layout()
 var _buttons: Array[TabButton] = []
 
 
 func _init() -> void:
-	custom_minimum_size.y = H + 3
+	custom_minimum_size.y = H + UiArt.DROP_CARD
 	mouse_filter = MOUSE_FILTER_IGNORE
 	resized.connect(_layout)
 
@@ -34,61 +35,60 @@ func _build() -> void:
 	for i in tabs.size():
 		var b := TabButton.new()
 		b.name = "Tab%d" % i
-		b.small_rest = true
-		b.custom_minimum_size = Vector2(8, 8)
 		b.pressed.connect(func() -> void:
 			if current != i:
 				current = i
 				picked.emit(i))
 		add_child(b)
 		_buttons.append(b)
-	_style()
-	_layout.call_deferred()
+	_layout()
 
 
 func _layout() -> void:
 	var n := maxi(1, tabs.size())
-	var gap := 2.0
+	var gap := 3.0
 	var w := floorf((size.x - gap * (n - 1)) / n)
 	for i in _buttons.size():
 		var b := _buttons[i]
-		var up := i == current
-		b.position = Vector2(i * (w + gap), 0 if up else 3)
-		b.size = Vector2(w, H if up else H - 3)
-		b.custom_minimum_size = b.size
-	queue_redraw()
-
-
-func _style() -> void:
-	for i in _buttons.size():
-		var b := _buttons[i]
 		var t: Dictionary = tabs[i]
-		var up := i == current
+		b.on = i == current
+		b.title = t.get("name", "") if t.get("art") == null else ""
+		b.count = t.get("sub", "")
 		b.art = t.get("art")
-		b.art_plain = b.art != null
-		b.label = t.get("sub", "") if b.art != null else "%s\n%s" % [t.get("name", ""), t.get("sub", "")]
-		b.face = int(t.get("color", Palette.GOLD)) if up else Palette.SHADE
-		b.ink = Palette.INK if up else Palette.MIST
 		b.dot = t.get("dot", false)
+		b.position = Vector2(i * (w + gap), 0 if b.on else 1)
+		b.size = Vector2(w, H + UiArt.DROP_CARD - (0 if b.on else 1))
 		b.queue_redraw()
-	_layout()
 
 
-func _draw() -> void:
-	if tabs.is_empty():
-		return
-	# The rule under the tabs, in the picked tab's colour.
-	var c := int(tabs[current].get("color", Palette.GOLD))
-	draw_rect(Rect2(0, H - 2, size.x, 3), Palette.color(Palette.INK))
-	draw_rect(Rect2(0, H - 1, size.x, 1), Palette.color(c))
-
-
-## A tab: a PixelButton with the kit's red "!" on its top-right when it
-## holds something new.
-class TabButton extends PixelButton:
+## A tab: the kit's tab block with its title, or an icon and a count.
+class TabButton extends BaseButton:
+	var on := false
+	var title := ""
+	var count := ""
+	var art: Texture2D
 	var dot := false
 
+	func _init() -> void:
+		focus_mode = Control.FOCUS_NONE
+
+	func _pressed() -> void:
+		UiArt.click(self, "click")
+
 	func _draw() -> void:
-		super._draw()
+		var h := size.y - UiArt.DROP_CARD
+		var r := Rect2(0, 0, size.x, h)
+		UiArt.draw(self, "kit/tab_on" if on else "kit/tab_off", r, -1, -1, UiArt.DROP_CARD)
+		# Text centres on the face above the lamp bar (on) or the well row (off).
+		var face_h := h - (4.0 if on else 3.0)
+		var col := Palette.PAPER if on else Palette.MUTED
+		if art != null:
+			var tw := ceilf(Fonts.width(count, "NAME"))
+			var aw := art.get_width()
+			var x := floorf((size.x - aw - 3 - tw) / 2.0)
+			draw_texture(art, Vector2(x, floorf((face_h - art.get_height()) / 2.0) + 1))
+			Fonts.draw(self, count, Vector2(x + aw + 3, Fonts.cap_y("NAME", 1, face_h)), "NAME", col)
+		else:
+			Fonts.draw(self, title, Vector2(0, Fonts.cap_y("NAME", 1, face_h)), "NAME", col, size.x, HORIZONTAL_ALIGNMENT_CENTER)
 		if dot:
-			UiArt.sprite(self, "alert", Vector2(size.x - UiArt.sprite_size("alert").x + 3, -4))
+			UiArt.dot(self, Vector2(size.x - 6, -4))

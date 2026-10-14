@@ -2,22 +2,6 @@
 	"stick_base": {},
 	"stick_knob": {},
 	"key": {},
-	"button_orange": {
-		"slice": [
-			4,
-			4,
-			4,
-			3
-		]
-	},
-	"button_off": {
-		"slice": [
-			4,
-			4,
-			4,
-			4
-		]
-	},
 	"plate_dark": {
 		"slice": [
 			2,
@@ -26,108 +10,15 @@
 			3
 		]
 	},
-	"panel_dark": {
-		"slice": [
-			3,
-			4,
-			3,
-			4
-		]
-	},
-	"icon_button": {
-		"slice": [
-			2,
-			2,
-			2,
-			2
-		]
-	},
-	"ribbon_red": {
-		"slice": [
-			10,
-			7,
-			10,
-			6
-		]
-	},
-	"track_dark": {
-		"slice": [
-			2,
-			3,
-			2,
-			3
-		]
-	},
-	"fill_gold": {
-		"slice": [
-			2,
-			2,
-			2,
-			2
-		],
-		"ramp": [
-			"BUTTER",
-			"GOLD",
-			"ORANGE"
-		]
-	},
-	"icon_face": {
-		"slice": [
-			2,
-			2,
-			2,
-			2
-		],
-		"ramp": [
-			"SKY",
-			"BLUE",
-			"OCEAN"
-		]
-	},
-	"seg_track": {},
-	"gear_button": {},
-	"ad_sticker": {},
 	"alert": {},
 	"star": {},
 	"coin_big": {},
 	"gear": {},
-	"sack": {},
-	"padlock_big": {},
-	"mystery": {},
-	"lv_window": {
-		"slice": [
-			6,
-			8,
-			6,
-			6
-		]
-	},
-	"lv_header": {
-		"slice": [
-			3,
-			3,
-			3,
-			4
-		]
-	},
 	"lv_card": {
 		"slice": [
 			3,
 			3,
 			3,
-			3
-		],
-		"ramp": [
-			"SALMON",
-			"RED",
-			"BLOOD"
-		]
-	},
-	"lv_frame": {
-		"slice": [
-			2,
-			2,
-			2,
 			3
 		],
 		"ramp": [
@@ -149,21 +40,11 @@
 			"PLUM"
 		]
 	},
-	"lv_bubble": {},
 	"lv_pip_on": {},
 	"lv_pip_off": {},
 	"lv_die": {},
 	"lv_ffwd": {},
 	"lv_x": {},
-	"info_bar": {
-		"slice": [
-			3,
-			3,
-			3,
-			3
-		]
-	},
-	"info_icon": {},
 	"hud_track": {
 		"slice": [
 			2,
@@ -185,60 +66,10 @@
 			"ORANGE"
 		]
 	},
-	"hud_timer": {
-		"slice": [
-			3,
-			2,
-			3,
-			2
-		]
-	},
-	"hud_ring": {},
-	"hud_pause": {},
 	"hud_heart": {},
 	"hud_coin": {},
 	"hud_skull": {},
 	"hud_clock": {},
-	"nav_blue": {
-		"slice": [
-			4,
-			4,
-			4,
-			16
-		]
-	},
-	"nav_green": {
-		"slice": [
-			4,
-			4,
-			4,
-			16
-		]
-	},
-	"nav_orange": {
-		"slice": [
-			4,
-			4,
-			4,
-			16
-		]
-	},
-	"nav_purple": {
-		"slice": [
-			4,
-			4,
-			4,
-			16
-		]
-	},
-	"play_button": {
-		"slice": [
-			6,
-			8,
-			6,
-			8
-		]
-	},
 	"icon_frame": {
 		"slice": [
 			4,
@@ -252,11 +83,5 @@
 			"BLOOD"
 		]
 	},
-	"coin_nav": {},
-	"act_reroll": {},
-	"act_reroll_pressed": {},
-	"act_skip": {},
-	"act_skip_pressed": {},
-	"act_banish": {},
-	"act_banish_pressed": {}
+	"coin_nav": {}
 }

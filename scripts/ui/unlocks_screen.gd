@@ -1,19 +1,21 @@
 class_name UnlocksScreen
 extends MenuScreen
-## Every unlock as a grid of icon tiles, one tab per kind (HEROES, WEAPONS,
-## TOMES, ITEMS; each tab shows owned/total and a red dot when one is ready
-## to buy), with a fixed detail panel on top for the selected one: its icon,
-## name (or "??? WEAPON" while locked), what it does once known, the
-## challenge with its progress bar, and BUY / OWNED / the price. Locked
-## rewards are silhouettes with a progress strip; available ones hop and
-## sparkle with a NEW badge; owned ones get a tick. A tab fits on the screen,
-## so nothing scrolls. Opening the screen marks the NEW badges as seen.
+## The Collection, kit v2 (docs/ui/collection.png), a tab of the bottom nav:
+## how many unlocks are owned (a segmented bar) and how many are ready; a
+## detail window for the selected one (its slot, kind chip, name, what it
+## does, the challenge with its bar, and Buy / Owned / the price); kind tabs
+## (Characters, Weapons, Manuals, Items: icon, owned / total, a dot when one is
+## ready); and the grid of slots in a window (selected = lamp ring, ready =
+## green ring + dot, owned = check, locked = silhouette + padlock). Opening
+## the screen marks what's ready as seen.
 
 const COLUMNS := 4
-const PANEL_H := 82
-## Tabs: content category, name, colour.
-const KINDS := [["characters", "Heroes", Palette.LIME], ["weapons", "Weapons", Palette.SALMON],
-	["tomes", "Manuals", Palette.SKY], ["items", "Items", Palette.PINK]]
+## Summary row + detail window + tabs, fixed under the title.
+const PANEL_H := 150
+const DETAIL := Rect2(0, 18, 172, 96)
+## Tabs: content category, name.
+const KINDS := [["characters", "Characters"], ["weapons", "Weapons"],
+	["tomes", "Manuals"], ["items", "Items"]]
 
 var selected := ""
 var tab := 0
@@ -21,7 +23,7 @@ var _new := {}  # content ids that were unseen when the screen opened
 
 
 func _init(save_node: Node) -> void:
-	super(save_node, "Unlocks")
+	super(save_node, "Collection")
 	for id: String in Meta.ready_to_buy(db, save.data):
 		if not save.data.seen.has(id):
 			_new[id] = true
@@ -52,25 +54,15 @@ func in_tab(i: int) -> Array:
 
 func _fill() -> void:
 	_panel()
-	_summary()
-	var tabs := PixelTabs.new()
-	tabs.name = "Tabs"
-	tabs.custom_minimum_size.x = W
-	var info := []
-	for i in KINDS.size():
-		var chs := in_tab(i)
-		var owned := chs.filter(func(ch: Dictionary) -> bool: return Meta.state(db, save.data, ch.reward) == "owned").size()
-		var ready := chs.any(func(ch: Dictionary) -> bool: return Meta.state(db, save.data, ch.reward) == "available")
-		# The tab's icon: something you start with (never a locked reward).
-		var start: Array = db.all(KINDS[i][0]).filter(func(e: Dictionary) -> bool: return e.get("status", "") == "start")
-		var art: Texture2D = Icons.texture(db, KINDS[i][0], start[0].id) if not start.is_empty() else null
-		info.append({"name": KINDS[i][1], "sub": "%d/%d" % [owned, chs.size()], "color": KINDS[i][2], "dot": ready, "art": art})
-	list.add_child(tabs)
-	tabs.size.x = W
-	tabs.tabs = info
-	tabs.current = tab
-	tabs.picked.connect(show_tab)
+	var holder := PixelPanel.new()
+	holder.name = "GridWindow"
+	holder.part = "window"
+	var rows := ceili(in_tab(tab).size() / float(COLUMNS))
+	holder.custom_minimum_size = Vector2(W, maxf(rows, 2) * 38 + 16 + UiArt.DROP_WINDOW)
+	list.add_child(holder)
 	var grid := _grid()
+	grid.position = Vector2(12, 10)
+	holder.add_child(grid)
 	for ch: Dictionary in in_tab(tab):
 		grid.add_child(_tile(ch))
 
@@ -91,11 +83,10 @@ func show_tab(i: int) -> void:
 
 func _grid() -> GridContainer:
 	var grid := GridContainer.new()
+	grid.name = "Grid"
 	grid.columns = COLUMNS
-	var gap := (W - COLUMNS * IconTile.SIZE) / (COLUMNS - 1)
-	grid.add_theme_constant_override("h_separation", gap)
-	grid.add_theme_constant_override("v_separation", 2)
-	list.add_child(grid)
+	grid.add_theme_constant_override("h_separation", 3)
+	grid.add_theme_constant_override("v_separation", 3)
 	return grid
 
 
@@ -123,85 +114,144 @@ func select(id: String) -> void:
 	_scroll.set_deferred("scroll_vertical", keep)
 
 
-## The detail panel for `selected`.
+## The fixed panel: summary row, detail window for `selected`, kind tabs.
 func _panel() -> void:
 	var p := top_panel(PANEL_H)
+	p.part = ""
 	for c in p.get_children():
 		p.remove_child(c)
 		c.queue_free()
+	_summary(p)
+	var win := PixelPanel.new()
+	win.name = "Detail"
+	win.part = "window"
+	win.position = DETAIL.position + Vector2(2, 0)
+	win.size = DETAIL.size
+	p.add_child(win)
+	_detail(win)
+	var tabs := PixelTabs.new()
+	tabs.name = "Tabs"
+	tabs.position = Vector2(2, DETAIL.end.y + 6)
+	tabs.size = Vector2(W, PixelTabs.H + 2)
+	var info := []
+	for i in KINDS.size():
+		var chs := in_tab(i)
+		var owned := chs.filter(func(ch: Dictionary) -> bool: return Meta.state(db, save.data, ch.reward) == "owned").size()
+		var ready := chs.any(func(ch: Dictionary) -> bool: return Meta.state(db, save.data, ch.reward) == "available")
+		# The tab's icon: something you start with (never a locked reward), small.
+		var start: Array = db.all(KINDS[i][0]).filter(func(e: Dictionary) -> bool: return e.get("status", "") == "start")
+		var art: Texture2D = Icons.small(db, KINDS[i][0], start[0].id, 12) if not start.is_empty() else null
+		info.append({"name": KINDS[i][1], "sub": "%d/%d" % [owned, chs.size()], "dot": ready, "art": art})
+	p.add_child(tabs)
+	tabs.tabs = info
+	tabs.current = tab
+	tabs.picked.connect(show_tab)
+
+
+## The detail window's insides for `selected`.
+func _detail(win: Control) -> void:
 	var id := selected
 	var ch := Meta.challenge_for(db, id)
 	var st := Meta.state(db, save.data, id)
 	var def := Meta.content(db, id)
 	var known := st != "locked"
 	var cat := Meta.category_of(db, id)
-	# Icon at 2x in a frame on the left.
-	var frame := IconTile.new()
-	frame.picture = Icons.texture(db, cat, id, not known)
-	frame.state = st
-	frame.disabled = true
-	frame.position = Vector2(6, 6)
-	frame.mouse_filter = MOUSE_FILTER_IGNORE
-	p.add_child(frame)
-	var x := 6 + IconTile.SIZE + 5
-	var tw := W + 4 - x - 6
-	var name_text: String = def.get("name", "?") if known else "??? " + Meta.kind_name(db, id)
-	var nl := bold_label(p, name_text, Vector2(x, 6), Palette.BUTTER if known else Palette.MIST)
-	if Fonts.BOLD.get_string_size(name_text, HORIZONTAL_ALIGNMENT_LEFT, -1, Fonts.SIZE).x > tw:
-		nl.add_theme_font_override("font", Fonts.SMALL)
-	var kind_line := Meta.kind_name(db, id)
-	label(p, kind_line, Vector2(x, 16), {"weapons": Palette.SALMON, "tomes": Palette.SKY, "items": Palette.PINK, "characters": Palette.LIME}.get(cat, Palette.MIST))
-	# What it does (once it's known), else a teaser.
+	var slot := Control.new()
+	slot.name = "Slot"
+	slot.mouse_filter = MOUSE_FILTER_IGNORE
+	slot.position = Vector2(10, 9)
+	slot.size = Vector2(39, 39)
+	var ring: String = {"available": "ready", "owned": "ready"}.get(st, "")
+	var pic := Icons.texture(db, cat, id, not known)
+	slot.draw.connect(func() -> void:
+		UiArt.slot(slot, Rect2(Vector2.ZERO, slot.size), ring)
+		if pic != null:
+			var sp := LevelCard._small(pic, 14) if pic.get_width() > 14 else pic
+			var sz := Vector2(sp.get_size()) * 2
+			slot.draw_texture_rect(sp, Rect2(((slot.size - sz) / 2.0).floor(), sz), false))
+	win.add_child(slot)
+	var x := 56.0
+	var tw := DETAIL.size.x - x - 8
+	var kind := Meta.kind_name(db, id)
+	var chip := Control.new()
+	chip.mouse_filter = MOUSE_FILTER_IGNORE
+	chip.position = Vector2(x, 9)
+	chip.size = Vector2(60, 13)
+	chip.draw.connect(func() -> void: UiArt.chip(chip, kind, Vector2.ZERO, 13))
+	win.add_child(chip)
+	var name_text: String = def.get("name", "?") if known else "???"
+	var nl := Fonts.label(name_text, "NAME", -1 if known else Palette.MUTED)
+	nl.name = "Name"
+	nl.position = Vector2(x, 24)
+	Fonts.fit(nl, tw)
+	win.add_child(nl)
 	var what: String = def.get("desc", "") if known else "What could it be?"
 	if cat == "characters" and known:
 		what = String(def.get("passive", {}).get("desc", what))
-	var wl := label(p, what, Vector2(x, 26), Palette.PAPER if known else Palette.GRAY)
-	wl.autowrap_mode = TextServer.AUTOWRAP_WORD
-	wl.size = Vector2(tw, 20)
+	var wl := Fonts.label(what, "BODY", -1 if known else Palette.MUTED)
+	wl.name = "What"
+	wl.position = Vector2(x, 36)
+	wl.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
+	wl.size = Vector2(tw, 10)
 	wl.custom_minimum_size.x = tw
-	# Challenge and progress under it, full width.
-	if not ch.is_empty():
-		var prog := Meta.progress(db, save.data, ch)
-		var cr := ChallengeRow.new().setup(ch, prog, "")
-		cr.position = Vector2(6, 48)
-		var cw := W - 8 if st != "available" else W - 64
-		cr.custom_minimum_size = Vector2(cw, ChallengeRow.HEIGHT)
-		cr.size = cr.custom_minimum_size
-		p.add_child(cr)
-		match st:
-			"owned":
-				cr.reward = "Owned"
-				cr.reward_color = Palette.LIME
-			"available":
-				cr.reward = "Done! Ready to buy."
-				cr.reward_color = Palette.LIME
-			"locked":
-				if prog.blocked:
-					cr.reward = "Needs " + String(Meta.content(db, ch.requires).name)
-					cr.reward_color = Palette.SALMON
-				else:
-					cr.reward = "Then %d coins" % int(ch.price)
-					cr.reward_color = Palette.GOLD
-		var br := Rect2(W - 52, 50, 52, 22)
-		match st:
-			"available":
-				var b := price_button(p, int(ch.price), br, _buy.bind(id), "Buy ")
-				b.name = "Buy"
-				if b.disabled:
-					b.label = str(int(ch.price))
-			"owned":
-				bold_label(p, "Owned", Vector2(br.position.x, 57), Palette.LIME, HORIZONTAL_ALIGNMENT_CENTER, br.size.x)
+	win.add_child(wl)
+	if ch.is_empty():
+		return
+	var prog := Meta.progress(db, save.data, ch)
+	var cl := Fonts.label(String(ch.get("desc", ch.get("name", ""))), "SMALL")
+	cl.name = "Challenge"
+	cl.position = Vector2(10, 54)
+	cl.size = Vector2(DETAIL.size.x - 20, 9)
+	win.add_child(cl)
+	var bar := Control.new()
+	bar.name = "Bar"
+	bar.mouse_filter = MOUSE_FILTER_IGNORE
+	bar.position = Vector2(10, 69)
+	bar.size = Vector2(DETAIL.size.x - 64, 10)
+	var done := st != "locked"
+	var bar_text := "Done!" if done else ("Needs " + String(Meta.content(db, ch.requires).name) if prog.blocked else Meta.progress_text(ch, prog))
+	bar.draw.connect(func() -> void:
+		UiArt.bar2(bar, Rect2(Vector2.ZERO, bar.size), 1.0 if done else float(prog.frac), "go" if done else "lamp")
+		Fonts.draw(bar, bar_text, Vector2(0, Fonts.cap_y("BAR_NUM", 0, bar.size.y)), "BAR_NUM", -1, bar.size.x, HORIZONTAL_ALIGNMENT_CENTER))
+	win.add_child(bar)
+	var br := Rect2(DETAIL.size.x - 50, 63, 40, 20 + PixelButton.SHADOW)
+	match st:
+		"available":
+			var b := button(win, str(int(ch.price)), br, Palette.GOLD, _buy.bind(id), int(save.data.coins) >= int(ch.price))
+			b.name = "Buy"
+			b.art = UiArt.texture("hud_coin")
+			b.art_plain = true
+			b.disabled_ink = Palette.SALMON
+		"owned":
+			var ol := Fonts.label("Owned", "NAME", Palette.LIME)
+			ol.position = Vector2(br.position.x, br.position.y + 5)
+			win.add_child(ol)
+		_:
+			var b := button(win, str(int(ch.price)), br, Palette.FRAME, func() -> void: pass, false)
+			b.name = "Price"
+			b.art = UiArt.texture("hud_coin")
+			b.art_plain = true
 
 
 func _buy(id: String) -> void:
 	if Meta.buy(db, save.data, id):
 		save.save_game()
 		select(id)
-		add_child(UnlockPopup.new(db, id))
+		# Over everything, the menu's nav included.
+		var host: Node = get_tree().current_scene if is_ancestor_of_scene() and get_tree().current_scene is Control else self
+		host.add_child(UnlockPopup.new(db, id))
 
 
-## Top of the list: how many unlocks are owned, as a slim bar.
-func _summary() -> void:
+func is_ancestor_of_scene() -> bool:
+	if not is_inside_tree():
+		return false
+	var scene := get_tree().current_scene
+	return scene != null and scene.is_ancestor_of(self)
+
+
+## Top row: how many unlocks are owned (a segmented lamp bar) and how many
+## are ready to buy.
+func _summary(p: Control) -> void:
 	var all := Meta.challenges(db)
 	var owned := 0
 	var ready := 0
@@ -213,18 +263,16 @@ func _summary() -> void:
 				ready += 1
 	var box := Control.new()
 	box.name = "Summary"
-	box.custom_minimum_size = Vector2(W, 14)
+	box.position = Vector2(2, 0)
+	box.size = Vector2(W, 14)
 	box.mouse_filter = MOUSE_FILTER_IGNORE
 	box.draw.connect(func() -> void:
-		var f := Fonts.BOLD
 		var t := "%d/%d" % [owned, all.size()]
-		var tw := f.get_string_size(t, HORIZONTAL_ALIGNMENT_LEFT, -1, 8).x
-		box.draw_string(f, Vector2(0, 11), t, HORIZONTAL_ALIGNMENT_LEFT, -1, 8, Palette.color(Palette.INK))
-		box.draw_string(f, Vector2(0, 10), t, HORIZONTAL_ALIGNMENT_LEFT, -1, 8, Palette.color(Palette.PAPER))
-		var rt := ("%d ready!" % ready) if ready > 0 else ""
-		var rw := f.get_string_size(rt, HORIZONTAL_ALIGNMENT_LEFT, -1, 8).x + (4 if ready > 0 else 0)
+		var tw := ceilf(Fonts.width(t, "NUM"))
+		Fonts.draw(box, t, Vector2(0, Fonts.cap_y("NUM", 0, 13)), "NUM")
+		var rt := ("%d ready" % ready) if ready > 0 else ""
+		var rw := ceilf(Fonts.width(rt, "NAME")) + 6 if ready > 0 else 0.0
 		if ready > 0:
-			box.draw_string(f, Vector2(W - rw + 4, 11), rt, HORIZONTAL_ALIGNMENT_LEFT, -1, 8, Palette.color(Palette.INK))
-			box.draw_string(f, Vector2(W - rw + 4, 10), rt, HORIZONTAL_ALIGNMENT_LEFT, -1, 8, Palette.color(Palette.LIME))
-		UiArt.bar(box, Rect2(tw + 4, 2, W - tw - 8 - rw, 10), float(owned) / maxf(1.0, all.size()), Palette.GOLD))
-	list.add_child(box)
+			Fonts.draw(box, rt, Vector2(W - rw + 6, Fonts.cap_y("NAME", 0, 13)), "NAME", Palette.LIME)
+		UiArt.bar2(box, Rect2(tw + 5, 2, W - tw - 8 - rw, 10), float(owned) / maxf(1.0, all.size()), "lamp", 8))
+	p.add_child(box)

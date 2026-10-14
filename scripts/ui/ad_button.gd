@@ -1,25 +1,25 @@
 @tool
 class_name AdButton
 extends PixelButton
-## A PixelButton for a rewarded ad (revive, 2x coins, daily reward): the
-## purple "Ad" sticker (kit 3b `lv_sticker`, gray when off) on the left, as
-## on the level-up action buttons, and the label (NAME, shrunk to fit)
-## centered in the rest.
+## A PixelButton for a rewarded ad (revive, AD x2 coins, daily reward): the
+## green go block (kit v2: green is for ad rewards only) with the INK "AD"
+## chip on the left and the label (BUTTON, shrunk to fit) centred in the rest.
 
 
 func _init() -> void:
 	_own_label = true
+	face = Palette.GREEN
 
 
 func _draw() -> void:
 	super._draw()
 	var mode := get_draw_mode()
-	var y := SHADOW if mode == DRAW_PRESSED or mode == DRAW_HOVER_PRESSED else 0
+	var y := 2 if (mode == DRAW_PRESSED or mode == DRAW_HOVER_PRESSED) and not disabled else 0
 	var h := int(size.y) - SHADOW
-	var sr := UiArt.sticker(self, "Ad", Vector2(5, y + floorf((h - 12) / 2.0)), Palette.GRAY if disabled else -1)
+	var face_h := h - 3
+	var sr := UiArt.sticker(self, "AD", Vector2(5, y + floorf((face_h - 11) / 2.0) + 1), -1, 11, 3, "ad")
 	var left := sr.end.x + 2
 	var room := size.x - left - 6
 	var fs := _name_size(label, room)
-	var asc := Fonts.TITLE_FONT.get_ascent(fs)
-	Fonts.draw(self, label, Vector2(left, y + floorf((h - 1 - asc) / 2.0)), "NAME",
-			Palette.SHADE if disabled else ink, room, HORIZONTAL_ALIGNMENT_CENTER, fs)
+	Fonts.draw(self, label, Vector2(left, Fonts.cap_y("BUTTON", y, face_h, fs) + 1), "BUTTON",
+			Palette.MUTED if disabled else Palette.PAPER, room, HORIZONTAL_ALIGNMENT_CENTER, fs)

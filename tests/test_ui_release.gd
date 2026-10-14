@@ -39,9 +39,8 @@ func test_menu_shows_the_name_and_no_engine_credit(t) -> void:
 	var menu: Control = load("res://scenes/main_menu.tscn").instantiate()
 	t.root.add_child(menu)
 	await t.process_frame
-	var logos := menu.find_children("*", "LogoTitle", true, false).map(func(p: LogoTitle) -> String: return p.text)
-	t.check(logos == ["Mobbed!"], "the logo says Mobbed! (%s)" % [logos])
-	t.check(menu.get("GAME_SUBTITLE") == "survive the swarm", "the ribbon says survive the swarm")
+	# Kit v2 Home (docs/ui/home.png) names the district, not the game.
+	t.check(menu.has_node("Frame/District") and menu.find_children("*", "LogoTitle", true, false).is_empty(), "Home shows the district, no logo")
 	var texts := menu.find_children("*", "Label", true, false).map(func(l: Label) -> String: return l.text)
 	t.check(not texts.any(func(s: String) -> bool: return s.contains("GODOT")), "no MADE WITH GODOT label")
 	t.check(ProjectSettings.get_setting("application/config/name") == "Mobbed!", "the app is named Mobbed!")
@@ -177,19 +176,28 @@ func test_shop_grid_has_an_icon_per_entry(t) -> void:
 	t.root.add_child(screen)
 	await t.process_frame
 	var db := GameData.shared()
-	for e: Dictionary in db.all("shop"):
-		t.check(Icons.ref(db, e.get("icon", "")) != null, "%s has an icon" % e.id)
-		var tile: IconTile = screen.find_child(e.id, true, false)
-		t.check(tile != null and tile.pips_max == e.prices.size(), "%s has a tile with %d pips" % [e.id, e.prices.size()])
-	var might: IconTile = screen.find_child("might", true, false)
-	might.pressed.emit()
+	# Upgrades on the first tab, level-up actions and the Switchboard on Actions.
+	for i in 2:
+		screen._tabs.current = i
+		screen.tab = i
+		screen.refresh()
+		await t.process_frame
+		for e: Dictionary in db.all("shop"):
+			if (e.kind == "stat") != (i == 0):
+				continue
+			t.check(Icons.ref(db, e.get("icon", "")) != null, "%s has an icon" % e.id)
+			var card: GoodsCard = screen.find_child(e.id, true, false)
+			t.check(card != null and card.pips_max == e.prices.size(), "%s has a card with %d pips" % [e.id, e.prices.size()])
+	screen.tab = 0
+	screen.refresh()
 	await t.process_frame
-	var buy: PixelButton = screen.find_child("Buy", true, false)
-	t.check(buy != null, "the panel has a price button")
+	var might: GoodsCard = screen.find_child("might", true, false)
+	var buy: PixelButton = might.find_child("Buy", true, false)
+	t.check(buy != null and not buy.disabled, "the card has a price button")
 	buy.pressed.emit()
 	await t.process_frame
-	t.check(Meta.shop_level(save.data, "might") == 1, "buying from the panel raises the level")
-	t.check((screen.find_child("might", true, false) as IconTile).pips == 1, "and the tile lights a pip")
+	t.check(Meta.shop_level(save.data, "might") == 1, "buying from the card raises the level")
+	t.check((screen.find_child("might", true, false) as GoodsCard).pips == 1, "and the card lights a pip")
 	screen.queue_free()
 	save.free()
 	await t.process_frame
@@ -236,12 +244,14 @@ func test_level_card_numbers(t) -> void:
 	card.free()
 
 
-func test_game_over_lists_the_build(t) -> void:
+func test_game_over_shows_tiles_coins_and_almost_there(t) -> void:
 	var run := _start(t, {"loadout": {"weapons": {"rubber_duck": 2}}})
 	await t.process_frame
 	run._end("died")
 	await t.process_frame
-	t.check(run._over_list.get_node_or_null("OverBuild") != null, "game over shows the build")
+	t.check(run._over_win.find_child("Coins", true, false) != null and run._over_win.find_child("AlmostThere", true, false) != null,
+		"game over shows the coins earned and \"Almost there\"")
+	t.check(run._over_title.text == "Swarmed!" and run._again_btn.big, "titled Swarmed!, with the lamp Play Again")
 	run.queue_free()
 	await t.process_frame
 
@@ -290,7 +300,7 @@ func test_hud_small_icons_centred_items_with_rarity_frames(t) -> void:
 				continue
 			var img := tex.get_image()
 			t.check(img.get_size() == Vector2i(Hud.ICON_PX, Hud.ICON_PX) and _palette_only(img) == 0, "%s/%s small icon is 12 px on the palette" % [kind, e.id])
-	t.check(Hud.SLOT < 18 and Hud.ITEM_FRAME < 18, "strip and item slots are smaller than before (%d, %d)" % [Hud.SLOT, Hud.ITEM_FRAME])
+	t.check(Hud.SLOT == 22 and Hud.ITEM_FRAME == 22 and Hud.ITEMS_PER_ROW == 6, "kit v2 slots: 22 px, six items a row (%d, %d)" % [Hud.SLOT, Hud.ITEM_FRAME])
 	var run := _start(t, {"loadout": {"weapons": {"rubber_duck": 2}}})
 	await t.process_frame
 	for it in ["band_aid", "hot_sauce", "lucky_penny"]:
@@ -300,7 +310,7 @@ func test_hud_small_icons_centred_items_with_rarity_frames(t) -> void:
 	var w := floorf(hud.size.x)
 	for n in [1, 3, 12, 30]:
 		var first := hud.item_rect(0, n)
-		var last := hud.item_rect(mini(n, int((w - 3.0) / Hud.ITEM_SLOT)) - 1, n)
+		var last := hud.item_rect(mini(n, Hud.ITEMS_PER_ROW) - 1, n)
 		var left := first.position.x
 		var right := w - last.end.x
 		t.check(absf(left - right) <= 1.0, "%d items: the bottom row is centred (%s | %s)" % [n, left, right])

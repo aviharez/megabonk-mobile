@@ -59,6 +59,14 @@ func _run() -> void:
 	save.data.coins = 1240
 	save.data.runs_played = 6
 	save.data.stats["kills"] = 2400.0
+	save.data["best_times"] = {"suburbia": 372.0}
+	# A Collection like the mockup's: a few manuals ready, one owned.
+	for id in ["fridge_magnets", "tin_foil_hat_theories", "lottery_tips"]:
+		save.data.unlocks[id] = "available"
+	save.data.unlocks["self_help_book"] = "owned"
+	save.data.shop["might"] = 2
+	save.data.shop["vitality"] = 1
+	save.data.shop["magnetism"] = 5
 	save.save_game()
 	var ads := root.get_node_or_null("/root/Ads")
 
@@ -70,43 +78,36 @@ func _run() -> void:
 	if _want("menu"):
 		change_scene_to_file("res://scenes/main_menu.tscn")
 		await _wait(0.8)
-		await _shot("01_menu")
+		await _shot("01_home")
 		var menu := current_scene
 		menu.call("_open_settings")
 		await _wait(0.3)
 		await _shot("02_settings")
-		menu.get_node("SettingsPanel").hide()
-		var browse = menu.call("_open_heroes")
+		menu.call("_close_settings")
+		var shop = menu.call("_on_tab", "shop")
+		await _wait(0.4)
+		await _shot("03_shop")
+		var un = menu.call("_on_tab", "collection")
+		await _wait(0.4)
+		await _shot("04_collection")
+		menu.add_child(UnlockPopup.new(un.db, "hot_coffee"))
+		await _wait(0.6)
+		await _shot("05_unlocked")
+		for pop in menu.find_children("UnlockPopup", "", true, false):
+			pop.queue_free()
+		var hero = menu.call("_on_tab", "characters")
 		await _wait(0.5)
-		await _shot("03b_heroes_browse")
-		browse.queue_free()
-		var hero = menu.call("_open_screen", HeroScreen)
+		await _shot("06_characters")
+		menu.call("_on_tab", "battle")
+		await _wait(0.2)
+		var pick = menu.call("_open_screen", HeroScreen)
 		await _wait(0.5)
-		await _shot("03_hero")
-		var locked := ""
-		for c: Dictionary in hero.characters():
-			if not Meta.is_owned(hero.db, save.data, c.id):
-				locked = c.id
-		if locked != "":
-			hero.select(locked)
-			await _wait(0.3)
-			await _shot("04_hero_locked")
-		hero.queue_free()
+		await _shot("07_pick_hero")
+		pick.queue_free()
 		var map = menu.call("_open_screen", MapScreen)
 		await _wait(0.3)
-		await _shot("05_map")
+		await _shot("08_pick_map")
 		map.queue_free()
-		var un = menu.call("_open_screen", UnlocksScreen)
-		await _wait(0.3)
-		await _shot("06_unlocks")
-		un.add_child(UnlockPopup.new(un.db, "rubber_duck"))
-		await _wait(0.5)
-		await _shot("08_unlock_popup")
-		un.queue_free()
-		var shop = menu.call("_open_screen", ShopScreen)
-		await _wait(0.3)
-		await _shot("07_shop")
-		shop.queue_free()
 		await _wait(0.1)
 		menu.call("back")
 		await _wait(0.4)

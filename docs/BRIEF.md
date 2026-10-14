@@ -503,3 +503,189 @@ Also flag anything that departs from docs/BRIEF.md.
 - [ ] Subscribe to SpriteCook Starter during phase 6, then cancel.
 - [ ] Replace placeholder music with commercially licensed music before release.
 - [ ] Register Google Play and Apple developer accounts, and line up at least 12 testers for closed testing.
+
+# Update 1: UI v2 and Retention
+
+## Summary
+
+This update keeps the core run as it is and changes three things around it: a game-feel UI with one design system, a two-step Play flow, and a retention layer (quests, a town to rebuild, danger levels, a bestiary, Google Play Games). Income stays ads + Remove Ads, so rewarded ads are the accelerator in every new system, never a paywall.
+
+- **Why:** testing showed the core is fun but players have little reason to come back, the UI reads as a plain app, and the build still feels close to Megabonk.
+- **Visual reference:** the design canvas "Mobbed! UI Redesign" (17 phone screens) and the "Mobbed! Design System" (tokens, components, rules). Both are private claude.ai pages, so Claude Code cannot open them: the owner exports each screen as a PNG into `docs/ui/` (file names below) before phase 1.
+- **Sizes in this brief** are design px = 2 x game px (a 360 px wide screen = the 180 px game view). Divide by 2 in Godot.
+
+## Game UI kit v2
+
+Every UI part is a physical, outlined object, and the chrome stays in one night-blue family so the full-colour heroes, critters and items are what the eye lands on.
+
+**Rules**
+
+- **Ink outline + hard drop on everything:** 1 game px INK outline around every window, card, button, slot, bar, badge and sticker, plus a solid INK shadow straight down (3 game px under windows and buttons, 2 under cards and slots). Square corners, no soft shadows, no gradients, no glow.
+- **Windows are framed:** INK outline, a 2 game px frame band lit top-left (`frame-hi`) and shaded bottom-right (`frame-lo`), an inner INK line, a hatched fill (`surface` with `surface-2` diagonal lines, a 4x4 game px tile) and four `frame-hi` bolts in the corners. Modal windows hang a title plate over their top edge; Level Up's plate is lamp yellow.
+- **Content sits in wells:** icons, stat tiles and bar tracks sit in sunken `well`s.
+- **Display text is outlined:** Lilita One with a 1 game px INK outline and drop for titles, names, numbers and button labels. Inter 800 for body text, never outlined, never below 6 game px.
+- **Buttons are blocks:** top bevel (`frame-hi` or `lamp-hi`), bottom bevel (`frame-lo` or `lamp-lo`), a 2x2 game px shine top-left, white outlined label.
+- **One `lamp` primary button per screen.** Everything else is the blue secondary button. Green (`btn-go`) only for the AD x2 reward.
+- **Colour means something:** `lamp` = primary action, active nav tile, progress fills, selected slot, level badge, coins. `go` = ready, done, claimable. `alert` = notification dots and the HP bar only. Rarity colours = item slot frames only. Kind (weapon, manual, item) is told by a muted text line and the icon, never by card colour.
+- **Bottom nav:** five icon tiles (Shop, Characters, Battle, Town, Collection). Only the current tile is labelled; it rises above the bar in `lamp`.
+- **Backgrounds:** menus sit over the night town backdrop (`assets/ui/home/backdrop.png` remapped to the night ramp, warm windows kept). In-run panels sit over the map dimmed by a dither overlay.
+- **Fonts:** Lilita One (display) and Inter (body) are already in `assets/fonts/`. Titan One and the Bonk/5x7 pixel fonts leave the UI.
+
+**Colour tokens** (new tones must be added to `assets/palette.png`; existing palette names in brackets)
+
+| Token | Hex | Use |
+| --- | --- | --- |
+| bg | #0b1020 | Screen ground (new) |
+| surface | #121a2e | Window and nav fill (new) |
+| surface-2 | #16203a | Hatch lines (new) |
+| well | #0b0f1c | Sunken wells (new) |
+| raised | #1a2540 | Cards inside windows (new) |
+| frame-lo | #1e2a45 | Frame shade, bottom bevel (new) |
+| frame | #2e4170 | Frame band, secondary button (new) |
+| frame-hi | #5b78b0 | Frame light, bolts (new) |
+| line | #2a3a5e | Rules, empty slots (new) |
+| muted | #8a9cc2 | Secondary text (new) |
+| text | #f4f0e8 | Primary text (PAPER) |
+| ink | #0e0b16 | Outlines, drops (INK) |
+| lamp / lamp-hi / lamp-lo / lamp-deep | #f5b83d / #ffe680 / #d97a26 / #8a4a1c | Accent (GOLD, BUTTER, ORANGE, RUST) |
+| go / go-lo / go-deep | #a6e070 / #5cb83f / #2f7a34 | Ready, done (LIME, GREEN, LEAF) |
+| alert / alert-hi / alert-lo | #e04a3a / #ff8a6b / #a3262f | Dots, HP (RED, SALMON, BLOOD) |
+| r-common / r-rare / r-epic / r-legend | #a9b6cf / #3a9ad9 / #8a3fc4 / #f5b83d | Rarity frames (new, BLUE, PURPLE, GOLD) |
+
+**Type sizes** (game px): hero names 20, screen titles 14, names and buttons 9, numbers 10, body 7, small 6. Pixel art always at whole-number scale: 16 px icons at 2x in list slots and 3x in grid slots, heroes 3x-3.5x on stages.
+
+## Screens
+
+Seventeen screens, each matched to a PNG in `docs/ui/`. Tab screens have the bottom nav and an outlined title with the coin plate; sub-screens have a back button and no nav.
+
+| Screen | Type | What it holds |
+| --- | --- | --- |
+| Home (`home.png`) | Tab: Battle | Account badge + Town level bar, coins, settings; district chip and name; left rail Quests (count dot) and Daily gift (AD); right rail weekly event (timer) and No Ads; hero 3.5x on the plinth with critters around it; Unlock rail button when something is ready; large Play |
+| Pick a District (`pick-district.png`) | Play step 1 | Step indicator "1 District - 2 Hero"; district card (map thumbnail, boss slot, name, best time, three goals with checks); Danger 1-5 row (locked ones show a lock, a newly opened one a New! sticker, a one-line rule under it); locked districts with their requirement; Next |
+| Pick a Hero (`pick-hero.png`) | Play step 2 | Step indicator; hero on the plinth with role chip and name; three hero slots (locked = silhouette "???", not pickable); 4 stat tiles; signature weapon card; summary card "Suburbia - Danger 1" (back to step 1); Start |
+| Characters (`characters.png`, `characters-locked.png`, `critters.png`) | Tab | Tabs Heroes / Critters with counts. Heroes: roster, stage, 8 stat tiles (HP, Damage, Speed, Magnet, Armor, Regen, Area, Cooldown), weapon and passive cards. Locked hero: silhouette, "???", stats "?", how to unlock + progress, hire price. Critters: 8-slot bestiary (unseen = "?", boss = purple frame + Boss tag), stage, 4 stats (HP, Damage, Speed, XP), one-line behaviour, first seen, times bonked. No Choose button here |
+| Shop (`shop.png`) | Tab | Tabs Upgrades / Actions / Offers; 3-column goods grid (icon on a shelf, name, level pips, price button or Max); No Ads offer window (primary, price from the store) |
+| Collection (`collection.png`) | Tab | Collected x/19 bar + "n ready"; detail window (item, kind chip, effect, challenge, bar, Buy); kind tabs with counts and dots; grid of slots (selected, owned with check, ready with green frame and dot, locked silhouette) |
+| Quests (`quests.png`) | Sub-screen | Tabs Daily / Weekly / Milestones; daily points window with three chests on a segmented bar and reset timer; quest cards (icon, text, bar, reward or Claim, x/y); claimed ones faded; AD x2 once a day |
+| Town (`town.png`) | Tab | Town level + Rebuilt x/12; Patrol card (offline coins, AD x2, Collect); the district map at night with name pins over buildings (built = lit + level, ruined = boarded + dot, locked = lock); selected building window (what it unlocks, its in-run effect, challenge state, Rebuild/Upgrade price) |
+| In run (`hud.png`) | HUD | Lamp level badge, segmented XP bar, HP bar with heart and value, timer plate, pause; gold and KO counters; weapon and manual slots with level badges top-left; item pickup card near the top; owned items as a centred row of slots at the bottom (rarity frames, stack count); edge arrows |
+| Level Up (`level-up.png`) | Popup | Lamp title plate; three choice cards (kind line, name, effect or before > after, pips with the new pip lit, New sticker); Reroll / Skip / Banish buttons with charges or AD |
+| Paused (`paused.png`) | Popup | Time, level, KO; build grid (4 weapons, 4 manuals, level badges); selected slot detail; stats; music and sound buttons; Give Up; Resume (primary) |
+| Game Over (`game-over.png`) | Result | Outlined result title + one line; hero hit pose; 4 stat tiles; coins earned + AD x2; "Almost there" (closest challenges with bars); ready-to-unlock card; Home button + Play Again (primary) |
+| Merchant (`merchant.png`) | Popup | Title plate; leaves-in timer; your gold; three wares (rarity frame, name, one line, price; too expensive = disabled with red price; bought = Sold stamp); Leave |
+| Settings (`settings.png`) | Popup | Music and effects volume, vibration, damage numbers, screen shake, reduce effects; Google Play Games status, Achievements, Leaderboard; Restore purchases; version |
+| Unlocked (`unlocked.png`) | Popup | "Unlocked!" over rays; the item at 4x in a slot; name, kind chip, one line, "It can now show up on level-up cards"; Nice! |
+
+In-run notifications: an item pickup shows a card near the top (rarity line, name, one-line effect, stack badge); shrine stat bonuses stay a short toast ("Armor +1") in the same place; several pickups queue one after another. The owned-items row grows upward in new centred rows when it passes six slots.
+
+## New systems
+
+All new content is data in `data/`, like everything else; adding a quest, a building or a danger level needs no code.
+
+**Play flow (two steps)**
+
+1. Play on Home opens Pick a District. Next opens Pick a Hero. Start begins the run.
+2. The last district, danger and hero are pre-selected, so a repeat run is Next + Start.
+3. Step 1 is skipped while the player owns only Suburbia and Danger 1. It appears from the run after a new district or danger opens, with a New! sticker on it.
+4. Back on step 2 returns to step 1; back on step 1 returns to Home. Play Again on Game Over skips both steps.
+
+**Danger levels** (`data/danger/*.json`)
+
+- Danger 1-5 per district. Danger n+1 opens when the boss of that district is beaten on Danger n.
+- Each level is a list of modifiers on the existing director numbers (spawn rate, elite interval, enemy HP and damage) plus a coin multiplier. Starting values: elites every 60-90 s at 1 down to 30-45 s at 5; coins x1.0, 1.5, 2.0, 2.5, 3.0. Tune in balance.
+- Beating each hero on each danger is a milestone quest.
+
+**Characters and bestiary**
+
+- Heroes: the existing character data. Locked heroes show no stats.
+- Critters: an enemy is "seen" the first time one spawns on screen; until then it is a "?" slot. Save per enemy id: first seen (run time), times bonked. Bosses and Overdue Bills count too.
+- Each critter entry gets a one-line `desc` in its enemy JSON.
+
+**Quests** (`data/quests/*.json`)
+
+- Reuse the challenge schema (tracked stat, scope run or cumulative, target, prerequisite) and add `kind` (daily, weekly, milestone), `reward` (coins, points) and `repeat`.
+- Daily: 3 drawn from a pool at local midnight. Weekly: 5 drawn on Monday. Milestones: permanent tiers (bonk 1,000 / 10,000 / 100,000; open 10 / 100 chests; 500 bonks with each weapon; each hero on each danger). Target 100+ milestones.
+- Daily points: each daily quest gives 20 points; chests at 20 / 40 / 60 points.
+- One claim a day can be doubled by a rewarded ad.
+- Quests should bring about 30-40% of a regular player's coins; runs stay the main source.
+- The 19 unlock challenges stay as they are and also pay coins.
+
+**Town (small first version)**
+
+- Home's town is Suburbia. A building is ruined, buildable (its unlock challenge is done) or built; built ones level up.
+- First 4 buildings, each wrapping existing content: Bakery (Sir Loaf, Baguette), Pigeon Coop (Turbo Pigeon), Office (Gary), Gym (the Might, Vitality and Sneakers upgrades move here as building levels).
+- Each built building adds one thing to runs in Suburbia, placed on its own lot so it never adds clutter (for example the Bakery's bread stall heals 20 HP once per run). The map data gets `"requires": "<building id>"` on props and interactables.
+- Ruined art = the same prop drawn darker with boards over it (code overlay), so a building needs one sprite.
+- Patrol: built buildings earn coins offline, capped at 8 hours; Collect, or AD x2.
+- Town level = buildings built + their levels; it is the account level shown on Home.
+
+**In-run additions**
+
+- Owned items row and the item pickup card (see Screens).
+- Merchant window as in `merchant.png`; prices in in-run gold; the stock rolls on arrival.
+
+## Google Play Games and cloud save
+
+The value is cloud save and a weekly leaderboard; achievements are a bonus.
+
+- Plugin candidate: "Google Play Games Services for Godot" (MIT, v3.2.0, Nov 2025; sign-in, achievements, leaderboards, saved games). Claude Code checks it against Godot 4.7.2 and **asks the owner before adding it**, like AdMob and Billing.
+- Sign-in is silent at start; the game works fully without it.
+- Saved games: the existing versioned JSON save goes up on every run end and on app pause. On conflict keep the save with more total playtime and tell the player in one line.
+- Achievements: the 19 unlock challenges plus about 20 milestone quests. IDs live in data, test IDs until the owner creates the real ones.
+- Leaderboards: "Longest Final Swarm" (weekly) and "Fastest Mega Mole" (all time).
+- Same pattern as ads: a backend interface, a fake backend in debug builds, an inert one in release without the plugin.
+
+## Renames
+
+These names are Megabonk's own words; change the player-facing text only (ids may stay).
+
+| Now | New |
+| --- | --- |
+| Toggler | Switchboard |
+| Tome (anywhere it still shows) | Manual |
+| Heroes tab | Characters |
+| Unlocks screen | Collection |
+| Maps | Districts |
+
+## Phases
+
+Five phases, numbered after the current ones. Each prompt is pasted as it is; each ends with the usual review prompt.
+
+### Phase 10: Game UI kit v2 and restyle
+
+```text
+Read docs/BRIEF.md "Update 1" (Game UI kit v2, Screens, Renames) and the PNGs in docs/ui/. Build the kit as reusable parts (window with title plate, card, well, block button in primary / secondary / go / disabled, slot with rarity / sel / ready / locked / empty and badges, bars with seg / go / hp, pips, chips, tabs, bottom nav with five tiles), drawn as 9-slice textures on the palette, and add the new UI tones to assets/palette.png. Switch the UI fonts to Lilita One and Inter. Restyle every existing screen to match its PNG: Home, Shop, Collection, HUD (with the owned-items row and the item pickup card), Level Up, Paused, Game Over, Merchant, Shrine, Unlocked, Settings. Apply the renames. Replace the "UI design direction" section of CLAUDE.md with the kit rules. Done when: each screen is shot with tools/shoot_screens.gd at 540x1170 and checked side by side with its PNG, every shot passes the palette scan, tests pass, and the 300-enemy stress test is within 5% of phase 9.
+```
+
+### Phase 11: Play flow, Danger and Characters
+
+```text
+Read docs/BRIEF.md "Update 1" (New systems: Play flow, Danger levels, Characters and bestiary). Build Pick a District and Pick a Hero with the skip and remember rules, Danger 1-5 as data with modifiers and coin multipliers, and the Characters tab with Heroes and Critters (bestiary with seen state, first seen, times bonked, locked heroes hidden). Remove hero choice from anywhere else. Done when: a new save goes Home > Pick a Hero > run with no district step; after beating Mega Mole the district step appears with New! on Danger 2; Play Again skips both steps; the bestiary fills in as critters spawn; tests cover each rule.
+```
+
+### Phase 12: Quests
+
+```text
+Read docs/BRIEF.md "Update 1" (Quests). Add data/quests with daily, weekly and milestone kinds on the challenge schema, the daily points chests, the Quests screen, the Home rail with its count dot, and the once-a-day AD x2 on a claim. Write at least 100 milestones and pools of 15 daily and 15 weekly quests. Done when: dailies roll at local midnight and weeklies on Monday (tested with a fake clock), claims pay once, a 20-run bot simulation reports the share of coins from quests (target 30-40%), and tests pass.
+```
+
+### Phase 13: Town, first version
+
+```text
+Read docs/BRIEF.md "Update 1" (Town). Build the Town tab on the Suburbia map with 4 buildings (Bakery, Pigeon Coop, Office, Gym) wrapping the existing unlocks and permanent upgrades, ruined / buildable / built states with the code overlay for ruins, building levels, the in-run effect of each built building on its own lot, Patrol offline coins with the 8-hour cap, and Town level on Home. Ask me before any SpriteCook generation. Done when: an existing save migrates (owned content shows as built), each in-run effect works in a run and does not block paths (reachability test), Patrol pays correctly across app restarts, and tests pass.
+```
+
+### Phase 14: Google Play Games
+
+```text
+Read docs/BRIEF.md "Update 1" (Google Play Games and cloud save). Propose the plugin and wait for my OK. Then add sign-in, saved games, achievements and the two leaderboards behind a backend interface with fake and inert backends, plus the Settings rows. Done when: on the phone, sign-in, a save round trip between two installs, one achievement and one leaderboard score all work with test IDs; without the plugin the game behaves as before; tests pass.
+```
+
+## Open decisions for the owner
+
+- [ ] Weekly event: which modifiers (Hot Day: burns +50%, and others) and whether its leaderboard is the Final Swarm one or separate.
+- [ ] Daily gift on Home: free once a day, or only through an ad.
+- [ ] Town buildings 5-12 and their in-run effects, after testing the first 4.
+- [ ] Danger 2-5 numbers and the coin multipliers, after the phase 11 playtest.
+- [ ] Whether Remove Ads also gives +25% coins (the original brief left it optional).
+- [ ] Real Google Play Games IDs (achievements, leaderboards) once the console entries exist.

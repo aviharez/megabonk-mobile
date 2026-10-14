@@ -1,13 +1,16 @@
 class_name MenuScreen
 extends Control
-## Base for full-screen menu pages (unlocks, shop, hero select, map select,
-## Toggler): a drifting pattern backdrop, a header (the title on the gold
-## kit header plate) kept below the camera cutout, an optional fixed panel under it
-## (`top_panel()`: the selected thing's details), a drag-scrolling list in the
-## middle column (DragScroll), and a bottom bar with BACK and either the main
-## action (`primary()`) or the coin plate, kept above the gesture bar. The
-## list grows on taller screens. Subclasses fill the list in _fill().
-## Emits `closed` on BACK.
+## Base for full-screen menu pages (Collection, Shop, Characters, hero select,
+## map select, Switchboard) over the night town backdrop, kit v2 (docs/BRIEF.md
+## "Update 1", Screens). Tab screens (`tab_mode`: Shop, Collection,
+## Characters) have the outlined title on the left and the coin plate on the
+## right, and leave the bottom for the menu's nav; sub-screens have the title
+## on a plate and a bottom bar with Back and either the main action
+## (`primary()`) or the coin plate. Both keep clear of the camera cutout and
+## the gesture bar. An optional fixed panel sits under the header
+## (`top_panel()`: the selected thing's details), then a drag-scrolling list in
+## the middle column (DragScroll) that grows on taller screens. Subclasses fill
+## the list in _fill(). Emits `closed` on Back.
 
 signal closed
 
@@ -33,6 +36,12 @@ var _top_h := 0
 ## Set by screens whose layout depends on list_height().
 var fills_height := false
 var _filled_h := -1.0
+## A tab of the bottom nav (set before the screen enters the tree).
+var tab_mode := false
+var _tab_title: Label
+var _tab_coins: CoinPlate
+## Header height in tab mode (title + coin plate).
+const TAB_HEADER_H := 36
 
 
 func _init(save_node: Node, title: String) -> void:
@@ -40,7 +49,10 @@ func _init(save_node: Node, title: String) -> void:
 	db = GameData.shared()
 	title_text = title
 	set_anchors_and_offsets_preset(PRESET_FULL_RECT)
-	add_child(PatternBg.new())
+	var bg := HomeScene.new()
+	bg.name = "Backdrop"
+	bg.show_hero = false
+	add_child(bg)
 
 	_header = Control.new()
 	_header.name = "Header"
@@ -84,12 +96,13 @@ func _init(save_node: Node, title: String) -> void:
 	_bar.anchor_bottom = 1.0
 	_bar.offset_top = -BAR_H
 	_bar.draw.connect(func() -> void:
-		UiArt.draw(_bar, "plate_dark", Rect2(-3, 0, _bar.size.x + 6, _bar.size.y + 3)))
+		UiArt.draw(_bar, "kit/nav_bar", Rect2(0, 0, _bar.size.x, _bar.size.y + 40))
+		_bar.draw_texture_rect(UiArt.texture("kit/hatch"), Rect2(0, 3, _bar.size.x, _bar.size.y + 40), true))
 	add_child(_bar)
 	_back = PixelButton.new()
 	_back.name = "Back"
 	_back.label = "Back"
-	_back.face = Palette.MIST
+	_back.face = Palette.FRAME
 	_back.pressed.connect(close)
 	_bar.add_child(_back)
 	_coins = CoinPlate.new()
@@ -100,6 +113,8 @@ func _init(save_node: Node, title: String) -> void:
 
 
 func _ready() -> void:
+	if tab_mode:
+		_set_tab_mode()
 	# Screens that fill the list area (hero, maps) rebuild whenever its real
 	# height changes (safe area applied, a banner coming or going).
 	_scroll.resized.connect(func() -> void:
@@ -150,8 +165,8 @@ func list_height() -> float:
 	var vp := get_viewport()
 	var h := size.y if size.y > 0.0 else (vp.get_visible_rect().size.y if vp != null else 320.0)
 	if vp == null:
-		return h - HEADER_H - BAR_H - _top_h - 4
-	return h - SafeArea.top(vp) - SafeArea.bottom(vp) - HEADER_H - _top_h - BAR_H - 4
+		return h - _header_h() - _bottom_h() - _top_h - 4
+	return h - SafeArea.top(vp) - SafeArea.bottom(vp) - _header_h() - _top_h - _bottom_h() - 4
 
 
 ## Rebuilds the list. Subclasses add rows to `list` in _fill().
@@ -161,6 +176,8 @@ func refresh() -> void:
 		return
 	_filled_h = _scroll.size.y
 	_coins.value = int(save.data.coins)
+	if _tab_coins != null:
+		_tab_coins.value = int(save.data.coins)
 	for c in list.get_children():
 		list.remove_child(c)
 		c.queue_free()
@@ -214,24 +231,51 @@ func _set_rect(c: Control, r: Rect2) -> void:
 	c.custom_minimum_size = r.size
 
 
+## Tab look: outlined title left, coin plate right, no bottom bar (the menu's
+## nav sits there).
+func _set_tab_mode() -> void:
+	_title.visible = false
+	_bar.visible = false
+	_tab_title = Fonts.label(title_text, "TITLE")
+	_tab_title.name = "TabTitle"
+	_tab_title.position = Vector2(7, Fonts.cap_y("TITLE", 10, 20) )
+	_header.add_child(_tab_title)
+	_tab_coins = CoinPlate.new()
+	_tab_coins.name = "Coins"
+	_tab_coins.align = 1.0
+	_tab_coins.position = Vector2(80, 8)
+	_tab_coins.size = Vector2(94, CoinPlate.H)
+	_tab_coins.value = int(save.data.coins)
+	_header.add_child(_tab_coins)
+
+
+func _header_h() -> int:
+	return TAB_HEADER_H if tab_mode else HEADER_H
+
+
+func _bottom_h() -> int:
+	return BottomNav.H if tab_mode else BAR_H
+
+
 ## Header under the cutout, bar above the gesture area.
 func _apply_safe_area() -> void:
 	var top := SafeArea.top(get_viewport())
 	var bottom := SafeArea.bottom(get_viewport())
+	var hh := _header_h()
 	_header.offset_top = top
-	_header.offset_bottom = top + HEADER_H
+	_header.offset_bottom = top + hh
 	if _top_panel != null:
-		_top_panel.offset_top = top + HEADER_H
-		_top_panel.offset_bottom = top + HEADER_H + _top_h
-	_scroll.offset_top = top + HEADER_H + _top_h + 2
-	_scroll.offset_bottom = -(BAR_H + bottom + 2)
+		_top_panel.offset_top = top + hh
+		_top_panel.offset_bottom = top + hh + _top_h
+	_scroll.offset_top = top + hh + _top_h + 2
+	_scroll.offset_bottom = -(_bottom_h() + bottom + 2)
 	_scrollbar.offset_top = _scroll.offset_top
 	_scrollbar.offset_bottom = _scroll.offset_bottom
 	_bar.offset_top = -(BAR_H + bottom)
 
 
 ## A row box for the list.
-func row(h: int, fill := Palette.DEEP_BLUE) -> PixelPanel:
+func row(h: int, fill := Palette.RAISED) -> PixelPanel:
 	var p := PixelPanel.new()
 	p.fill = fill
 	p.part = "row"
@@ -279,22 +323,17 @@ func button(parent: Control, text: String, rect: Rect2, face: int, on_press: Cal
 ## A price button: the coin and the number (gray and off when unaffordable).
 func price_button(parent: Control, price: int, rect: Rect2, on_press: Callable, prefix := "") -> PixelButton:
 	var can := int(save.data.coins) >= price
-	var b := button(parent, prefix + str(price), rect, Palette.LIME if can else Palette.GRAY, on_press, can)
+	var b := button(parent, prefix + str(price), rect, Palette.FRAME, on_press, can)
 	b.art = UiArt.texture("hud_coin")
 	b.art_plain = true
 	return b
 
 
-## A section heading in the list: bold text with a rule to its right.
-func heading(text: String, color := Palette.BUTTER) -> void:
+## A section heading in the list: NAME text (white, outlined).
+func heading(text: String, color := Palette.PAPER) -> void:
 	var h := Control.new()
-	h.custom_minimum_size = Vector2(W, 12)
+	h.custom_minimum_size = Vector2(W, 13)
 	h.mouse_filter = MOUSE_FILTER_IGNORE
 	h.draw.connect(func() -> void:
-		var tw := Fonts.BOLD.get_string_size(text, HORIZONTAL_ALIGNMENT_LEFT, -1, Fonts.SIZE).x
-		h.draw_string(Fonts.BOLD, Vector2(0, 10), text, HORIZONTAL_ALIGNMENT_LEFT, -1, Fonts.SIZE, Palette.color(Palette.INK))
-		h.draw_string(Fonts.BOLD, Vector2(0, 9), text, HORIZONTAL_ALIGNMENT_LEFT, -1, Fonts.SIZE, Palette.color(color))
-		if tw + 6 < W:
-			h.draw_rect(Rect2(tw + 4, 5, W - tw - 4, 1), Palette.color(color))
-			h.draw_rect(Rect2(tw + 4, 6, W - tw - 4, 1), Palette.color(Palette.INK)))
+		Fonts.draw(h, text, Vector2(1, Fonts.cap_y("NAME", 0, 12)), "NAME", color))
 	list.add_child(h)

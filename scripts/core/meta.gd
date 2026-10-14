@@ -350,11 +350,17 @@ static func buy(db: GameData, data: Dictionary, id: String) -> bool:
 # --- Committing a run ---------------------------------------------------------
 
 ## Adds a finished run to the save: coins, runs played, the tracker totals,
-## best run values, the map's boss cleared (`map`), and newly completed
+## best run values, the map's boss cleared (`map`) and its best time
+## (`seconds` survived), and newly completed
 ## challenges (their rewards become "available"). `run_stats` is Run.result.stats. Returns the ids of the
 ## challenges completed by this run. Doesn't write the file.
-static func commit_run(db: GameData, data: Dictionary, run_stats: Dictionary, character: String, coins: int, map := "") -> Array:
+static func commit_run(db: GameData, data: Dictionary, run_stats: Dictionary, character: String, coins: int, map := "",
+		seconds := -1.0) -> Array:
 	data.runs_played = int(data.runs_played) + 1
+	if map != "" and seconds >= 0.0:
+		if not data.has("best_times"):
+			data.best_times = {}
+		data.best_times[map] = maxf(float(data.best_times.get(map, 0.0)), seconds)
 	if map != "" and float(run_stats.get("boss_defeated", 0.0)) > 0.0:
 		data.maps_cleared[map] = true
 	data.coins = int(data.coins) + coins

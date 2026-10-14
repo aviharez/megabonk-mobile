@@ -2,7 +2,7 @@
 	"id": "loot",
 	"rarities": ["common", "rare", "epic", "legendary"],
 	"rarity_names": {"common": "Common", "rare": "Rare", "epic": "Epic", "legendary": "Legendary"},
-	"rarity_colors": {"common": "GRAY", "rare": "BLUE", "epic": "PURPLE", "legendary": "GOLD"},
+	"rarity_colors": {"common": "R_COMMON", "rare": "BLUE", "epic": "PURPLE", "legendary": "GOLD"},
 	"stackable": ["common", "rare", "epic"],
 	"legendary_per_run": 1,
 	"luck_per_tier": 1.0,

@@ -6,7 +6,8 @@
 RAW_DIR holds the downloaded SpriteCook images (asset ids in docs/spritecook-assets.json):
   backdrop_px.png   "home_backdrop"   152x272 night street (edit of the first backdrop: no sign, no
                                       name plate, no UI / hero)
-  logo_deco.png     "logo_deco"       68x68 2x2 sheet: leaf sprigs x3, radish critter
+  logo_deco.png     "logo_deco"       68x68 2x2 sheet: leaf sprigs x3, radish critter (no longer
+                                      cut: the Phase 9 logo is gone)
   critters.png      "home_critters"   100x100 2x2 sheet: blue, green, purple, red critters
   kit3_sheet1.png   "ui_kit3_sheet1"  kit 3 component sheet (nav icons cut again at a 2x pixel)
 
@@ -59,7 +60,7 @@ SIDES = {
 # Plinth top centre in the 152x272 source (measured on the image).
 PLINTH = (68, 147)
 
-ICONS = {"sack": 22, "padlock_big": 22, "mystery": 28}  # source px per art px
+ICONS = {"sack": 22, "padlock_big": 22}  # source px per art px
 CRITTERS = ["critter_blue", "critter_green", "critter_purple", "critter_red"]  # quadrants, reading order
 DECO = ["leaf_a", "leaf_b", "radish", "leaf_c"]
 # Hand-pixelled: the play triangle on the PLAY button (the kit has none). Palette index per
@@ -163,12 +164,9 @@ def main():
     out["backdrop"] = bd
     for name, a in zip(CRITTERS, quadrants(raw("critters.png"), pal, allowed)):
         out[name] = a
-    for name, a in zip(DECO, quadrants(raw("logo_deco.png"), pal, allowed)):
-        out[name] = a
     kit3 = raw("kit3_sheet1.png")
     for name, scale in ICONS.items():
         out["icon_" + name] = cut(kit3, pal, allowed, PARTS3[name], scale, CUTOFF3)
-    out["play_tri"] = grid(pal, PLAY_TRI)
     for name, a in out.items():
         Image.fromarray(a).save(os.path.join(args.out, name + ".png"))
         print("%-16s %3dx%-3d" % (name, a.shape[1], a.shape[0]))

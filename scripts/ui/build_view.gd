@@ -1,17 +1,18 @@
 class_name BuildView
 extends Control
-## The run's build at a glance (pause and game over): a row of weapon slots
-## and a row of tome slots (icon + level number, empty slots dark), then the
-## items as small icons with their stack counts. Slots are the kit's `icon_frame`s
-## in their kind's (rarity's) colour. Fixed width, height from
-## `needed_height()`. Tapping a filled slot selects it (gold frame) and emits
+## The run's build at a glance (pause), kit v2 (docs/ui/paused.png): a
+## "Build" heading, a row of weapon slots and a row of manual slots (the icon
+## 2x, the level on a lamp badge; empty slots plain), then, when
+## `show_items`, the items with their stack counts. Fixed width, height from
+## `needed_height()`. Tapping a filled slot selects it (lamp ring) and emits
 ## `picked(kind, id)` so the screen can say what it is.
 
 signal picked(kind: String, id: String)
 
-const SLOT := 20
-const ICON_PX := 14
-const GAP := 3
+const SLOT := 30
+const ICON_PX := 12
+const GAP := 6
+const HEAD_H := 13
 
 var db: GameData
 var weapons := {}  # id -> level
@@ -24,6 +25,8 @@ var selected := ""
 ## Small text at the right end of the BUILD heading ("" none).
 var hint := ""
 var _hit: Array = []  # [Rect2, kind, id] of the slots drawn last
+## Items under the weapons and manuals (the pause shows them in the HUD row).
+var show_items := true
 
 
 func _init() -> void:
@@ -61,8 +64,8 @@ func setup(data: GameData, w: Dictionary, t: Dictionary, it: Dictionary, wslots:
 
 func needed_height() -> float:
 	var per_row := maxi(1, int((custom_minimum_size.x if custom_minimum_size.x > 0 else 160.0) / (SLOT + GAP)))
-	var item_rows := ceili(float(items.size()) / float(per_row))
-	return 12 + (SLOT + GAP) * 2 + (12 + item_rows * (SLOT + GAP) if item_rows > 0 else 0)
+	var item_rows := ceili(float(items.size()) / float(per_row)) if show_items else 0
+	return HEAD_H + (SLOT + GAP) * 2 + (HEAD_H + item_rows * (SLOT + GAP) if item_rows > 0 else 0)
 
 
 func _draw() -> void:
@@ -71,71 +74,61 @@ func _draw() -> void:
 	_hit.clear()
 	var y := 0.0
 	_heading("Build", y, hint)
-	y += 12
-	_slots("weapons", weapons, weapon_slots, y, Palette.RED)
-	_slots("tomes", tomes, tome_slots, y + SLOT + GAP, Palette.BLUE)
+	y += HEAD_H
+	var step := _step()
+	_slots("weapons", weapons, weapon_slots, y)
+	_slots("tomes", tomes, tome_slots, y + SLOT + GAP)
 	y += (SLOT + GAP) * 2
-	if items.is_empty():
+	if items.is_empty() or not show_items:
 		return
 	_heading("Items", y)
-	y += 12
+	y += HEAD_H
 	var x := 0.0
 	for id: String in items:
 		if x + SLOT > size.x:
 			x = 0.0
 			y += SLOT + GAP
-		var def := db.get_entry("items", id)
-		var rc := Palette.index_of(db.get_entry("rules", "loot").get("rarity_colors", {}).get(def.get("rarity", ""), "GRAY"))
-		_mark("items/" + id, Vector2(x, y))
-		_frame(Vector2(x, y), rc if rc >= 0 else Palette.GRAY)
-		_hit.append([Rect2(x, y, SLOT, SLOT), "items", id])
-		var tex := Icons.small(db, "items", id, ICON_PX)
-		if tex != null:
-			draw_texture(tex, (Vector2(x, y) + Vector2(SLOT, SLOT) / 2.0 + Vector2(0, -1) - tex.get_size() / 2.0).floor())
+		var at := Vector2(x, y)
+		var ring := "sel" if "items/" + id == selected else UiArt.ring_of(String(db.get_entry("items", id).get("rarity", "")))
+		UiArt.slot(self, Rect2(at, Vector2(SLOT, SLOT)), ring)
+		_hit.append([Rect2(at, Vector2(SLOT, SLOT)), "items", id])
+		_icon(Icons.small(db, "items", id, ICON_PX), at)
 		if int(items[id]) > 1:
-			_badge(Vector2(x + SLOT, y + SLOT), "%d" % int(items[id]))
-		x += SLOT + GAP
+			UiArt.badge(self, str(int(items[id])), at + Vector2(SLOT - 7, SLOT - 7), "count")
+		x += step
 
 
-func _slots(cat: String, owned: Dictionary, n: int, y: float, color: int) -> void:
+## Slot spacing: as many as fit across the width, evenly.
+func _step() -> float:
+	var n := maxi(weapon_slots, tome_slots)
+	return floorf((size.x - SLOT) / maxf(1.0, n - 1)) if n > 1 else SLOT + GAP
+
+
+func _slots(cat: String, owned: Dictionary, n: int, y: float) -> void:
 	var ids := owned.keys()
+	var step := _step()
 	for i in n:
-		var at := Vector2(i * (SLOT + GAP), y)
+		var at := Vector2(i * step, y)
+		var r := Rect2(at, Vector2(SLOT, SLOT))
 		if i < ids.size():
-			_mark(cat + "/" + ids[i], at)
-			_frame(at, color)
-			_hit.append([Rect2(at, Vector2(SLOT, SLOT)), cat, ids[i]])
-			# Icons a little under the frame's face (16 px art shrunk to ICON_PX).
-			var tex := Icons.small(db, cat, ids[i], ICON_PX)
-			if tex != null:
-				draw_texture(tex, (at + Vector2(SLOT, SLOT) / 2.0 + Vector2(0, -1) - tex.get_size() / 2.0).floor())
-			_badge(at + Vector2(SLOT, SLOT), "%d" % int(owned[ids[i]]))
+			UiArt.slot(self, r, "sel" if cat + "/" + ids[i] == selected else "")
+			_hit.append([r, cat, ids[i]])
+			_icon(Icons.small(db, cat, ids[i], ICON_PX), at)
+			UiArt.badge(self, str(int(owned[ids[i]])), at + Vector2(SLOT - 6, SLOT - 6))
 		else:
-			_frame(at, Palette.NIGHT)
+			UiArt.slot(self, r)
 
 
-## A gold frame behind the selected slot, 2 px wider each side.
-func _mark(key: String, at: Vector2) -> void:
-	if key != selected:
+## A 12 px icon at 2x, centred in the slot at `at`.
+func _icon(tex: Texture2D, at: Vector2) -> void:
+	if tex == null:
 		return
-	UiArt.draw(self, "icon_frame", Rect2(at - Vector2(2, 2), Vector2(SLOT + 4, SLOT + 4)), Palette.GOLD)
-
-
-func _frame(at: Vector2, color: int) -> void:
-	UiArt.draw(self, "icon_frame", Rect2(at, Vector2(SLOT, SLOT)), color)
-
-
-## A slot's count on its bottom-right corner (BAR_NUM, outlined like the HUD's).
-func _badge(corner: Vector2, text: String) -> void:
-	var tw := ceilf(Fonts.width(text, "BAR_NUM"))
-	Fonts.draw(self, text, Vector2(corner.x - tw - 1, corner.y - Fonts.height("BAR_NUM") + 1), "BAR_NUM", Palette.BUTTER)
+	var s := tex.get_size() * 2.0
+	draw_texture_rect(tex, Rect2((at + Vector2(SLOT, SLOT) / 2.0 - s / 2.0).floor(), s), false)
 
 
 func _heading(text: String, y: float, right := "") -> void:
-	Fonts.draw(self, text, Vector2(0, y), "NAME", Palette.MIST, -1, HORIZONTAL_ALIGNMENT_LEFT, 8)
-	var tw := Fonts.width(text, "NAME", 8)
-	var rw := 0.0
+	Fonts.draw(self, text, Vector2(1, y), "NAME")
 	if right != "":
-		rw = Fonts.width(right, "BODY") + 4
-		Fonts.draw(self, right, Vector2(size.x - rw + 4, y + 1), "BODY", Palette.GRAY)
-	draw_rect(Rect2(tw + 4, y + 4, size.x - tw - 4 - rw, 1), Palette.color(Palette.SHADE))
+		var rw := Fonts.width(right, "SMALL")
+		Fonts.draw(self, right, Vector2(size.x - rw, y + 2), "SMALL")

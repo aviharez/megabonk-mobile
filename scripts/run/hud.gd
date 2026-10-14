@@ -1,23 +1,24 @@
 class_name Hud
 extends Control
-## In-run HUD, Phase 9 kit 3b look (docs/phase9/8_kit3_levelup_concept.png):
-## the level in the gold ring, the XP bar with "XP 64/120", the timer plate,
-## the pause button (Run's, PAUSE_Y); the heart and HP bar with "42/60" in it
-## (a PAPER "ghost" drains after a hit), coins and kills. Then the run-flow
-## parts: banners (Swarm incoming!, Final Swarm!), the boss HP bar, the Final
-## Swarm coin multiplier, a running challenge shrine, the cage key, the build
-## strip, the pickup card and toasts on the info bar, and arrows at the screen
-## edge pointing at things out of view. Plates are kit parts, text is Titan
-## One / Inter (Fonts). Everything sits `safe_top` px below the camera cutout
-## and `safe_bottom` px above the gesture bar. Right-hand parts keep their
-## distance from the right edge on wider screens.
+## In-run HUD, kit v2 (docs/ui/hud.png): the level on a lamp badge, the
+## segmented XP bar, the heart and HP bar with "hp/max" in it (a PAPER ghost
+## drains after a hit), the timer plate, the pause button (Run's, PAUSE_Y);
+## gold and KO counters; weapon and manual slots with lamp level badges; the
+## item pickup card near the top (rarity line, name, one line, stack badge);
+## the owned items as a centred row of rarity slots along the bottom (six a
+## row, growing upward). Then the run-flow parts: banners (Swarm incoming!,
+## Final Swarm!), the boss HP bar, the Final Swarm coin multiplier, a running
+## challenge shrine, the cage key, toasts in the pickup card's place, and
+## arrows at the screen edge pointing at things out of view. Everything sits
+## `safe_top` px below the camera cutout and `safe_bottom` px above the
+## gesture bar; right-hand parts keep their distance from the right edge on
+## wider screens.
 ##
-##   y 3-18   level ring | XP bar "XP n/m"          | timer plate | pause
-##   y 19-29  heart + HP bar "hp/max"               | coin + gold | skull + kills
-##   y 33-52  build strip: weapon frames | tome frames | key
-##   y 58     info line (challenge shrine, Final Swarm coins)
-##   y 62+    pickup card (icon in its rarity frame, name, xN)
-##   y 84+    toast
+##   y 2-29   level badge | XP bar / heart + HP bar | timer plate | pause
+##   y 32-41  gold, KO (right)
+##   y 37-59  build slots: weapons, manuals (+ key)
+##   y 66     info line (challenge shrine, Final Swarm coins)
+##   y 72+    pickup card / toast
 
 var hp := 1.0
 var hp_max := 1.0
@@ -28,35 +29,37 @@ var gold := 0
 
 const TOAST_TIME := 1.6
 ## Top of the pause button Run puts on the right (row 1).
-const PAUSE_Y := 3
-## Height of the two HUD rows at the top (concept: XP row + HP row), under
-## which run panels are placed.
+const PAUSE_Y := 2
+## Height of the HUD's top rows, under which run panels are placed.
 const ROWS_H := 32
-## Row 1 and 2 boxes at the concept's spots (x from the left edge; the
-## right-hand ones are offset by the screen's extra width).
-const XP_BAR := Rect2(17, 5, 87, 10)
-const RING_AT := Vector2(3, 3)
-const TIMER_AT := Vector2(109, 4)
-const HP_BAR := Rect2(15, 19, 42, 10)
-const COIN_AT := Vector2(110, 19)
-const SKULL_AT := Vector2(141, 19)
+## Row boxes at the mockup's spots (x from the left edge; the right-hand ones
+## are offset by the screen's extra width).
+const BADGE := Rect2(4, 2, 26, 25)
+const XP_BAR := Rect2(32, 4, 67, 10)
+const TIMER_AT := Vector2(101, 2)
+const HP_BAR := Rect2(43, 16, 56, 10)
+const COIN_AT := Vector2(118, 35)
+const SKULL_AT := Vector2(148, 35)
 const BANNER_TIME := 3.0
 const TOAST_W := 150
 const TOAST_SIZE := 8
-## Build strip: one 16 px kit frame (lv_frame, the kind's colour) per weapon,
-## then per tome, round the 12 px icon (Icons.small), level pips under each;
-## a frame flashes white when it's new or levels up.
-const STRIP_Y := 33
-const SLOT := 16
-## Icons in the 16 px plain lv_frame plates (owner: plain, not icon_frame, in the HUD).
+## Build slots: one kit slot per weapon, then per manual, the 16 px icon at
+## 1x filling its inside, the level on a lamp badge; a slot flashes when it's
+## new or levels up.
+const STRIP_Y := 37
+const SLOT := 22
 const ICON_PX := 12
 const FLASH_TIME := 0.9
 const CARD_TIME := 3.2
-## Item row at the bottom, centred: 16 px kit frames (lv_frame in the item's
-## rarity colour) round the 12 px icons (Icons.small: a real
-## smaller image, never a scaled one), 1 px apart.
-const ITEM_FRAME := 16
-const ITEM_SLOT := 17
+## The pickup card under the build slots.
+const CARD_Y := 72
+const CARD_W := 142
+const CARD_H := 41
+## Item row at the bottom, centred: kit slots in the item's rarity ring round
+## the 16 px icons at 1x, six a row.
+const ITEM_FRAME := 22
+const ITEM_SLOT := 24
+const ITEMS_PER_ROW := 6
 
 ## Boss bar: 0..1, or -1 when there's no boss.
 var boss_frac := -1.0
@@ -90,6 +93,8 @@ var _items := {}  # item id -> stacks, in the order they were found
 ## The item row draws on its own layer, redrawn only when it changes (the
 ## rest of the HUD redraws every frame).
 var _items_view: Control
+var _top_view: Control
+var _top_last := []
 var _items_boss := false
 var _build_t := {}
 var _slots_w := 4
@@ -135,6 +140,13 @@ func _ready() -> void:
 	_banner.self_modulate = Color(1, 1, 1, 0)
 	_banner.hide()
 	add_child(_banner)
+	# The top rows and build slots redraw only when what they show changes
+	# (the rest of the HUD, arrows and cards, redraws every frame).
+	_top_view = Control.new()
+	_top_view.set_anchors_and_offsets_preset(PRESET_FULL_RECT)
+	_top_view.mouse_filter = MOUSE_FILTER_IGNORE
+	_top_view.draw.connect(_draw_top)
+	add_child(_top_view)
 	_items_view = Control.new()
 	_items_view.set_anchors_and_offsets_preset(PRESET_FULL_RECT)
 	_items_view.mouse_filter = MOUSE_FILTER_IGNORE
@@ -194,8 +206,24 @@ func pickup_card(art: Texture2D, title: String, tag: String, desc: String, color
 	_toast.text = title
 	# Tag and desc stay on the card for tests and the pause details; the
 	# card itself shows the icon and name only (Phase 9: less text).
-	_card = {"art": art, "title": title, "tag": tag, "desc": LevelCard._wrap(desc, 112.0), "color": color, "left": CARD_TIME}
+	_card = {"art": art, "title": title, "tag": tag, "desc": LevelCard._wrap(desc, 96.0, "BODY"), "color": color,
+		"left": CARD_TIME, "tag_line": RegEx.create_from_string("\\s*[xX×]\\d+$").sub(tag, ""),
+		"ring": _ring_for_color(color)}
 	queue_redraw()
+
+
+## The slot ring for a pickup card's colour (its rarity colour).
+static func _ring_for_color(c: int) -> String:
+	match c:
+		Palette.BLUE:
+			return "rare"
+		Palette.PURPLE:
+			return "epic"
+		Palette.GOLD:
+			return "legend"
+		Palette.R_COMMON, Palette.GRAY, Palette.MIST, Palette.PAPER:
+			return "common"
+	return ""
 
 
 ## Shows `text` under the top bar for a moment (item pickups, boosts, hints),
@@ -239,6 +267,10 @@ func _process(delta: float) -> void:
 		_card.left -= delta
 		if _card.left <= 0.0:
 			_card = {}
+	var key := _top_key()
+	if key != _top_last:
+		_top_last = key
+		_top_view.queue_redraw()
 	queue_redraw()
 
 
@@ -278,131 +310,153 @@ func xp_rect() -> Rect2:
 	return Rect2(XP_BAR.position + Vector2(0, safe_top), Vector2(XP_BAR.size.x + _rx(), XP_BAR.size.y))
 
 
-## The timer plate: clock + text, as wide as the text ("+10:00" in the Final Swarm).
+## The timer plate: clock + text, 47 px wide (to the pause button); a long
+## text ("+10:00" in the Final Swarm) steps the size down to fit.
 func timer_rect() -> Rect2:
-	var tw := ceilf(Fonts.width(_timer_text, "NUM", 8))
-	return Rect2(TIMER_AT + Vector2(_rx(), safe_top), Vector2(maxf(38.0, tw + 19.0), 13))
+	return Rect2(TIMER_AT + Vector2(_rx(), safe_top), Vector2(47, 25))
+
+
+func _timer_size() -> int:
+	var fs := 12
+	while fs > 8 and Fonts.width(_timer_text, "NUM", fs) + 22.0 > 47.0:
+		fs -= 1
+	return fs
+
+
+func _draw_top() -> void:
+	var ci := _top_view
+	var w := floorf(size.x)
+	var t := float(safe_top)
+	var rx := _rx()
+	# Level badge: the lamp block with the level in it.
+	var br := Rect2(BADGE.position + Vector2(0, t), BADGE.size)
+	UiArt.button(ci, br, "primary")
+	var lv := str(_level)
+	var lfs := 14 if _level < 100 else 11
+	Fonts.draw(ci, lv, Vector2(br.position.x, Fonts.cap_y("TITLE", br.position.y + 1, br.size.y - 4, lfs)), "TITLE", -1,
+			br.size.x, HORIZONTAL_ALIGNMENT_CENTER, lfs)
+	# XP bar: segmented lamp fill (blinks on a level-up).
+	var xr := xp_rect()
+	var xf := clampf(xp / maxf(xp_need, 1.0), 0.0, 1.0)
+	var blink := _xp_flash > 0.0 and int(_xp_flash * 20.0) % 2 == 0
+	UiArt.bar2(ci, xr, 0.0 if blink else xf, "lamp", 8)
+	# Timer plate.
+	var tr := timer_rect()
+	UiArt.slot(ci, tr)
+	UiArt.sprite(ci, "hud_clock", tr.position + Vector2(6, floorf((tr.size.y - 10) / 2.0)))
+	var tfs := _timer_size()
+	Fonts.draw(ci, _timer_text, Vector2(tr.position.x + 17, Fonts.cap_y("NUM", tr.position.y, tr.size.y, tfs)), "NUM",
+			_timer_color, tr.size.x - 20, HORIZONTAL_ALIGNMENT_CENTER, tfs)
+
+	# Heart (beats when low), HP bar (ghost, shield) with "hp/max".
+	var hf := clampf(hp / maxf(hp_max, 1.0), 0.0, 1.0)
+	var low := hf < 0.3
+	var beat := 1.0 if low and fmod(_time, 0.6) < 0.12 else 0.0
+	UiArt.sprite(ci, "hud_heart", Vector2(33, t + HP_BAR.position.y + 1 - beat))
+	var bar := Rect2(HP_BAR.position + Vector2(0, t), Vector2(HP_BAR.size.x + rx, HP_BAR.size.y))
+	UiArt.bar2(ci, bar, hf, "hp")
+	var inner := bar.grow(-1)
+	if _ghost > hf:
+		var gx := inner.position.x + floorf(inner.size.x * hf) + 1
+		ci.draw_rect(Rect2(gx, inner.position.y, maxf(0.0, floorf(inner.size.x * _ghost) - floorf(inner.size.x * hf) - 1), inner.size.y), Palette.color(Palette.PAPER))
+	if shield > 0.0:
+		ci.draw_rect(Rect2(inner.position, Vector2(floorf(inner.size.x * clampf(shield / hp_max, 0.0, 1.0)), 2)), Palette.color(Palette.SKY))
+	Fonts.draw(ci, "%d/%d" % [ceili(hp), roundi(hp_max)], Vector2(bar.position.x, Fonts.cap_y("BAR_NUM", bar.position.y, bar.size.y)), "BAR_NUM",
+			Palette.SALMON if low else -1, bar.size.x, HORIZONTAL_ALIGNMENT_CENTER)
+	# Gold and KO, right-aligned under the timer.
+	var bump := 1.0 if _gold_bump > 0.0 else 0.0
+	var kills := str(_kills)
+	var kw := ceilf(Fonts.width(kills, "NUM"))
+	var kx := w - 5 - kw
+	UiArt.sprite(ci, "hud_skull", Vector2(kx - 13, t + SKULL_AT.y))
+	Fonts.draw(ci, kills, Vector2(kx, Fonts.cap_y("NUM", t + SKULL_AT.y, 10)), "NUM")
+	var gs := str(gold)
+	var gx2 := kx - 22 - ceilf(Fonts.width(gs, "NUM"))
+	UiArt.sprite(ci, "hud_coin", Vector2(gx2 - 13, t + COIN_AT.y - bump))
+	Fonts.draw(ci, gs, Vector2(gx2, Fonts.cap_y("NUM", t + COIN_AT.y - bump, 10)), "NUM")
+
+	var strip_end := _draw_strip(ci, t + STRIP_Y)
+	if has_key:
+		UiArt.sprite(ci, "key", Vector2(strip_end + 3, t + STRIP_Y + 4))
+
+
+## What the top rows show now: they redraw only when this changes.
+func _top_key() -> Array:
+	var hf := clampf(hp / maxf(hp_max, 1.0), 0.0, 1.0)
+	var low := hf < 0.3
+	var flashes := []
+	for k: String in _flash:
+		if not k.begins_with("items/"):
+			flashes.append(k + str(int(_flash[k] * 12.0) % 2))
+	return [_level, _timer_text, _timer_color, ceili(hp), roundi(hp_max), roundi(_ghost * 200.0), roundi(shield),
+		roundi(xp / maxf(xp_need, 1.0) * 200.0), _xp_flash > 0.0 and int(_xp_flash * 20.0) % 2 == 0, gold, _kills,
+		_gold_bump > 0.0, low and fmod(_time, 0.6) < 0.12, _build_w.hash(), _build_t.hash(), flashes, has_key,
+		safe_top, size, _slots_w, _slots_t]
 
 
 func _draw() -> void:
 	var w := floorf(size.x)
 	var t := float(safe_top)
-	var rx := _rx()
-	# Row 1: XP bar (flashes on a level-up) with "XP n/m", the level ring.
-	var xr := xp_rect()
-	UiArt.draw(self, "hud_track", xr)
-	var xf := clampf(xp / maxf(xp_need, 1.0), 0.0, 1.0)
-	UiArt.fill(self, Rect2(xr.position + Vector2(2, 2), xr.size - Vector2(4, 4)), xf, Palette.WHITE if _xp_flash > 0.0 and int(_xp_flash * 20.0) % 2 == 0 else Palette.GOLD)
-	var nums := "%d/%d" % [floori(xp), ceili(xp_need)]
-	var nw := Fonts.width(nums, "NUM", 6)
-	Fonts.draw(self, nums, Vector2(xr.end.x - 4 - nw, xr.position.y + 1), "NUM", Palette.WHITE, -1, HORIZONTAL_ALIGNMENT_LEFT, 6)
-	Fonts.draw(self, "XP", Vector2(xr.end.x - 7 - nw - Fonts.width("XP", "NUM", 6), xr.position.y + 1), "NUM", Palette.SKY, -1, HORIZONTAL_ALIGNMENT_LEFT, 6)
-	UiArt.sprite(self, "hud_ring", RING_AT + Vector2(0, t))
-	Fonts.draw(self, str(_level), RING_AT + Vector2(0, t + 2), "NUM", Palette.BUTTER, 15, HORIZONTAL_ALIGNMENT_CENTER, 9 if _level < 10 else 7)
-	# Timer plate.
-	var tr := timer_rect()
-	UiArt.draw(self, "hud_timer", tr)
-	UiArt.sprite(self, "hud_clock", tr.position + Vector2(2, 1))
-	Fonts.draw(self, _timer_text, tr.position + Vector2(14, 1), "NUM", _timer_color, tr.size.x - 16, HORIZONTAL_ALIGNMENT_CENTER, 8)
-
-	# Row 2: heart (beats when low), HP bar (ghost, shield) with "hp/max".
-	var hf := clampf(hp / maxf(hp_max, 1.0), 0.0, 1.0)
-	var low := hf < 0.3
-	var beat := 1.0 if low and fmod(_time, 0.6) < 0.12 else 0.0
-	UiArt.sprite(self, "hud_heart", Vector2(5, t + 19 - beat))
-	var bar := Rect2(HP_BAR.position + Vector2(0, t), HP_BAR.size)
-	UiArt.draw(self, "hud_track", bar)
-	var inner := Rect2(bar.position + Vector2(2, 2), bar.size - Vector2(4, 4))
-	if _ghost > hf:
-		UiArt.fill(self, inner, _ghost, Palette.PAPER)
-	UiArt.fill(self, inner, hf, Palette.RED)
-	if shield > 0.0:
-		UiArt.fill(self, Rect2(inner.position, Vector2(inner.size.x, 3)), clampf(shield / hp_max, 0.0, 1.0), Palette.SKY)
-	Fonts.draw(self, "%d/%d" % [ceili(hp), roundi(hp_max)], bar.position + Vector2(0, 1), "BAR_NUM",
-			Palette.SALMON if low else -1, bar.size.x, HORIZONTAL_ALIGNMENT_CENTER)
-	# Coins and kills.
-	var bump := 1.0 if _gold_bump > 0.0 else 0.0
-	UiArt.sprite(self, "hud_coin", COIN_AT + Vector2(rx, t - bump))
-	Fonts.draw(self, str(gold), COIN_AT + Vector2(rx + 12, t - bump), "NUM_WORLD", Palette.WHITE, -1, HORIZONTAL_ALIGNMENT_LEFT, 8)
-	UiArt.sprite(self, "hud_skull", SKULL_AT + Vector2(rx, t))
-	Fonts.draw(self, str(_kills), SKULL_AT + Vector2(rx + 12, t), "NUM_WORLD", Palette.WHITE, -1, HORIZONTAL_ALIGNMENT_LEFT, 8)
-
 	if _info != "":
-		Fonts.draw(self, _info, Vector2(0, t + 56), "NUM_WORLD", _info_color, w, HORIZONTAL_ALIGNMENT_CENTER, 8)
+		Fonts.draw(self, _info, Vector2(0, t + 64), "NUM_WORLD", _info_color, w, HORIZONTAL_ALIGNMENT_CENTER, 8)
 	_draw_arrows()
-	var strip_end := _draw_strip(t + STRIP_Y)
-	if has_key:
-		UiArt.sprite(self, "key", Vector2(strip_end + 3, t + STRIP_Y + 3))
-	_draw_card(t + 62)
+	_draw_card(t + CARD_Y)
 
-	# Toast on the info bar (blinks out at the end).
+	# Toast in the pickup card's place (under it while a card shows), blinking out.
 	if _toast_left > 0.0 and not (_toast_left < 0.25 and int(_toast_left * 16.0) % 2 == 0):
-		var lh := 9.0
+		var lh := 10.0
 		var tw := 0.0
 		for l in _toast_lines:
 			tw = maxf(tw, Fonts.width(l, "NAME", TOAST_SIZE))
-		var ty := (t + 66 + card_height()) if not _card.is_empty() else t + 84
-		var pr := Rect2(floorf((w - tw) / 2.0) - 6, ty, ceilf(tw) + 12, lh * _toast_lines.size() + 8)
-		UiArt.draw(self, "info_bar", pr)
+		var ty := (t + CARD_Y + card_height() + 6) if not _card.is_empty() else t + CARD_Y
+		var pr := Rect2(floorf((w - tw) / 2.0) - 9, ty, ceilf(tw) + 18, lh * _toast_lines.size() + 11)
+		UiArt.window(self, pr, UiArt.DROP_CARD, false)
 		for i in _toast_lines.size():
-			Fonts.draw(self, _toast_lines[i], Vector2(pr.position.x, pr.position.y + 3 + lh * i), "NAME", _toast_color,
+			Fonts.draw(self, _toast_lines[i], Vector2(pr.position.x, pr.position.y + 5 + lh * i), "NAME", _toast_color,
 					pr.size.x, HORIZONTAL_ALIGNMENT_CENTER, TOAST_SIZE)
 
-	# Banner: BANNER text over the world, a third of the way down.
+	# Banner: BANNER text over the world, a quarter of the way down.
 	if _banner.visible and _banner.text != "":
 		Fonts.draw(self, _banner.text, Vector2(0, t + floorf(size.y * 0.24)), "BANNER", _banner_color, w, HORIZONTAL_ALIGNMENT_CENTER)
 
-	# Boss bar along the bottom, its name on a dark plate above it.
+	# Boss bar along the bottom, its name on a plate above it.
 	if boss_frac >= 0.0:
 		var y := floorf(size.y) - 16.0 - safe_bottom
-		var br := Rect2(8, y, w - 16, 10)
-		UiArt.draw(self, "hud_track", br)
-		UiArt.fill(self, Rect2(br.position + Vector2(2, 2), br.size - Vector2(4, 4)), boss_frac, Palette.RED)
-		var bw := ceilf(Fonts.width(boss_name, "NAME", 8)) + 12.0
-		var plate := Rect2(floorf((w - bw) / 2.0), y - 13, bw, 13)
-		UiArt.draw(self, "plate_dark", plate)
-		Fonts.draw(self, boss_name, plate.position + Vector2(0, 2), "NAME", Palette.PAPER, plate.size.x, HORIZONTAL_ALIGNMENT_CENTER, 8)
+		var bb := Rect2(8, y, w - 16, 10)
+		UiArt.bar2(self, bb, boss_frac, "hp")
+		var bw := ceilf(Fonts.width(boss_name, "NAME", 8)) + 16.0
+		var plate := Rect2(floorf((w - bw) / 2.0), y - 15, bw, 14)
+		UiArt.draw(self, "kit/plate_frame", plate)
+		Fonts.draw(self, boss_name, Vector2(plate.position.x, Fonts.cap_y("NAME", plate.position.y, plate.size.y - 2, 8)), "NAME",
+				Palette.PAPER, plate.size.x, HORIZONTAL_ALIGNMENT_CENTER, 8)
 
 
-## The build strip at `y`: weapon frames, a gap, tome frames, each a small
-## icon in a kit frame of its kind's colour with its level as pips under it
-## (gold when maxed). Returns the x where it ends.
-func _draw_strip(y: float) -> float:
+## The build slots at `y`: weapons, then manuals, each a small icon in a
+## kit slot with its level on a lamp badge at the slot's foot (bright when
+## maxed). Returns the x where they end.
+func _draw_strip(ci: CanvasItem, y: float) -> float:
 	if db == null:
 		return 0.0
-	var x := 3.0
-	for pair: Array in [["weapons", _build_w, _slots_w, Palette.RED], ["tomes", _build_t, _slots_t, Palette.BLUE]]:
+	var x := 4.0
+	for pair: Array in [["weapons", _build_w, _slots_w], ["tomes", _build_t, _slots_t]]:
 		var ids: Array = pair[1].keys()
-		if ids.is_empty():
-			continue
 		for i in mini(ids.size(), int(pair[2])):
 			var r := Rect2(x, y, SLOT, SLOT)
 			var id: String = ids[i]
 			var lvl := int(pair[1][id])
-			UiArt.draw(self, "lv_frame", r, pair[3])
-			var tex := Icons.small(db, pair[0], id, ICON_PX)
-			if tex != null:
-				draw_texture(tex, _icon_at(r, tex))
-			# Level pips under the frame: five 2 px pips on an INK strip.
-			var maxed := lvl >= 5
-			draw_rect(Rect2(r.position.x + 1, r.end.y + 1, 15, 3), Palette.color(Palette.INK))
-			for k in 5:
-				var c: int = (Palette.GOLD if maxed else Palette.BUTTER) if k < lvl else Palette.SHADE
-				draw_rect(Rect2(r.position.x + 2 + k * 3, r.end.y + 1, 2, 2), Palette.color(c))
 			var fl: float = _flash.get(pair[0] + "/" + id, 0.0)
-			if fl > 0.0 and int(fl * 12.0) % 2 == 0:
-				UiArt.draw(self, "lv_frame", r, Palette.MIST)
-				if tex != null:
-					draw_texture(tex, _icon_at(r, tex))
+			UiArt.slot(ci, r, "sel" if fl > 0.0 and int(fl * 12.0) % 2 == 0 else "")
+			var tex := Icons.texture(db, pair[0], id)
+			if tex != null:
+				ci.draw_texture(tex, _icon_at(r, tex))
+			UiArt.badge(ci, str(lvl), r.end - Vector2(7, 7), "badge")
 			x += SLOT + 2
-		x += 3
-	return x - 4
+	return x - 2
 
 
-## Top-left for `tex` centred on a 16 px icon plate `r` (a pixel above
-## the middle: the frame's bevel is at its foot).
+## Top-left for `tex` centred in slot `r`.
 static func _icon_at(r: Rect2, tex: Texture2D) -> Vector2:
-	return (r.get_center() + Vector2(0, -1) - tex.get_size() / 2.0).floor()
+	return (r.get_center() - tex.get_size() / 2.0).floor()
 
 
 ## A 1 px frame round `r` on `ci`.
@@ -415,8 +469,8 @@ static func _outline(ci: CanvasItem, r: Rect2, color: int) -> void:
 
 
 ## Items along the bottom, centred (above the boss bar while there is one):
-## small icons in kit frames of their rarity colour, the stack count in
-## BAR_NUM, wrapping upward when there are many (each row centred).
+## small icons in slots with their rarity ring, the stack count on a paper
+## badge, six a row and growing upward (each row centred).
 func _draw_items() -> void:
 	if db == null or _items.is_empty():
 		return
@@ -426,29 +480,34 @@ func _draw_items() -> void:
 		var r := item_rect(i, n)
 		var fl: float = _flash.get("items/" + id, 0.0)
 		var lit := fl > 0.0 and int(fl * 12.0) % 2 == 0
-		UiArt.draw(_items_view, "lv_frame", r, Palette.MIST if lit else _rarity_color(id))
-		var tex := Icons.small(db, "items", id, ICON_PX)
+		UiArt.slot(_items_view, r, "sel" if lit else _rarity_ring(id))
+		var tex := Icons.texture(db, "items", id)
 		if tex != null:
 			_items_view.draw_texture(tex, _icon_at(r, tex))
 		var stacks := int(_items[id])
 		if stacks > 1:
-			Fonts.draw(_items_view, str(stacks), Vector2(r.end.x - 7, r.end.y - 7), "BAR_NUM", Palette.BUTTER, -1, HORIZONTAL_ALIGNMENT_LEFT, 6)
+			UiArt.badge(_items_view, str(stacks), r.end - Vector2(6, 7), "count")
 		i += 1
 
 
-## The frame of item `i` of `n` in the row: rows of as many as fit, each
-## centred, the first at the bottom.
+## The slot of item `i` of `n` in the row: rows of six, each centred, the
+## first at the bottom.
 func item_rect(i: int, n: int) -> Rect2:
 	var w := floorf(size.x)
-	var bottom := floorf(size.y) - safe_bottom - 2.0
+	var bottom := floorf(size.y) - safe_bottom - 6.0
 	if boss_frac >= 0.0:
 		bottom -= 30.0
-	var per_row := maxi(1, int((w - 4.0 + 1.0) / ITEM_SLOT))
+	var per_row := mini(ITEMS_PER_ROW, maxi(1, int((w - 4.0 + 2.0) / ITEM_SLOT)))
 	var col := i % per_row
 	var row := i / per_row
 	var in_row := mini(per_row, n - row * per_row)
-	var x0 := floorf((w - (in_row * ITEM_SLOT - 1)) / 2.0)
-	return Rect2(x0 + col * ITEM_SLOT, bottom - ITEM_SLOT * (row + 1) + 1, ITEM_FRAME, ITEM_FRAME)
+	var x0 := floorf((w - (in_row * ITEM_SLOT - 2)) / 2.0)
+	return Rect2(x0 + col * ITEM_SLOT, bottom - (ITEM_SLOT + 1) * (row + 1) + 1, ITEM_FRAME, ITEM_FRAME)
+
+
+## The slot ring for an item's rarity.
+func _rarity_ring(id: String) -> String:
+	return UiArt.ring_of(String(db.get_entry("items", id).get("rarity", "")))
 
 
 var _rarity_cache := {}
@@ -462,9 +521,9 @@ func _rarity_color(id: String) -> int:
 	return _rarity_cache[id]
 
 
-## The pickup card at `y`: the info bar with the icon in a frame of its
-## rarity colour and the name (Phase 9: details live in the pause screen).
-## Slides in from the left, blinks out at the end.
+## The pickup card at `y` (docs/ui/hud.png): a small window with the item
+## in its rarity slot and its stack badge, the rarity line ("Rare item"), the
+## name and what it does. Slides in from the left, blinks out at the end.
 func _draw_card(y: float) -> void:
 	if _card.is_empty():
 		return
@@ -472,44 +531,47 @@ func _draw_card(y: float) -> void:
 	if left < 0.3 and int(left * 16.0) % 2 == 0:
 		return
 	var age := CARD_TIME - left
-	var slide := floorf(maxf(0.0, 1.0 - age / 0.18) * -170.0)
-	var title: String = _card.title
-	var tw := ceilf(Fonts.width(title, "CARD_NAME"))
-	var stacks := _card_stacks()
-	var sw := ceilf(Fonts.width(stacks, "CARD_BODY")) + 3.0 if stacks != "" else 0.0
+	var slide := floorf(maxf(0.0, 1.0 - age / 0.18) * -190.0)
 	var w := floorf(size.x)
-	var cw := minf(w - 8.0, 25.0 + tw + sw + 6.0)
-	var r := Rect2(floorf((w - cw) / 2.0) + slide, y, cw, card_height())
-	UiArt.draw(self, "info_bar", r)
-	var ir := Rect2(r.position + Vector2(3, 2), Vector2(16, 16))
-	UiArt.draw(self, "lv_frame", ir, int(_card.color))
+	var r := Rect2(floorf((w - CARD_W) / 2.0) + slide, y, CARD_W, CARD_H)
+	UiArt.window(self, r, UiArt.DROP_CARD, false)
+	var sr := Rect2(r.position + Vector2(7, 5), Vector2(29, 29))
+	UiArt.slot(self, sr, String(_card.get("ring", "")), 0)
 	if _card.art != null:
 		var art: Texture2D = _card.art
 		if art.get_width() > ICON_PX and art.get_width() <= 16:
 			art = LevelCard._small(art, ICON_PX)
-		draw_texture(art, _icon_at(ir, art))
-	Fonts.draw(self, title, Vector2(r.position.x + 23, Fonts.cap_y("CARD_NAME", r.position.y, r.size.y - 1)), "CARD_NAME", Palette.PAPER, r.size.x - 27 - sw)
+		var s := art.get_size() * 2.0
+		draw_texture_rect(art, Rect2((sr.get_center() - s / 2.0).floor(), s), false)
+	var stacks := _card_stacks()
 	if stacks != "":
-		Fonts.draw(self, stacks, Vector2(r.position.x + 23 + tw + 3, Fonts.cap_y("CARD_BODY", r.position.y, r.size.y - 1)), "CARD_BODY", Palette.MIST)
+		UiArt.badge(self, stacks, sr.end - Vector2(9, 8), "count", 10)
+	var x := sr.end.x + 5
+	var tw := r.end.x - x - 6
+	Fonts.draw(self, String(_card.get("tag_line", _card.tag)), Vector2(x, r.position.y + 6), "SMALL", int(_card.color), tw)
+	Fonts.draw(self, String(_card.title), Vector2(x, r.position.y + 13), "CARD_NAME", -1, tw)
+	var d: PackedStringArray = _card.desc
+	if not d.is_empty():
+		Fonts.draw(self, d[0], Vector2(x, r.position.y + 26), "BODY", Palette.MUTED, tw)
 
 
 ## "×2" from the card's tag ("Common item ×2"), "" for one.
 func _card_stacks() -> String:
 	var tag: String = _card.get("tag", "")
 	var m := RegEx.create_from_string("[xX×](\\d+)").search(tag)
-	return "×" + m.get_string(1) if m != null else ""
+	return "x" + m.get_string(1) if m != null else ""
 
 
 ## Height of the pickup card now showing (0 when there's none).
 func card_height() -> float:
-	return 0.0 if _card.is_empty() else 20.0
+	return 0.0 if _card.is_empty() else float(CARD_H)
 
 
 ## Arrows at the screen edge for targets outside the view. Inset below the
 ## top bars and above the boss bar.
 func _draw_arrows() -> void:
 	var view := Rect2(Vector2.ZERO, size)
-	var inner := Rect2(Vector2(6, 62 + safe_top), size - Vector2(12, 86 + safe_top + safe_bottom))
+	var inner := Rect2(Vector2(6, 64 + safe_top), size - Vector2(12, 96 + safe_top + safe_bottom))
 	var center := size / 2.0
 	for a: Dictionary in arrows:
 		var sp: Vector2 = (a.pos - view_center) * world_zoom + center

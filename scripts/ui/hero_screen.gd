@@ -19,7 +19,7 @@ var browse := false
 
 func _init(save_node: Node, browse_only := false) -> void:
 	browse = browse_only
-	super(save_node, "Heroes")
+	super(save_node, "Characters" if browse_only else "Pick a Hero")
 	selected = Meta.picked_character(db, save.data)
 	fills_height = true
 
@@ -143,7 +143,7 @@ func _preview(c: Dictionary, owned: bool) -> void:
 			cr.size = cr.custom_minimum_size
 			p.add_child(cr)
 		if Meta.state(db, save.data, c.id) == "available":
-			_wrapped(p, "Done! Buy it in Unlocks.", Vector2(8, y0 + 42), W - 16, Palette.LIME)
+			_wrapped(p, "Done! Buy it in the Collection.", Vector2(8, y0 + 42), W - 16, Palette.LIME)
 		else:
 			_wrapped(p, "Then buy it for %d coins." % int(ch.get("price", 0)), Vector2(8, y0 + 42), W - 16, Palette.GOLD)
 		return

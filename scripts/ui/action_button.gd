@@ -1,14 +1,11 @@
 @tool
 class_name ActionButton
 extends PixelButton
-## Level-up action button (Reroll, Skip, Banish), Phase 9 kit 3b look: the
-## kit's own button (`act_reroll` / `act_skip` / `act_banish`, and its pressed
-## art while held). Disabled or armed (banish mode) it falls back to the
-## `lv_frame` plate in GRAY / PURPLE with the kit icon at 2x (lv_die /
-## lv_ffwd / lv_x). No word (the concept is icon-only), and on
-## the top-right corner the red `lv_bubble` with the charges left, or the
-## purple "Ad" sticker when a rewarded ad can buy one. `active` (banish mode)
-## turns it PURPLE.
+## Level-up action button (Reroll, Skip, Banish), kit v2 (docs/ui/level-up.png):
+## a blue block with the kit icon (lv_die / lv_ffwd / lv_x), its word under it
+## (BODY), and on the top-right corner a red badge with the charges left, or
+## the INK "AD" sticker when a rewarded ad can buy one. `active` (banish mode)
+## turns it into the lamp block.
 
 const ICONS := {
 	"reroll": [  # a die
@@ -95,47 +92,24 @@ const WORDS := {"reroll": "Reroll", "skip": "Skip", "banish": "Banish"}
 func _draw() -> void:
 	var mode := get_draw_mode()
 	var sunk := mode == DRAW_PRESSED or mode == DRAW_HOVER_PRESSED
-	var y := SHADOW if sunk else 0
 	var w := floorf(size.x)
 	var h := floorf(size.y) - SHADOW
-	var r := Rect2(0, y, w, h)
-	var kit := "act_" + glyph + ("_pressed" if sunk else "")
+	var kind := "disabled" if disabled else ("primary" if active else "secondary")
+	UiArt.button(self, Rect2(0, 0, w, h), kind, sunk)
+	var y := 2.0 if sunk and not disabled else 0.0
 	var sprite: String = SPRITES.get(glyph, "")
-	if not disabled and not active and UiArt.has(kit):
-		# The kit's button as drawn, centred, over its INK drop.
-		var ks := Vector2(UiArt.sprite_size(kit))
-		var at := Vector2(floorf((w - ks.x) / 2.0), y)
-		if not sunk:
-			draw_texture(UiArt.texture(kit, -1, -1, true), at + Vector2(0, SHADOW))
-		UiArt.sprite(self, kit, at)
-	elif sprite != "" and UiArt.has(sprite):
-		UiArt.draw(self, "lv_frame", r, Palette.GRAY if disabled else face, -1, 0 if sunk else SHADOW)
+	if sprite != "" and UiArt.has(sprite):
 		var tex := UiArt.texture(sprite)
-		var sz := tex.get_size() * 2.0
-		var at := (r.get_center() + Vector2(0, -1) - sz / 2.0).floor()
-		var drop := UiArt.texture(sprite, -1, -1, true)
-		if drop != null:
-			draw_texture_rect(drop, Rect2(at + Vector2(1, 2), sz), false)
-		draw_texture_rect(tex, Rect2(at, sz), false)
-	else:
-		UiArt.draw(self, "lv_frame", r, Palette.GRAY if disabled else face, -1, 0 if sunk else SHADOW)
-		var rows: Array = ICONS.get(glyph, [])
-		if not rows.is_empty():
-			var left := floori((w - String(rows[0]).length()) / 2.0)
-			var top := y + floori((h - rows.size()) / 2.0)
-			for ry in rows.size():
-				var row: String = rows[ry]
-				for c in row.length():
-					if row[c] == "X":
-						draw_rect(Rect2i(left + c, top + ry, 1, 1), Palette.color(Palette.INK))
+		var at := (Vector2(w / 2.0, y + (h - 3.0) / 2.0) - tex.get_size() / 2.0).floor()
+		draw_texture(tex, at)
+	Fonts.draw(self, WORDS.get(glyph, ""), Vector2(-8, h + 4), "BODY", Palette.MUTED if disabled else -1, w + 16,
+			HORIZONTAL_ALIGNMENT_CENTER)
 	if not show_count:
 		return
 	if ad:
-		var sr := Rect2(w - 12, y - 5, 18, 12)
-		UiArt.draw(self, "lv_sticker", sr, Palette.GRAY if disabled else -1)
-		Fonts.draw(self, "Ad", Vector2(sr.position.x, sr.position.y + 1), "TAG", -1, sr.size.x, HORIZONTAL_ALIGNMENT_CENTER)
+		UiArt.sticker(self, "AD", Vector2(w - 11, y - 6), -1, 11, 3, "ad")
 	else:
-		var bs := Vector2(UiArt.sprite_size("lv_bubble"))
-		var at := Vector2(w - bs.x + 3, y - 5)
-		UiArt.sprite(self, "lv_bubble", at)
-		Fonts.draw(self, str(charges), Vector2(at.x, at.y + 1), "TAG", -1, bs.x, HORIZONTAL_ALIGNMENT_CENTER)
+		var r := Rect2(w - 7, y - 4, 9, 9)
+		UiArt.dot(self, r.position)
+		Fonts.draw(self, str(charges), Vector2(r.position.x, Fonts.cap_y("TAG", r.position.y + 1, r.size.y - 1)), "TAG",
+				Palette.PAPER, r.size.x, HORIZONTAL_ALIGNMENT_CENTER)

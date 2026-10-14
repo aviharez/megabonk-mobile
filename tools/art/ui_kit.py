@@ -101,31 +101,17 @@ PARTS2 = {
 SCALE3 = 16
 CUTOFF3 = 200
 PARTS3 = {
-    "play_button": (49, 30, 643, 279, None),
-    "button_orange": (730, 46, 618, 257, None),
-    "button_off": (1387, 42, 612, 267, None),
-    "nav_blue": (44, 353, 313, 356, None),
-    "nav_green": (385, 353, 314, 356, None),
-    "nav_orange": (727, 353, 313, 356, None),
-    "nav_purple": (1068, 353, 313, 356, None),
     "nav_blue_pressed": (44, 739, 313, 356, None),
     "nav_green_pressed": (385, 738, 314, 357, None),
     "nav_orange_pressed": (727, 739, 313, 356, None),
     "nav_purple_pressed": (1068, 738, 313, 357, None),
     "coin_plate": (1451, 355, 536, 204, None),
-    "gear_button": (1452, 586, 247, 230, None),
     "gear_button_pressed": (1740, 586, 247, 230, None),
-    "ribbon_red": (1392, 853, 624, 217, None),
-    "ad_sticker": (1769, 1140, 192, 187, None),
     "side_panel": (50, 1141, 643, 828, None),
     "alert": (1509, 1153, 172, 174, None),
-    "seg_track": (769, 1181, 645, 139, None),
     "seg_fill": (784, 1357, 396, 118, None),
     "coin_big": (1467, 1364, 214, 214, None),
     "gear": (1749, 1364, 222, 220, None),
-    "sack": (1189, 1580, 292, 357, None),
-    "padlock_big": (809, 1588, 284, 349, None),
-    "mystery": (1595, 1618, 314, 319, None),
 }
 
 # Kit 3b (Phase 9, level-up + HUD; child of kit 3) sheet: art pixel about 13 source px, soft alpha.
@@ -170,7 +156,6 @@ PARTS3B = {
     "banish": (1240, 1461, 268, 263, None),
     "banish_pressed": (1530, 1461, 269, 262, None),
     "sticker_c": (1838, 1608, 171, 116, None),
-    "info_bar": (44, 1755, 1961, 252, None),
 }
 
 
@@ -186,39 +171,23 @@ SHIP = {
     "stick_base": ("stick_base", "sprite", {}),
     "stick_knob": ("stick_knob", "sprite", {}),
     "key": ("key", "sprite", {}),
-    # Kit 3 (Phase 9 dark UI). The second row of nav tiles on the sheet only differs by noise
+    # Kit 3 (Phase 9 dark UI). Parts the kit v2 screens replaced (Phase 10: buttons, windows,
+    # headers, nav tiles, action buttons, tracks) were dropped from SHIP; their rectangles stay in
+    # PARTS3 / PARTS3B. The second row of nav tiles on the sheet only differs by noise
     # (4-26 px), so there is one tile per colour; pressed = the usual 1px sink.
-    "button_orange": ("k3_button_orange", "slice", {"slice": [4, 4, 4, 3], "mid": [19, 7]}),
-    "button_off": ("k3_button_off", "slice", {"slice": [4, 4, 4, 4], "mid": [19, 8]}),
     "plate_dark": ("k3_coin_plate", "slice", {"slice": [2, 2, 3, 3], "mid": [20, 6]}),
-    "panel_dark": ("k3_side_panel", "slice", {"slice": [3, 4, 3, 4], "mid": [20, 4]}),
-    "icon_button": ("k3_gear_button", "slice", {"slice": [2, 2, 2, 2], "mid": [3, 3]}),
-    "ribbon_red": ("k3_ribbon_red", "slice", {"slice": [10, 7, 10, 6], "mid": [25, 7]}),
-    "track_dark": ("k3_seg_track", "slice", {"slice": [2, 3, 2, 3], "mid": [5, 3]}),
-    "fill_gold": ("k3_seg_fill", "slice", {"slice": [2, 2, 2, 2], "mid": [12, 3], "ramp": ["BUTTER", "GOLD", "ORANGE"]}),
     # the blue nav tile's face without its label strip: a square kind/rarity frame, any colour
-    "icon_face": ("k3_nav_blue", "slice", {"slice": [2, 2, 2, 2], "mid": [9, 6], "rows": [*range(14), 21], "ramp": ["SKY", "BLUE", "OCEAN"]}),
-    "seg_track": ("k3_seg_track", "sprite", {}),
-    "gear_button": ("k3_gear_button", "sprite", {}),
-    "ad_sticker": ("k3_ad_sticker", "sprite", {}),
     "alert": ("k3_alert", "sprite", {}),
     "star": (None, "grid", {"grid": "STAR"}),
     "coin_big": ("k3_coin_big", "sprite", {}),
     "gear": ("k3_gear", "sprite", {}),
-    "sack": ("k3_sack", "sprite", {}),
-    "padlock_big": ("k3_padlock_big", "sprite", {}),
-    "mystery": ("k3_mystery", "sprite", {}),
     # Kit 3b (level-up + HUD). One template per colour family, recoloured through its ramp
     # (cards and icon frames are the red ones; the gold card's glow snapped to BARK / WOOD).
     # "mirror": the right border is the left one flipped (the sheet's red and blue cards have
     # the New sticker fused over their top-right corner, the window's right edge is ragged).
-    "lv_window": ("k3b_window", "slice", {"slice": [6, 8, 6, 6], "mid": [40, 20], "mirror": True}),
-    "lv_header": ("k3b_header", "slice", {"slice": [3, 3, 3, 4], "mid": [20, 5], "mirror": True}),
     "lv_card": ("k3b_card_red", "slice", {"slice": [3, 3, 3, 3], "mid": [30, 8], "rows": list(range(1, 18)),
                                           "mirror": True, "recolor": {"WINE": "BLOOD"}, "ramp": ["SALMON", "RED", "BLOOD"]}),
-    "lv_frame": ("k3b_frame_red", "slice", {"slice": [2, 2, 2, 3], "mid": [9, 9], "ramp": ["SALMON", "RED", "BLOOD"]}),
     "lv_sticker": ("k3b_sticker", "slice", {"slice": [2, 2, 2, 2], "mid": [7, 4], "ramp": ["PINK", "PURPLE", "PLUM"]}),
-    "lv_bubble": ("k3b_bubble", "sprite", {}),
     "lv_pip_on": ("k3b_pip_on", "sprite", {}),
     "lv_pip_off": ("k3b_pip_off", "sprite", {}),
     # icons cut out of the action buttons (the pressed ones for skip / banish: there the face is a
@@ -228,38 +197,19 @@ SHIP = {
     # their shape; hand-pixelled after the sheet's (lighter fill so they read on the face)
     "lv_ffwd": (None, "grid", {"grid": "FFWD"}),
     "lv_x": (None, "grid", {"grid": "XMARK"}),
-    "info_bar": ("k3b_info_bar", "slice", {"slice": [3, 3, 3, 3], "mid": [60, 14], "mirror": True}),
-    "info_icon": ("k3b_info_bar", "crop", {"rect": [4, 4, 12, 11], "drop": ["NIGHT"]}),
     "hud_track": ("k3b_xp_track", "slice", {"slice": [2, 2, 2, 2], "mid": [20, 3], "mirror": True}),
     "hud_fill": ("k3b_xp_fill", "slice", {"slice": [1, 1, 1, 1], "mid": [17, 2], "mirror": True, "ramp": ["BUTTER", "GOLD", "ORANGE"]}),
-    "hud_timer": ("k3b_timer_plate", "slice", {"slice": [3, 2, 3, 2], "mid": [20, 5], "mirror": True}),
-    "hud_ring": ("k3b_level_ring", "sprite", {}),
-    "hud_pause": ("k3b_pause_btn", "sprite", {}),
     "hud_heart": ("k3b_heart", "sprite", {}),
     "hud_coin": ("k3b_coin", "sprite", {}),
     "hud_skull": ("k3b_skull", "sprite", {}),
     "hud_clock": ("k3b_clock", "sprite", {}),
-    # Fine cuts (FINE): the kit's parts as drawn, light rims and bevels kept. The nav tiles
-    # (39 x 44, the home's size) and the play button replace the coarse ones; `icon_frame` is
-    # the kit's square icon frame behind every weapon, manual and item icon (any colour through
-    # the ramp, WINE bevel folded into BLOOD); `act_*` are the kit's reroll / skip / banish
-    # buttons with their icons, at the level-up's button size.
-    "nav_blue": ("k3f_nav_blue", "slice", {"slice": [4, 4, 4, 16], "mid": [7, 15], "mirror": True}),
-    "nav_green": ("k3f_nav_green", "slice", {"slice": [4, 4, 4, 16], "mid": [7, 15], "mirror": True}),
-    "nav_orange": ("k3f_nav_orange", "slice", {"slice": [4, 4, 4, 16], "mid": [7, 15], "mirror": True}),
-    "nav_purple": ("k3f_nav_purple", "slice", {"slice": [4, 4, 4, 16], "mid": [7, 15], "mirror": True}),
-    "play_button": ("k3f_play_button", "slice", {"slice": [6, 8, 6, 8], "mid": [40, 15], "mirror": True,
-                                                 "recolor": {"BARK": "RUST", "WOOD": "RUST"}}),
+    # Fine cuts (FINE): the kit's parts as drawn, light rims and bevels kept. `icon_frame` is
+    # the kit's square icon frame (any colour through the ramp, WINE bevel folded into BLOOD),
+    # still used by the hero and map select screens.
     "icon_frame": ("k3bf_frame_red", "slice", {"slice": [4, 5, 4, 5], "mid": [8, 10], "mirror": True,
                                                "recolor": {"WINE": "BLOOD"}, "ramp": ["SALMON", "RED", "BLOOD"]}),
     # the kit coin at the padlock / sack's height, for the home's free coins tile
     "coin_nav": ("k3m_coin_big", "sprite", {}),
-    "act_reroll": ("k3bf_reroll", "sprite", {}),
-    "act_reroll_pressed": ("k3bf_reroll_pressed", "sprite", {}),
-    "act_skip": ("k3bf_skip", "sprite", {}),
-    "act_skip_pressed": ("k3bf_skip_pressed", "sprite", {}),
-    "act_banish": ("k3bf_banish", "sprite", {}),
-    "act_banish_pressed": ("k3bf_banish_pressed", "sprite", {}),
 }
 # Hand touch-ups after shrinking: name -> [(x, y, palette index)] (none since the kit 1 pips
 # were dropped in Phase 9).

@@ -1,33 +1,25 @@
 class_name ShopScreen
 extends MenuScreen
-## The permanent coin shop (data/shop/) as a grid of icon tiles with level
-## pips, grouped (LEVEL-UP ACTIONS, UPGRADES, TOGGLER), and a fixed detail
-## panel on top for the selected entry: icon, name, what it does, what the
-## current level gives, and the price button (or MAX / why it's locked).
-## Entries with "needs" stay locked until enough runs are played or unlocks
-## are bought. Each entry's tile picture is its "icon" in data.
-## Above the grid: the real-money products (Store, data/rules/store.json):
-## Remove Ads, as a purple banner with its store price.
+## The coin shop, kit v2 (docs/ui/shop.png), a tab of the bottom nav: tabs
+## Upgrades (stat entries in data/shop/), Actions (level-up actions and the
+## Switchboard) and Offers (real-money products, Store / data/rules/store.json);
+## goods as a 3-column grid of GoodsCards (icon on a shelf, name, level pips,
+## price button or Max). Entries with "needs" stay closed until enough runs
+## are played or unlocks are bought. Under the Upgrades grid, and on Offers,
+## the No Ads offer window (lamp price button with the store's price).
 
-const COLUMNS := 4
-const PANEL_H := 64
+const COLUMNS := 3
+const TABS := [["stat", "Upgrades"], ["actions", "Actions"], ["offers", "Offers"]]
 
+var tab := 0
 var selected := ""
 var _store: Node
+var _tabs: PixelTabs
 var _notice := {}  # product key -> "Failed, try again." etc. after a purchase flow
 
 
 func _init(save_node: Node) -> void:
 	super(save_node, "Shop")
-	# Start on the cheapest thing you can buy now, else the first entry.
-	var best := INF
-	for e: Dictionary in db.all("shop"):
-		var price := Meta.shop_price(save.data, e)
-		if selected == "":
-			selected = e.id
-		if Meta.shop_open(save.data, e) and price >= 0 and price <= int(save.data.coins) and price < best:
-			best = price
-			selected = e.id
 
 
 func _ready() -> void:
@@ -35,52 +27,74 @@ func _ready() -> void:
 	if _store != null:
 		_store.changed.connect(refresh)
 		_store.purchase_finished.connect(_on_purchase_finished)
+	var p := top_panel(PixelTabs.H + 8)
+	p.part = ""
+	_tabs = PixelTabs.new()
+	_tabs.name = "Tabs"
+	_tabs.position = Vector2(2, 2)
+	_tabs.size = Vector2(W, PixelTabs.H + 2)
+	_tabs.tabs = TABS.map(func(t: Array) -> Dictionary: return {"name": t[1]})
+	_tabs.picked.connect(func(i: int) -> void:
+		tab = i
+		refresh())
+	p.add_child(_tabs)
 	super._ready()
 
 
+## Opens the Offers tab (Home's No Ads button).
+func show_offers() -> void:
+	tab = 2
+	if _tabs != null:
+		_tabs.current = 2
+	refresh()
+
+
 func _fill() -> void:
-	_panel()
-	if _store != null and not _store.products().is_empty():
-		for key: String in _store.products():
-			_product_row(key)
-	var groups := [["action", "Level-up actions", Palette.SKY], ["stat", "Upgrades", Palette.LIME], ["toggler", "Toggler", Palette.PURPLE]]
-	for g: Array in groups:
-		var entries := db.all("shop").filter(func(e: Dictionary) -> bool: return e.kind == g[0])
-		if entries.is_empty():
-			continue
-		heading(g[1], g[2])
-		var grid := GridContainer.new()
-		grid.columns = COLUMNS
-		grid.add_theme_constant_override("h_separation", (W - COLUMNS * IconTile.SIZE) / (COLUMNS - 1))
-		grid.add_theme_constant_override("v_separation", 2)
-		list.add_child(grid)
-		for e: Dictionary in entries:
-			grid.add_child(_tile(e))
+	var kind: String = TABS[tab][0]
+	if kind == "offers":
+		_offers()
+		return
+	var entries := db.all("shop").filter(func(e: Dictionary) -> bool:
+		return e.kind == kind or (kind == "actions" and e.kind in ["action", "toggler"]))
+	var grid := GridContainer.new()
+	grid.name = "Goods"
+	grid.columns = COLUMNS
+	grid.add_theme_constant_override("h_separation", floori((W - COLUMNS * GoodsCard.CARD.x) / (COLUMNS - 1)))
+	grid.add_theme_constant_override("v_separation", 4)
+	list.add_child(grid)
+	for e: Dictionary in entries:
+		grid.add_child(_card(e))
+	if kind == "stat":
+		_offers()
 
 
-func _tile(e: Dictionary) -> IconTile:
+func _card(e: Dictionary) -> GoodsCard:
 	var data: Dictionary = save.data
 	var lvl := Meta.shop_level(data, e.id)
-	var t := IconTile.new()
-	t.name = e.id
-	t.picture = Icons.ref(db, e.get("icon", ""))
-	t.pips = lvl
-	t.pips_max = e.prices.size()
-	t.selected = e.id == selected
-	var price := Meta.shop_price(data, e)
+	var c := GoodsCard.new()
+	c.name = e.id
+	c.title = e.name
+	c.picture = Icons.ref(db, e.get("icon", ""))
+	c.pips = lvl
+	c.pips_max = e.prices.size()
+	c.price = Meta.shop_price(data, e)
+	c.affordable = c.price >= 0 and c.price <= int(data.coins)
+	c.selected = e.id == selected
 	if not Meta.shop_open(data, e):
-		t.state = "locked"
-		t.picture = _dark(t.picture)
-	elif price < 0:
-		t.state = "maxed"
-		t.tag = "Max"
-	elif price <= int(data.coins):
-		t.state = "available"
-		t.tag = "!"
+		c.state = "locked"
+		c.picture = _dark(c.picture)
+		var needs: Dictionary = e.needs
+		if needs.has("runs") and int(data.runs_played) < int(needs.runs):
+			c.why = "%d runs" % int(needs.runs)
+		else:
+			c.why = "%d unlocks" % int(needs.get("unlocks", 0))
+	elif c.price < 0:
+		c.state = "maxed"
 	else:
-		t.state = "owned" if lvl > 0 else "locked_open"
-	t.pressed.connect(select.bind(e.id))
-	return t
+		c.state = "available" if c.affordable else ("owned" if lvl > 0 else "locked_open")
+	c.pressed.connect(select.bind(e.id))
+	c.buy.connect(_buy.bind(e.id))
+	return c
 
 
 ## A UI sprite or icon as an INK silhouette (closed shop entries).
@@ -101,83 +115,70 @@ func select(id: String) -> void:
 	_scroll.set_deferred("scroll_vertical", keep)
 
 
-func _panel() -> void:
-	var p := top_panel(PANEL_H)
-	for c in p.get_children():
-		p.remove_child(c)
-		c.queue_free()
-	var e := db.get_entry("shop", selected)
-	if e.is_empty():
+func _offers() -> void:
+	if _store == null:
 		return
-	var data: Dictionary = save.data
-	var lvl := Meta.shop_level(data, e.id)
-	var top: int = e.prices.size()
-	var open := Meta.shop_open(data, e)
-	var frame := IconTile.new()
-	frame.picture = Icons.ref(db, e.get("icon", ""))
-	frame.state = "owned" if lvl > 0 else ("locked" if not open else "locked_open")
-	if not open:
-		frame.picture = _dark(frame.picture)
-	frame.pips = lvl
-	frame.pips_max = top
-	frame.disabled = true
-	frame.mouse_filter = MOUSE_FILTER_IGNORE
-	frame.position = Vector2(6, 6)
-	p.add_child(frame)
-	var x := 6 + IconTile.SIZE + 5
-	var tw := W + 4 - x - 6
-	bold_label(p, e.name, Vector2(x, 6), Palette.BUTTER if lvl > 0 else Palette.PAPER)
-	label(p, "Lv %d/%d" % [lvl, top], Vector2(x, 6), Palette.MIST, HORIZONTAL_ALIGNMENT_RIGHT, tw)
-	var dl := label(p, e.desc, Vector2(x, 17), Palette.PAPER)
-	dl.autowrap_mode = TextServer.AUTOWRAP_WORD
-	dl.size = Vector2(tw, 20)
-	dl.custom_minimum_size.x = tw
-	var note := ""
-	if e.kind in ["action", "toggler"]:
-		var next_lvl := mini(lvl + 1, top)
-		var per := "%d per run" if e.kind == "action" else "%d off at once"
-		note = ("Now " + per % int(e.charges[lvl - 1])) if lvl > 0 else ("Get " + per % int(e.charges[next_lvl - 1]))
-	label(p, note, Vector2(6, 48), Palette.LIME)
-	var price := Meta.shop_price(data, e)
-	var br := Rect2(W - 58, 38, 58, 22)
-	if not open:
-		var needs: Dictionary = e.needs
-		var why := ""
-		if needs.has("runs") and int(data.runs_played) < int(needs.runs):
-			why = "After %d runs" % int(needs.runs)
-		else:
-			why = "After %d unlocks" % int(needs.unlocks)
-		label(p, why, Vector2(br.position.x - 40, 48), Palette.SALMON, HORIZONTAL_ALIGNMENT_RIGHT, br.size.x + 40)
-	elif price < 0:
-		bold_label(p, "Max!", Vector2(br.position.x, 46), Palette.LIME, HORIZONTAL_ALIGNMENT_CENTER, br.size.x)
-	else:
-		var b := price_button(p, price, br, _buy.bind(e.id))
-		b.name = "Buy"
+	for key: String in _store.products():
+		_product(key)
 
 
-## A real-money product: a purple banner with the store price or its state.
-func _product_row(key: String) -> void:
+## A real-money product: a window with the "Offer" sticker, its icon in a
+## slot, name, one line, and the lamp price button (or its state).
+func _product(key: String) -> void:
 	var pr: Dictionary = _store.products()[key]
 	var st: String = _store.state(key)
-	var r := row(40, Palette.PLUM)
-	r.name = "Product_" + key
-	bold_label(r, pr.get("name", key), Vector2(6, 5), Palette.BUTTER if st == "owned" else Palette.PAPER)
+	var h := 70
+	var holder := Control.new()
+	holder.name = "Product_" + key
+	holder.custom_minimum_size = Vector2(W, h + 8)
+	list.add_child(holder)
+	var win := PixelPanel.new()
+	win.part = "window"
+	win.position = Vector2(0, 6)
+	win.size = Vector2(W, h)
+	holder.add_child(win)
 	var notice: String = _notice.get(key, "")
-	var dl := label(r, notice if notice != "" else pr.get("desc", ""), Vector2(6, 16), Palette.SALMON if notice != "" else Palette.MIST)
-	dl.autowrap_mode = TextServer.AUTOWRAP_WORD
-	dl.custom_minimum_size.x = W - 74
-	dl.size = Vector2(W - 74, 20)
+	var tag := Control.new()
+	tag.mouse_filter = MOUSE_FILTER_IGNORE
+	tag.draw.connect(func() -> void: UiArt.sticker(tag, "Offer", Vector2(9, 0), -1, 11, 3))
+	holder.add_child.call_deferred(tag)
+	var slot := Control.new()
+	slot.position = Vector2(9, 13)
+	slot.size = Vector2(37, 38)
+	slot.mouse_filter = MOUSE_FILTER_IGNORE
+	slot.draw.connect(func() -> void:
+		UiArt.slot(slot, Rect2(Vector2.ZERO, slot.size))
+		var tex := UiArt.texture("kit/no_ads")
+		slot.draw_texture(tex, ((slot.size - tex.get_size()) / 2.0).floor()))
+	win.add_child(slot)
+	var name_l := Fonts.label(pr.get("name", key), "NAME", Palette.BUTTER if st == "owned" else -1)
+	name_l.position = Vector2(53, 9)
+	win.add_child(name_l)
+	var dl := Fonts.label(notice if notice != "" else pr.get("desc", ""), "BODY", Palette.SALMON if notice != "" else Palette.MUTED)
+	dl.position = Vector2(53, 21)
+	dl.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
+	dl.size = Vector2(W - 62, 18)
+	dl.custom_minimum_size.x = W - 62
+	win.add_child(dl)
+	var at := Rect2(53, 41, 46, 20)
 	match st:
 		"owned":
-			bold_label(r, "Owned", Vector2(W - 60, 15), Palette.LIME, HORIZONTAL_ALIGNMENT_RIGHT, 54)
+			win.add_child(_note("Owned", at, Palette.LIME))
 		"buyable":
-			button(r, _store.price_text(key), Rect2(W - 64, 9, 60, 22), Palette.LIME, _buy_product.bind(key))
+			var b := button(win, _store.price_text(key), Rect2(at.position, at.size + Vector2(0, PixelButton.SHADOW)), Palette.GOLD, _buy_product.bind(key))
+			b.name = "BuyProduct"
 		"busy":
-			label(r, "Wait...", Vector2(W - 60, 11), Palette.MIST, HORIZONTAL_ALIGNMENT_RIGHT, 54)
+			win.add_child(_note("Wait...", at, Palette.MUTED))
 		"pending":
-			label(r, "Pending", Vector2(W - 60, 11), Palette.SALMON, HORIZONTAL_ALIGNMENT_RIGHT, 54)
+			win.add_child(_note("Pending", at, Palette.SALMON))
 		_:
-			label(r, "Offline", Vector2(W - 60, 11), Palette.GRAY, HORIZONTAL_ALIGNMENT_RIGHT, 54)
+			win.add_child(_note("Offline", at, Palette.MUTED))
+
+
+func _note(text: String, at: Rect2, color: int) -> Label:
+	var l := Fonts.label(text, "NAME", color)
+	l.position = Vector2(at.position.x, at.position.y + 4)
+	return l
 
 
 func _buy_product(key: String) -> void:
@@ -193,4 +194,6 @@ func _buy(id: String) -> void:
 	if Meta.buy_shop(db, save.data, id):
 		save.save_game()
 		select(id)
-		UiFx.hop(_top_panel, 2.0)
+		var c := list.find_child(id, true, false)
+		if c != null:
+			UiFx.hop(c, 2.0)

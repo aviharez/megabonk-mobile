@@ -1,16 +1,17 @@
 class_name KitButton
 extends Button
-## A button drawn from a SpriteCook kit part (assets/ui/, 1 art px = 1 UI px):
-## the 9-slice `part` (recoloured to `face` through UiArt's ramp when the part
-## has one) with a hard 2 px drop, sinking 2 px while pressed. On its face: an
-## optional sprite `art` at `art_scale` (2x on the home screen, like the hero)
-## and a label in a Fonts style, shrunk to fit `text_box`. A sticker can sit on
-## the top-right corner: "alert" (the kit's red !) or "ad" (purple sticker with
-## "Ad"). Set `label`, not `text`.
+## A kit button: `part` "primary" / "secondary" / "go" / "disabled" is a kit v2
+## block (UiArt.button: bevels, shine, 3 px drop, sinks 2 px when pressed),
+## "card" a raised card; any other name is a 9-slice UiArt part (recoloured to
+## `face`) with a 2 px drop. On its face: an optional sprite `art` at
+## `art_scale` and a label in a Fonts style, shrunk to fit `text_box`. A
+## sticker can sit on the top-right corner: "alert" (the red notification dot)
+## or "ad" (the INK "AD" chip). Set `label`, not `text`.
 
+const BLOCKS := ["primary", "secondary", "go", "disabled"]
 const SHADOW := 2
 
-var part := "play_button":
+var part := "primary":
 	set(v):
 		part = v
 		queue_redraw()
@@ -23,7 +24,7 @@ var label := "":
 	set(v):
 		label = v
 		queue_redraw()
-var style_name := "BIG_BUTTON":
+var style_name := "BUTTON":
 	set(v):
 		style_name = v
 		queue_redraw()
@@ -77,14 +78,24 @@ func is_sunk() -> bool:
 
 ## The face rect (without the drop), where it is drawn this frame.
 func face_rect() -> Rect2:
-	var y := SHADOW if is_sunk() else 0
-	return Rect2(0, y, floorf(size.x), floorf(size.y) - SHADOW)
+	var drop := _drop()
+	var y := mini(drop, 2) if is_sunk() and part != "disabled" else 0
+	return Rect2(0, y, floorf(size.x), floorf(size.y) - drop)
+
+
+func _drop() -> int:
+	return UiArt.DROP_WINDOW if part in BLOCKS and part != "disabled" else SHADOW
 
 
 func _draw() -> void:
 	var r := face_rect()
 	var sunk := is_sunk()
-	UiArt.draw(self, part, r, Palette.GRAY if dim and face >= 0 else face, -1, 0 if sunk else SHADOW)
+	if part in BLOCKS:
+		UiArt.button(self, Rect2(0, 0, r.size.x, r.size.y), "disabled" if dim else part, sunk)
+	elif part == "card":
+		UiArt.card(self, r, 0 if sunk else SHADOW)
+	else:
+		UiArt.draw(self, part, r, Palette.GRAY if dim and face >= 0 else face, -1, 0 if sunk else SHADOW)
 	if art != null:
 		var c := art_centre if art_centre.x >= 0.0 else r.size / 2.0
 		var s := art.get_size() * art_scale
@@ -99,11 +110,9 @@ func _draw() -> void:
 		# Centred on the caps (the ascent has room above the letters).
 		var y := Fonts.cap_y(style_name, box.position.y, box.size.y, fs)
 		Fonts.draw(self, label, Vector2(box.position.x, y), style_name,
-				Palette.SHADE if dim else text_color, box.size.x, HORIZONTAL_ALIGNMENT_CENTER, fs)
+				Palette.MUTED if dim else text_color, box.size.x, HORIZONTAL_ALIGNMENT_CENTER, fs)
 	match sticker:
 		"alert":
-			UiArt.sprite(self, "alert", Vector2(r.end.x - 9, r.position.y - 5))
+			UiArt.dot(self, Vector2(r.end.x - 6, r.position.y - 3))
 		"ad":
-			var sr := Rect2(r.end.x - 15, r.position.y - 5, 19, 13)
-			UiArt.draw(self, "lv_sticker", sr)
-			Fonts.draw(self, "Ad", Vector2(sr.position.x, sr.position.y + 1), "TAG", -1, sr.size.x, HORIZONTAL_ALIGNMENT_CENTER)
+			UiArt.sticker(self, "AD", Vector2(r.end.x - 15, r.position.y - 6), -1, 11, 3, "ad")

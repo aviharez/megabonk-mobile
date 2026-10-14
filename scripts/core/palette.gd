@@ -40,6 +40,21 @@ const DOUGH := 29
 const PINK := 30
 ## Reserved for enemy projectiles. Use it nowhere else.
 const ENEMY_SHOT := 31
+# UI kit v2 tones (docs/BRIEF.md "Update 1", colour tokens): the night-blue
+# chrome family. Text is PAPER, outlines INK, lamp GOLD / BUTTER / ORANGE /
+# RUST, go LIME / GREEN / LEAF, alert RED / SALMON / BLOOD, rarity frames
+# R_COMMON / BLUE / PURPLE / GOLD.
+const BG := 32
+const SURFACE := 33
+const SURFACE_2 := 34
+const WELL := 35
+const RAISED := 36
+const FRAME_LO := 37
+const FRAME := 38
+const FRAME_HI := 39
+const LINE := 40
+const MUTED := 41
+const R_COMMON := 42
 
 static var _colors: PackedColorArray = PackedColorArray()
 static var _consts := {}
@@ -64,7 +79,7 @@ static func color(index: int) -> Color:
 	return colors()[index]
 
 
-## The palette as a 32x1 texture, for shaders that look colors up by index.
+## The palette as an Nx1 texture (one pixel per colour), for shaders that look colors up by index.
 static func texture() -> ImageTexture:
 	if _texture == null:
 		var img := Image.create_empty(colors().size(), 1, false, Image.FORMAT_RGBA8)

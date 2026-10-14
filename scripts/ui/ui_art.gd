@@ -21,6 +21,9 @@ const RAMPS := [
 	[Palette.OCEAN, Palette.TEAL, Palette.SKY],
 	[Palette.PLUM, Palette.PURPLE, Palette.PINK],
 	[Palette.BARK, Palette.WOOD, Palette.CRUST, Palette.DOUGH],
+	# Kit v2 night chrome, dark to light.
+	[Palette.WELL, Palette.BG, Palette.SURFACE, Palette.SURFACE_2, Palette.RAISED, Palette.FRAME_LO,
+		Palette.LINE, Palette.FRAME, Palette.FRAME_HI, Palette.MUTED, Palette.R_COMMON],
 ]
 
 static var _meta := {}
@@ -34,6 +37,11 @@ static func meta() -> Dictionary:
 		var text := FileAccess.get_file_as_string(DIR + "ui_kit.json")
 		var d = JSON.parse_string(text) if text != "" else null
 		_meta = d if d is Dictionary else {"_none": {}}
+		# Kit v2 parts (tools/art/kit_v2.py) as "kit/<part>".
+		var k = JSON.parse_string(FileAccess.get_file_as_string(DIR + KIT + "kit.json"))
+		if k is Dictionary:
+			for n: String in k:
+				_meta[KIT + n] = k[n]
 	return _meta
 
 
@@ -134,29 +142,164 @@ static func fill(ci: CanvasItem, r: Rect2, frac: float, face: int) -> void:
 		draw(ci, "hud_fill", Rect2(r.position, Vector2(fw, r.size.y)), face)
 
 
-const TOGGLE_SIZE := Vector2(21, 10)
+const TOGGLE_SIZE := Vector2(30, 13)
 
 
-## A toggle switch from kit parts, TOGGLE_SIZE at `at`: the dark `hud_track`,
-## filled LIME when on, with a light `lv_frame` knob at the right (on) or a
-## gray one at the left (off).
+## The kit v2 toggle switch, TOGGLE_SIZE at `at`: a lamp knob on the right when
+## on, a frame knob on the left when off.
 static func toggle(ci: CanvasItem, at: Vector2, on: bool) -> void:
-	var r := Rect2(at.floor(), TOGGLE_SIZE)
-	draw(ci, "hud_track", r)
-	if on:
-		fill(ci, Rect2(r.position + Vector2(2, 2), r.size - Vector2(4, 4)), 1.0, Palette.LIME)
-	var k := Vector2(8, 10)
-	var kx := r.end.x - k.x if on else r.position.x
-	draw(ci, "lv_frame", Rect2(Vector2(kx, r.position.y), k), Palette.PAPER if on else Palette.GRAY)
+	sprite(ci, KIT + ("toggle_on" if on else "toggle_off"), at)
 
 
-## A small text sticker (`lv_sticker` in `face`'s ramp, -1 purple) with
-## `text` in TAG, `pad` px each side; returns its rect. `at` is its top-left.
-static func sticker(ci: CanvasItem, text: String, at: Vector2, face := -1, h := 12.0, pad := 4.0) -> Rect2:
+## A sticker with `text` (TAG, INK) and a 2 px drop: kit v2 "sticker" (lamp-hi,
+## New / Offer), "ad" (INK plate, lamp text) or "count" (paper, stack counts).
+## Older callers pass a palette `face`: GOLD-family faces get the sticker, the
+## rest the badge. Returns its rect; `at` is its top-left.
+static func sticker(ci: CanvasItem, text: String, at: Vector2, face := -1, h := 11.0, pad := 3.0,
+		kind := "") -> Rect2:
+	if kind == "":
+		kind = "sticker"
 	var r := Rect2(at.floor(), Vector2(ceilf(Fonts.width(text, "TAG")) + pad * 2.0, h))
-	draw(ci, "lv_sticker", r, face)
-	var asc := Fonts.TITLE_FONT.get_ascent(Fonts.STYLES.TAG[1])
-	Fonts.draw(ci, text, Vector2(r.position.x, r.position.y + floorf((h - 1.0 - asc) / 2.0)), "TAG", -1,
+	draw(ci, KIT + kind, r, -1, -1, 2)
+	var col := Palette.GOLD if kind == "ad" else Palette.INK
+	Fonts.draw(ci, text, Vector2(r.position.x, Fonts.cap_y("TAG", r.position.y, h)), "TAG", col,
+			r.size.x, HORIZONTAL_ALIGNMENT_CENTER)
+	return r
+
+
+# --- Kit v2 (docs/BRIEF.md "Update 1"; parts drawn by tools/art/kit_v2.py) ---
+
+const KIT := "kit/"
+## Drops under parts (game px): windows and buttons 3, cards / slots / plates 2.
+const DROP_WINDOW := 3
+const DROP_CARD := 2
+## Inset of a window's inside (outline + 3 px band + inner INK line).
+const WINDOW_INSET := 5
+## Slot ring colours by rarity name / state.
+const RINGS := ["common", "rare", "epic", "legend", "ready", "sel"]
+
+
+## A framed window over `r` (its 3 px drop below `r`): frame, hatch, bolts.
+static func window(ci: CanvasItem, r: Rect2, drop := DROP_WINDOW, hatched := true) -> void:
+	r = Rect2(r.position.floor(), r.size.floor())
+	draw(ci, KIT + "window", r, -1, -1, drop)
+	var inner := r.grow(-WINDOW_INSET)
+	if not hatched:
+		return
+	if inner.size.x > 0 and inner.size.y > 0:
+		ci.draw_texture_rect(texture(KIT + "hatch"), inner, true)
+	if r.size.x >= 24 and r.size.y >= 24:
+		for p in [Vector2(7, 7), Vector2(r.size.x - 9, 7), Vector2(7, r.size.y - 9), Vector2(r.size.x - 9, r.size.y - 9)]:
+			sprite(ci, KIT + "bolt", r.position + p)
+
+
+## A title plate over `r` with a 2 px drop: lamp (Level Up) or frame (blue),
+## a bolt each side, vertically centred.
+static func plate(ci: CanvasItem, r: Rect2, lamp := false) -> void:
+	draw(ci, KIT + ("plate_lamp" if lamp else "plate_frame"), r, -1, -1, DROP_CARD)
+	if r.size.x >= 30:
+		var by := floorf(r.size.y / 2.0) - 2
+		var b := KIT + ("bolt_lamp" if lamp else "bolt")
+		sprite(ci, b, r.position + Vector2(6, by))
+		sprite(ci, b, r.position + Vector2(r.size.x - 8, by))
+
+
+## A card (raised, lit top) with its 2 px drop.
+static func card(ci: CanvasItem, r: Rect2, drop := DROP_CARD) -> void:
+	draw(ci, KIT + "card", r, -1, -1, drop)
+
+
+## A sunken well (flat WELL; `ink` adds an INK line round it).
+static func well(ci: CanvasItem, r: Rect2, ink := false) -> void:
+	draw(ci, KIT + ("well_ink" if ink else "well"), r)
+
+
+## An icon slot over `r`: the frame slot, or a 2 px `ring` (RINGS); 2 px drop.
+static func slot(ci: CanvasItem, r: Rect2, ring := "", drop := DROP_CARD) -> void:
+	draw(ci, KIT + ("slot" if ring == "" else "slot_" + ring), r, -1, -1, drop)
+
+
+## Inside of a slot (where the icon sits) for a slot drawn over `r`.
+static func slot_inner(r: Rect2, ring := "") -> Rect2:
+	return r.grow(-(3 if ring == "" else 4))
+
+
+## The ring name for a rarity id ("common", "rare"...; "legendary" -> legend).
+static func ring_of(rarity: String) -> String:
+	match rarity:
+		"legendary", "legend":
+			return "legend"
+		"common", "rare", "epic":
+			return rarity
+	return ""
+
+
+## A block button face over `r` (the drop is drawn below `r`): "primary"
+## (lamp), "secondary" (frame), "go" or "disabled". Pressed sinks 2 px.
+static func button(ci: CanvasItem, r: Rect2, kind := "secondary", pressed := false) -> void:
+	var part := KIT + "btn_" + kind
+	if kind == "disabled":
+		draw(ci, part, r, -1, -1, DROP_CARD)
+		return
+	if pressed:
+		draw(ci, part, Rect2(r.position + Vector2(0, 2), r.size), -1, -1, DROP_WINDOW - 2)
+	else:
+		draw(ci, part, r, -1, -1, DROP_WINDOW)
+
+
+## A bar: INK-lined WELL track over `r`, `frac` filled with "lamp" / "go" /
+## "hp"; `seg` > 0 cuts the fill with an INK tick every `seg` px.
+static func bar2(ci: CanvasItem, r: Rect2, frac: float, kind := "lamp", seg := 0) -> void:
+	draw(ci, KIT + "track", r)
+	var inner := r.grow(-1)
+	var fw := floorf(inner.size.x * clampf(frac, 0.0, 1.0))
+	if fw >= 1.0 and inner.size.y >= 3.0:
+		draw(ci, KIT + "fill_" + kind, Rect2(inner.position, Vector2(fw, inner.size.y)))
+		if seg > 0:
+			var ink := Palette.color(Palette.INK)
+			var x := inner.position.x + seg
+			while x < inner.position.x + fw:
+				ci.draw_rect(Rect2(x, inner.position.y, 1, inner.size.y), ink)
+				x += seg
+		if fw < inner.size.x:
+			ci.draw_rect(Rect2(inner.position.x + fw, inner.position.y, 1, inner.size.y), Palette.color(Palette.INK))
+
+
+## `n` level pips from `at`, `lit` of them on; `new_i` >= 0 rings that pip
+## (the level a card gives). Returns the row's width.
+static func pips(ci: CanvasItem, at: Vector2, n: int, lit: int, new_i := -1) -> float:
+	var x := at.x
+	for i in n:
+		if i == new_i:
+			sprite(ci, KIT + "pip_new", Vector2(x, at.y - 1))
+			x += 9
+		else:
+			sprite(ci, KIT + ("pip_on" if i < lit else "pip_off"), Vector2(x, at.y))
+			x += 7
+	return x - at.x - 1
+
+
+## A red notification dot (9x9) with its top-left at `at`.
+static func dot(ci: CanvasItem, at: Vector2) -> void:
+	sprite(ci, KIT + "dot", at)
+
+
+## A small number badge (level, stack count) with its top-left at `at`:
+## "badge" (lamp) or "count" (paper); INK number. Returns its rect.
+static func badge(ci: CanvasItem, text: String, at: Vector2, kind := "badge", h := 9.0) -> Rect2:
+	var w := maxf(h, ceilf(Fonts.width(text, "TAG")) + 4.0)
+	var r := Rect2(at.floor(), Vector2(w, h))
+	draw(ci, KIT + kind, r)
+	Fonts.draw(ci, text, Vector2(r.position.x, Fonts.cap_y("TAG", r.position.y, h)), "TAG", Palette.INK,
+			r.size.x, HORIZONTAL_ALIGNMENT_CENTER)
+	return r
+
+
+## A label chip (kind "Manual", "District 1 · Best 6:12"): frame plate, BODY text.
+static func chip(ci: CanvasItem, text: String, at: Vector2, h := 11.0, pad := 4.0) -> Rect2:
+	var r := Rect2(at.floor(), Vector2(ceilf(Fonts.width(text, "BODY")) + pad * 2.0, h))
+	draw(ci, KIT + "chip", r)
+	Fonts.draw(ci, text, Vector2(r.position.x, Fonts.cap_y("BODY", r.position.y, h - 1)), "BODY", -1,
 			r.size.x, HORIZONTAL_ALIGNMENT_CENTER)
 	return r
 

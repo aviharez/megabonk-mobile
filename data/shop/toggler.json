@@ -1,6 +1,6 @@
 {
 	"id": "toggler",
-	"name": "Toggler",
+	"name": "Switchboard",
 	"desc": "Turn content off for runs.",
 	"kind": "toggler",
 	"icon": "ui/gear",

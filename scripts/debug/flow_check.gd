@@ -106,12 +106,12 @@ func _play(menu: Node) -> void:
 	await _frames(3)
 
 
-## UNLOCKS and SHOP open and close; PLAY opens the hero select, NEXT the
+## The Collection and Shop tabs open and close; Play opens the hero select, NEXT the
 ## map select, and GO! starts the picked hero's run on the picked map.
 func _menu_screens(tree: SceneTree, save: Node, fails: Array) -> void:
 	var menu := tree.current_scene
-	for b: Array in [["Unlocks", "UnlocksScreen"], ["Shop", "ShopScreen"]]:
-		menu.get_node("Frame/Buttons/" + b[0]).pressed.emit()
+	for b: Array in [["Collection", "UnlocksScreen"], ["Shop", "ShopScreen"]]:
+		menu.get_node("Nav/" + b[0]).pressed.emit()
 		await _frames(2)
 		var screens := menu.get_children().filter(func(c: Node) -> bool: return c is MenuScreen)
 		if screens.size() != 1 or screens[0].get_script().get_global_name() != b[1]:
@@ -157,8 +157,8 @@ func _ads_on_menu(tree: SceneTree, ads: Node, save: Node, fails: Array) -> void:
 		fails.append("no banner on the menu")
 	elif menu.offset_bottom != -ads.banner_inset:
 		fails.append("menu doesn't keep clear of the banner")
-	var daily: AdButton = menu.get_node("Frame/Buttons/Daily")
-	if not await _until(func() -> bool: return daily.visible, 5.0):
+	var daily: KitButton = menu.get_node("Frame/Buttons/Daily")
+	if not await _until(func() -> bool: return daily.visible and not daily.disabled, 5.0):
 		fails.append("daily reward button never shows")
 		return
 	var coins := int(save.data.coins)
@@ -168,8 +168,9 @@ func _ads_on_menu(tree: SceneTree, ads: Node, save: Node, fails: Array) -> void:
 	await _until(func() -> bool: return not ads.is_showing(), 5.0)
 	await _frames(2)
 	var want := coins + int(ads.config.daily.coins)
-	if int(save.data.coins) != want or daily.visible or tree.paused:
-		fails.append("daily reward: coins %d (want %d), button %s, paused %s" % [save.data.coins, want, daily.visible, tree.paused])
+	# Kit v2: the Daily rail button stays, greyed out (no AD sticker) once used.
+	if int(save.data.coins) != want or not daily.disabled or daily.sticker != "" or tree.paused:
+		fails.append("daily reward: coins %d (want %d), button off %s, paused %s" % [save.data.coins, want, daily.disabled, tree.paused])
 
 
 ## Death -> revive offer -> REVIVE -> playing again.
@@ -204,8 +205,12 @@ func _ads_double(run: Run, ads: Node, save: Node, fails: Array) -> void:
 ## SHOP -> NO ADS -> bought: the banner is gone.
 func _ads_remove(tree: SceneTree, ads: Node, fake: FakeAdBackend, save: Node, fails: Array) -> void:
 	var menu := tree.current_scene
-	menu.get_node("Frame/Buttons/Shop").pressed.emit()
+	menu.get_node("Nav/Shop").pressed.emit()
 	await _frames(3)
+	var shop := menu.find_children("*", "ShopScreen", true, false)
+	if not shop.is_empty():
+		shop[0].show_offers()
+		await _frames(2)
 	var store := get_node("/root/Store")
 	if not await _until(func() -> bool: return store.state("remove_ads") == "buyable" and ads.banner_inset > 0, 5.0):
 		fails.append("shop: no banner or Remove Ads not for sale (%s)" % store.state("remove_ads"))

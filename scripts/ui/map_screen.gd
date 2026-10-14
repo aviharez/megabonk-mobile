@@ -11,7 +11,7 @@ var selected := ""
 
 
 func _init(save_node: Node) -> void:
-	super(save_node, "Maps")
+	super(save_node, "Districts")
 	selected = Meta.picked_map(db, save.data)
 
 
@@ -35,7 +35,7 @@ func _fill() -> void:
 	if slots > 0:
 		var t := PixelButton.new()
 		t.name = "Toggler"
-		t.label = "Toggler  %d/%d off" % [save.data.toggled_off.size(), slots]
+		t.label = "Switchboard  %d/%d off" % [save.data.toggled_off.size(), slots]
 		t.face = Palette.PURPLE
 		t.ink = Palette.PAPER
 		t.custom_minimum_size = Vector2(W, 20)

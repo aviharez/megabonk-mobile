@@ -102,8 +102,8 @@ func test_hero_screen_browse_only(t) -> void:
 	hero.queue_free()
 	save.free()
 	var src := FileAccess.get_file_as_string("res://scripts/ui/main_menu.gd")
-	t.check(src.contains("_heroes_btn.pressed.connect(_open_heroes)") and src.contains("HeroScreen.new(Save, true)"),
-		"the home's heroes tile opens the browse-only screen, not the play flow")
+	t.check(src.contains("\"characters\":") and src.contains("HeroScreen.new(Save, true)"),
+		"the nav's Characters tab opens the browse-only screen, not the play flow")
 
 
 func test_map_select_cards_and_toggler(t) -> void:

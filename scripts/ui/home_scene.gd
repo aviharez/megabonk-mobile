@@ -9,7 +9,7 @@ extends Control
 ## top centre goes, `critters` where each critter's feet go.
 
 const DIR := "res://assets/ui/home/"
-const K := 2  # sprite scale
+const K := 1  # critter scale (kit v2: small critters round the hero)
 ## Critter art: blue and purple face right (left edge), green and red left.
 const CRITTERS := ["critter_blue", "critter_green", "critter_purple", "critter_red"]
 
@@ -24,6 +24,10 @@ var critters: Array[Vector2] = [Vector2.ZERO, Vector2.ZERO, Vector2.ZERO, Vector
 		critters = v
 		queue_redraw()
 var hero_id := "sir_loaf"
+## The hero and critters (Home); menu screens show the street only.
+var show_hero := true
+## Hero scale on the plinth (kit v2: heroes 3x on stages).
+const HERO_K := 3
 
 var _backdrop: Texture2D
 var _anchor := Vector2i(88, 267)  # plinth top centre in the backdrop
@@ -39,7 +43,10 @@ func _init() -> void:
 
 
 func _ready() -> void:
-	_backdrop = _tex(DIR + "backdrop.png")
+	if not show_hero:
+		plinth_at = Vector2(floorf(size.x / 2.0), floorf(size.y * 0.55))
+		resized.connect(func() -> void: plinth_at = Vector2(floorf(size.x / 2.0), floorf(size.y * 0.55)))
+	_backdrop = _tex(DIR + "backdrop_night.png")
 	var meta = JSON.parse_string(FileAccess.get_file_as_string(DIR + "backdrop.json"))
 	if meta is Dictionary:
 		_anchor = Vector2i(int(meta.plinth[0]), int(meta.plinth[1]))
@@ -77,13 +84,18 @@ func _process(delta: float) -> void:
 
 
 func _draw() -> void:
-	draw_rect(Rect2(Vector2.ZERO, size), Palette.color(Palette.INK))
+	draw_rect(Rect2(Vector2.ZERO, size), Palette.color(Palette.BG))
 	if _backdrop != null:
-		draw_texture(_backdrop, plinth_at - Vector2(_anchor))
+		var at := plinth_at - Vector2(_anchor)
+		# Sky above the art in its own top colour; the art's foot is BG already.
+		draw_rect(Rect2(0, 0, size.x, at.y), Palette.color(Palette.SURFACE))
+		draw_texture(_backdrop, at)
+	if not show_hero:
+		return
 	# Critters: a short hop every couple of seconds, each on its own phase.
 	for i in mini(_critter_tex.size(), critters.size()):
 		var tex := _critter_tex[i]
-		if tex == null:
+		if tex == null or critters[i].x < -50.0:
 			continue
 		var ph := fmod(_t + i * 0.7, 2.6)
 		var hop := -2.0 if ph < 0.15 else (-1.0 if ph < 0.3 else 0.0)
@@ -94,5 +106,5 @@ func _draw() -> void:
 		var fw := tex.get_width() / int(_hero.frames)
 		var fh := tex.get_height()
 		var origin: Vector2 = _hero.get("origin", Vector2(fw / 2.0, fh))
-		draw_texture_rect_region(tex, Rect2(plinth_at - origin.floor() * K, Vector2(fw, fh) * K),
+		draw_texture_rect_region(tex, Rect2(plinth_at - origin.floor() * HERO_K, Vector2(fw, fh) * HERO_K),
 				Rect2(_frame * fw, 0, fw, fh))
