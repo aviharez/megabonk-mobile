@@ -1,0 +1,14 @@
+{
+	"id": "daily_swarm_unhurt",
+	"kind": "daily",
+	"desc": "Survive a swarm without a hit",
+	"stat": "swarm_survived_no_damage",
+	"scope": "total",
+	"target": 1,
+	"requires": "",
+	"reward": {
+		"coins": 8,
+		"points": 20
+	},
+	"repeat": true
+}

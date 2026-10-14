@@ -1,0 +1,13 @@
+{
+	"id": "weekly_pots_60",
+	"kind": "weekly",
+	"desc": "Break 60 pots",
+	"stat": "pots_broken",
+	"scope": "total",
+	"target": 60,
+	"requires": "",
+	"reward": {
+		"coins": 20
+	},
+	"repeat": true
+}

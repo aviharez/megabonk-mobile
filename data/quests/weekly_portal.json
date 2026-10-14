@@ -1,0 +1,13 @@
+{
+	"id": "weekly_portal",
+	"kind": "weekly",
+	"desc": "Escape through the portal",
+	"stat": "escaped",
+	"scope": "total",
+	"target": 1,
+	"requires": "",
+	"reward": {
+		"coins": 40
+	},
+	"repeat": true
+}

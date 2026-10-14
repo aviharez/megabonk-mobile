@@ -1,0 +1,14 @@
+{
+	"id": "daily_kills_run_1500",
+	"kind": "daily",
+	"desc": "Defeat 1,500 critters in one run",
+	"stat": "kills",
+	"scope": "run",
+	"target": 1500,
+	"requires": "",
+	"reward": {
+		"coins": 8,
+		"points": 20
+	},
+	"repeat": true
+}

@@ -7,5 +7,6 @@
 	"target": 1,
 	"requires": "",
 	"reward": "microwave_meltdown",
-	"price": 220
+	"price": 220,
+	"coins": 25
 }

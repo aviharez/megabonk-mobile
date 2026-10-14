@@ -1,0 +1,14 @@
+{
+	"id": "daily_elites_2",
+	"kind": "daily",
+	"desc": "Defeat 2 elites",
+	"stat": "elites_killed",
+	"scope": "total",
+	"target": 2,
+	"requires": "",
+	"reward": {
+		"coins": 5,
+		"points": 20
+	},
+	"repeat": true
+}

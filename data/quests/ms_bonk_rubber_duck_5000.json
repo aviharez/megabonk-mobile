@@ -1,0 +1,14 @@
+{
+	"id": "ms_bonk_rubber_duck_5000",
+	"kind": "milestone",
+	"desc": "Bonk 5,000 with Rubber Duck",
+	"stat": "kills",
+	"scope": "total",
+	"target": 5000,
+	"requires": "",
+	"reward": {
+		"coins": 6
+	},
+	"repeat": false,
+	"weapon": "rubber_duck"
+}

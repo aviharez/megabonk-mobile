@@ -8,5 +8,6 @@
 	"target": 1000,
 	"requires": "",
 	"reward": "faulty_toaster",
-	"price": 90
+	"price": 90,
+	"coins": 15
 }

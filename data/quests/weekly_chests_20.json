@@ -1,0 +1,13 @@
+{
+	"id": "weekly_chests_20",
+	"kind": "weekly",
+	"desc": "Open 20 chests",
+	"stat": "chests_opened",
+	"scope": "total",
+	"target": 20,
+	"requires": "",
+	"reward": {
+		"coins": 20
+	},
+	"repeat": true
+}

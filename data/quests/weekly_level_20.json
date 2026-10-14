@@ -1,0 +1,13 @@
+{
+	"id": "weekly_level_20",
+	"kind": "weekly",
+	"desc": "Reach level 20 in one run",
+	"stat": "level",
+	"scope": "run",
+	"target": 20,
+	"requires": "",
+	"reward": {
+		"coins": 25
+	},
+	"repeat": true
+}

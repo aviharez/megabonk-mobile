@@ -1,0 +1,14 @@
+{
+	"id": "ms_bonk_faulty_toaster_500",
+	"kind": "milestone",
+	"desc": "Bonk 500 with Faulty Toaster",
+	"stat": "kills",
+	"scope": "total",
+	"target": 500,
+	"requires": "",
+	"reward": {
+		"coins": 4
+	},
+	"repeat": false,
+	"weapon": "faulty_toaster"
+}

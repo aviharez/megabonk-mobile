@@ -1,0 +1,13 @@
+{
+	"id": "ms_chests_10",
+	"kind": "milestone",
+	"desc": "Open 10 chests",
+	"stat": "chests_opened",
+	"scope": "total",
+	"target": 10,
+	"requires": "",
+	"reward": {
+		"coins": 2
+	},
+	"repeat": false
+}

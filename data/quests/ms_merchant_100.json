@@ -1,0 +1,13 @@
+{
+	"id": "ms_merchant_100",
+	"kind": "milestone",
+	"desc": "Buy 100 wares from the Merchant",
+	"stat": "items_bought",
+	"scope": "total",
+	"target": 100,
+	"requires": "",
+	"reward": {
+		"coins": 6
+	},
+	"repeat": false
+}

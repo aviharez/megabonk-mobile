@@ -7,5 +7,6 @@
 	"target": 3000,
 	"requires": "",
 	"reward": "fridge_magnets",
-	"price": 30
+	"price": 30,
+	"coins": 5
 }

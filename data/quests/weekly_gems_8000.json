@@ -1,0 +1,13 @@
+{
+	"id": "weekly_gems_8000",
+	"kind": "weekly",
+	"desc": "Collect 8,000 XP gems",
+	"stat": "gems_collected",
+	"scope": "total",
+	"target": 8000,
+	"requires": "",
+	"reward": {
+		"coins": 20
+	},
+	"repeat": true
+}

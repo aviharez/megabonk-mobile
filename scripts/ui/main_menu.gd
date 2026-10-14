@@ -2,8 +2,9 @@ extends Control
 ## The menu shell and Home (the Battle tab), kit v2 (docs/ui/home.png): the
 ## night town (HomeScene) with the picked hero 3x on the plinth and critters
 ## around it; a top bar (coin plate, settings); the district chip and name;
-## rail buttons left (Daily: coins for a rewarded ad) and right (No Ads, until
-## bought); an Unlock button under the hero while something is ready to buy;
+## rail buttons left (Quests with a count of things to claim, and under it
+## Daily: coins for a rewarded ad) and right (No Ads, until bought, level with
+## Daily; the top right is kept for the weekly event); an Unlock button under the hero while something is ready to buy;
 ## the lamp Play; and the bottom nav (BottomNav: Shop, Characters, Battle,
 ## Town, Collection). Tab screens open over Home with the nav on top; Play's
 ## two steps (Pick a District, Pick a Hero) are sub-screens with their own
@@ -24,6 +25,9 @@ const RUN_SCENE := "res://scenes/run.tscn"
 ## The design's screen (docs/ui/ are 180 x 390 at 4x).
 const BASE := Vector2(180, 390)
 const RAIL := Vector2(30, 32)
+## Top to top of the two rail rows (docs/ui/home.png: Quests over Daily).
+## 41 there; 43 keeps the Quests word clear of Daily's AD sticker.
+const RAIL_GAP := 43.0
 
 var _scene: HomeScene
 var _frame: Control
@@ -33,6 +37,7 @@ var _district: Control
 var _buttons: Control
 var _play: KitButton
 var _daily: KitButton
+var _quests: KitButton
 var _no_ads: KitButton
 var _unlock: KitButton
 var _settings_btn: KitButton
@@ -144,7 +149,7 @@ func _rail(node_name: String, word: String, art: Texture2D) -> KitButton:
 	b.art_scale = 1
 	b.label = word
 	b.style_name = "NAV"
-	b.text_box = Rect2(-10, RAIL.y - 2, RAIL.x + 20, 9)
+	b.text_box = Rect2(-10, RAIL.y - 4, RAIL.x + 20, 9)
 	b.size = RAIL
 	_buttons.add_child(b)
 	return b
@@ -156,6 +161,8 @@ func _build_buttons() -> void:
 	_buttons.mouse_filter = MOUSE_FILTER_IGNORE
 	_buttons.size = Vector2(BASE.x, 110)
 	_frame.add_child(_buttons)
+	_quests = _rail("Quests", "Quests", UiArt.texture("kit/clipboard"))
+	_quests.pressed.connect(_open_quests)
 	_daily = _rail("Daily", "Daily", UiArt.texture("home/icon_sack"))
 	_daily.sticker = "ad"
 	_daily.pressed.connect(_on_daily)
@@ -200,6 +207,7 @@ func _layout() -> void:
 	_buttons.position = Vector2(cx, 0)
 	_play.position.x = 26
 	_daily.position.x = 7
+	_quests.position.x = 7
 	_no_ads.position.x = BASE.x - 7 - RAIL.x
 	_unlock.position.x = floorf((BASE.x - RAIL.x) / 2.0)
 	_scene.plinth_at = Vector2(cx + 90, _mid_y + 26)
@@ -209,6 +217,9 @@ func _layout() -> void:
 func _process(delta: float) -> void:
 	_t += delta
 	_place()
+	# Midnight passing while Home is up: the new dailies count.
+	if int(_t / 30.0) != int((_t - delta) / 30.0):
+		_refresh_quests()
 	# The banner follows whichever screen is on top (screens open and close
 	# from several places, so check here rather than at each one).
 	var screen := _current_screen()
@@ -229,8 +240,9 @@ func _place() -> void:
 		hop = -2.0 if ph < 0.15 else -1.0
 	_play.position.y = _nav_y - 61 + hop + rise
 	var rail_y := maxf(_top_y + 88.0, _mid_y - 87.0)
-	_daily.position.y = rail_y
-	_no_ads.position.y = rail_y
+	_quests.position.y = rail_y
+	_daily.position.y = rail_y + RAIL_GAP
+	_no_ads.position.y = rail_y + RAIL_GAP
 	_unlock.position.y = minf(_mid_y + 51.0, _nav_y - 61.0 - RAIL.y - 12.0) + rise
 	var cx := floorf((size.x - BASE.x) / 2.0)
 	# Blue left of the plinth, purple right (green and red stay off: -100).
@@ -243,8 +255,8 @@ func _exit_tree() -> void:
 		_ads.set_banner(false)
 
 
-## "menu", "shop", "unlocks", "settings", "characters", "hero" (Pick a
-## Hero), "map" (Pick a District) or "toggler".
+## "menu", "shop", "unlocks", "settings", "characters", "quests", "hero"
+## (Pick a Hero), "map" (Pick a District) or "toggler".
 func _current_screen() -> String:
 	var screens := get_children().filter(func(c: Node) -> bool: return c is MenuScreen and not c.is_queued_for_deletion())
 	if not screens.is_empty():
@@ -259,6 +271,8 @@ func _current_screen() -> String:
 			return "map"
 		if top is CharactersScreen:
 			return "characters"
+		if top is QuestsScreen:
+			return "quests"
 		return "hero"
 	if _settings != null and _settings.visible:
 		return "settings"
@@ -420,7 +434,21 @@ func _refresh_wallet() -> void:
 	var store := get_node_or_null("/root/Store")
 	_no_ads.visible = store == null or not store.owns("remove_ads")
 	_refresh_unlock()
+	_refresh_quests()
 	_district.queue_redraw()
+
+
+## The Quests rail's count: quests, chests and challenge coins to claim
+## (draws the day's quests first if midnight passed).
+func _refresh_quests() -> void:
+	var n := Quests.total_ready(GameData.shared(), Save.data)
+	_quests.sticker = "count" if n > 0 else ""
+	_quests.count = n
+
+
+## Quests: a sub-screen (no nav) over Home.
+func _open_quests() -> QuestsScreen:
+	return _open_screen(QuestsScreen) as QuestsScreen
 
 
 ## The Unlock button shows while something is ready to buy (its icon on it).

@@ -1,0 +1,13 @@
+{
+	"id": "ms_pots_500",
+	"kind": "milestone",
+	"desc": "Break 500 pots",
+	"stat": "pots_broken",
+	"scope": "total",
+	"target": 500,
+	"requires": "",
+	"reward": {
+		"coins": 8
+	},
+	"repeat": false
+}

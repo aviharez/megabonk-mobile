@@ -1,0 +1,39 @@
+{
+	"id": "quests",
+	"daily_count": 3,
+	"weekly_count": 5,
+	"chests": [
+		{
+			"points": 20,
+			"coins": 5
+		},
+		{
+			"points": 40,
+			"coins": 5
+		},
+		{
+			"points": 60,
+			"coins": 10
+		}
+	],
+	"icons": {
+		"kills": "enemies/blob",
+		"runs_finished": "ui/kit/play",
+		"chests_opened": "interactables/paid_chest",
+		"gems_collected": "ui/kit/gem",
+		"pots_broken": "interactables/pot",
+		"shrines_activated": "interactables/charge_shrine",
+		"elites_killed": "ui/hud_skull",
+		"boss_defeated": "enemies/mega_mole",
+		"boss_summoned": "interactables/boss_altar",
+		"escaped": "interactables/portal",
+		"final_swarm_reached": "ui/alert",
+		"final_swarm_seconds": "ui/hud_clock",
+		"items_bought": "interactables/merchant",
+		"challenges_won": "interactables/challenge_shrine",
+		"swarm_survived_no_damage": "enemies/gnat",
+		"swarms_started": "enemies/skitter",
+		"level": "ui/star",
+		"keys_found": "interactables/cage_key"
+	}
+}

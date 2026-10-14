@@ -1,0 +1,14 @@
+{
+	"id": "daily_runs_3",
+	"kind": "daily",
+	"desc": "Finish 3 runs",
+	"stat": "runs_finished",
+	"scope": "total",
+	"target": 3,
+	"requires": "",
+	"reward": {
+		"coins": 5,
+		"points": 20
+	},
+	"repeat": true
+}

@@ -1,0 +1,13 @@
+{
+	"id": "ms_boss_10",
+	"kind": "milestone",
+	"desc": "Defeat Mega Mole 10 times",
+	"stat": "boss_defeated",
+	"scope": "total",
+	"target": 10,
+	"requires": "",
+	"reward": {
+		"coins": 7
+	},
+	"repeat": false
+}

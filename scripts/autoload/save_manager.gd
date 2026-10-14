@@ -67,6 +67,21 @@ static func default_data() -> Dictionary:
 		"district_goals": {},
 		# Bestiary: enemy id -> {"first_seen": run seconds, "bonked": count}.
 		"bestiary": {},
+		# Quests (phase 12; see scripts/core/quests.gd): the current daily and
+		# weekly draws, progress, claims, daily points and chests, AD x2.
+		"quests": {
+			"day": -1,
+			"daily": [],
+			"week": -1,
+			"weekly": [],
+			"progress": {},
+			"claimed": {},
+			"points": 0,
+			"chests": [],
+			"last_claim": {},
+			"doubled_day": -1,
+			"earned": 0,
+		},
 		# Ad pacing, daily reward, Remove Ads (phase 5; see scripts/autoload/ads.gd).
 		"ads": {
 			# Remove Ads bought (no interstitials, no banners; rewarded ads stay).

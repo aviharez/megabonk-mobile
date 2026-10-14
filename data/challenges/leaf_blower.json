@@ -7,5 +7,6 @@
 	"target": 1,
 	"requires": "",
 	"reward": "leaf_blower",
-	"price": 90
+	"price": 90,
+	"coins": 15
 }

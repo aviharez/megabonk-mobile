@@ -1,0 +1,15 @@
+{
+	"id": "ms_beat_sir_loaf_d2",
+	"kind": "milestone",
+	"desc": "Beat Mega Mole as Sir Loaf on Danger 2",
+	"stat": "boss_defeated",
+	"scope": "run",
+	"target": 1,
+	"requires": "",
+	"reward": {
+		"coins": 8
+	},
+	"repeat": false,
+	"danger": 2,
+	"character": "sir_loaf"
+}

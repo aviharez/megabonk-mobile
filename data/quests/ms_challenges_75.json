@@ -1,0 +1,13 @@
+{
+	"id": "ms_challenges_75",
+	"kind": "milestone",
+	"desc": "Win 75 Challenge Beacons",
+	"stat": "challenges_won",
+	"scope": "total",
+	"target": 75,
+	"requires": "",
+	"reward": {
+		"coins": 6
+	},
+	"repeat": false
+}

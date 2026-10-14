@@ -170,7 +170,8 @@ def plates():
 # Stickers, badges and chips: INK outline around a flat fill (+ a shaded bottom on chips).
 def stickers():
     for name, fill in [("sticker", "lamp_hi"), ("badge", "lamp"), ("count", "text"),
-                       ("ad", "ink"), ("chip_go", "go_lo"), ("sticker_epic", "r_epic")]:
+                       ("ad", "ink"), ("chip_go", "go_lo"), ("sticker_epic", "r_epic"),
+                       ("count_alert", "alert")]:
         c = Canvas(3, 3)
         c.outline()
         c.px(1, 1, fill)
@@ -365,6 +366,36 @@ def icons():
         c.rect(6 + i, 1 + i, 1, 9 - 2 * i, "text")
     c.rect(2, 7, 4, 1, "muted")
     part("next", c)
+    # Quests (Home rail): a clipboard, wood board, paper sheet with three
+    # ticked lines, a metal clip on top.
+    c = Canvas(15, 18)
+    c.rect(0, 2, 15, 16, "ink")
+    c.rect(1, 3, 13, 14, "lamp_lo")
+    c.rect(1, 16, 13, 1, "lamp_deep")
+    c.rect(13, 3, 1, 14, "lamp_deep")
+    c.rect(3, 5, 9, 10, "text")
+    c.rect(11, 5, 1, 10, "r_common")
+    c.rect(3, 14, 9, 1, "r_common")
+    for y in (7, 10, 13):
+        c.px(4, y - 1, "go")
+        c.px(5, y, "go_lo")
+        c.rect(7, y - 1, 4, 1, "muted")
+    c.rect(4, 0, 7, 4, "ink")
+    c.rect(5, 1, 5, 2, "r_common")
+    c.rect(5, 1, 5, 1, "text")
+    part("clipboard", c)
+    # XP gem (quest icon): a cut stone, rare blue with a paper glint.
+    c = Canvas(9, 10)
+    rows = [(3, 3), (2, 5), (1, 7), (0, 9), (0, 9), (1, 7), (2, 5), (3, 3), (4, 1)]
+    for y, (x0, w) in enumerate(rows, start=1):
+        c.rect(x0, y, w, 1, "ink")
+        if w > 2:
+            c.rect(x0 + 1, y, w - 2, 1, "r_rare" if y > 2 else "text")
+    c.rect(3, 0, 3, 1, "ink")
+    c.rect(2, 3, 2, 2, "text")
+    c.rect(4, 6, 2, 1, "frame")
+    c.px(5, 5, "frame")
+    part("gem", c)
 
 
 def main():

@@ -1,0 +1,13 @@
+{
+	"id": "weekly_kills_15000",
+	"kind": "weekly",
+	"desc": "Defeat 15,000 critters",
+	"stat": "kills",
+	"scope": "total",
+	"target": 15000,
+	"requires": "",
+	"reward": {
+		"coins": 30
+	},
+	"repeat": true
+}

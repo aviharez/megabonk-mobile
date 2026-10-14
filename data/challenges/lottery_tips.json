@@ -7,5 +7,6 @@
 	"target": 1,
 	"requires": "golden_toilet",
 	"reward": "lottery_tips",
-	"price": 90
+	"price": 90,
+	"coins": 15
 }

@@ -8,5 +8,6 @@
 	"goal": "at_most",
 	"requires": "",
 	"reward": "cursed_diary",
-	"price": 220
+	"price": 220,
+	"coins": 25
 }

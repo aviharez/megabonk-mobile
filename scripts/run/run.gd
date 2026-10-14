@@ -1794,9 +1794,10 @@ func _end(reason: String) -> void:
 	result = {"won": won, "reason": reason, "escaped": reason == "portal", "time": elapsed, "level": level,
 		"kills": kills, "coins": coins, "coin_mult": snappedf(director.coin_mult(), 0.01), "gold": floori(gold),
 		"final_swarm_seconds": director.final_time, "boss_defeated": boss_defeated, "stats": run_stats.duplicate(),
-		"character": char_def.id, "map": map_def.id, "danger": danger_level, "seen": seen.duplicate(), "completed": []}
+		"character": char_def.id, "map": map_def.id, "danger": danger_level, "seen": seen.duplicate(), "completed": [], "quests_done": []}
 	if _save != null:
 		result.completed = Meta.commit_run(db, meta, result.stats, char_def.id, coins, map_def.id, elapsed, danger_level)
+		result.quests_done = Quests.commit_run(db, meta, result.stats, char_def.id, danger_level)
 		Meta.commit_bestiary(meta, seen, bonked)
 		_save.save_game()
 	if ads != null:

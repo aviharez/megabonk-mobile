@@ -22,6 +22,7 @@ const SCHEMA := {
 	"challenges": {"id": TYPE_STRING, "tier": TYPE_STRING, "desc": TYPE_STRING, "stat": TYPE_STRING, "scope": TYPE_STRING, "target": TYPE_FLOAT, "requires": TYPE_STRING, "reward": TYPE_STRING, "price": TYPE_FLOAT},
 	"shop": {"id": TYPE_STRING, "name": TYPE_STRING, "desc": TYPE_STRING, "kind": TYPE_STRING, "prices": TYPE_ARRAY},
 	"danger": {"id": TYPE_STRING, "level": TYPE_FLOAT, "modifiers": TYPE_DICTIONARY, "coin_mult": TYPE_FLOAT},
+	"quests": {"id": TYPE_STRING, "kind": TYPE_STRING, "desc": TYPE_STRING, "stat": TYPE_STRING, "scope": TYPE_STRING, "target": TYPE_FLOAT, "requires": TYPE_STRING, "reward": TYPE_DICTIONARY, "repeat": TYPE_BOOL},
 }
 ## Values the code knows how to run. Data naming anything else is an error.
 ## Weapon patterns come from Weapon.PATTERNS, item events/effects from ItemSystem.
@@ -257,6 +258,8 @@ func _check_entry(category: String, e: Dictionary) -> void:
 			_check_shop(e)
 		"danger":
 			_check_danger(e)
+		"quests":
+			_check_quest(e)
 
 
 ## data/danger/<id>.json: {"level" (1, 2, 3...), "modifiers": {DANGER_MULTS
@@ -365,6 +368,7 @@ func _cross_check() -> void:
 		c.call()
 	_late.clear()  # the closures hold this object: don't keep a cycle
 	_check_unlock_links()
+	_check_quest_links()
 	# Danger levels run 1, 2, 3... with no gaps or repeats.
 	var levels: Array = entries.danger.values().map(func(d: Dictionary) -> int: return int(d.level))
 	levels.sort()
@@ -511,7 +515,7 @@ func _check_fx(x: Dictionary) -> void:
 
 ## data/rules/ads.json: ad units, rewarded placement limits, revive, daily,
 ## interstitial pacing, banner screens (scripts/autoload/ads.gd).
-const AD_PLACEMENTS := ["revive", "double_coins", "reroll", "skip", "banish", "daily"]
+const AD_PLACEMENTS := ["revive", "double_coins", "reroll", "skip", "banish", "daily", "quest_double"]
 const AD_FORMATS := ["banner", "interstitial", "rewarded"]
 
 
@@ -842,11 +846,114 @@ func _check_challenge(e: Dictionary) -> void:
 		errors.append("%s: \"target\" must be above 0" % f)
 	if e.price < 0.0 or e.price != floorf(e.price):
 		errors.append("%s: \"price\" must be a whole number of coins" % f)
+	if e.has("coins") and not (_is_num(e.coins) and e.coins >= 0.0 and e.coins == floorf(e.coins)):
+		errors.append("%s: \"coins\" must be a whole number of coins" % f)
 	if e.has("weapon") and not e.stat in Meta.WEAPON_STATS:
 		errors.append("%s: only %s can be narrowed to a weapon" % [f, ", ".join(Meta.WEAPON_STATS)])
 	for k: String in ["weapon", "character"]:
 		if e.has(k) and typeof(e[k]) != TYPE_STRING:
 			errors.append("%s: \"%s\" must be an id" % [f, k])
+
+
+## Quests (data/quests/): the challenge schema plus "kind", "reward" and
+## "repeat" (scripts/core/quests.gd). Names are checked in _check_quest_links.
+func _check_quest(e: Dictionary) -> void:
+	var f: String = e._file
+	if not e.kind in Quests.KINDS:
+		errors.append("%s: unknown kind \"%s\" (%s)" % [f, e.kind, ", ".join(Quests.KINDS)])
+		return
+	if e.desc == "":
+		errors.append("%s: \"desc\" is empty" % f)
+	if not e.stat in Meta.STATS:
+		errors.append("%s: unknown stat \"%s\" (the run records: %s)" % [f, e.stat, ", ".join(Meta.STATS)])
+	if not e.scope in ["run", "total"]:
+		errors.append("%s: \"scope\" must be \"run\" or \"total\"" % f)
+	elif e.scope == "total" and e.stat in Meta.VALUE_STATS:
+		errors.append("%s: \"%s\" is one value per run; use \"scope\": \"run\"" % [f, e.stat])
+	var goal: String = e.get("goal", "at_least")
+	if not goal in ["at_least", "at_most"]:
+		errors.append("%s: \"goal\" must be \"at_least\" or \"at_most\"" % f)
+	elif goal == "at_most" and e.get("scope") != "run":
+		errors.append("%s: an \"at_most\" goal needs \"scope\": \"run\"" % f)
+	if e.target <= 0.0:
+		errors.append("%s: \"target\" must be above 0" % f)
+	var coins = e.reward.get("coins")
+	if not (_is_num(coins) and coins >= 0.0 and coins == floorf(coins)):
+		errors.append("%s: \"reward\" needs whole \"coins\"" % f)
+	var pts = e.reward.get("points", 0.0)
+	if not (_is_num(pts) and pts >= 0.0 and pts == floorf(pts)):
+		errors.append("%s: reward \"points\" must be a whole number" % f)
+	elif pts > 0.0 and e.kind != "daily":
+		errors.append("%s: only daily quests give points" % f)
+	for k: String in e.reward:
+		if not k in ["coins", "points"]:
+			errors.append("%s: unknown reward \"%s\" (coins, points)" % [f, k])
+	if e.repeat != (e.kind != "milestone"):
+		errors.append("%s: \"repeat\" must be %s for a %s quest" % [f, e.kind != "milestone", e.kind])
+	if e.has("weapon") and not e.stat in Meta.WEAPON_STATS:
+		errors.append("%s: only %s can be narrowed to a weapon" % [f, ", ".join(Meta.WEAPON_STATS)])
+	for k: String in ["weapon", "character", "icon"]:
+		if e.has(k) and typeof(e[k]) != TYPE_STRING:
+			errors.append("%s: \"%s\" must be text" % [f, k])
+	if e.has("danger") and not (_is_num(e.danger) and e.danger >= 1.0 and e.danger == floorf(e.danger)):
+		errors.append("%s: \"danger\" must be a level (1, 2, 3...)" % f)
+
+
+## Quests name real content, danger levels and icons; each pool can fill a
+## draw; rules/quests.json has the draw sizes, points chests and stat icons.
+func _check_quest_links() -> void:
+	var r: Dictionary = entries.rules.get("quests", {})
+	if entries.quests.is_empty() and r.is_empty():
+		return
+	var rf: String = r.get("_file", ROOT.path_join("rules/quests.json"))
+	if r.is_empty():
+		errors.append("%s: missing (quest draw sizes, chests, icons)" % rf)
+		return
+	for k: String in ["daily_count", "weekly_count"]:
+		if not (_is_num(r.get(k)) and r[k] >= 1.0):
+			errors.append("%s: needs a number \"%s\" (1+)" % [rf, k])
+	var last := 0.0
+	var ch = r.get("chests", [])
+	if not ch is Array or ch.is_empty():
+		errors.append("%s: \"chests\" must list {\"points\", \"coins\"}" % rf)
+	else:
+		for c in ch:
+			if not (c is Dictionary and _is_num(c.get("points")) and _is_num(c.get("coins")) and c.points > last):
+				errors.append("%s: each chest needs \"points\" (rising) and \"coins\"" % rf)
+				break
+			last = c.points
+	var icons = r.get("icons", {})
+	if not icons is Dictionary:
+		errors.append("%s: \"icons\" must map stats to icons" % rf)
+		icons = {}
+	for stat: String in icons:
+		if not stat in Meta.STATS:
+			errors.append("%s: icon for unknown stat \"%s\"" % [rf, stat])
+		var why := Icons.ref_error(self, icons[stat])
+		if why != "":
+			errors.append("%s: icon for \"%s\" %s" % [rf, stat, why])
+	var levels: Array = entries.danger.values().map(func(d: Dictionary) -> int: return int(d.level))
+	var pools := {"daily": 0, "weekly": 0}
+	for e: Dictionary in entries.quests.values():
+		var f: String = e._file
+		if pools.has(e.kind):
+			pools[e.kind] += 1
+		if e.requires != "" and Meta.content(self, e.requires).is_empty():
+			errors.append("%s: \"requires\" names unknown content \"%s\"" % [f, e.requires])
+		if e.get("weapon", "") != "" and not entries.weapons.has(e.weapon):
+			errors.append("%s: unknown weapon \"%s\"" % [f, e.weapon])
+		if e.get("character", "") != "" and not entries.characters.has(e.character):
+			errors.append("%s: unknown character \"%s\"" % [f, e.character])
+		if e.has("danger") and _is_num(e.danger) and not int(e.danger) in levels:
+			errors.append("%s: no danger level %d in danger/" % [f, int(e.danger)])
+		var icon := Quests.icon_of(self, e)
+		var why := Icons.ref_error(self, icon) if icon != "" else "is missing (no \"icon\" and no stat icon in rules/quests.json)"
+		if why != "":
+			errors.append("%s: icon %s" % [f, why])
+	if _is_num(r.get("daily_count")) and pools.daily < int(r.daily_count):
+		errors.append("%s: %d daily quests can't fill a draw of %d" % [rf, pools.daily, int(r.daily_count)])
+	if _is_num(r.get("weekly_count")) and pools.weekly < int(r.weekly_count):
+		errors.append("%s: %d weekly quests can't fill a draw of %d" % [rf, pools.weekly, int(r.weekly_count)])
 
 
 ## Shop entries: a known kind; one price per level; charges per level for

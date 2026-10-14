@@ -1,0 +1,13 @@
+{
+	"id": "ms_bonk_run_2500",
+	"kind": "milestone",
+	"desc": "Bonk 2,500 critters in one run",
+	"stat": "kills",
+	"scope": "run",
+	"target": 2500,
+	"requires": "",
+	"reward": {
+		"coins": 4
+	},
+	"repeat": false
+}

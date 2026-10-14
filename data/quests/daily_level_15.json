@@ -1,0 +1,14 @@
+{
+	"id": "daily_level_15",
+	"kind": "daily",
+	"desc": "Reach level 15 in one run",
+	"stat": "level",
+	"scope": "run",
+	"target": 15,
+	"requires": "",
+	"reward": {
+		"coins": 8,
+		"points": 20
+	},
+	"repeat": true
+}

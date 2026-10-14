@@ -1,0 +1,14 @@
+{
+	"id": "daily_gems_1000",
+	"kind": "daily",
+	"desc": "Collect 1,000 XP gems",
+	"stat": "gems_collected",
+	"scope": "total",
+	"target": 1000,
+	"requires": "",
+	"reward": {
+		"coins": 5,
+		"points": 20
+	},
+	"repeat": true
+}

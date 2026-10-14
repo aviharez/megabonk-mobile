@@ -1,0 +1,13 @@
+{
+	"id": "ms_level_25",
+	"kind": "milestone",
+	"desc": "Reach level 25 in one run",
+	"stat": "level",
+	"scope": "run",
+	"target": 25,
+	"requires": "",
+	"reward": {
+		"coins": 6
+	},
+	"repeat": false
+}

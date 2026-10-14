@@ -1,7 +1,8 @@
 extends Node
 ## End-to-end check of the screens: menu -> Play -> Pick a Hero (a new save
 ## skips Pick a District) -> Start -> run -> death -> game over (with unlock
-## progress) -> Menu -> Collection, Shop and Characters open and close ->
+## progress) -> Menu -> the Quests rail counts the run's milestone, Claim
+## pays -> Collection, Shop and Characters open and close ->
 ## with Mega Mole beaten and Turbo Pigeon owned, Play opens Pick a District
 ## (New! on Danger 2), Danger 2 > Next > Turbo Pigeon > Start runs him there
 ## on Danger 2, and Play Again starts the same run with no Pick steps.
@@ -110,6 +111,35 @@ func _play(menu: Node) -> void:
 ## and Start runs the picked hero on the picked danger; Play Again repeats it.
 func _menu_screens(tree: SceneTree, save: Node, fails: Array) -> void:
 	var menu := tree.current_scene
+	# Quests: the first run finished a milestone; the rail counts it, opens
+	# Quests (no nav), Claim pays, back on Home the count drops.
+	var rail: KitButton = menu.get_node("Frame/Buttons/Quests")
+	var count := rail.count
+	if rail.sticker != "count" or count < 1:
+		fails.append("the Quests rail shows nothing to claim after a run (%s %d)" % [rail.sticker, count])
+	else:
+		rail.pressed.emit()
+		await _frames(2)
+		var qs: QuestsScreen = null
+		for c in menu.get_children():
+			if c is QuestsScreen:
+				qs = c
+		if qs == null:
+			fails.append("the Quests rail did not open Quests")
+		else:
+			var claim: KitButton = qs.find_child("Claim", true, false)
+			var coins := int(save.data.coins)
+			if claim == null:
+				fails.append("Quests has no Claim button")
+			else:
+				claim.pressed.emit()
+				await _frames(2)
+				if int(save.data.coins) <= coins:
+					fails.append("Claim did not pay")
+			qs.close()
+			await _frames(2)
+			if rail.count >= count and rail.sticker == "count":
+				fails.append("the Quests count did not drop after a claim (%d -> %d)" % [count, rail.count])
 	for b: Array in [["Collection", "UnlocksScreen"], ["Shop", "ShopScreen"], ["Characters", "CharactersScreen"]]:
 		menu.get_node("Nav/" + b[0]).pressed.emit()
 		await _frames(2)

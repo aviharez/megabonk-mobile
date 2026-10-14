@@ -1,0 +1,14 @@
+{
+	"id": "ms_bonk_turbo_pigeon_1000",
+	"kind": "milestone",
+	"desc": "Bonk 1,000 as Turbo Pigeon",
+	"stat": "kills",
+	"scope": "total",
+	"target": 1000,
+	"requires": "",
+	"reward": {
+		"coins": 4
+	},
+	"repeat": false,
+	"character": "turbo_pigeon"
+}

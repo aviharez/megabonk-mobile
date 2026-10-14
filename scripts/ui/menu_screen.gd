@@ -48,6 +48,12 @@ var _tab_coins: CoinPlate
 const TAB_HEADER_H := 36
 ## A step of Play (1 District, 2 Hero), set before the screen enters the tree.
 var step := 0
+## A sub-screen with the step look but no step indicator (Quests:
+## docs/ui/quests.png): back block, outlined title, coin plate; set before
+## the screen enters the tree.
+var back_block := false
+const BACK_HEADER_H := 38
+const BACK_BOTTOM_H := 26
 ## Step mode: header (back block, title, coins, step indicator) and the
 ## bottom row (big buttons: BIG_H + their 3 px drop) heights.
 const STEP_HEADER_H := 52
@@ -135,7 +141,7 @@ func _init(save_node: Node, title: String) -> void:
 func _ready() -> void:
 	if tab_mode:
 		_set_tab_mode()
-	elif step > 0:
+	elif step > 0 or back_block:
 		_set_step_mode()
 	# Screens that fill the list area (hero, maps) rebuild whenever its real
 	# height changes (safe area applied, a banner coming or going).
@@ -307,13 +313,14 @@ func _set_step_mode() -> void:
 	_tab_coins.size = Vector2(94, CoinPlate.H)
 	_tab_coins.value = int(save.data.coins)
 	_header.add_child(_tab_coins)
-	var steps := Control.new()
-	steps.name = "Steps"
-	steps.mouse_filter = MOUSE_FILTER_IGNORE
-	steps.position = Vector2(0, 36)
-	steps.size = Vector2(180, 14)
-	steps.draw.connect(func() -> void: PlayParts.steps(steps, step))
-	_header.add_child(steps)
+	if step > 0:
+		var steps := Control.new()
+		steps.name = "Steps"
+		steps.mouse_filter = MOUSE_FILTER_IGNORE
+		steps.position = Vector2(0, 36)
+		steps.size = Vector2(180, 14)
+		steps.draw.connect(func() -> void: PlayParts.steps(steps, step))
+		_header.add_child(steps)
 	step_bottom = Control.new()
 	step_bottom.name = "StepBottom"
 	step_bottom.mouse_filter = MOUSE_FILTER_IGNORE
@@ -361,12 +368,16 @@ func big_primary(text: String, on_press: Callable, art: Texture2D = null, rect :
 func _header_h() -> int:
 	if step > 0:
 		return STEP_HEADER_H
+	if back_block:
+		return BACK_HEADER_H
 	return TAB_HEADER_H if tab_mode else HEADER_H
 
 
 func _bottom_h() -> int:
 	if step > 0:
 		return STEP_BOTTOM_H
+	if back_block:
+		return BACK_BOTTOM_H
 	return BottomNav.H if tab_mode else BAR_H
 
 
@@ -386,7 +397,7 @@ func _apply_safe_area() -> void:
 	_scrollbar.offset_bottom = _scroll.offset_bottom
 	_bar.offset_top = -(BAR_H + bottom)
 	if step_bottom != null:
-		step_bottom.offset_top = -(STEP_BOTTOM_H + bottom) + 2
+		step_bottom.offset_top = -(_bottom_h() + bottom) + 2
 		step_bottom.offset_bottom = -bottom
 
 

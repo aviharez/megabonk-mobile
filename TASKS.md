@@ -817,3 +817,36 @@ Prompt: Pick a District and Pick a Hero with the skip and remember rules, Danger
 - Not recorded yet: which hero beat which danger (phase 12's "each hero on each danger" milestones); `dangers_beaten` is per district only
 - Bonks of a critter that was never on screen are counted but it stays "?" (strict "seen when on screen" rule)
 - Tests that open menu screens through the real Save autoload (`test_text_fit`, as `test_back_button` did before) now also mark the play step seen in that save, like the Collection already did; `test_play_flow` points Save at its own file
+
+## Phase 12: Quests (docs/BRIEF.md "Update 1", 2026-10-14)
+
+Prompt: data/quests with daily, weekly and milestone kinds on the challenge schema, the daily points chests, the Quests screen, the Home rail with its count dot, the once-a-day AD x2 on a claim; 100+ milestones, pools of 15 daily and 15 weekly. Done = dailies roll at local midnight and weeklies on Monday (fake clock), claims pay once, a 20-run bot sim reports the share of coins from quests (target 30-40%), tests pass.
+
+- [x] Quest data: `data/quests/` 15 daily, 15 weekly, 116 milestones on the challenge schema + "kind", "reward" {"coins", "points"}, "repeat"; optional "danger" (run on this level or higher) and "icon". `data/rules/quests.json`: 3 dailies, 5 weeklies, chests at 20 / 40 / 60 points, an icon per stat. Validated by GameData (kind, stat, scope, rewards, repeat per kind, filters, danger levels, icons, pools big enough). Written by `tools/data/gen_quests.py` (one place for the reward budget)
+- [x] Milestones: bonk 100 ... 250,000; runs; chests 10 ... 500; gems; pots; beacons; elites; boss; portal; Final Swarm (reached and time); merchant; challenge beacons; swarms (faced, unhurt); level and bonks in one run; 500 / 5,000 bonks with each of the 10 weapons; 1,000 / 10,000 bonks as each hero; each hero beats Mega Mole on each of Danger 1-5. Chains (same stat, filters, scope) show their lowest unclaimed tier
+- [x] The 19 unlock challenges also pay coins ("coins" in each file: early 5, mid 15, hard 25, Turbo Pigeon 20, Gary 35), claimed in Quests > Milestones once done
+- [x] Rules in `scripts/core/quests.gd`: local clock (`Quests.clock`, fakeable; `Ads.today` follows it), daily draw at local midnight and weekly draw on Monday 00:00, seeded by the day / week and avoiding the last draw; only quests whose hero / weapon / prerequisite is owned are drawn; progress counted from the draw ("total" sums runs, "run" keeps the best); lifetime milestones read the stat totals (old saves get credit); claims pay once; points chests; AD x2 pays today's last claim again, once a day
+- [x] Save key "quests" (defaults merge; no version bump). Run end commits quests after Meta (`result.quests_done`)
+- [x] Quests screen (`quests.png`): back block + title + coins, Daily / Weekly / Milestones tabs with dots, daily points window (three sacks 2x on a segmented bar, opened = darker + check, ready = dot, reset timer), weekly reset row, milestones claimed x/116, quest cards (icon slot, text, bar, coin reward + x/y, Claim, claimed = muted + check), AD x2 row (only while a claim can be doubled and an ad is ready). Rolls live at midnight while open
+- [x] Home: Quests rail (new kit clipboard icon) with a red count badge (new kit part `count_alert`, `UiArt.count_dot`, KitButton sticker "count"), Daily under it, No Ads level with Daily (top right kept for the weekly event)
+- [x] Rewarded placement `quest_double` (1 per day) in `rules/ads.json`; reward only after the reward callback (Ads)
+- [x] Tests: `tests/test_quests.gd` (data, text fit, bad data caught, clock days / weeks, dailies at local midnight and weeklies on Monday with a fake clock, owned-only draws, run progress and filters, a real run end, claims pay once, chests, AD x2 once a day, card order and chains, Home rail + screen + Claim + chest + AD x2 through the Ads autoload). Flow check: the Quests rail counts the first run's milestone, Claim pays, the count drops
+- [x] Quest economy sim: `scenes/debug/quest_sim.tscn` (20 bot runs, 3 a day from Monday, Sir Loaf on the highest open danger, boss from minute 4, portal; claims everything after each run, buys ready unlocks; `--replay` replays the recorded runs against new quest data in a second, for tuning)
+- [x] Done check (2026-10-14): 3211 checks pass (test_quests: 780), flow check OK, 14 menu shots 0 off-palette pixels (side by sides in `docs/phase12/`). Stress (300+ enemies, full build, Final Swarm, low HP, 540x1014, alternating with the phase 11 commit): vsync 75.0 / 75.0 fps, 1% low 66.9-67.3 / 66.7-67.5, ~305 on screen; uncapped phase 12 302.5 / 267.8 vs phase 11 271.8 / 274.5 (noise)
+
+### Phase 12 results: share of coins from quests (fresh 20-run bot sim, 7 days)
+
+| | Run coins | Quest coins | Quests share |
+| --- | --- | --- | --- |
+| First draft rewards | 1,356 | 2,120 | 61% (milestones 1,145) |
+| Tuned (shipped) | 1,903 | 925 | **32.7%** (36.5% with AD x2 on the day's biggest claim) |
+
+Tuned quest coins by source: milestones 359, challenges 240, chests 110, dailies 111, weeklies 105. Per day: 314 on day 1 (first tiers of every chain), then 23-182. Replays of one recorded set gave 35.3% (the fresh sim differs because the bot bought other unlocks and reached Danger 3).
+
+### Found during phase 12
+
+- Milestones front-load: a fresh save earns ~1/3 of its first-week quest coins on day 1. Over a longer stretch the share drops as dailies and weeklies become the main quest income (not measured past 7 days)
+- The bot completes few dailies (111 coins in 7 days of ~45 possible a day): "Win a Challenge Beacon", "Buy 2 wares" and "Survive a swarm without a hit" are hard for it; a real player probably claims more dailies, which would push the share up
+- The weekly event rail (top right on Home) and the Town level badge stay for later phases
+- A player who changes the device clock gets a new draw (no server time); not guarded
+- `ERROR: 2 resources still in use at exit` after the flow check also happens on the phase 11 commit (not new)

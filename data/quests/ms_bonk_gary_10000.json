@@ -1,0 +1,14 @@
+{
+	"id": "ms_bonk_gary_10000",
+	"kind": "milestone",
+	"desc": "Bonk 10,000 as Gary",
+	"stat": "kills",
+	"scope": "total",
+	"target": 10000,
+	"requires": "",
+	"reward": {
+		"coins": 6
+	},
+	"repeat": false,
+	"character": "gary"
+}

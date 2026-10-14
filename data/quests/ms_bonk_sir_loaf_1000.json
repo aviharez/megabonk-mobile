@@ -1,0 +1,14 @@
+{
+	"id": "ms_bonk_sir_loaf_1000",
+	"kind": "milestone",
+	"desc": "Bonk 1,000 as Sir Loaf",
+	"stat": "kills",
+	"scope": "total",
+	"target": 1000,
+	"requires": "",
+	"reward": {
+		"coins": 4
+	},
+	"repeat": false,
+	"character": "sir_loaf"
+}

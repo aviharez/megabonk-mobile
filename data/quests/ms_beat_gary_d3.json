@@ -1,0 +1,15 @@
+{
+	"id": "ms_beat_gary_d3",
+	"kind": "milestone",
+	"desc": "Beat Mega Mole as Gary on Danger 3",
+	"stat": "boss_defeated",
+	"scope": "run",
+	"target": 1,
+	"requires": "",
+	"reward": {
+		"coins": 13
+	},
+	"repeat": false,
+	"danger": 3,
+	"character": "gary"
+}

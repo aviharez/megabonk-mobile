@@ -1,0 +1,14 @@
+{
+	"id": "ms_bonk_fireworks_500",
+	"kind": "milestone",
+	"desc": "Bonk 500 with Fireworks",
+	"stat": "kills",
+	"scope": "total",
+	"target": 500,
+	"requires": "",
+	"reward": {
+		"coins": 4
+	},
+	"repeat": false,
+	"weapon": "fireworks"
+}

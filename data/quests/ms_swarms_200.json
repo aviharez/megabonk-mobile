@@ -1,0 +1,13 @@
+{
+	"id": "ms_swarms_200",
+	"kind": "milestone",
+	"desc": "Face 200 swarms",
+	"stat": "swarms_started",
+	"scope": "total",
+	"target": 200,
+	"requires": "",
+	"reward": {
+		"coins": 6
+	},
+	"repeat": false
+}

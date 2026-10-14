@@ -7,5 +7,6 @@
 	"target": 3,
 	"requires": "",
 	"reward": "alarm_clock",
-	"price": 30
+	"price": 30,
+	"coins": 5
 }

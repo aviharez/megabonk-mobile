@@ -1,0 +1,13 @@
+{
+	"id": "weekly_challenges_4",
+	"kind": "weekly",
+	"desc": "Win 4 Challenge Beacons",
+	"stat": "challenges_won",
+	"scope": "total",
+	"target": 4,
+	"requires": "",
+	"reward": {
+		"coins": 25
+	},
+	"repeat": true
+}

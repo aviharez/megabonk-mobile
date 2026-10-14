@@ -1,0 +1,13 @@
+{
+	"id": "ms_boss_50",
+	"kind": "milestone",
+	"desc": "Defeat Mega Mole 50 times",
+	"stat": "boss_defeated",
+	"scope": "total",
+	"target": 50,
+	"requires": "",
+	"reward": {
+		"coins": 17
+	},
+	"repeat": false
+}

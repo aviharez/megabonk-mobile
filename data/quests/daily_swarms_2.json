@@ -1,0 +1,14 @@
+{
+	"id": "daily_swarms_2",
+	"kind": "daily",
+	"desc": "Face 2 swarms",
+	"stat": "swarms_started",
+	"scope": "total",
+	"target": 2,
+	"requires": "",
+	"reward": {
+		"coins": 5,
+		"points": 20
+	},
+	"repeat": true
+}

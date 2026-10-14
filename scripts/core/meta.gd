@@ -34,10 +34,14 @@ extends RefCounted
 ##   screen, "bonked": how many the player has bonked}. Seen = has
 ##   "first_seen".
 ##
+## - "quests": daily / weekly draws, quest progress and claims (see
+##   scripts/core/quests.gd).
+##
 ## Challenges (data/challenges/): {"stat", optional "weapon" / "character"
 ## filter, "scope": "run" | "total", "target", optional "goal": "at_most"
 ## (default "at_least"), optional "requires" (content id that must be owned),
-## "reward" (content id with status "unlock"), "price", "tier"}.
+## "reward" (content id with status "unlock"), "price", "tier", "coins" (paid
+## once done, claimed on the Quests screen)}.
 
 const CONTENT := ["characters", "weapons", "tomes", "items"]
 const TIERS := ["early", "mid", "hard"]
@@ -425,16 +429,21 @@ static func progress(db: GameData, data: Dictionary, ch: Dictionary) -> Dictiona
 static func progress_text(ch: Dictionary, p: Dictionary) -> String:
 	if p.done:
 		return "Done"
-	var fmt := func(x: float) -> String:
-		match ch.stat:
-			"boss_defeated_at", "final_swarm_seconds":
-				return "%d:%02d" % [int(x) / 60, int(x) % 60]
-			"boss_defeated_hp_frac":
-				return "%d%%" % roundi(x * 100.0)
-		return str(floori(x))
+	var fmt := func(x: float) -> String: return format_stat(ch.stat, x)
 	if _at_most(ch):
 		return "Best %s / %s" % [fmt.call(p.value) if p.has_value else "-", fmt.call(float(ch.target))]
 	return "%s/%s" % [fmt.call(minf(p.value, float(ch.target))), fmt.call(float(ch.target))]
+
+
+## A stat value as the player reads it: times as m:ss, HP fractions as %,
+## counts as whole numbers.
+static func format_stat(stat: String, x: float) -> String:
+	match stat:
+		"boss_defeated_at", "final_swarm_seconds":
+			return "%d:%02d" % [int(x) / 60, int(x) % 60]
+		"boss_defeated_hp_frac":
+			return "%d%%" % roundi(x * 100.0)
+	return str(floori(x))
 
 
 ## A "total" challenge with a prerequisite keeps its own count in "challenges",

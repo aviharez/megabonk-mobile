@@ -1,0 +1,13 @@
+{
+	"id": "ms_unhurt_30",
+	"kind": "milestone",
+	"desc": "Survive 30 swarms without a hit",
+	"stat": "swarm_survived_no_damage",
+	"scope": "total",
+	"target": 30,
+	"requires": "",
+	"reward": {
+		"coins": 6
+	},
+	"repeat": false
+}

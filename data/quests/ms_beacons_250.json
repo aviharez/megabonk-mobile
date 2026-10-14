@@ -1,0 +1,13 @@
+{
+	"id": "ms_beacons_250",
+	"kind": "milestone",
+	"desc": "Activate 250 beacons",
+	"stat": "shrines_activated",
+	"scope": "total",
+	"target": 250,
+	"requires": "",
+	"reward": {
+		"coins": 8
+	},
+	"repeat": false
+}

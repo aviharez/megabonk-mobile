@@ -1,0 +1,15 @@
+{
+	"id": "ms_beat_turbo_pigeon_d3",
+	"kind": "milestone",
+	"desc": "Beat Mega Mole as Turbo Pigeon on Danger 3",
+	"stat": "boss_defeated",
+	"scope": "run",
+	"target": 1,
+	"requires": "",
+	"reward": {
+		"coins": 13
+	},
+	"repeat": false,
+	"danger": 3,
+	"character": "turbo_pigeon"
+}

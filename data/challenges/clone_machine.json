@@ -7,5 +7,6 @@
 	"target": 3,
 	"requires": "",
 	"reward": "clone_machine",
-	"price": 220
+	"price": 220,
+	"coins": 25
 }

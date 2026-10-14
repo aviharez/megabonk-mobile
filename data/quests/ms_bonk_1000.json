@@ -1,0 +1,13 @@
+{
+	"id": "ms_bonk_1000",
+	"kind": "milestone",
+	"desc": "Bonk 1,000 critters",
+	"stat": "kills",
+	"scope": "total",
+	"target": 1000,
+	"requires": "",
+	"reward": {
+		"coins": 6
+	},
+	"repeat": false
+}

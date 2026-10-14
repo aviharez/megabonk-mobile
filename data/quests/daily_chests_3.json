@@ -1,0 +1,14 @@
+{
+	"id": "daily_chests_3",
+	"kind": "daily",
+	"desc": "Open 3 chests",
+	"stat": "chests_opened",
+	"scope": "total",
+	"target": 3,
+	"requires": "",
+	"reward": {
+		"coins": 5,
+		"points": 20
+	},
+	"repeat": true
+}

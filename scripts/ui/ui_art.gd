@@ -285,6 +285,18 @@ static func dot(ci: CanvasItem, at: Vector2) -> void:
 	sprite(ci, KIT + "dot", at)
 
 
+## A red count badge (Home's Quests rail: things to claim) with its top-left
+## at `at`, at least `h` square, the number in PAPER. Returns its rect.
+static func count_dot(ci: CanvasItem, n: int, at: Vector2, h := 11.0) -> Rect2:
+	var text := str(n) if n < 100 else "99+"
+	var w := maxf(h, ceilf(Fonts.width(text, "TAG")) + 5.0)
+	var r := Rect2(at.floor(), Vector2(w, h))
+	draw(ci, KIT + "count_alert", r)
+	Fonts.draw(ci, text, Vector2(r.position.x, Fonts.cap_y("TAG", r.position.y, h)), "TAG", Palette.PAPER,
+			r.size.x, HORIZONTAL_ALIGNMENT_CENTER)
+	return r
+
+
 ## A small number badge (level, stack count) with its top-left at `at`:
 ## "badge" (lamp) or "count" (paper); INK number. Returns its rect.
 static func badge(ci: CanvasItem, text: String, at: Vector2, kind := "badge", h := 9.0) -> Rect2:

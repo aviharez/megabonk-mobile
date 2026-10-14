@@ -1,0 +1,13 @@
+{
+	"id": "weekly_merchant_8",
+	"kind": "weekly",
+	"desc": "Buy 8 wares from the Merchant",
+	"stat": "items_bought",
+	"scope": "total",
+	"target": 8,
+	"requires": "",
+	"reward": {
+		"coins": 20
+	},
+	"repeat": true
+}

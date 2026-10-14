@@ -19,7 +19,8 @@
 		"reroll": {"per_run": 1},
 		"skip": {"per_run": 1},
 		"banish": {"per_run": 1},
-		"daily": {"per_day": 1}
+		"daily": {"per_day": 1},
+		"quest_double": {"per_day": 1}
 	},
 	"revive": {"hp_frac": 0.5, "iframes": 2.5, "clear_radius": 56},
 	"daily": {"coins": 25},

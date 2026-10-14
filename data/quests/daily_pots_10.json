@@ -1,0 +1,14 @@
+{
+	"id": "daily_pots_10",
+	"kind": "daily",
+	"desc": "Break 10 pots",
+	"stat": "pots_broken",
+	"scope": "total",
+	"target": 10,
+	"requires": "",
+	"reward": {
+		"coins": 5,
+		"points": 20
+	},
+	"repeat": true
+}

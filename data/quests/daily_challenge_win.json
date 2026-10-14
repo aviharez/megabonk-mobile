@@ -1,0 +1,14 @@
+{
+	"id": "daily_challenge_win",
+	"kind": "daily",
+	"desc": "Win a Challenge Beacon",
+	"stat": "challenges_won",
+	"scope": "total",
+	"target": 1,
+	"requires": "",
+	"reward": {
+		"coins": 8,
+		"points": 20
+	},
+	"repeat": true
+}

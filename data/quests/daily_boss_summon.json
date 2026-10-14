@@ -1,0 +1,14 @@
+{
+	"id": "daily_boss_summon",
+	"kind": "daily",
+	"desc": "Summon Mega Mole",
+	"stat": "boss_summoned",
+	"scope": "total",
+	"target": 1,
+	"requires": "",
+	"reward": {
+		"coins": 5,
+		"points": 20
+	},
+	"repeat": true
+}

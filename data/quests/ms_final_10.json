@@ -1,0 +1,13 @@
+{
+	"id": "ms_final_10",
+	"kind": "milestone",
+	"desc": "Reach the Final Swarm 10 times",
+	"stat": "final_swarm_reached",
+	"scope": "total",
+	"target": 10,
+	"requires": "",
+	"reward": {
+		"coins": 7
+	},
+	"repeat": false
+}

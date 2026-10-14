@@ -1,0 +1,14 @@
+{
+	"id": "daily_beacons_2",
+	"kind": "daily",
+	"desc": "Activate 2 beacons",
+	"stat": "shrines_activated",
+	"scope": "total",
+	"target": 2,
+	"requires": "",
+	"reward": {
+		"coins": 5,
+		"points": 20
+	},
+	"repeat": true
+}

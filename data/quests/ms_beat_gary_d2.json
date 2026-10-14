@@ -1,0 +1,15 @@
+{
+	"id": "ms_beat_gary_d2",
+	"kind": "milestone",
+	"desc": "Beat Mega Mole as Gary on Danger 2",
+	"stat": "boss_defeated",
+	"scope": "run",
+	"target": 1,
+	"requires": "",
+	"reward": {
+		"coins": 8
+	},
+	"repeat": false,
+	"danger": 2,
+	"character": "gary"
+}

@@ -1,0 +1,14 @@
+{
+	"id": "daily_merchant_2",
+	"kind": "daily",
+	"desc": "Buy 2 wares from the Merchant",
+	"stat": "items_bought",
+	"scope": "total",
+	"target": 2,
+	"requires": "",
+	"reward": {
+		"coins": 5,
+		"points": 20
+	},
+	"repeat": true
+}

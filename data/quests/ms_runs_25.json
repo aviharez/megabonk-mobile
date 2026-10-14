@@ -1,0 +1,13 @@
+{
+	"id": "ms_runs_25",
+	"kind": "milestone",
+	"desc": "Finish 25 runs",
+	"stat": "runs_finished",
+	"scope": "total",
+	"target": 25,
+	"requires": "",
+	"reward": {
+		"coins": 8
+	},
+	"repeat": false
+}

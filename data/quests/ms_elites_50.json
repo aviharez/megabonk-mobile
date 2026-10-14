@@ -1,0 +1,13 @@
+{
+	"id": "ms_elites_50",
+	"kind": "milestone",
+	"desc": "Defeat 50 elites",
+	"stat": "elites_killed",
+	"scope": "total",
+	"target": 50,
+	"requires": "",
+	"reward": {
+		"coins": 4
+	},
+	"repeat": false
+}

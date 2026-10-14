@@ -8,5 +8,6 @@
 	"goal": "at_most",
 	"requires": "",
 	"reward": "angry_neighbor",
-	"price": 220
+	"price": 220,
+	"coins": 25
 }

@@ -1,0 +1,13 @@
+{
+	"id": "weekly_beacons_12",
+	"kind": "weekly",
+	"desc": "Activate 12 beacons",
+	"stat": "shrines_activated",
+	"scope": "total",
+	"target": 12,
+	"requires": "",
+	"reward": {
+		"coins": 20
+	},
+	"repeat": true
+}

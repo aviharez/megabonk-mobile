@@ -1,0 +1,13 @@
+{
+	"id": "weekly_boss_2",
+	"kind": "weekly",
+	"desc": "Defeat Mega Mole twice",
+	"stat": "boss_defeated",
+	"scope": "total",
+	"target": 2,
+	"requires": "",
+	"reward": {
+		"coins": 40
+	},
+	"repeat": true
+}

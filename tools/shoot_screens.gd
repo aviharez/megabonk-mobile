@@ -74,6 +74,20 @@ func _run() -> void:
 	save.data.dangers_beaten["suburbia"] = 1
 	Meta.commit_bestiary(save.data, {"blob": 0.0, "skitter": 0.0, "spitter": 121.0, "chomper": 245.0, "mega_mole": 300.0},
 			{"blob": 5120, "skitter": 1240, "spitter": 96, "chomper": 41, "mega_mole": 1})
+	# Quests like the mockup: one daily to claim, one under way, one claimed
+	# (40 points: the 20 chest opened, the 40 one ready), milestones from the
+	# totals above.
+	var qdb := GameData.shared()
+	Quests.roll(qdb, save.data)
+	var qd: Array = save.data.quests.daily
+	var q0 := qdb.get_entry("quests", qd[0])
+	save.data.quests.progress[qd[0]] = float(q0.target)
+	save.data.quests.progress[qd[1]] = floorf(float(qdb.get_entry("quests", qd[1]).target) / 3.0)
+	save.data.quests.progress[qd[2]] = float(qdb.get_entry("quests", qd[2]).target)
+	save.data.quests.claimed[qd[2]] = true
+	save.data.quests.points = 40
+	save.data.quests.chests = [0]
+	save.data.quests.last_claim = {"id": qd[2], "coins": 10, "day": Quests.day_of(Quests.now())}
 	save.save_game()
 	var ads := root.get_node_or_null("/root/Ads")
 
@@ -113,6 +127,17 @@ func _run() -> void:
 		await _wait(0.4)
 		await _shot("06c_critters")
 		menu.call("_on_tab", "battle")
+		await _wait(0.2)
+		var quests: QuestsScreen = menu.call("_open_quests")
+		await _wait(0.5)
+		await _shot("06d_quests")
+		quests.show_tab(1)
+		await _wait(0.3)
+		await _shot("06e_quests_weekly")
+		quests.show_tab(2)
+		await _wait(0.3)
+		await _shot("06f_quests_milestones")
+		quests.close()
 		await _wait(0.2)
 		var district: MenuScreen = menu.call("_on_play")
 		await _wait(0.5)

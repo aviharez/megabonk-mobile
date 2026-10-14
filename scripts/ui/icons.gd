@@ -50,14 +50,18 @@ static func image(db: GameData, kind: String, id: String) -> Image:
 				_images[key] = head(def)
 			"enemies":
 				_images[key] = critter(def)
+			"interactables":
+				# A map object's sprite (quest icons: chests, pots, beacons...).
+				_images[key] = _load_image(def.get("sprite", "")) if def.get("sprite", "") != "" else null
 			_:
 				_images[key] = null
 	return _images[key]
 
 
 ## An icon named in data as "kind/id": a content icon ("tomes/muscle_magazine",
-## "weapons/stapler", "items/...", "characters/...") or a UI kit sprite
-## ("ui/die"). null when there's none.
+## "weapons/stapler", "items/...", "characters/..."), a critter
+## ("enemies/blob"), a map object's sprite ("interactables/pot") or a UI kit
+## sprite ("ui/die"). null when there's none.
 static func ref(db: GameData, path: String) -> Texture2D:
 	var parts := path.split("/", true, 1)
 	if parts.size() != 2:
@@ -70,11 +74,11 @@ static func ref(db: GameData, path: String) -> Texture2D:
 ## Why `path` isn't a usable icon reference ("" when it is).
 static func ref_error(db: GameData, path: Variant) -> String:
 	if not path is String or String(path).split("/", true, 1).size() != 2:
-		return "must be \"kind/id\" (tomes/..., weapons/..., items/..., characters/... or ui/...)"
+		return "must be \"kind/id\" (tomes/..., weapons/..., items/..., characters/..., enemies/..., interactables/... or ui/...)"
 	var parts := String(path).split("/", true, 1)
 	if parts[0] == "ui":
 		return "" if UiArt.has(parts[1]) else "names no UI kit sprite \"%s\"" % parts[1]
-	if not parts[0] in ["tomes", "weapons", "items", "characters"]:
+	if not parts[0] in ["tomes", "weapons", "items", "characters", "enemies", "interactables"]:
 		return "has an unknown kind \"%s\"" % parts[0]
 	if not db.entries.get(parts[0], {}).has(parts[1]):
 		return "names no %s entry \"%s\"" % [parts[0], parts[1]]

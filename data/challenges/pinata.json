@@ -7,5 +7,6 @@
 	"target": 20,
 	"requires": "",
 	"reward": "pinata",
-	"price": 30
+	"price": 30,
+	"coins": 5
 }

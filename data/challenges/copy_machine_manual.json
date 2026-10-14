@@ -9,5 +9,6 @@
 	"target": 3000,
 	"requires": "gary",
 	"reward": "copy_machine_manual",
-	"price": 220
+	"price": 220,
+	"coins": 25
 }

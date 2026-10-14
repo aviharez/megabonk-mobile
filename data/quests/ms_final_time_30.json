@@ -1,0 +1,13 @@
+{
+	"id": "ms_final_time_30",
+	"kind": "milestone",
+	"desc": "Last 0:30 in the Final Swarm",
+	"stat": "final_swarm_seconds",
+	"scope": "run",
+	"target": 30,
+	"requires": "",
+	"reward": {
+		"coins": 4
+	},
+	"repeat": false
+}

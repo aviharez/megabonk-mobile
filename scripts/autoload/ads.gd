@@ -4,7 +4,7 @@ extends Node
 ## Rules from docs/BRIEF.md "Monetization", numbers in data/rules/ads.json.
 ##
 ## Rewarded placements ("revive", "double_coins", "reroll", "skip",
-## "banish", "daily") have a per-run or per-day limit. can_offer() is true
+## "banish", "daily", "quest_double": AD x2 on a quest claim) have a per-run or per-day limit. can_offer() is true
 ## only while a rewarded ad is loaded and the limit isn't reached: buttons
 ## show only then. show_rewarded() calls back with true only after the SDK's
 ## reward callback; a use counts only then. A failed or skipped ad costs
@@ -36,7 +36,8 @@ var save: Node
 var started := false
 ## Clock hooks (tests move time).
 var now_unix := func() -> int: return int(Time.get_unix_time_from_system())
-var today := func() -> String: return Time.get_date_string_from_system(false)
+## The local date, on the quests clock (Quests.clock: one fake clock moves both).
+var today := func() -> String: return Time.get_date_string_from_unix_time(Quests.now())
 var rng := RandomNumberGenerator.new()
 ## Game pixels the bottom banner covers (0 when none is shown).
 var banner_inset := 0

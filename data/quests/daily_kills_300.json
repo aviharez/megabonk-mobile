@@ -1,0 +1,14 @@
+{
+	"id": "daily_kills_300",
+	"kind": "daily",
+	"desc": "Defeat 300 critters",
+	"stat": "kills",
+	"scope": "total",
+	"target": 300,
+	"requires": "",
+	"reward": {
+		"coins": 5,
+		"points": 20
+	},
+	"repeat": true
+}

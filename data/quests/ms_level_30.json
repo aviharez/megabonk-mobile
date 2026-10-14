@@ -1,0 +1,13 @@
+{
+	"id": "ms_level_30",
+	"kind": "milestone",
+	"desc": "Reach level 30 in one run",
+	"stat": "level",
+	"scope": "run",
+	"target": 30,
+	"requires": "",
+	"reward": {
+		"coins": 8
+	},
+	"repeat": false
+}

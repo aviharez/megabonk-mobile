@@ -8,5 +8,6 @@
 	"target": 300,
 	"requires": "faulty_toaster",
 	"reward": "static_sweater",
-	"price": 220
+	"price": 220,
+	"coins": 25
 }

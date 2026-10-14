@@ -1,0 +1,13 @@
+{
+	"id": "weekly_elites_15",
+	"kind": "weekly",
+	"desc": "Defeat 15 elites",
+	"stat": "elites_killed",
+	"scope": "total",
+	"target": 15,
+	"requires": "",
+	"reward": {
+		"coins": 25
+	},
+	"repeat": true
+}

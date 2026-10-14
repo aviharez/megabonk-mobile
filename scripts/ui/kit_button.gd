@@ -5,8 +5,8 @@ extends Button
 ## "card" a raised card; any other name is a 9-slice UiArt part (recoloured to
 ## `face`) with a 2 px drop. On its face: an optional sprite `art` at
 ## `art_scale` and a label in a Fonts style, shrunk to fit `text_box`. A
-## sticker can sit on the top-right corner: "alert" (the red notification dot)
-## or "ad" (the INK "AD" chip). Set `label`, not `text`.
+## sticker can sit on the top-right corner: "alert" (the red notification dot),
+## "ad" (the INK "AD" chip) or "count" (a red badge with a number). Set `label`, not `text`.
 
 const BLOCKS := ["primary", "secondary", "go", "disabled"]
 const SHADOW := 2
@@ -47,10 +47,15 @@ var art_centre := Vector2(-1, -1):
 	set(v):
 		art_centre = v
 		queue_redraw()
-## "", "alert" or "ad".
+## "", "alert", "ad" or "count" (a red badge with `count`).
 var sticker := "":
 	set(v):
 		sticker = v
+		queue_redraw()
+## The number on a "count" sticker.
+var count := 0:
+	set(v):
+		count = v
 		queue_redraw()
 ## Greyed out (still pressable: the owner decides what a press does then).
 var dim := false:
@@ -116,3 +121,6 @@ func _draw() -> void:
 			UiArt.dot(self, Vector2(r.end.x - 6, r.position.y - 3))
 		"ad":
 			UiArt.sticker(self, "AD", Vector2(r.end.x - 15, r.position.y - 6), -1, 11, 3, "ad")
+		"count":
+			var w := maxf(11.0, ceilf(Fonts.width(str(count), "TAG")) + 5.0)
+			UiArt.count_dot(self, count, Vector2(r.end.x - w + 3, r.position.y - 4))

@@ -1,0 +1,14 @@
+{
+	"id": "ms_bonk_garden_gnomes_5000",
+	"kind": "milestone",
+	"desc": "Bonk 5,000 with Garden Gnomes",
+	"stat": "kills",
+	"scope": "total",
+	"target": 5000,
+	"requires": "",
+	"reward": {
+		"coins": 6
+	},
+	"repeat": false,
+	"weapon": "garden_gnomes"
+}

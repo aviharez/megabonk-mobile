@@ -1,0 +1,13 @@
+{
+	"id": "ms_portal_20",
+	"kind": "milestone",
+	"desc": "Escape through the portal 20 times",
+	"stat": "escaped",
+	"scope": "total",
+	"target": 20,
+	"requires": "",
+	"reward": {
+		"coins": 11
+	},
+	"repeat": false
+}

@@ -8,5 +8,6 @@
 	"target": 2000,
 	"requires": "",
 	"reward": "bubble_wrap_crafts",
-	"price": 90
+	"price": 90,
+	"coins": 15
 }
