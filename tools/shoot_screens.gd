@@ -67,6 +67,13 @@ func _run() -> void:
 	save.data.shop["might"] = 2
 	save.data.shop["vitality"] = 1
 	save.data.shop["magnetism"] = 5
+	# Like the Characters / Pick mockups: Turbo Pigeon hired, Mega Mole beaten
+	# on Danger 1 (Danger 2 New!), five critters met.
+	save.data.unlocks["turbo_pigeon"] = "owned"
+	save.data.maps_cleared["suburbia"] = true
+	save.data.dangers_beaten["suburbia"] = 1
+	Meta.commit_bestiary(save.data, {"blob": 0.0, "skitter": 0.0, "spitter": 121.0, "chomper": 245.0, "mega_mole": 300.0},
+			{"blob": 5120, "skitter": 1240, "spitter": 96, "chomper": 41, "mega_mole": 1})
 	save.save_game()
 	var ads := root.get_node_or_null("/root/Ads")
 
@@ -95,19 +102,25 @@ func _run() -> void:
 		await _shot("05_unlocked")
 		for pop in menu.find_children("UnlockPopup", "", true, false):
 			pop.queue_free()
-		var hero = menu.call("_on_tab", "characters")
+		var chars: CharactersScreen = menu.call("_on_tab", "characters")
 		await _wait(0.5)
 		await _shot("06_characters")
+		chars.select_hero("gary")
+		await _wait(0.3)
+		await _shot("06b_characters_locked")
+		chars.select_critter("skitter")
+		chars.show_tab(1)
+		await _wait(0.4)
+		await _shot("06c_critters")
 		menu.call("_on_tab", "battle")
 		await _wait(0.2)
-		var pick = menu.call("_open_screen", HeroScreen)
+		var district: MenuScreen = menu.call("_on_play")
 		await _wait(0.5)
-		await _shot("07_pick_hero")
-		pick.queue_free()
-		var map = menu.call("_open_screen", MapScreen)
-		await _wait(0.3)
-		await _shot("08_pick_map")
-		map.queue_free()
+		await _shot("07_pick_district")
+		district.find_child("Next", true, false).pressed.emit()
+		await _wait(0.5)
+		await _shot("08_pick_hero")
+		district.queue_free()
 		await _wait(0.1)
 		menu.call("back")
 		await _wait(0.4)

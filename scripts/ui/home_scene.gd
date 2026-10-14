@@ -16,18 +16,27 @@ const CRITTERS := ["critter_blue", "critter_green", "critter_purple", "critter_r
 ## UI position of the plinth's top centre (the hero's feet).
 var plinth_at := Vector2(77, 171):
 	set(v):
-		plinth_at = v.floor()
-		queue_redraw()
+		if v.floor() != plinth_at:
+			plinth_at = v.floor()
+			queue_redraw()
 ## Feet position of each critter in CRITTERS order.
 var critters: Array[Vector2] = [Vector2.ZERO, Vector2.ZERO, Vector2.ZERO, Vector2.ZERO]:
 	set(v):
 		critters = v
 		queue_redraw()
 var hero_id := "sir_loaf"
-## The hero and critters (Home); menu screens show the street only.
-var show_hero := true
+## The hero and critters (Home, the hero stages); menu screens show the street only.
+var show_hero := true:
+	set(v):
+		show_hero = v
+		queue_redraw()
 ## Hero scale on the plinth (kit v2: heroes 3x on stages).
 const HERO_K := 3
+## The scale used (a stage on a short screen drops to 2x).
+var hero_k := HERO_K:
+	set(v):
+		hero_k = v
+		queue_redraw()
 
 var _backdrop: Texture2D
 var _anchor := Vector2i(88, 267)  # plinth top centre in the backdrop
@@ -106,5 +115,5 @@ func _draw() -> void:
 		var fw := tex.get_width() / int(_hero.frames)
 		var fh := tex.get_height()
 		var origin: Vector2 = _hero.get("origin", Vector2(fw / 2.0, fh))
-		draw_texture_rect_region(tex, Rect2(plinth_at - origin.floor() * HERO_K, Vector2(fw, fh) * HERO_K),
+		draw_texture_rect_region(tex, Rect2(plinth_at - origin.floor() * hero_k, Vector2(fw, fh) * hero_k),
 				Rect2(_frame * fw, 0, fw, fh))

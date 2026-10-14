@@ -40,7 +40,7 @@ func test_back_in_the_menus_steps_out_then_asks(t) -> void:
 	var menu: Control = load("res://scenes/main_menu.tscn").instantiate()
 	t.root.add_child(menu)
 	await t.process_frame
-	var hero: MenuScreen = menu.call("_open_screen", HeroScreen)
+	var hero: MenuScreen = menu.call("_open_screen", CharactersScreen)
 	await t.process_frame
 	menu.back()
 	await t.process_frame

@@ -369,14 +369,16 @@ func test_socks_and_coffee_art_stay_on_the_palette(t) -> void:
 		t.check(_palette_only(puddle.puddle_texture(r, r % 4).get_image()) == 0, "coffee puddle %d is on the palette" % r)
 
 
-func test_map_select_has_goals_but_no_monster_roster(t) -> void:
+func test_district_step_has_goals_but_no_monster_roster(t) -> void:
 	var save := _save()
-	var screen := MapScreen.new(save)
+	var screen := PickDistrictScreen.new(save)
 	t.root.add_child(screen)
 	await t.process_frame
+	t.check(screen.find_child("District", true, false) != null and screen.find_child("Danger", true, false) != null,
+		"Pick a District shows the district card (with its goals) and the Danger row")
+	t.check(Meta.district_goals(GameData.shared(), save.data, "suburbia").size() == 3, "three goals")
 	var labels := screen.find_children("*", "Label", true, false).map(func(l: Label) -> String: return l.text)
-	t.check(labels.has("Goals"), "the map screen shows the goals")
-	t.check(not labels.has("WHO LIVES HERE"), "and no monster roster")
+	t.check(not labels.has("WHO LIVES HERE"), "and no monster roster (the Critters tab has them)")
 	screen.queue_free()
 	save.free()
 	await t.process_frame

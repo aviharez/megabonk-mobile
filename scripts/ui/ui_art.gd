@@ -152,7 +152,8 @@ static func toggle(ci: CanvasItem, at: Vector2, on: bool) -> void:
 
 
 ## A sticker with `text` (TAG, INK) and a 2 px drop: kit v2 "sticker" (lamp-hi,
-## New / Offer), "ad" (INK plate, lamp text) or "count" (paper, stack counts).
+## New / Offer), "ad" (INK plate, lamp text), "count" (paper, stack counts) or
+## "sticker_epic" (purple, paper text: the bestiary's Boss tag).
 ## Older callers pass a palette `face`: GOLD-family faces get the sticker, the
 ## rest the badge. Returns its rect; `at` is its top-left.
 static func sticker(ci: CanvasItem, text: String, at: Vector2, face := -1, h := 11.0, pad := 3.0,
@@ -161,7 +162,7 @@ static func sticker(ci: CanvasItem, text: String, at: Vector2, face := -1, h := 
 		kind = "sticker"
 	var r := Rect2(at.floor(), Vector2(ceilf(Fonts.width(text, "TAG")) + pad * 2.0, h))
 	draw(ci, KIT + kind, r, -1, -1, 2)
-	var col := Palette.GOLD if kind == "ad" else Palette.INK
+	var col := Palette.GOLD if kind == "ad" else (Palette.PAPER if kind == "sticker_epic" else Palette.INK)
 	Fonts.draw(ci, text, Vector2(r.position.x, Fonts.cap_y("TAG", r.position.y, h)), "TAG", col,
 			r.size.x, HORIZONTAL_ALIGNMENT_CENTER)
 	return r

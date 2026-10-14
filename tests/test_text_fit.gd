@@ -76,7 +76,7 @@ func test_menus_fit(t) -> void:
 	await t.process_frame
 	bad += problems(menu.get_node("SettingsPanel"), _screen(t), "settings")
 	menu.call("_close_settings")
-	for kind: GDScript in [HeroScreen, UnlocksScreen, ShopScreen]:
+	for kind: GDScript in [CharactersScreen, PickDistrictScreen, PickHeroScreen, UnlocksScreen, ShopScreen]:
 		var s: MenuScreen = menu.call("_open_screen", kind)
 		await t.create_timer(0.35).timeout
 		bad += problems(s, _screen(t), s.title_text)

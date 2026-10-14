@@ -2,6 +2,8 @@
 	"id": "skitter",
 	"name": "Skitter",
 	"role": "pack",
+	"desc": "Fast and fragile. Arrives in groups, so keep moving.",
+	"dex": 2,
 	"hp": 5,
 	"hp_growth_per_minute": 0.15,
 	"speed": 44,

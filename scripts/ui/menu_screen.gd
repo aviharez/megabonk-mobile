@@ -6,7 +6,11 @@ extends Control
 ## Characters) have the outlined title on the left and the coin plate on the
 ## right, and leave the bottom for the menu's nav; sub-screens have the title
 ## on a plate and a bottom bar with Back and either the main action
-## (`primary()`) or the coin plate. Both keep clear of the camera cutout and
+## (`primary()`) or the coin plate. Play's steps (`step` 1 District, 2 Hero:
+## docs/ui/pick-district.png, pick-hero.png) have a back block, the outlined
+## title and the coin plate on top, the step indicator under them, and the
+## big buttons on the bottom edge (`step_bottom`, `big_primary()`) instead of
+## the bar. All keep clear of the camera cutout and
 ## the gesture bar. An optional fixed panel sits under the header
 ## (`top_panel()`: the selected thing's details), then a drag-scrolling list in
 ## the middle column (DragScroll) that grows on taller screens. Subclasses fill
@@ -42,6 +46,22 @@ var _tab_title: Label
 var _tab_coins: CoinPlate
 ## Header height in tab mode (title + coin plate).
 const TAB_HEADER_H := 36
+## A step of Play (1 District, 2 Hero), set before the screen enters the tree.
+var step := 0
+## Step mode: header (back block, title, coins, step indicator) and the
+## bottom row (big buttons: BIG_H + their 3 px drop) heights.
+const STEP_HEADER_H := 52
+const BIG_H := 28
+const STEP_BOTTOM_H := BIG_H + 3 + 6
+## The bottom row of a step screen (180 wide, centred): big_primary() and
+## anything a screen puts beside it.
+var step_bottom: Control
+var _big: KitButton
+## A hero stage (Pick a Hero, Characters): the backdrop's plinth follows
+## `stage_feet`, a point in `stage`'s coordinates, every frame, so whoever
+## stands there is on the plinth even while the list scrolls.
+var stage: Control
+var stage_feet := Vector2.ZERO
 
 
 func _init(save_node: Node, title: String) -> void:
@@ -115,6 +135,8 @@ func _init(save_node: Node, title: String) -> void:
 func _ready() -> void:
 	if tab_mode:
 		_set_tab_mode()
+	elif step > 0:
+		_set_step_mode()
 	# Screens that fill the list area (hero, maps) rebuild whenever its real
 	# height changes (safe area applied, a banner coming or going).
 	_scroll.resized.connect(func() -> void:
@@ -133,6 +155,16 @@ func _ready() -> void:
 func close() -> void:
 	closed.emit()
 	queue_free()
+
+
+## The night town behind the screen (its plinth is the hero stage's).
+func backdrop() -> HomeScene:
+	return get_node("Backdrop") as HomeScene
+
+
+func _process(_delta: float) -> void:
+	if stage != null and is_instance_valid(stage) and stage.is_inside_tree():
+		backdrop().plinth_at = stage.get_global_transform().origin - get_global_transform().origin + stage_feet
 
 
 ## A fixed panel between the header and the list, `h` px tall, as wide as
@@ -249,11 +281,92 @@ func _set_tab_mode() -> void:
 	_header.add_child(_tab_coins)
 
 
+## Step look (Play's Pick a District / Pick a Hero): the back block left of
+## the outlined title, the coin plate right, the step indicator under them;
+## no bottom bar (step_bottom holds the big buttons).
+func _set_step_mode() -> void:
+	_title.visible = false
+	_bar.visible = false
+	var back := KitButton.new()
+	back.name = "Back"
+	back.part = "secondary"
+	back.art = UiArt.texture("kit/back")
+	back.art_scale = 1
+	back.position = Vector2(6, 7)
+	back.size = Vector2(26, 26)
+	back.pressed.connect(close)
+	_header.add_child(back)
+	_tab_title = Fonts.label(title_text, "TITLE")
+	_tab_title.name = "TabTitle"
+	_tab_title.position = Vector2(37, Fonts.cap_y("TITLE", 8, 23))
+	_header.add_child(_tab_title)
+	_tab_coins = CoinPlate.new()
+	_tab_coins.name = "Coins"
+	_tab_coins.align = 1.0
+	_tab_coins.position = Vector2(80, 10)
+	_tab_coins.size = Vector2(94, CoinPlate.H)
+	_tab_coins.value = int(save.data.coins)
+	_header.add_child(_tab_coins)
+	var steps := Control.new()
+	steps.name = "Steps"
+	steps.mouse_filter = MOUSE_FILTER_IGNORE
+	steps.position = Vector2(0, 36)
+	steps.size = Vector2(180, 14)
+	steps.draw.connect(func() -> void: PlayParts.steps(steps, step))
+	_header.add_child(steps)
+	step_bottom = Control.new()
+	step_bottom.name = "StepBottom"
+	step_bottom.mouse_filter = MOUSE_FILTER_IGNORE
+	step_bottom.anchor_left = 0.5
+	step_bottom.anchor_right = 0.5
+	step_bottom.anchor_top = 1.0
+	step_bottom.anchor_bottom = 1.0
+	step_bottom.offset_left = -90
+	step_bottom.offset_right = 90
+	add_child(step_bottom)
+
+
+## The step's big lamp button in the bottom row, over `rect` (x in the 180
+## frame; made once, then reused): Next, Start.
+func big_primary(text: String, on_press: Callable, art: Texture2D = null, rect := Rect2(8, 0, 164, BIG_H),
+		node_name := "Primary") -> KitButton:
+	if _big == null:
+		_big = KitButton.new()
+		_big.part = "primary"
+		_big.style_name = "BIG_BUTTON"
+		_big.art_scale = 1
+		_big.pressed.connect(func() -> void:
+			if _big.has_meta("on_press"):
+				(_big.get_meta("on_press") as Callable).call())
+		step_bottom.add_child(_big)
+	_big.name = node_name
+	_big.label = text
+	_big.art = art
+	_big.position = rect.position
+	_big.size = rect.size + Vector2(0, 3)
+	_big.set_meta("on_press", on_press)
+	if art != null:
+		# The word and the icon side by side, centred on the face.
+		var tw := ceilf(Fonts.width(text, "BIG_BUTTON")) + 2
+		var aw := float(art.get_width())
+		var x0 := floorf((rect.size.x - tw - 5 - aw) / 2.0)
+		_big.text_box = Rect2(x0, 1, tw, rect.size.y - 4)
+		_big.art_centre = Vector2(x0 + tw + 5 + floorf(aw / 2.0), floorf((rect.size.y - 3) / 2.0))
+	else:
+		_big.text_box = Rect2()
+		_big.art_centre = Vector2(-1, -1)
+	return _big
+
+
 func _header_h() -> int:
+	if step > 0:
+		return STEP_HEADER_H
 	return TAB_HEADER_H if tab_mode else HEADER_H
 
 
 func _bottom_h() -> int:
+	if step > 0:
+		return STEP_BOTTOM_H
 	return BottomNav.H if tab_mode else BAR_H
 
 
@@ -272,6 +385,9 @@ func _apply_safe_area() -> void:
 	_scrollbar.offset_top = _scroll.offset_top
 	_scrollbar.offset_bottom = _scroll.offset_bottom
 	_bar.offset_top = -(BAR_H + bottom)
+	if step_bottom != null:
+		step_bottom.offset_top = -(STEP_BOTTOM_H + bottom) + 2
+		step_bottom.offset_bottom = -bottom
 
 
 ## A row box for the list.

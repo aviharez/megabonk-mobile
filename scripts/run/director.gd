@@ -17,6 +17,12 @@ extends RefCounted
 ##                  "after_sec", "per_sec", "per_sec_growth_per_min",
 ##                  "speedup_per_min", "damage_growth_per_min", "max").
 ##
+## The danger level (data/danger/, Meta) changes these numbers: its
+## "modifiers" multiply every spawn rate ("spawn_rate"; Overdue Bills keep
+## theirs) and new enemies' HP and damage ("enemy_hp", "enemy_damage"),
+## "elite_every_sec" replaces the elite interval, and "coin_mult" multiplies
+## the end-of-run coins.
+##
 ## tick() returns spawn requests: {"enemy", "count", "grouped", "elite"
 ## (trait id or ""), "reserve" (true = may use the slots above the cap)}.
 ## What happened this tick is in `events` (cleared by every tick):
@@ -46,6 +52,11 @@ var final_started := false
 var final_time := 0.0
 var final_escalation := 0.0
 
+var danger := {}
+var _danger_rate := 1.0
+var _danger_hp := 1.0
+var _danger_damage := 1.0
+
 var bills_cfg := {}
 var bills_started := false
 var bills_minutes := 0
@@ -53,12 +64,20 @@ var bills_spawned := 0
 var _bill_acc := 0.0
 
 
-func _init(map_def: Dictionary, enemy_cap: int, run_length_sec: float, rng: RandomNumberGenerator, bills_rules := {}) -> void:
+func _init(map_def: Dictionary, enemy_cap: int, run_length_sec: float, rng: RandomNumberGenerator, bills_rules := {},
+		danger_def := {}) -> void:
 	cap = enemy_cap
 	run_length = run_length_sec
 	regular = Spawner.new(map_def, enemy_cap)
 	swarms = map_def.get("swarms", [])
-	elite_cfg = map_def.get("elites", {})
+	elite_cfg = map_def.get("elites", {}).duplicate()
+	danger = danger_def
+	var mods: Dictionary = danger_def.get("modifiers", {})
+	_danger_rate = float(mods.get("spawn_rate", 1.0))
+	_danger_hp = float(mods.get("enemy_hp", 1.0))
+	_danger_damage = float(mods.get("enemy_damage", 1.0))
+	if mods.has("elite_every_sec") and not elite_cfg.is_empty():
+		elite_cfg.every_sec = mods.elite_every_sec
 	if not elite_cfg.is_empty():
 		next_elite = float(elite_cfg.get("first_sec", 60.0))
 	final_cfg = map_def.get("final_swarm", {})
@@ -74,6 +93,7 @@ func _init(map_def: Dictionary, enemy_cap: int, run_length_sec: float, rng: Rand
 func tick(delta: float, elapsed: float, alive: int, pack_sizes: Dictionary, rng: RandomNumberGenerator, rate_mult := 1.0) -> Array:
 	events.clear()
 	var out := []
+	rate_mult *= _danger_rate
 	if not final_started and elapsed >= run_length:
 		final_started = true
 		events.append("final_start")
@@ -103,11 +123,13 @@ func swarm_active() -> bool:
 	return swarm_index >= 0
 
 
-## End-of-run coin multiplier: rises for every minute of the Final Swarm.
+## End-of-run coin multiplier: the danger level's, rising for every minute of
+## the Final Swarm.
 func coin_mult() -> float:
+	var m := float(danger.get("coin_mult", 1.0))
 	if not final_started:
-		return 1.0
-	return 1.0 + float(final_cfg.get("coin_mult_per_min", 0.0)) * final_time / 60.0
+		return m
+	return m * (1.0 + float(final_cfg.get("coin_mult_per_min", 0.0)) * final_time / 60.0)
 
 
 func escalation() -> float:
@@ -118,11 +140,11 @@ func escalation() -> float:
 
 
 func hp_mult() -> float:
-	return 1.0 + escalation()
+	return (1.0 + escalation()) * _danger_hp
 
 
 func damage_mult() -> float:
-	return 1.0 + escalation()
+	return (1.0 + escalation()) * _danger_damage
 
 
 func speed_mult() -> float:

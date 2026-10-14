@@ -2,6 +2,8 @@
 	"id": "spitter",
 	"name": "Spitter",
 	"role": "shooter",
+	"desc": "Keeps its distance and spits. Close in or sidestep.",
+	"dex": 3,
 	"hp": 14,
 	"hp_growth_per_minute": 0.15,
 	"speed": 26,

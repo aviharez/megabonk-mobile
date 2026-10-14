@@ -2,6 +2,8 @@
 	"id": "gnat",
 	"name": "Gnat",
 	"role": "swarm",
+	"desc": "Tiny, and comes in clouds during a swarm.",
+	"dex": 6,
 	"hp": 2,
 	"hp_growth_per_minute": 0.15,
 	"speed": 50,

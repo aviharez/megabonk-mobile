@@ -2,6 +2,8 @@
 	"id": "overdue_bill",
 	"name": "Overdue Bill",
 	"role": "ghost",
+	"desc": "Can't be bonked. Shows up when the Final Swarm drags on.",
+	"dex": 8,
 	"hp": 1,
 	"speed": 30,
 	"damage": 0,

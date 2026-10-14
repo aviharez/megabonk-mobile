@@ -1,8 +1,10 @@
 extends Node
-## End-to-end check of the screens: menu -> PLAY -> hero select -> map
-## select -> run -> death -> game over (with unlock progress) -> MENU
-## -> UNLOCKS and SHOP open and close -> with Turbo Pigeon owned, picking him
-## and the map starts his run there.
+## End-to-end check of the screens: menu -> Play -> Pick a Hero (a new save
+## skips Pick a District) -> Start -> run -> death -> game over (with unlock
+## progress) -> Menu -> Collection, Shop and Characters open and close ->
+## with Mega Mole beaten and Turbo Pigeon owned, Play opens Pick a District
+## (New! on Danger 2), Danger 2 > Next > Turbo Pigeon > Start runs him there
+## on Danger 2, and Play Again starts the same run with no Pick steps.
 ## Ads (FakeAdBackend / FakeStoreBackend, the desktop stand-ins): banner on
 ## the menu and never in the run, daily reward, revive, 2x coins, the
 ## interstitial on the way back to the menu, Remove Ads from the shop.
@@ -38,7 +40,7 @@ func _check() -> void:
 	await _play(tree.current_scene)
 	var run := tree.current_scene as Run
 	if run == null:
-		fails.append("PLAY > NEXT > GO! did not open the run")
+		fails.append("Play > Start did not open the run")
 	else:
 		await _frames(30)
 		if run.elapsed <= 0.0:
@@ -91,26 +93,24 @@ func _check() -> void:
 	tree.quit(0 if fails.is_empty() else 1)
 
 
-## PLAY, then NEXT on the hero select and GO! on the map select.
+## A new save: Play opens Pick a Hero (no district step), Start runs.
 func _play(menu: Node) -> void:
 	menu.get_node("Frame/Buttons/Play").pressed.emit()
 	await _frames(2)
-	var next := menu.find_child("Next", true, false)
-	if next == null:
+	if not menu.find_children("*", "PickDistrictScreen", true, false).is_empty():
 		return
-	next.pressed.emit()
-	await _frames(2)
-	var go := menu.find_child("Go", true, false)
-	if go != null:
-		go.pressed.emit()
+	var start := menu.find_child("Start", true, false)
+	if start != null:
+		start.pressed.emit()
 	await _frames(3)
 
 
-## The Collection and Shop tabs open and close; Play opens the hero select, NEXT the
-## map select, and GO! starts the picked hero's run on the picked map.
+## The Collection, Shop and Characters tabs open and close; with Mega Mole
+## beaten Play opens Pick a District (New! on Danger 2), Next Pick a Hero,
+## and Start runs the picked hero on the picked danger; Play Again repeats it.
 func _menu_screens(tree: SceneTree, save: Node, fails: Array) -> void:
 	var menu := tree.current_scene
-	for b: Array in [["Collection", "UnlocksScreen"], ["Shop", "ShopScreen"]]:
+	for b: Array in [["Collection", "UnlocksScreen"], ["Shop", "ShopScreen"], ["Characters", "CharactersScreen"]]:
 		menu.get_node("Nav/" + b[0]).pressed.emit()
 		await _frames(2)
 		var screens := menu.get_children().filter(func(c: Node) -> bool: return c is MenuScreen)
@@ -120,33 +120,61 @@ func _menu_screens(tree: SceneTree, save: Node, fails: Array) -> void:
 		screens[0].close()
 		await _frames(2)
 	save.data.unlocks["turbo_pigeon"] = "owned"
+	Meta.commit_run(GameData.shared(), save.data, {"boss_defeated": 1.0}, "sir_loaf", 0, "suburbia", 300.0, 1)
 	menu.get_node("Frame/Buttons/Play").pressed.emit()
 	await _frames(2)
-	var hero: HeroScreen = null
+	var district: PickDistrictScreen = null
 	for c in menu.get_children():
-		if c is HeroScreen:
+		if c is PickDistrictScreen:
+			district = c
+	if district == null:
+		fails.append("after Mega Mole, Play did not open Pick a District")
+		return
+	var two: PickDistrictScreen.DangerTile = district.find_child("Danger2", true, false)
+	if two == null or not two.is_new or two.locked:
+		fails.append("Danger 2 is not open with New!")
+		return
+	two.pressed.emit()
+	await _frames(2)
+	district.find_child("Next", true, false).pressed.emit()
+	await _frames(2)
+	var hero: PickHeroScreen = null
+	for c in district.get_children():
+		if c is PickHeroScreen:
 			hero = c
 	if hero == null:
-		fails.append("PLAY did not open the hero select")
+		fails.append("Next did not open Pick a Hero")
 		return
 	hero.select("turbo_pigeon")
 	await _frames(2)
-	hero.find_child("Next", true, false).pressed.emit()
-	await _frames(2)
-	var maps: MapScreen = null
-	for c in hero.get_children():
-		if c is MapScreen:
-			maps = c
-	if maps == null:
-		fails.append("NEXT did not open the map select")
-		return
-	maps.find_child("Go", true, false).pressed.emit()
+	hero.find_child("Start", true, false).pressed.emit()
 	await _frames(3)
 	var run := tree.current_scene as Run
 	if run == null or run.char_def.id != "turbo_pigeon" or run.weapons[0].def.id != "sharp_feathers":
 		fails.append("picking Turbo Pigeon did not start his run with Sharp Feathers")
-	elif save.data.character != "turbo_pigeon" or save.data.map != "suburbia" or run.map_def.id != "suburbia":
-		fails.append("the picks were not remembered / the map was not used")
+		tree.paused = false
+		return
+	if save.data.character != "turbo_pigeon" or save.data.map != "suburbia" or int(save.data.danger) != 2 or run.danger_level != 2:
+		fails.append("the picks were not remembered / the danger was not played")
+	# Play Again: the same hero, district and danger, straight into a new run.
+	await _frames(10)
+	run.hp = 0.0
+	await _frames(2)
+	var again: PixelButton = run.find_child("PlayAgain", true, false)
+	if again == null:
+		fails.append("no Play Again button")
+		tree.paused = false
+		return
+	again.pressed.emit()
+	# A break like the way to the menu: the fake interstitial may show first.
+	# (The old run is freed by then: compare ids, not the node.)
+	var old_id := run.get_instance_id()
+	await _until(func() -> bool: return tree.current_scene is Run and tree.current_scene.get_instance_id() != old_id, 5.0)
+	var run2 := tree.current_scene as Run
+	if run2 == null or run2.get_instance_id() == old_id:
+		fails.append("Play Again did not start a new run")
+	elif run2.char_def.id != "turbo_pigeon" or run2.danger_level != 2 or run2.map_def.id != "suburbia":
+		fails.append("Play Again changed the run (%s, %s, danger %d)" % [run2.char_def.id, run2.map_def.id, run2.danger_level])
 	tree.paused = false
 
 

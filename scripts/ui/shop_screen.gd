@@ -6,7 +6,8 @@ extends MenuScreen
 ## goods as a 3-column grid of GoodsCards (icon on a shelf, name, level pips,
 ## price button or Max). Entries with "needs" stay closed until enough runs
 ## are played or unlocks are bought. Under the Upgrades grid, and on Offers,
-## the No Ads offer window (lamp price button with the store's price).
+## the No Ads offer window (lamp price button with the store's price). Once
+## the Switchboard is bought, its button under the Actions grid opens it.
 
 const COLUMNS := 3
 const TABS := [["stat", "Upgrades"], ["actions", "Actions"], ["offers", "Offers"]]
@@ -64,8 +65,29 @@ func _fill() -> void:
 	list.add_child(grid)
 	for e: Dictionary in entries:
 		grid.add_child(_card(e))
+	if kind == "actions" and Meta.toggler_slots(db, save.data) > 0:
+		var b := KitButton.new()
+		b.name = "Switchboard"
+		b.part = "secondary"
+		b.label = "Switchboard  %d/%d off" % [save.data.toggled_off.size(), Meta.toggler_slots(db, save.data)]
+		b.custom_minimum_size = Vector2(W, 24)
+		b.pressed.connect(open_switchboard)
+		list.add_child(b)
 	if kind == "stat":
 		_offers()
+
+
+## The Switchboard, as a sub-screen over the menu (no nav) when there is
+## one to host it, else on top of the shop.
+func open_switchboard() -> TogglerScreen:
+	var tg := TogglerScreen.new(save)
+	tg.closed.connect(refresh)
+	var host := get_parent()
+	if host != null and host.has_method("_add_screen"):
+		host.call("_add_screen", tg, false)
+	else:
+		add_child(tg)
+	return tg
 
 
 func _card(e: Dictionary) -> GoodsCard:

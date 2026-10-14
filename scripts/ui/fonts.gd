@@ -50,6 +50,8 @@ const STYLES := {
 	"RIBBON": ["D", 9, Palette.PAPER, 1, Palette.INK, 1],
 	## The active bottom-nav tile's word.
 	"NAV": ["D", 8, Palette.PAPER, 1, Palette.INK, 1],
+	## INK words on a lamp plate (the current Play step), no outline.
+	"ON_LAMP": ["D", 9, Palette.INK, 0, Palette.INK, 0],
 	## Stickers and badges (New, AD, level and stack counts): INK on a light plate.
 	"TAG": ["D", 7, Palette.INK, 0, Palette.INK, 0],
 	"BODY": ["I", 7, Palette.PAPER, 0, Palette.INK, 0],

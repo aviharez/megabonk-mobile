@@ -2,6 +2,8 @@
 	"id": "chomper",
 	"name": "Chomper",
 	"role": "charger",
+	"desc": "Stares you down, then charges in a straight line.",
+	"dex": 5,
 	"hp": 30,
 	"hp_growth_per_minute": 0.15,
 	"speed": 24,

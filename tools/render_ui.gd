@@ -35,11 +35,12 @@ func _initialize() -> void:
 	await _shot(menu, out + "/settings.png")
 	await _shot(ShopScreen.new(save), out + "/shop.png")
 	await _shot(UnlocksScreen.new(save), out + "/unlocks.png", int(args.get("scroll", "0")))
-	var hero := HeroScreen.new(save)
-	await _shot(hero, out + "/hero.png", 0, false)
-	hero.select("gary")  # locked in this save: silhouette + how to unlock
-	await _shot(hero, out + "/hero_locked.png")
-	await _shot(MapScreen.new(save), out + "/maps.png")
+	var chars := CharactersScreen.new(save)
+	await _shot(chars, out + "/characters.png", 0, false)
+	chars.select_hero("gary")  # locked in this save: silhouette + how to unlock
+	await _shot(chars, out + "/characters_locked.png")
+	await _shot(PickDistrictScreen.new(save), out + "/pick_district.png")
+	await _shot(PickHeroScreen.new(save), out + "/pick_hero.png")
 	await _shot(TogglerScreen.new(save), out + "/toggler.png")
 
 	Run.next_options = {"no_spawns": true, "no_save": true, "invincible": true, "seed": 3}

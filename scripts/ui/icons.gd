@@ -6,6 +6,8 @@ extends RefCounted
 ## - tomes: the book (res://assets/icons/book.png) with its cover recolored and
 ##   a symbol on it, both from the tome's "icon" in data (see GameData).
 ## - characters: the head of the first idle frame (top-centre 16x16).
+## - enemies: the whole critter, its sheet's first frame cropped to its
+##   pixels (critter()); the code-drawn shape for an enemy without a sheet.
 ## Content without art gets null (ContentIcon draws its placeholder glyph).
 ## Locked content uses silhouette(): the same shape, all INK.
 ##
@@ -46,6 +48,8 @@ static func image(db: GameData, kind: String, id: String) -> Image:
 				_images[key] = tome(def.get("icon", {}))
 			"characters":
 				_images[key] = head(def)
+			"enemies":
+				_images[key] = critter(def)
 			_:
 				_images[key] = null
 	return _images[key]
@@ -168,6 +172,39 @@ static func idle_frame(def: Dictionary) -> Image:
 	full.convert(Image.FORMAT_RGBA8)
 	var fw := int(full.get_width() / sh.frames)
 	return full.get_region(Rect2i(0, 0, fw, full.get_height()))
+
+
+## An enemy at rest: its sheet's first frame, or its code-drawn "shape" in
+## its "color" (Overdue Bill), cropped to its pixels; null without either.
+static func critter(def: Dictionary) -> Image:
+	var img: Image = null
+	var sh := EnemySystem.load_sheet(def) if def.has("sheet") else {}
+	if not sh.is_empty():
+		var full: Image = sh.texture.get_image()
+		if full != null and not full.is_empty():
+			full = full.duplicate() as Image
+			full.convert(Image.FORMAT_RGBA8)
+			img = full.get_region(Rect2i(0, 0, int(full.get_width() / sh.frames), full.get_height()))
+	elif PlaceholderArt.has_shape(def.get("shape", "")):
+		img = PlaceholderArt.texture(def.shape, Palette.index_of(def.get("color", "PAPER"))).get_image().duplicate() as Image
+		img.convert(Image.FORMAT_RGBA8)
+	if img == null:
+		return null
+	var used := img.get_used_rect()
+	return img.get_region(used) if used.size != Vector2i.ZERO else null
+
+
+## `img` as is when it fits in `px` x `px`, else shrunk to fit (shrink() on
+## a square canvas, so the shape keeps its proportions).
+static func fit_in(img: Image, px: int) -> Image:
+	if img.get_width() <= px and img.get_height() <= px:
+		return img
+	var side := maxi(img.get_width(), img.get_height())
+	var sq := Image.create_empty(side, side, false, Image.FORMAT_RGBA8)
+	sq.blit_rect(img, Rect2i(Vector2i.ZERO, img.get_size()), Vector2i((side - img.get_width()) / 2, side - img.get_height()))
+	var out := shrink(sq, px)
+	var used := out.get_used_rect()
+	return out.get_region(used) if used.size != Vector2i.ZERO else out
 
 
 ## Top-centre 16x16 of the character's first idle frame (the head), or null.

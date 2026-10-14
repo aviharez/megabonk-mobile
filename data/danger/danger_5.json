@@ -1,0 +1,14 @@
+{
+	"id": "danger_5",
+	"level": 5,
+	"modifiers": {
+		"spawn_rate": 1.4,
+		"enemy_hp": 2.3,
+		"enemy_damage": 1.75,
+		"elite_every_sec": [
+			30,
+			45
+		]
+	},
+	"coin_mult": 3.0
+}

@@ -57,6 +57,16 @@ static func default_data() -> Dictionary:
 		"maps_cleared": {},
 		# Longest run per map id, in seconds (Home's "Best 6:12").
 		"best_times": {},
+		# Play flow (phase 11; see meta.gd): the danger level picked last, the
+		# highest danger whose boss was beaten per map, the districts and
+		# dangers the Pick a District step has shown (New! stickers), and the
+		# district goals reached per map.
+		"danger": 1,
+		"dangers_beaten": {},
+		"play_seen": {},
+		"district_goals": {},
+		# Bestiary: enemy id -> {"first_seen": run seconds, "bonked": count}.
+		"bestiary": {},
 		# Ad pacing, daily reward, Remove Ads (phase 5; see scripts/autoload/ads.gd).
 		"ads": {
 			# Remove Ads bought (no interstitials, no banners; rewarded ads stay).

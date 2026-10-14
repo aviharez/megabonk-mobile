@@ -21,6 +21,7 @@ const SCHEMA := {
 	"rules": {"id": TYPE_STRING},
 	"challenges": {"id": TYPE_STRING, "tier": TYPE_STRING, "desc": TYPE_STRING, "stat": TYPE_STRING, "scope": TYPE_STRING, "target": TYPE_FLOAT, "requires": TYPE_STRING, "reward": TYPE_STRING, "price": TYPE_FLOAT},
 	"shop": {"id": TYPE_STRING, "name": TYPE_STRING, "desc": TYPE_STRING, "kind": TYPE_STRING, "prices": TYPE_ARRAY},
+	"danger": {"id": TYPE_STRING, "level": TYPE_FLOAT, "modifiers": TYPE_DICTIONARY, "coin_mult": TYPE_FLOAT},
 }
 ## Values the code knows how to run. Data naming anything else is an error.
 ## Weapon patterns come from Weapon.PATTERNS, item events/effects from ItemSystem.
@@ -53,6 +54,10 @@ const PLAYABLE_MAP := {"size": TYPE_ARRAY, "spawns": TYPE_ARRAY}
 ## Animation clips a character sheet can have (data/characters/*.json "sheets").
 const CHARACTER_CLIPS := ["idle", "walk", "hit"]
 const TOME_GROUPS := ["offense", "defense", "utility", "risk"]
+## Danger level modifiers (data/danger/): multipliers on the director's spawn
+## rate and new enemies' HP and damage, and the elite interval [min, max] s.
+const DANGER_MULTS := ["spawn_rate", "enemy_hp", "enemy_damage"]
+const DANGER_PAIRS := ["elite_every_sec"]
 
 static var _shared: GameData
 
@@ -152,6 +157,11 @@ func _check_entry(category: String, e: Dictionary) -> void:
 		"enemies":
 			if not e.role in ENEMY_ROLES:
 				errors.append("%s: unknown role \"%s\"" % [file, e.role])
+			# The bestiary line (Characters > Critters) and its slot order.
+			if typeof(e.get("desc")) != TYPE_STRING or e.desc == "":
+				errors.append("%s: needs a one-line \"desc\" (bestiary)" % file)
+			if e.has("dex") and not _is_num(e.dex):
+				errors.append("%s: \"dex\" must be a number" % file)
 			if e.has("one_hit") and typeof(e.one_hit) != TYPE_BOOL:
 				errors.append("%s: \"one_hit\" must be true or false" % file)
 			# Drawn from its "sheet" (critter sprites); only an enemy without
@@ -245,6 +255,27 @@ func _check_entry(category: String, e: Dictionary) -> void:
 			_check_challenge(e)
 		"shop":
 			_check_shop(e)
+		"danger":
+			_check_danger(e)
+
+
+## data/danger/<id>.json: {"level" (1, 2, 3...), "modifiers": {DANGER_MULTS
+## multipliers, DANGER_PAIRS [min, max]}, "coin_mult"}.
+func _check_danger(e: Dictionary) -> void:
+	var file: String = e._file
+	if e.level < 1.0 or e.level != floorf(e.level):
+		errors.append("%s: \"level\" must be a whole number from 1" % file)
+	if e.coin_mult <= 0.0:
+		errors.append("%s: \"coin_mult\" must be above 0" % file)
+	for k: String in e.modifiers:
+		if k in DANGER_MULTS:
+			if not _is_num(e.modifiers[k]) or e.modifiers[k] <= 0.0:
+				errors.append("%s: modifier \"%s\" must be a number above 0" % [file, k])
+		elif k in DANGER_PAIRS:
+			if not _is_pair(e.modifiers[k]) or e.modifiers[k][0] <= 0.0 or e.modifiers[k][0] > e.modifiers[k][1]:
+				errors.append("%s: modifier \"%s\" must be [min, max] seconds" % [file, k])
+		else:
+			errors.append("%s: unknown modifier \"%s\"" % [file, k])
 
 
 func _check_weapon(e: Dictionary) -> void:
@@ -334,6 +365,13 @@ func _cross_check() -> void:
 		c.call()
 	_late.clear()  # the closures hold this object: don't keep a cycle
 	_check_unlock_links()
+	# Danger levels run 1, 2, 3... with no gaps or repeats.
+	var levels: Array = entries.danger.values().map(func(d: Dictionary) -> int: return int(d.level))
+	levels.sort()
+	for i in levels.size():
+		if levels[i] != i + 1:
+			errors.append("%s: danger levels must be 1, 2, 3... with no gaps or repeats (have %s)" % [ROOT.path_join("danger"), levels])
+			break
 	for c: Dictionary in entries.characters.values():
 		if c.has("role") and typeof(c.role) != TYPE_STRING:
 			errors.append("%s: \"role\" must be text" % c._file)

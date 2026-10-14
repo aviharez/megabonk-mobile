@@ -170,7 +170,7 @@ def plates():
 # Stickers, badges and chips: INK outline around a flat fill (+ a shaded bottom on chips).
 def stickers():
     for name, fill in [("sticker", "lamp_hi"), ("badge", "lamp"), ("count", "text"),
-                       ("ad", "ink"), ("chip_go", "go_lo")]:
+                       ("ad", "ink"), ("chip_go", "go_lo"), ("sticker_epic", "r_epic")]:
         c = Canvas(3, 3)
         c.outline()
         c.px(1, 1, fill)
@@ -349,6 +349,22 @@ def icons():
     c.rect(2, 1, 1, 10, "muted")
     c.rect(7, 1, 1, 10, "muted")
     part("pause", c)
+    # Back: a paper arrow pointing left (sub-screen headers), muted shade below.
+    c = Canvas(11, 9)
+    for i in range(5):
+        c.rect(i, 4 - i, 1, 1 + 2 * i, "text")
+    c.rect(4, 3, 7, 3, "text")
+    c.rect(5, 6, 6, 1, "muted")
+    part("back", c)
+    # Next: a paper flag-arrow pointing right (Next on Pick a District, the
+    # district summary card), muted shade below.
+    c = Canvas(11, 11)
+    c.rect(0, 1, 2, 9, "text")
+    c.rect(2, 3, 4, 5, "text")
+    for i in range(5):
+        c.rect(6 + i, 1 + i, 1, 9 - 2 * i, "text")
+    c.rect(2, 7, 4, 1, "muted")
+    part("next", c)
 
 
 def main():

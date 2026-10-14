@@ -2,6 +2,8 @@
 	"id": "bloater",
 	"name": "Bloater",
 	"role": "exploder",
+	"desc": "Swells up and pops when close. Stay out of the blast.",
+	"dex": 4,
 	"hp": 22,
 	"hp_growth_per_minute": 0.15,
 	"speed": 18,

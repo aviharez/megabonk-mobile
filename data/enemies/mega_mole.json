@@ -2,6 +2,8 @@
 	"id": "mega_mole",
 	"name": "Mega Mole",
 	"role": "boss",
+	"desc": "Digs under you, throws rocks and calls in Blobs.",
+	"dex": 7,
 	"hp": 1800,
 	"hp_growth_per_minute": 0.15,
 	"speed": 22,

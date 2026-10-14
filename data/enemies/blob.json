@@ -2,6 +2,8 @@
 	"id": "blob",
 	"name": "Blob",
 	"role": "chaser",
+	"desc": "Slow and soft. One bonk does it, but there are always more.",
+	"dex": 1,
 	"hp": 8,
 	"hp_growth_per_minute": 0.12,
 	"one_hit": true,

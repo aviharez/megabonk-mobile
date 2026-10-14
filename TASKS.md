@@ -791,3 +791,29 @@ Prompt: build kit v2 as reusable 9-slice parts on the palette, add the UI tones,
 - Home: Town level badge + bar, Quests rail, weekly event rail (phases 12-13, open decision); Characters / Critters tab, Pick a District, Pick a Hero (phase 11); Settings' Google Play Games rows (phase 14). The Town nav tile is greyed out until the Town exists
 - No `shrine.png` in docs/ui/: the beacon bonus uses the Merchant / Level Up panel look
 - [x] Old UI files deleted (owner OK, 2026-10-14): Titan One, Bonk and 5x7 pixel fonts (+ `tools/fonts/make_bonk.py`), `PixelTitle`, `TitleScene`, `LogoTitle`, `PatternBg`, `SpriteButton`, `NextUnlockCard`, `tools/ui_mockups*.gd`, `revamp_fonts.gd`, `font_preview.gd`, the logo's leaves and radish, `home/icon_mystery`, `home/play_tri`, and 34 kit 3 / 3b parts no screen uses (dropped from `ui_kit.json` and from `SHIP` in `tools/art/ui_kit.py`, so a re-cut doesn't bring them back). 2298 checks pass, flow OK, 173 assets pass, 16 shots 0 off-palette
+
+## Phase 11: Play flow, Danger and Characters (docs/BRIEF.md "Update 1", 2026-10-14)
+
+Prompt: Pick a District and Pick a Hero with the skip and remember rules, Danger 1-5 as data with modifiers and coin multipliers, the Characters tab with Heroes and Critters (bestiary: seen state, first seen, times bonked, locked heroes hidden); hero choice nowhere else. Done = new save goes Home > Pick a Hero > run with no district step; after beating Mega Mole the district step appears with New! on Danger 2; Play Again skips both steps; the bestiary fills in as critters spawn; tests cover each rule.
+
+- [x] Danger data: `data/danger/danger_1..5.json` (level, modifiers spawn_rate / enemy_hp / enemy_damage / elite_every_sec, coin_mult), validated by GameData
+- [x] Enemy "desc" (one line) and "dex" (bestiary order) in every enemy JSON, validated
+- [x] Save keys: danger, dangers_beaten, play_seen, district_goals, bestiary (defaults; old saves: a cleared map counts as Danger 1 beaten)
+- [x] Meta rules: open dangers per district, picked danger, skip step 1, New! on districts / dangers, district goals, bestiary commit
+- [x] Director + Run: danger modifiers and coin multiplier; danger in Run options and Play Again; critters seen when first on screen, bonks per enemy, committed at run end
+- [x] Pick a District (`pick-district.png`): step indicator, district card (thumb, boss slot, name, best, 3 goals), Danger row (lock / New! / rule line), other districts, Next
+- [x] Pick a Hero (`pick-hero.png`): step indicator, role chip, hero 3x on the plinth, name, hero slots (locked = silhouette ???, not pickable), 4 stat tiles, weapon card, district summary card (back to step 1), Start
+- [x] Characters tab (`characters.png`, `characters-locked.png`, `critters.png`): Heroes / Critters tabs with counts, roster, stage, 8 stat tiles + weapon + passive; locked: ???, stats ?, how to unlock + bar, hire price; Critters: 8 slots (? unseen, boss ring + tag), 4 stats, desc, first seen, times bonked; no Choose button
+- [x] Hero choice removed elsewhere (HeroScreen / MapScreen gone); Switchboard reachable from the Shop
+- [x] Tests for every rule; flow check and screen shots updated
+- [x] Done check (2026-10-14): 2424 checks pass (new `tests/test_play_flow.gd`: 162), flow check OK (new save: Play > Pick a Hero > Start; after Mega Mole: Pick a District with New! on Danger 2 > Danger 2 > Next > Turbo Pigeon > Start runs Danger 2; Play Again starts the same run), 176 assets pass. Shots at 540x1170 (`06_characters`, `06b_characters_locked`, `06c_critters`, `07_pick_district`, `08_pick_hero`) checked side by side with their PNGs; all 11 menu shots 0 off-palette pixels. Stress (300+ enemies, full build, Final Swarm, low HP, 540x1014, alternating with the phase 10 commit): vsync 75.0 / 75.0 fps, 1% low 68.4 / 68.9, logic 3.44 / 3.44 ms, ~305 on screen; uncapped phase 11 250.1 / 248.6 / 251.5 vs phase 10 284.2 / 246.2 / 248.0 (noise)
+
+### Found during phase 11
+
+- The Switchboard used to live on the map select; with the district step skipped for most new players it moved to the Shop (Actions tab, a button once bought) as a sub-screen
+- The characters mockups show a 4th "?" hero slot (a hero still to come); not built: the roster shows the heroes in data only
+- Stat tiles use the manual icons (12 px) for Damage / Speed / Magnet / Armor..., not the mockup's baguette / boots / magnet art; the captions sit centred under icon + value (Inter 6 is too wide for the mockup's side-by-side layout)
+- Danger also scales Mega Mole (HP / damage) and every enemy that spawns, Overdue Bills' rate excepted; numbers are a first pass ("tune in balance")
+- Not recorded yet: which hero beat which danger (phase 12's "each hero on each danger" milestones); `dangers_beaten` is per district only
+- Bonks of a critter that was never on screen are counted but it stays "?" (strict "seen when on screen" rule)
+- Tests that open menu screens through the real Save autoload (`test_text_fit`, as `test_back_button` did before) now also mark the play step seen in that save, like the Collection already did; `test_play_flow` points Save at its own file

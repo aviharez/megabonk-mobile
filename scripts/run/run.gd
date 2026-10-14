@@ -19,11 +19,12 @@ extends Node2D
 ## summed in `run_stats` and copied into the result.
 ##
 ## Meta progression (Meta): the run reads the save for the character, the
-## pool (owned unlocks, Toggler), permanent shop upgrades and level-up action
-## charges. At the end it commits `run_stats` to the save (the stat tracker
+## danger level (Director), the pool (owned unlocks, Toggler), permanent shop
+## upgrades and level-up action charges. At the end it commits `run_stats` to the save (the stat tracker
 ## totals and unlock challenges), plus kills and shots per weapon
 ## ("kills.<weapon>", "shots.<weapon>"), gems collected, the level reached and
-## whether the run was finished.
+## whether the run was finished. The bestiary gets the critters seen (the
+## first time one of a kind is inside the view: `seen`) and bonked.
 
 signal on_hit(enemy_slot: int, amount: float, crit: bool, source: String)
 signal on_kill(enemy_slot: int, enemy_id: String, source: String, elite: bool)
@@ -55,6 +56,7 @@ static var next_options := {}
 ## stress_final: stress at Final Swarm density (all roles, bills, elites).
 ## rules: overrides for data/rules/run.json keys. seed: RNG seed.
 ## all_content: every weapon, tome and item is in the pool (tests, debug).
+## character, map, danger: what to play (default: the save's last picks).
 ## chest_every: open a paid chest every N seconds (sims).
 ## loadout: start with {"weapons": {id: level}, "tomes": {id: level},
 ##   "items": {id: stacks}} on top of the signature weapon (tests, stress).
@@ -116,6 +118,14 @@ var run_stats := {}
 ## What last hurt the player (enemy id), and why the run ended.
 var last_damage_source := ""
 var end_reason := ""
+## The danger level played (data/danger/).
+var danger_level := 1
+## Bestiary: enemy id -> run seconds when the first one was on screen, and
+## enemy id -> how many were bonked. Type indexes not seen yet (ever).
+var seen := {}
+var bonked := {}
+var _unseen := {}
+var _spot_ready := false
 var boss: MegaMole
 var boss_summoned := false
 var boss_defeated := false
@@ -286,7 +296,9 @@ func _ready() -> void:
 	for a: String in Meta.ACTIONS:
 		charges[a] = Meta.charges(db, meta, a)
 	charges.merge(options.get("charges", {}), true)
-	director = Director.new(map_def, int(rules.enemy_cap), float(rules.run_length_sec), rng, db.get_entry("rules", "bills"))
+	danger_level = int(options.get("danger", Meta.picked_danger(db, meta, map_def.id)))
+	director = Director.new(map_def, int(rules.enemy_cap), float(rules.run_length_sec), rng, db.get_entry("rules", "bills"),
+			Meta.danger_def(db, danger_level))
 	for e: Dictionary in db.all("enemies"):
 		if e.has("pack_size"):
 			_pack_sizes[e.id] = e.pack_size
@@ -382,6 +394,7 @@ func tick(delta: float) -> void:
 	if _recycle_t <= 0.0:
 		_recycle_t = RECYCLE_EVERY
 		_recycle_far_enemies()
+		_spot_critters()
 	_mark("recycle")
 	for w in weapons:
 		w.update(delta, self)
@@ -1002,6 +1015,24 @@ func _recycle_far_enemies() -> void:
 			enemies.move_to(s, _spawn_point(enemies.flags[s] & (EnemySystem.F_FLY | EnemySystem.F_GHOST) != 0))
 
 
+## Bestiary: a kind of enemy is seen the first time one is inside the view.
+## Only kinds the save hasn't seen are looked for, and none once all are.
+func _spot_critters() -> void:
+	if not _spot_ready:
+		_spot_ready = true
+		for i in enemies.types.size():
+			if not Meta.critter_seen(meta, enemies.types[i].id):
+				_unseen[i] = true
+	if _unseen.is_empty():
+		return
+	var view := view_rect()
+	for s in enemies.pool.active:
+		var ti := enemies.type_of[s]
+		if _unseen.has(ti) and view.has_point(enemies.pos[s]):
+			_unseen.erase(ti)
+			seen[enemies.types[ti].id] = elapsed
+
+
 ## Half the visible area in world pixels: the world view (see
 ## _fit_world_view), at least 180x320 times "world_view_scale", and bigger on
 ## taller or wider screens (stretch aspect "expand").
@@ -1165,6 +1196,7 @@ func _kill(slot: int, source := "") -> void:
 		fx.sparks(at, 16.0, enemies.outline[slot], 0.5)
 		juice.sfx("pop")
 	kills += 1
+	bonked[def.id] = int(bonked.get(def.id, 0)) + 1
 	if source != "":
 		var k: String = _kill_keys.get(source, "")
 		if k == "":
@@ -1753,6 +1785,8 @@ func _end(reason: String) -> void:
 	# Giving up doesn't count as finishing a run.
 	if reason != "gave_up":
 		run_stats["runs_finished"] = 1.0
+	if reason == "portal":
+		run_stats["escaped"] = 1.0
 	var c: Dictionary = rules.coins
 	var mult := (1.0 if won else float(c.death_multiplier)) * director.coin_mult()
 	var played := minf(elapsed, rules.run_length_sec) + director.final_time
@@ -1760,9 +1794,10 @@ func _end(reason: String) -> void:
 	result = {"won": won, "reason": reason, "escaped": reason == "portal", "time": elapsed, "level": level,
 		"kills": kills, "coins": coins, "coin_mult": snappedf(director.coin_mult(), 0.01), "gold": floori(gold),
 		"final_swarm_seconds": director.final_time, "boss_defeated": boss_defeated, "stats": run_stats.duplicate(),
-		"character": char_def.id, "completed": []}
+		"character": char_def.id, "map": map_def.id, "danger": danger_level, "seen": seen.duplicate(), "completed": []}
 	if _save != null:
-		result.completed = Meta.commit_run(db, meta, result.stats, char_def.id, coins, map_def.id, elapsed)
+		result.completed = Meta.commit_run(db, meta, result.stats, char_def.id, coins, map_def.id, elapsed, danger_level)
+		Meta.commit_bestiary(meta, seen, bonked)
 		_save.save_game()
 	if ads != null:
 		ads.end_run()
@@ -1838,7 +1873,7 @@ func _sync_over_coins(roll: bool) -> void:
 	if result.get("coins_doubled", false):
 		mult = "Doubled!"
 	elif director.coin_mult() > 1.0:
-		mult = "Final Swarm x%.1f" % director.coin_mult()
+		mult = "%s x%.1f" % ["Final Swarm" if director.final_started else "Danger %d" % danger_level, director.coin_mult()]
 	# Only what this run earned: the wallet total is the menu's business.
 	_over_mult.text = mult
 	if roll:
@@ -2175,7 +2210,8 @@ func _render() -> void:
 	_hud.xp_need = xp_needed(rules.xp_curve, level)
 	_hud.boss_frac = boss.hp_frac() if boss != null and boss.alive() else -1.0
 	_hud.boss_name = "Mega Mole" if boss == null else String(enemies.types[enemies.type_of[boss.slot]].name)
-	_hud.coin_mult = director.coin_mult()
+	# The HUD's pink "Coins x" line is the Final Swarm's (danger shows at the end).
+	_hud.coin_mult = director.coin_mult() if director.final_started else 1.0
 	_hud.challenge = interactables.challenge_status()
 	_hud.has_key = interactables.has_key
 	_hud.view_center = _pos.round()
@@ -3029,13 +3065,13 @@ func _set_title(l: Label, text: String) -> void:
 		(l.get_meta("big") as HeaderTitle).text = text
 
 
-## Again with the same hero and map. A break like the way to the menu, so
+## Again with the same hero, map and danger (no Pick steps). A break like the way to the menu, so
 ## an interstitial may show first (Ads decides).
 func _play_again() -> void:
 	if _leaving or _ad_busy():
 		return
 	_leaving = true
-	Run.next_options = {"character": char_def.id, "map": map_def.id}
+	Run.next_options = again_options()
 	var go := func(_shown := false) -> void:
 		get_tree().paused = false
 		var tr := get_node_or_null("/root/Transition")
@@ -3047,6 +3083,11 @@ func _play_again() -> void:
 		ads.at_break(go)
 	else:
 		go.call()
+
+
+## What Play Again starts: this run's hero, map and danger.
+func again_options() -> Dictionary:
+	return {"character": char_def.id, "map": map_def.id, "danger": danger_level}
 
 
 ## Back to the menu. After a game over this is the one break where an

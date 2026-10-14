@@ -6,7 +6,10 @@ extends Control
 ## bought); an Unlock button under the hero while something is ready to buy;
 ## the lamp Play; and the bottom nav (BottomNav: Shop, Characters, Battle,
 ## Town, Collection). Tab screens open over Home with the nav on top; Play's
-## hero and map steps are sub-screens with their own Back bar and no nav.
+## two steps (Pick a District, Pick a Hero) are sub-screens with their own
+## back block and no nav. Play skips Pick a District while there's nothing to
+## pick there (Meta.skip_district_step); the hero is only ever picked on
+## Pick a Hero (the Characters tab is browse only).
 ##
 ## Three groups: the top bar and name under the camera cutout, Play and the
 ## nav on the bottom edge, the hero group halfway, so a taller phone shows
@@ -240,7 +243,8 @@ func _exit_tree() -> void:
 		_ads.set_banner(false)
 
 
-## "menu", "shop", "unlocks", "settings", "hero", "map" or "toggler".
+## "menu", "shop", "unlocks", "settings", "characters", "hero" (Pick a
+## Hero), "map" (Pick a District) or "toggler".
 func _current_screen() -> String:
 	var screens := get_children().filter(func(c: Node) -> bool: return c is MenuScreen and not c.is_queued_for_deletion())
 	if not screens.is_empty():
@@ -251,8 +255,10 @@ func _current_screen() -> String:
 			return "unlocks"
 		if top is TogglerScreen:
 			return "toggler"
-		if top is MapScreen:
+		if top is PickDistrictScreen:
 			return "map"
+		if top is CharactersScreen:
+			return "characters"
 		return "hero"
 	if _settings != null and _settings.visible:
 		return "settings"
@@ -318,7 +324,8 @@ func back() -> void:
 		add_child(q)
 
 
-## The innermost open screen (the Switchboard opens on top of the map select).
+## The innermost open screen (Pick a Hero opens on top of Pick a District,
+## the Switchboard on top of the Shop).
 func _top_screen(s: MenuScreen) -> MenuScreen:
 	for c in s.get_children():
 		if c is MenuScreen:
@@ -360,10 +367,7 @@ func _on_tab(tab: String) -> MenuScreen:
 		"collection":
 			_tab = _open_screen(UnlocksScreen, true)
 		"characters":
-			var hero := HeroScreen.new(Save, true)
-			hero.tab_mode = true
-			_add_screen(hero, true)
-			_tab = hero
+			_tab = _open_screen(CharactersScreen, true)
 	if _tab != null:
 		var mine := _tab
 		_tab.closed.connect(func() -> void:
@@ -374,22 +378,30 @@ func _on_tab(tab: String) -> MenuScreen:
 	return _tab
 
 
-## Play: character select, then map select (opened from the hero screen).
-func _on_play() -> void:
-	var hero: HeroScreen = _open_screen(HeroScreen)
-	hero.picked.connect(_start_run)
+## Play: Pick a District (Next opens Pick a Hero on top of it), or straight
+## to Pick a Hero while there's no district or danger to pick. Start runs.
+func _on_play() -> MenuScreen:
+	if Meta.skip_district_step(GameData.shared(), Save.data):
+		var hero := PickHeroScreen.new(Save, false)
+		_add_screen(hero, false)
+		hero.picked.connect(_start_run)
+		return hero
+	var district: PickDistrictScreen = _open_screen(PickDistrictScreen)
+	district.picked.connect(_start_run)
+	return district
 
 
-## The Characters tab: every hero's details, browse only (no play from there).
-func _open_heroes() -> HeroScreen:
+## The Characters tab: every hero's and critter's details, browse only.
+func _open_heroes() -> CharactersScreen:
 	return _on_tab("characters")
 
 
-func _start_run(character: String, map: String) -> void:
+func _start_run(character: String, map: String, danger := 1) -> void:
 	Save.data.character = character
 	Save.data.map = map
+	Save.data.danger = danger
 	Save.save_game()
-	Run.next_options = {"character": character, "map": map}
+	Run.next_options = {"character": character, "map": map, "danger": danger}
 	var tr := get_node_or_null("/root/Transition")
 	if tr != null:
 		tr.change_scene(RUN_SCENE)
