@@ -1,0 +1,16 @@
+{
+	"id": "office",
+	"name": "Office",
+	"title": "Open-Plan Office",
+	"order": 3,
+	"district": "suburbia",
+	"sprite": "res://assets/town/office.png",
+	"unlocks": ["gary", "stapler"],
+	"interactable": "coffee_machine",
+	"effect_desc": "a coffee machine cuts cooldowns by {pct}% for {seconds} s, once per run.",
+	"levels": [
+		{"patrol": 4, "effect": {"buff": {"seconds": 30, "modifiers": [{"stat": "cooldown", "pct": -0.15}]}}},
+		{"price": 180, "patrol": 6, "effect": {"buff": {"seconds": 30, "modifiers": [{"stat": "cooldown", "pct": -0.2}]}}},
+		{"price": 320, "patrol": 8, "effect": {"buff": {"seconds": 30, "modifiers": [{"stat": "cooldown", "pct": -0.25}]}}}
+	]
+}

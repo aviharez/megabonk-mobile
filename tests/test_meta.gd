@@ -345,10 +345,12 @@ func test_shop_rules(t) -> void:
 	t.check(not Meta.buy_shop(db, d, "toggler"), "not after 11")
 	d.unlocks[ids[11]] = "owned"
 	t.check(Meta.buy_shop(db, d, "toggler") and Meta.toggler_slots(db, d) > 0, "Toggler after 12 unlocks")
-	var top: int = db.get_entry("shop", "might").prices.size()
+	var top: int = db.get_entry("shop", "magnetism").prices.size()
 	for i in top:
-		Meta.buy_shop(db, d, "might")
-	t.check(Meta.shop_level(d, "might") == top and Meta.shop_price(d, db.get_entry("shop", "might")) == -1 and not Meta.buy_shop(db, d, "might"), "maxed at %d" % top)
+		Meta.buy_shop(db, d, "magnetism")
+	t.check(Meta.shop_level(d, "magnetism") == top and Meta.shop_price(d, db.get_entry("shop", "magnetism")) == -1 and not Meta.buy_shop(db, d, "magnetism"), "maxed at %d" % top)
+	# Might moved into the Town's Gym (phase 13): its levels come from there.
+	t.check(not Meta.buy_shop(db, d, "might"), "Might is the Gym's now, not sold in the Shop")
 	var poor := _blank()
 	t.check(not Meta.buy_shop(db, poor, "reroll") and poor.coins == 0, "no coins, no sale")
 	# Permanent stat upgrades are small.
@@ -356,10 +358,10 @@ func test_shop_rules(t) -> void:
 	var base := run.stat("damage")
 	var save: Node = run._save
 	_done(t, run)
-	save.data.shop.might = top
+	save.data.town.levels["gym"] = Town.max_level(Town.building(db, "gym"))
 	run = _start(t, {"save": save})
 	var maxed := run.stat("damage")
-	t.check(maxed > base and maxed <= base * 1.2, "max Might is a small bonus (%s -> %s)" % [base, maxed])
+	t.check(maxed > base and maxed <= base * 1.2, "max Might (the top Gym level) is a small bonus (%s -> %s)" % [base, maxed])
 	_done(t, run)
 	save.free()
 

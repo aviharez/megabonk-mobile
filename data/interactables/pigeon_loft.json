@@ -1,0 +1,11 @@
+{
+	"id": "pigeon_loft",
+	"name": "Pigeon Loft",
+	"behavior": "town",
+	"building": "pigeon_coop",
+	"radius": 9,
+	"shape": "cage",
+	"sprite": "res://assets/props/pigeon_loft.png",
+	"color": "PAPER",
+	"twinkle": "BUTTER"
+}

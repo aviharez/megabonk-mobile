@@ -1,0 +1,14 @@
+[remap]
+
+importer="image"
+type="Image"
+uid="uid://cpt1fgvhko413"
+path="res://.godot/imported/coffee_machine.png-66a27b1b4452d830fa51cb0d52234a98.image"
+
+[deps]
+
+source_file="res://assets/props/coffee_machine.png"
+dest_files=["res://.godot/imported/coffee_machine.png-66a27b1b4452d830fa51cb0d52234a98.image"]
+
+[params]
+

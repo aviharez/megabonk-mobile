@@ -1,0 +1,11 @@
+{
+	"id": "pullup_bar",
+	"name": "Pull-up Bar",
+	"behavior": "town",
+	"building": "gym",
+	"radius": 9,
+	"shape": "altar",
+	"sprite": "res://assets/props/pullup_bar.png",
+	"color": "GRAY",
+	"twinkle": "BUTTER"
+}

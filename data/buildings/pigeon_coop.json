@@ -1,0 +1,16 @@
+{
+	"id": "pigeon_coop",
+	"name": "Coop",
+	"title": "Pigeon Coop",
+	"order": 2,
+	"district": "suburbia",
+	"sprite": "res://assets/town/pigeon_coop.png",
+	"unlocks": ["turbo_pigeon", "sharp_feathers"],
+	"interactable": "pigeon_loft",
+	"effect_desc": "pigeons bring you every XP gem on the map, {uses}x per run.",
+	"levels": [
+		{"patrol": 3, "effect": {"pull_gems": true, "uses": 1, "recharge_sec": 90}},
+		{"price": 140, "patrol": 5, "effect": {"pull_gems": true, "uses": 2, "recharge_sec": 90}},
+		{"price": 280, "patrol": 7, "effect": {"pull_gems": true, "uses": 3, "recharge_sec": 90}}
+	]
+}

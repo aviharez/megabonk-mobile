@@ -12,7 +12,7 @@ extends Node
 signal saved
 signal loaded
 
-const SAVE_VERSION := 1
+const SAVE_VERSION := 2
 const DEFAULT_PATH := "user://save.json"
 
 var path := DEFAULT_PATH
@@ -81,6 +81,12 @@ static func default_data() -> Dictionary:
 			"last_claim": {},
 			"doubled_day": -1,
 			"earned": 0,
+		},
+		# Town (phase 13; see scripts/core/town.gd): building levels (buildings
+		# that wrap unlock content are built while it's owned) and Patrol.
+		"town": {
+			"levels": {},
+			"patrol": {"since": 0, "banked": 0.0},
 		},
 		# Ad pacing, daily reward, Remove Ads (phase 5; see scripts/autoload/ads.gd).
 		"ads": {
@@ -197,10 +203,24 @@ func _migrate(d: Dictionary, from_version: int) -> Dictionary:
 	return d
 
 
-# Example for the next format change:
-# func _migrate_v1(d: Dictionary) -> Dictionary:
-# 	d.coins = d.get("gold", 0); d.erase("gold")
-# 	return d
+## v1 -> v2 (phase 13, Town): the Might, Vitality and Sneakers upgrades moved
+## from the Shop into the Gym, whose one level drives all three. The Gym
+## takes the highest of the three levels (nobody loses a level they paid
+## for); the old shop levels go. Owned unlocks need nothing: the buildings
+## that wrap them read ownership.
+func _migrate_v1(d: Dictionary) -> Dictionary:
+	var shop: Dictionary = d.get("shop", {}) if d.get("shop") is Dictionary else {}
+	var gym := 0
+	for id: String in ["might", "vitality", "sneakers"]:
+		gym = maxi(gym, int(shop.get(id, 0)))
+		shop.erase(id)
+	var town: Dictionary = d.get("town", {}) if d.get("town") is Dictionary else {}
+	var levels: Dictionary = town.get("levels", {}) if town.get("levels") is Dictionary else {}
+	if gym > 0:
+		levels["gym"] = gym
+	town["levels"] = levels
+	d["town"] = town
+	return d
 
 
 ## Fills keys missing from `d` with defaults (recursively) and restores

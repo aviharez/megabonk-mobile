@@ -1,0 +1,14 @@
+[remap]
+
+importer="image"
+type="Image"
+uid="uid://dssxyu0bjc1oh"
+path="res://.godot/imported/gym.png-e0d48f4d03e12efaa23b03f07e9cce60.image"
+
+[deps]
+
+source_file="res://assets/town/gym.png"
+dest_files=["res://.godot/imported/gym.png-e0d48f4d03e12efaa23b03f07e9cce60.image"]
+
+[params]
+

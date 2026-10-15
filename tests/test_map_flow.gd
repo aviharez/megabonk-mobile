@@ -767,7 +767,9 @@ func test_bills_that_cant_spawn_are_not_counted(t) -> void:
 func test_two_risk_shrines_both_wear_off(t) -> void:
 	var run := _start(t)
 	var a := run.interactables.find("risk_shrine")
-	var b := run.interactables.add("risk_shrine", a.pos + Vector2(0, 60))
+	# The second one a short walk away, on the map's side of the first.
+	var dy := 60.0 if a.pos.y < run.bounds.get_center().y else -60.0
+	var b := run.interactables.add("risk_shrine", run.free_spot_near(a.pos + Vector2(0, dy)))
 	run.teleport(a.pos)
 	_step(run, float(a.def.charge_time) + 0.2)
 	run.teleport(b.pos)

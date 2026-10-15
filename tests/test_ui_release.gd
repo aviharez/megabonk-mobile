@@ -182,8 +182,9 @@ func test_shop_grid_has_an_icon_per_entry(t) -> void:
 		screen.tab = i
 		screen.refresh()
 		await t.process_frame
+		var moved := Town.shop_owner(db)
 		for e: Dictionary in db.all("shop"):
-			if (e.kind == "stat") != (i == 0):
+			if (e.kind == "stat") != (i == 0) or moved.has(e.id):
 				continue
 			t.check(Icons.ref(db, e.get("icon", "")) != null, "%s has an icon" % e.id)
 			var card: GoodsCard = screen.find_child(e.id, true, false)
@@ -191,13 +192,13 @@ func test_shop_grid_has_an_icon_per_entry(t) -> void:
 	screen.tab = 0
 	screen.refresh()
 	await t.process_frame
-	var might: GoodsCard = screen.find_child("might", true, false)
-	var buy: PixelButton = might.find_child("Buy", true, false)
+	var greed: GoodsCard = screen.find_child("greed", true, false)
+	var buy: PixelButton = greed.find_child("Buy", true, false)
 	t.check(buy != null and not buy.disabled, "the card has a price button")
 	buy.pressed.emit()
 	await t.process_frame
-	t.check(Meta.shop_level(save.data, "might") == 1, "buying from the card raises the level")
-	t.check((screen.find_child("might", true, false) as GoodsCard).pips == 1, "and the card lights a pip")
+	t.check(Meta.shop_level(save.data, "greed") == 1, "buying from the card raises the level")
+	t.check((screen.find_child("greed", true, false) as GoodsCard).pips == 1, "and the card lights a pip")
 	screen.queue_free()
 	save.free()
 	await t.process_frame

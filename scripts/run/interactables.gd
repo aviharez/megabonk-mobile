@@ -1,16 +1,18 @@
 class_name Interactables
 extends Node2D
 ## Map objects: chests, shrines, pots, the merchant, the pigeon cage and its
-## key, the boss altar and the exit portal. Every one is used by touching it
+## key, the boss altar, the exit portal and the Town's objects on their lots. Every one is used by touching it
 ## or standing in its circle (no buttons). What each does is its "behavior"
 ## (written once here); its numbers, looks and arrow color come from
 ## data/interactables/. Where they stand comes from the map's "interactables"
 ## list (random free spots) or from events (elite chests, the portal...).
 ##
 ## Behaviors: paid_chest, free_chest, pot, charge_shrine, risk_shrine,
-## challenge_shrine, merchant, cage, key, altar, portal.
+## challenge_shrine, merchant, cage, key, altar, portal, town (a built Town
+## building's object: its effect comes from the building's level, see
+## Town; touched once per use, "recharge_sec" between uses).
 
-const BEHAVIORS := ["paid_chest", "free_chest", "pot", "charge_shrine", "risk_shrine", "challenge_shrine", "merchant", "cage", "key", "altar", "portal"]
+const BEHAVIORS := ["paid_chest", "free_chest", "pot", "charge_shrine", "risk_shrine", "challenge_shrine", "merchant", "cage", "key", "altar", "portal", "town"]
 ## Behaviors you stand in for "charge_time" seconds.
 const STAND := ["charge_shrine", "risk_shrine", "challenge_shrine", "altar"]
 const MAX_ARROWS := 6
@@ -26,6 +28,8 @@ var paid_opened := 0
 ## "start_kills", "def"}].
 var risks: Array[Dictionary] = []
 var challenges: Array[Dictionary] = []
+## Running Town buffs: [{"left", "src", "mods", "name"}].
+var buffs: Array[Dictionary] = []
 ## Set by Run on a first run when the boss wasn't summoned in time.
 var altar_pulse := false
 static var _sprites := {}  # sprite path -> ImageTexture (null when missing)
@@ -43,7 +47,8 @@ func setup(owner_run: Node, data: GameData) -> void:
 ## (a content id) is left out once that content is unlocked (the pigeon cage
 ## after Turbo Pigeon); with no cage, elites drop no key either.
 func place_from_map(map_def: Dictionary, layout: MapLayout, rng: RandomNumberGenerator, start: Vector2) -> void:
-	var taken: Array = []
+	# Empty Town lots (Town.resolve_map) stay clear too.
+	var taken: Array = map_def.get("reserved", []).map(func(a: Array) -> Vector2: return Vector2(a[0], a[1]))
 	var clear: float = map_def.get("start_clear_radius", 60.0)
 	for entry: Dictionary in map_def.get("interactables", []):
 		var def := db.get_entry("interactables", entry.id)
@@ -76,6 +81,10 @@ func add(id: String, at: Vector2) -> Dictionary:
 	if def.behavior == "merchant":
 		o.left = float(def.get("stay_sec", 45.0))
 		o.stock = _roll_stock(def)
+	elif def.behavior == "town":
+		o.effect = Town.effect_at(Town.building(db, def.building), Town.level(db, run.meta, def.building))
+		o.uses = int(o.effect.get("uses", 1))
+		o.wait = 0.0
 	list.append(o)
 	return o
 
@@ -120,6 +129,11 @@ func update(delta: float) -> void:
 				remove(o)
 				continue
 		if o.used:
+			continue
+		if o.get("wait", 0.0) > 0.0:
+			# A Town object between uses (stepping on it now does nothing).
+			o.wait = maxf(0.0, o.wait - delta)
+			o.inside = p.distance_to(o.pos) <= float(def.radius) + pr
 			continue
 		var inside: bool = p.distance_to(o.pos) <= float(def.radius) + pr
 		var entered: bool = inside and not o.inside
@@ -198,6 +212,47 @@ func _touch(o: Dictionary) -> void:
 			run.juice.sfx("key")
 		"portal":
 			run.escape()
+		"town":
+			_town(o)
+
+
+## A Town object: heals, starts a timed buff and/or pulls every gem to the
+## player, then waits "recharge_sec" or, with no uses left, is spent.
+func _town(o: Dictionary) -> void:
+	var fx: Dictionary = o.effect
+	var words := []
+	if fx.has("heal"):
+		run.heal(float(fx.heal))
+		run.numbers.show_text(o.pos, "+%d" % int(fx.heal), Palette.LIME)
+		words.append("+%d HP" % int(fx.heal))
+	if fx.has("buff"):
+		var src: String = "town:" + o.id
+		var mods: Array = fx.buff.modifiers
+		for m: Dictionary in mods:
+			run.stats.set_modifier(m.stat, src, float(m.get("flat", 0.0)), float(m.get("pct", 0.0)))
+		for b in buffs.duplicate():
+			if b.src == src:
+				buffs.erase(b)
+		buffs.append({"left": float(fx.buff.seconds), "src": src, "mods": mods, "name": String(o.def.name)})
+		var m0: Dictionary = mods[0]
+		var stat_name: String = m0.stat.capitalize()
+		for sn: Array in PlayParts.HERO_STATS:
+			if sn[0] == m0.stat:
+				stat_name = sn[1]
+		var amount := ("%+d%%" % roundi(float(m0.pct) * 100.0)) if m0.has("pct") else ("%+d" % roundi(float(m0.get("flat", 0.0))))
+		words.append("%s %s %ds" % [stat_name, amount, int(fx.buff.seconds)])
+	if fx.get("pull_gems", false):
+		run.gems.pull_all()
+		words.append("Pigeons fetch your gems!")
+	o.uses -= 1
+	if o.uses <= 0:
+		o.used = true
+	else:
+		o.wait = float(fx.get("recharge_sec", 60.0))
+	run.toast(" ".join(words) if not words.is_empty() else String(o.def.name), "BUTTER")
+	run.fx.ring(o.pos, 12.0, Palette.BUTTER)
+	run.fx.sparks(o.pos, 10.0, Palette.BUTTER)
+	run.juice.sfx("shrine")
 
 
 func _activate(o: Dictionary) -> void:
@@ -227,6 +282,13 @@ func _activate(o: Dictionary) -> void:
 
 
 func _update_effects(delta: float) -> void:
+	for b in buffs.duplicate():
+		b.left -= delta
+		if b.left > 0.0:
+			continue
+		for m: Dictionary in b.mods:
+			run.stats.remove_modifier(m.stat, b.src)
+		buffs.erase(b)
 	for r in risks.duplicate():
 		r.left -= delta
 		if r.left > 0.0:
@@ -335,7 +397,7 @@ func _draw() -> void:
 			bob = float(int(_time * 3.0 + at.x * 0.1) % 2)
 		var tp := (at - Vector2(floorf(tex.get_width() / 2.0), floorf(tex.get_height() / 2.0) + bob)).round()
 		draw_texture(tex, tp)
-		if not o.used and (def.has("beam") or def.has("twinkle")):
+		if not o.used and o.get("wait", 0.0) <= 0.0 and (def.has("beam") or def.has("twinkle")):
 			var tc := Palette.index_of(def.beam.color if def.has("beam") else def.twinkle)
 			_draw_twinkles(at, Vector2(tex.get_size()), tc, int(at.x * 5.0 + at.y), 1 if def.has("beam") else 0)
 		if def.behavior == "paid_chest":
@@ -349,6 +411,13 @@ func _draw() -> void:
 		for r in risks:
 			left = maxf(left, r.left)
 		labels.append([run.player_pos() + Vector2(0, -14), "Risk %d" % ceili(left), Palette.RED, false])
+	if not buffs.is_empty():
+		var b: Dictionary = buffs[0]
+		for o in buffs:
+			if o.left < b.left:
+				b = o
+		var y := -21.0 if not risks.is_empty() else -14.0
+		labels.append([run.player_pos() + Vector2(0, y), "%s %d" % [b.name, ceili(b.left)], Palette.BUTTER, false])
 	var overlay = run.get("numbers") if run != null else null
 	if overlay is DamageNumbers:
 		(overlay as DamageNumbers).set_labels(labels)

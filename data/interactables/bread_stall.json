@@ -1,0 +1,11 @@
+{
+	"id": "bread_stall",
+	"name": "Bread Stall",
+	"behavior": "town",
+	"building": "bakery",
+	"radius": 9,
+	"shape": "merchant",
+	"sprite": "res://assets/props/bread_stall.png",
+	"color": "CRUST",
+	"twinkle": "BUTTER"
+}

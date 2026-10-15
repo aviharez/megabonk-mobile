@@ -1,7 +1,8 @@
 extends Control
 ## The menu shell and Home (the Battle tab), kit v2 (docs/ui/home.png): the
 ## night town (HomeScene) with the picked hero 3x on the plinth and critters
-## around it; a top bar (coin plate, settings); the district chip and name;
+## around it; a top bar (the account badge: hero portrait with the Town level,
+## "Town Lv n" over a lamp bar, opens the Town; coin plate, settings); the district chip and name;
 ## rail buttons left (Quests with a count of things to claim, and under it
 ## Daily: coins for a rewarded ad) and right (No Ads, until bought, level with
 ## Daily; the top right is kept for the weekly event); an Unlock button under the hero while something is ready to buy;
@@ -33,6 +34,8 @@ var _scene: HomeScene
 var _frame: Control
 var _top: Control
 var _coins: CoinPlate
+var _account: KitButton
+var _town_info: Control
 var _district: Control
 var _buttons: Control
 var _play: KitButton
@@ -107,6 +110,22 @@ func _build_top() -> void:
 	_coins.position = Vector2(50, 10)
 	_coins.size = Vector2(94, CoinPlate.H)
 	_top.add_child(_coins)
+	# The account badge: the picked hero in a slot with the Town level on it.
+	_account = KitButton.new()
+	_account.name = "Account"
+	_account.part = "kit/slot"
+	_account.art_scale = 1
+	_account.position = Vector2(6, 6)
+	_account.size = Vector2(26, 28)
+	_account.pressed.connect(_on_tab.bind("town"))
+	_top.add_child(_account)
+	_town_info = Control.new()
+	_town_info.name = "TownLevel"
+	_town_info.mouse_filter = MOUSE_FILTER_IGNORE
+	_town_info.position = Vector2(6, 6)
+	_town_info.size = Vector2(88, 30)
+	_town_info.draw.connect(_draw_town_level)
+	_top.add_child(_town_info)
 	_settings_btn = KitButton.new()
 	_settings_btn.name = "Settings"
 	_settings_btn.part = "secondary"
@@ -116,6 +135,17 @@ func _build_top() -> void:
 	_settings_btn.size = Vector2(26, 30)
 	_settings_btn.pressed.connect(_open_settings)
 	_top.add_child(_settings_btn)
+
+
+## "Town Lv n" over a lamp bar (Town level of the most it can be), and the
+## level badge on the portrait's corner.
+func _draw_town_level() -> void:
+	var db := GameData.shared()
+	var lv := Town.town_level(db, Save.data)
+	var c := _town_info
+	Fonts.draw(c, "Town Lv %d" % lv, Vector2(31, Fonts.cap_y("NAME", 2, 10)), "NAME")
+	UiArt.bar2(c, Rect2(31, 15, 55, 7), float(lv) / maxf(1.0, Town.max_town_level(db)), "lamp")
+	UiArt.badge(c, str(lv), Vector2(17, 18), "badge", 10)
 
 
 ## The district chip ("District 1 · Best 6:12") over its name.
@@ -255,7 +285,7 @@ func _exit_tree() -> void:
 		_ads.set_banner(false)
 
 
-## "menu", "shop", "unlocks", "settings", "characters", "quests", "hero"
+## "menu", "shop", "unlocks", "settings", "characters", "quests", "town", "hero"
 ## (Pick a Hero), "map" (Pick a District) or "toggler".
 func _current_screen() -> String:
 	var screens := get_children().filter(func(c: Node) -> bool: return c is MenuScreen and not c.is_queued_for_deletion())
@@ -273,6 +303,8 @@ func _current_screen() -> String:
 			return "characters"
 		if top is QuestsScreen:
 			return "quests"
+		if top is TownScreen:
+			return "town"
 		return "hero"
 	if _settings != null and _settings.visible:
 		return "settings"
@@ -382,6 +414,8 @@ func _on_tab(tab: String) -> MenuScreen:
 			_tab = _open_screen(UnlocksScreen, true)
 		"characters":
 			_tab = _open_screen(CharactersScreen, true)
+		"town":
+			_tab = _open_screen(TownScreen, true)
 	if _tab != null:
 		var mine := _tab
 		_tab.closed.connect(func() -> void:
@@ -427,10 +461,13 @@ func _refresh_wallet() -> void:
 	var db := GameData.shared()
 	_coins.value = int(Save.data.coins)
 	var news := Meta.has_news(db, Save.data)
-	_nav.dots = {"collection": news}
+	_nav.dots = {"collection": news, "town": not Town.affordable(db, Save.data).is_empty()}
 	var hero := Meta.picked_character(db, Save.data)
 	if _scene != null:
 		_scene.set_hero(hero)
+	Town.start_patrol(db, Save.data)
+	_account.art = Icons.texture(db, "characters", hero)
+	_town_info.queue_redraw()
 	var store := get_node_or_null("/root/Store")
 	_no_ads.visible = store == null or not store.owns("remove_ads")
 	_refresh_unlock()

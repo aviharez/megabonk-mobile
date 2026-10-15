@@ -1,0 +1,19 @@
+{
+	"id": "gym",
+	"name": "Gym",
+	"title": "Corner Gym",
+	"order": 4,
+	"district": "suburbia",
+	"sprite": "res://assets/town/gym.png",
+	"icon": "tomes/muscle_magazine",
+	"shop": ["might", "vitality", "sneakers"],
+	"interactable": "pullup_bar",
+	"effect_desc": "a pull-up bar gives Damage +{pct}% for {seconds} s, once per run.",
+	"levels": [
+		{"price": 45, "patrol": 2, "effect": {"buff": {"seconds": 30, "modifiers": [{"stat": "damage", "pct": 0.1}]}}},
+		{"price": 90, "patrol": 3, "effect": {"buff": {"seconds": 30, "modifiers": [{"stat": "damage", "pct": 0.12}]}}},
+		{"price": 150, "patrol": 4, "effect": {"buff": {"seconds": 30, "modifiers": [{"stat": "damage", "pct": 0.14}]}}},
+		{"price": 240, "patrol": 5, "effect": {"buff": {"seconds": 30, "modifiers": [{"stat": "damage", "pct": 0.17}]}}},
+		{"price": 360, "patrol": 6, "effect": {"buff": {"seconds": 30, "modifiers": [{"stat": "damage", "pct": 0.2}]}}}
+	]
+}

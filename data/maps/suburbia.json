@@ -1150,14 +1150,25 @@
 			]
 		},
 		{
-			"kind": "house",
+			"kind": "building",
 			"rect": [
 				25,
 				622,
 				30,
 				26
 			],
-			"color": "RED"
+			"color": "RED",
+			"building": "bakery"
+		},
+		{
+			"kind": "driveway",
+			"rect": [
+				55,
+				656,
+				16,
+				16
+			],
+			"requires": "bakery"
 		},
 		{
 			"kind": "planter",
@@ -1189,14 +1200,25 @@
 			"color": "BLUE"
 		},
 		{
-			"kind": "house",
+			"kind": "building",
 			"rect": [
 				106,
 				622,
 				30,
 				26
 			],
-			"color": "TEAL"
+			"color": "TEAL",
+			"building": "pigeon_coop"
+		},
+		{
+			"kind": "driveway",
+			"rect": [
+				136,
+				656,
+				16,
+				16
+			],
+			"requires": "pigeon_coop"
 		},
 		{
 			"kind": "driveway",
@@ -1218,14 +1240,25 @@
 			"color": "RED"
 		},
 		{
-			"kind": "house",
+			"kind": "building",
 			"rect": [
 				187,
 				622,
 				30,
 				26
 			],
-			"color": "BLUE"
+			"color": "BLUE",
+			"building": "office"
+		},
+		{
+			"kind": "driveway",
+			"rect": [
+				217,
+				656,
+				16,
+				16
+			],
+			"requires": "office"
 		},
 		{
 			"kind": "planter",
@@ -1257,14 +1290,25 @@
 			"color": "BLUE"
 		},
 		{
-			"kind": "house",
+			"kind": "building",
 			"rect": [
 				268,
 				622,
 				30,
 				26
 			],
-			"color": "WOOD"
+			"color": "WOOD",
+			"building": "gym"
+		},
+		{
+			"kind": "driveway",
+			"rect": [
+				298,
+				656,
+				16,
+				16
+			],
+			"requires": "gym"
 		},
 		{
 			"kind": "driveway",
@@ -7134,6 +7178,42 @@
 				532,
 				520
 			]
+		},
+		{
+			"id": "bread_stall",
+			"count": 1,
+			"at": [
+				63,
+				664
+			],
+			"requires": "bakery"
+		},
+		{
+			"id": "pigeon_loft",
+			"count": 1,
+			"at": [
+				144,
+				664
+			],
+			"requires": "pigeon_coop"
+		},
+		{
+			"id": "coffee_machine",
+			"count": 1,
+			"at": [
+				225,
+				664
+			],
+			"requires": "office"
+		},
+		{
+			"id": "pullup_bar",
+			"count": 1,
+			"at": [
+				306,
+				664
+			],
+			"requires": "gym"
 		},
 		{
 			"id": "paid_chest",

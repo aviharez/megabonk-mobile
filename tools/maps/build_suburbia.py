@@ -13,7 +13,9 @@ end in a T-junction. A vertical and a horizontal road with sidewalks run along t
 into one grid of streets; objects under them are dropped and ground patches are cut back. In the
 three copies, roof, tree, shed, bush, planter, mailbox and car colors are re-rolled (fixed seed).
 Interactable counts scale with the area; fixed ones (with "at") stay in the top-left block, so
-there is still one boss altar and one cage. Everything else in the block (spawns, art...) is copied.
+there is still one boss altar and one cage. The Town (phase 13) is in the top-left block too: its
+"building" props and the props with "requires" (a Town lot's extras) are kept in the first copy
+only; the other copies get a plain house in each building's place. Everything else in the block (spawns, art...) is copied.
 
 Edit a block, then run:  python3 tools/maps/build_suburbia.py
 """
@@ -93,7 +95,13 @@ def main():
     copies = ((block, 0, 0, False), (block_b, bw, 0, False), (block_b, 0, bh, False), (block, bw, bh, False))
     for i, (src, dx, dy, flip) in enumerate(copies):
         for p in src["props"]:
+            if i > 0 and "requires" in p:
+                continue  # a Town lot's extras: only in the first copy
             q = moved(mirror(p, bw) if flip else p, dx, dy)
+            if i > 0 and q["kind"] == "building":
+                # The Town's buildings stand in the first copy; the others keep a plain house.
+                q["kind"] = "house"
+                q.pop("building", None)
             if i > 0 and q["kind"] in RECOLOR:
                 c = rng.choice(RECOLOR[q["kind"]])
                 q.pop("color", None)

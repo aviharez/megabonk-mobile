@@ -1,7 +1,8 @@
 class_name ShopScreen
 extends MenuScreen
 ## The coin shop, kit v2 (docs/ui/shop.png), a tab of the bottom nav: tabs
-## Upgrades (stat entries in data/shop/), Actions (level-up actions and the
+## Upgrades (stat entries in data/shop/ that no Town building took over),
+## Actions (level-up actions and the
 ## Switchboard) and Offers (real-money products, Store / data/rules/store.json);
 ## goods as a 3-column grid of GoodsCards (icon on a shelf, name, level pips,
 ## price button or Max). Entries with "needs" stay closed until enough runs
@@ -55,8 +56,10 @@ func _fill() -> void:
 	if kind == "offers":
 		_offers()
 		return
+	# Upgrades that moved into a Town building (the Gym) are bought there.
+	var moved := Town.shop_owner(db)
 	var entries := db.all("shop").filter(func(e: Dictionary) -> bool:
-		return e.kind == kind or (kind == "actions" and e.kind in ["action", "toggler"]))
+		return not moved.has(e.id) and (e.kind == kind or (kind == "actions" and e.kind in ["action", "toggler"])))
 	var grid := GridContainer.new()
 	grid.name = "Goods"
 	grid.columns = COLUMNS

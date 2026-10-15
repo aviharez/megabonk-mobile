@@ -19,6 +19,8 @@ const KINDS := {
 	"yard": false, "field": false, "garden": false, "path": false, "sand": false,
 	"sidewalk": false, "driveway": false, "road": false, "crosswalk": false,
 	"house": true, "fence": true, "pond": true,
+	# A Town building (data/buildings/) stands where a house would.
+	"building": true,
 	"car": true, "swing": true,
 	# Plants never block: trunks and hedges snagged the player mid-kite.
 	"tree": false, "hedge": false,
@@ -35,7 +37,7 @@ const KINDS := {
 ## Fields go after paths and sand, so a pitch can sit inside a running track.
 const GROUND := ["yard", "garden", "path", "sand", "field", "sidewalk", "driveway", "road", "crosswalk"]
 ## Solid kinds that cast a shadow.
-const SHADOWED := ["house", "shed", "tree", "bush", "car", "hedge", "bench", "swing", "lamp", "mailbox", "planter"]
+const SHADOWED := ["house", "building", "shed", "tree", "bush", "car", "hedge", "bench", "swing", "lamp", "mailbox", "planter"]
 ## Darker and lighter palette neighbours for roofs, cars and the like.
 const SHADE_OF := {"RED": "BLOOD", "BLUE": "OCEAN", "PURPLE": "PLUM", "WOOD": "BARK", "TEAL": "OCEAN", "GREEN": "LEAF",
 	"SKY": "BLUE", "ORANGE": "RUST", "CRUST": "WOOD", "GRAY": "SHADE", "PINK": "PURPLE", "GOLD": "RUST", "PAPER": "MIST", "MIST": "GRAY", "LEAF": "DEEP_GREEN"}
@@ -66,6 +68,38 @@ var _ground_textures := {}
 func setup(map_def: Dictionary) -> void:
 	bounds = Rect2(Vector2.ZERO, Vector2(map_def.size[0], map_def.size[1]))
 	props = map_def.get("props", [])
+	_load_art(map_def)
+	cols = int(ceil(bounds.size.x / CELL))
+	rows = int(ceil(bounds.size.y / CELL))
+	blocked.resize(cols * rows)
+	blocked.fill(0)
+	for p: Dictionary in props:
+		if KINDS.get(p.kind, false):
+			_block(p)
+	near_wall.resize(cols * rows)
+	near_wall.fill(0)
+	for c in cols * rows:
+		if blocked[c] == 1:
+			var cx := c % cols
+			var cy := c / cols
+			for ny in range(maxi(cy - 2, 0), mini(cy + 3, rows)):
+				for nx in range(maxi(cx - 2, 0), mini(cx + 3, cols)):
+					near_wall[ny * cols + nx] = 1
+	# Boundary fence under the baked map, so only a border shows.
+	var fence := Node2D.new()
+	fence.show_behind_parent = true
+	fence.draw.connect(func() -> void:
+		fence.draw_rect(bounds.grow(5), Palette.color(Palette.CRUST))
+		fence.draw_rect(bounds.grow(1), Palette.color(Palette.INK)))
+	add_child(fence)
+	var sprite := Sprite2D.new()
+	sprite.centered = false
+	sprite.texture = ImageTexture.create_from_image(bake())
+	add_child(sprite)
+
+
+## The map's lawn colours, ground textures and prop sprites ("prop_art").
+func _load_art(map_def: Dictionary) -> void:
 	var cols_def: Array = map_def.get("ground_colors", ["LEAF", "DEEP_GREEN", "GREEN"])
 	_lawn_colors = cols_def.map(func(c: String) -> int: return Palette.index_of(c))
 	_art = {}
@@ -101,33 +135,24 @@ func setup(map_def: Dictionary) -> void:
 				variants[c] = v
 		_art[kind] = {"image": img, "ramp": to_idx.call(a.get("ramp", [])), "colors": colors, "variants": variants,
 			"repeat": a.get("repeat", false), "slice": a.get("slice", [])}
-	cols = int(ceil(bounds.size.x / CELL))
-	rows = int(ceil(bounds.size.y / CELL))
-	blocked.resize(cols * rows)
-	blocked.fill(0)
-	for p: Dictionary in props:
-		if KINDS.get(p.kind, false):
-			_block(p)
-	near_wall.resize(cols * rows)
-	near_wall.fill(0)
-	for c in cols * rows:
-		if blocked[c] == 1:
-			var cx := c % cols
-			var cy := c / cols
-			for ny in range(maxi(cy - 2, 0), mini(cy + 3, rows)):
-				for nx in range(maxi(cx - 2, 0), mini(cx + 3, cols)):
-					near_wall[ny * cols + nx] = 1
-	# Boundary fence under the baked map, so only a border shows.
-	var fence := Node2D.new()
-	fence.show_behind_parent = true
-	fence.draw.connect(func() -> void:
-		fence.draw_rect(bounds.grow(5), Palette.color(Palette.CRUST))
-		fence.draw_rect(bounds.grow(1), Palette.color(Palette.INK)))
-	add_child(fence)
-	var sprite := Sprite2D.new()
-	sprite.centered = false
-	sprite.texture = ImageTexture.create_from_image(bake())
-	add_child(sprite)
+
+
+## The map's picture over `rect` only, in the same art (the Town tab shows
+## its street); no solid grid, nothing added to the tree.
+static func bake_view(map_def: Dictionary, rect: Rect2) -> Image:
+	var m := MapLayout.new()
+	m._load_art(map_def)
+	m.bounds = Rect2(Vector2.ZERO, rect.size)
+	var near := rect.grow(48.0)
+	for p: Dictionary in map_def.get("props", []):
+		var r := rect_of(p)
+		if r.intersects(near):
+			var q := p.duplicate()
+			q.rect = [r.position.x - rect.position.x, r.position.y - rect.position.y, r.size.x, r.size.y]
+			m.props.append(q)
+	var img := m.bake()
+	m.free()
+	return img
 
 
 func is_blocked(p: Vector2) -> bool:
@@ -254,6 +279,7 @@ func _draw_prop(p: Dictionary) -> void:
 		"road": _road(r, p.get("shape", "") == "ellipse", p.get("lines", false))
 		"crosswalk": _crosswalk(r)
 		"house": _house(r, p.get("color", "RED"))
+		"building": _building(p, r)
 		"shed": _shed(r, p.get("color", "WOOD"))
 		"fence": _fence(r)
 		"hedge": _hedge(r)
@@ -455,16 +481,13 @@ func _light(col: String) -> String:
 func _shadow(p: Dictionary) -> void:
 	var r := rect_of(p)
 	if _art.has(p.kind):
-		# The sprite's own outline, 3 px down-right, dithered.
 		var img := _sprite_for(p)
-		var ink := Palette.color(Palette.INK)
 		for spot in _sprite_spots(p, r, img):
-			var at: Vector2i = spot + Vector2i(3, 3)
-			for y in img.get_height():
-				for x in img.get_width():
-					var m := at + Vector2i(x, y)
-					if (m.x + m.y) % 2 == 0 and img.get_pixel(x, y).a > 0.0 and Rect2i(Vector2i.ZERO, _img.get_size()).has_point(m):
-						_img.set_pixelv(m, ink)
+			_sprite_shadow(img, spot)
+		return
+	if p.kind == "building" and _building_image(p) != null:
+		var img := _building_image(p)
+		_sprite_shadow(img, _sprite_pos(r, img))
 		return
 	match p.kind:
 		"tree":
@@ -477,6 +500,35 @@ func _shadow(p: Dictionary) -> void:
 		_:
 			var off := Vector2(3, 3) if r.size.y > 8 else Vector2(1, 2)
 			_dither(Rect2(r.position + off, r.size), Palette.INK)
+
+
+## The sprite's own outline, 3 px down-right of `spot`, dithered.
+func _sprite_shadow(img: Image, spot: Vector2i) -> void:
+	var ink := Palette.color(Palette.INK)
+	var at := spot + Vector2i(3, 3)
+	for y in img.get_height():
+		for x in img.get_width():
+			var m := at + Vector2i(x, y)
+			if (m.x + m.y) % 2 == 0 and img.get_pixel(x, y).a > 0.0 and Rect2i(Vector2i.ZERO, _img.get_size()).has_point(m):
+				_img.set_pixelv(m, ink)
+
+
+## A Town building's picture (Town.resolve_map gives the prop its "sprite"
+## and "ruined"): darker with boards over it while ruined; null without a
+## sprite (then it's drawn as a house).
+func _building_image(p: Dictionary) -> Image:
+	var img := Town.sprite_image(p.get("sprite", ""))
+	if img != null and p.get("ruined", false):
+		img = Town.ruin_image(img, p.sprite)
+	return img
+
+
+func _building(p: Dictionary, r: Rect2) -> void:
+	var img := _building_image(p)
+	if img == null:
+		_house(r, p.get("color", "RED"))
+		return
+	_img.blend_rect(img, Rect2i(Vector2i.ZERO, img.get_size()), _sprite_pos(r, img))
 
 
 func _dither_ellipse(r: Rect2) -> void:

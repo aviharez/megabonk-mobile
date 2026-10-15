@@ -259,6 +259,8 @@ func _ready() -> void:
 	if _save == null and not options.get("no_save", false):
 		_save = get_node_or_null("/root/Save")
 	meta = _save.data if _save != null else SaveManager.default_data()
+	# The Town's buildings stand ruined or built, their lots only when built.
+	map_def = Town.resolve_map(db, meta, map_def)
 	var who: String = options.get("character", Meta.picked_character(db, meta))
 	char_def = db.get_entry("characters", who)
 	if char_def.is_empty():
@@ -283,7 +285,7 @@ func _ready() -> void:
 	bounds = Rect2(Vector2.ZERO, Vector2(map_def.size[0], map_def.size[1]))
 	_pos = bounds.get_center()
 	stats = StatBlock.new(char_def.stats)
-	for b: Array in Meta.stat_bonuses(db, meta):
+	for b: Array in Meta.stat_bonuses(db, meta) + Town.stat_bonuses(db, meta):
 		stats.apply_modifiers(b[0], b[1], b[2])
 	Passives.update(char_def.passive, stats, 0.0, _passive_state)
 	hp = stat("max_hp")

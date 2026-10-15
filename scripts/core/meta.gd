@@ -619,9 +619,11 @@ static func shop_price(data: Dictionary, entry: Dictionary) -> int:
 	return int(entry.prices[lvl]) if lvl < entry.prices.size() else -1
 
 
+## Buys the next level of a shop entry (not one that moved into a Town
+## building: Town.build levels those).
 static func buy_shop(db: GameData, data: Dictionary, id: String) -> bool:
 	var entry := db.get_entry("shop", id)
-	if entry.is_empty() or not shop_open(data, entry):
+	if entry.is_empty() or not shop_open(data, entry) or Town.shop_owner(db).has(id):
 		return false
 	var price := shop_price(data, entry)
 	if price < 0 or int(data.coins) < price:
@@ -658,10 +660,13 @@ static func toggler_slots(db: GameData, data: Dictionary) -> int:
 
 
 ## Permanent stat upgrades as [[source, modifiers_per_level, level], ...].
+## Upgrades that moved into a Town building (its "shop") come from
+## Town.stat_bonuses instead.
 static func stat_bonuses(db: GameData, data: Dictionary) -> Array:
 	var out := []
+	var moved := Town.shop_owner(db)
 	for e: Dictionary in db.all("shop"):
-		if e.kind == "stat" and shop_level(data, e.id) > 0:
+		if e.kind == "stat" and shop_level(data, e.id) > 0 and not moved.has(e.id):
 			out.append(["shop:" + e.id, e.modifiers_per_level, shop_level(data, e.id)])
 	return out
 

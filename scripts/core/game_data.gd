@@ -23,6 +23,7 @@ const SCHEMA := {
 	"shop": {"id": TYPE_STRING, "name": TYPE_STRING, "desc": TYPE_STRING, "kind": TYPE_STRING, "prices": TYPE_ARRAY},
 	"danger": {"id": TYPE_STRING, "level": TYPE_FLOAT, "modifiers": TYPE_DICTIONARY, "coin_mult": TYPE_FLOAT},
 	"quests": {"id": TYPE_STRING, "kind": TYPE_STRING, "desc": TYPE_STRING, "stat": TYPE_STRING, "scope": TYPE_STRING, "target": TYPE_FLOAT, "requires": TYPE_STRING, "reward": TYPE_DICTIONARY, "repeat": TYPE_BOOL},
+	"buildings": {"id": TYPE_STRING, "name": TYPE_STRING, "title": TYPE_STRING, "district": TYPE_STRING, "sprite": TYPE_STRING, "interactable": TYPE_STRING, "effect_desc": TYPE_STRING, "levels": TYPE_ARRAY},
 }
 ## Values the code knows how to run. Data naming anything else is an error.
 ## Weapon patterns come from Weapon.PATTERNS, item events/effects from ItemSystem.
@@ -59,6 +60,9 @@ const TOME_GROUPS := ["offense", "defense", "utility", "risk"]
 ## rate and new enemies' HP and damage, and the elite interval [min, max] s.
 const DANGER_MULTS := ["spawn_rate", "enemy_hp", "enemy_damage"]
 const DANGER_PAIRS := ["elite_every_sec"]
+## A building level's in-run effect (data/buildings/, Town): the keys the
+## "town" behavior runs.
+const TOWN_EFFECTS := ["heal", "buff", "pull_gems", "uses", "recharge_sec"]
 
 static var _shared: GameData
 
@@ -201,7 +205,7 @@ func _check_entry(category: String, e: Dictionary) -> void:
 			var need: Array = {"paid_chest": ["chest", "price"], "free_chest": ["chest"], "pot": ["gold"],
 				"charge_shrine": ["charge_time", "choices"], "risk_shrine": ["charge_time", "duration", "modifiers"],
 				"challenge_shrine": ["charge_time", "kills", "time"], "merchant": ["chest", "prices"],
-				"altar": ["charge_time", "boss"]}.get(e.behavior, [])
+				"altar": ["charge_time", "boss"], "town": ["building"]}.get(e.behavior, [])
 			for k: String in need:
 				if not e.has(k):
 					errors.append("%s: behavior \"%s\" needs \"%s\"" % [file, e.behavior, k])
@@ -260,6 +264,8 @@ func _check_entry(category: String, e: Dictionary) -> void:
 			_check_danger(e)
 		"quests":
 			_check_quest(e)
+		"buildings":
+			_check_building(e)
 
 
 ## data/danger/<id>.json: {"level" (1, 2, 3...), "modifiers": {DANGER_MULTS
@@ -369,6 +375,7 @@ func _cross_check() -> void:
 	_late.clear()  # the closures hold this object: don't keep a cycle
 	_check_unlock_links()
 	_check_quest_links()
+	_check_town_links()
 	# Danger levels run 1, 2, 3... with no gaps or repeats.
 	var levels: Array = entries.danger.values().map(func(d: Dictionary) -> int: return int(d.level))
 	levels.sort()
@@ -515,7 +522,7 @@ func _check_fx(x: Dictionary) -> void:
 
 ## data/rules/ads.json: ad units, rewarded placement limits, revive, daily,
 ## interstitial pacing, banner screens (scripts/autoload/ads.gd).
-const AD_PLACEMENTS := ["revive", "double_coins", "reroll", "skip", "banish", "daily", "quest_double"]
+const AD_PLACEMENTS := ["revive", "double_coins", "reroll", "skip", "banish", "daily", "quest_double", "patrol_double"]
 const AD_FORMATS := ["banner", "interstitial", "rewarded"]
 
 
@@ -637,6 +644,13 @@ func _check_map(m: Dictionary) -> void:
 			errors.append("%s: each prop needs a known \"kind\" and \"rect\": [x, y, w, h] numbers (%s)" % [f, p])
 		elif p.has("color") and (typeof(p.color) != TYPE_STRING or Palette.index_of(p.color) < 0):
 			errors.append("%s: unknown prop color \"%s\"" % [f, p.color])
+		elif p.kind == "building" and not entries.buildings.has(p.get("building", "")):
+			errors.append("%s: a \"building\" prop needs \"building\": a building id (%s)" % [f, p])
+		elif p.has("requires") and not entries.buildings.has(p.requires):
+			errors.append("%s: prop \"requires\" names unknown building \"%s\"" % [f, p.requires])
+	for it in m.get("interactables", []):
+		if it is Dictionary and it.has("requires") and not entries.buildings.has(it.requires):
+			errors.append("%s: interactable \"requires\" names unknown building \"%s\"" % [f, it.requires])
 	_check_prop_art(f, m.get("prop_art", {}))
 
 
@@ -1029,3 +1043,99 @@ func _check_unlock_links() -> void:
 		if seen.has(k):
 			errors.append("%s: a second shop entry for \"%s\" (%s)" % [e._file, k, seen[k]])
 		seen[k] = e.id
+
+
+## data/buildings/<id>.json (Town): "name", "title", "district" (a map),
+## "sprite", "interactable" (a "town" object for its lot), "effect_desc",
+## "levels": [{"price" (whole coins; level 1 of an "unlocks" building has
+## none: its challenge's price), "patrol" (coins per hour), "effect"}], and
+## "unlocks" (content ids; the first is unlock or start content) or "shop"
+## (shop "stat" entry ids, as many levels as each has prices).
+func _check_building(e: Dictionary) -> void:
+	var f: String = e._file
+	if e.has("unlocks") == e.has("shop"):
+		errors.append("%s: needs either \"unlocks\" (content) or \"shop\" (stat upgrades), not both" % f)
+	for k: String in ["unlocks", "shop"]:
+		if e.has(k) and not (e[k] is Array and not e[k].is_empty() and e[k].all(func(v) -> bool: return v is String)):
+			errors.append("%s: \"%s\" must be a non-empty list of ids" % [f, k])
+	if e.has("order") and not _is_num(e.order):
+		errors.append("%s: \"order\" must be a number" % f)
+	if not ResourceLoader.exists(e.sprite):
+		errors.append("%s: sprite \"%s\" not found" % [f, e.sprite])
+	if e.levels.is_empty():
+		errors.append("%s: needs at least one level" % f)
+	for i in e.levels.size():
+		var lv = e.levels[i]
+		if not lv is Dictionary:
+			errors.append("%s: each level must be an object" % f)
+			continue
+		var needs_price: bool = i > 0 or e.has("shop")
+		if needs_price and not (_is_num(lv.get("price")) and lv.price >= 0.0 and lv.price == floorf(lv.price)):
+			errors.append("%s: level %d needs a whole coin \"price\"" % [f, i + 1])
+		if not needs_price and lv.has("price"):
+			errors.append("%s: level 1 of a building with \"unlocks\" costs its challenge's price (no \"price\")" % f)
+		if not (_is_num(lv.get("patrol")) and lv.patrol >= 0.0):
+			errors.append("%s: level %d needs \"patrol\" (coins per hour, 0 or more)" % [f, i + 1])
+		var fx = lv.get("effect", {})
+		if not fx is Dictionary or fx.is_empty():
+			errors.append("%s: level %d needs an \"effect\"" % [f, i + 1])
+			continue
+		for k: String in fx:
+			if not k in TOWN_EFFECTS:
+				errors.append("%s: level %d effect has unknown \"%s\" (known: %s)" % [f, i + 1, k, ", ".join(TOWN_EFFECTS)])
+		for k: String in ["heal", "uses", "recharge_sec"]:
+			if fx.has(k) and not (_is_num(fx[k]) and fx[k] > 0.0):
+				errors.append("%s: level %d effect \"%s\" must be a number above 0" % [f, i + 1, k])
+		if fx.has("pull_gems") and typeof(fx.pull_gems) != TYPE_BOOL:
+			errors.append("%s: level %d effect \"pull_gems\" must be true or false" % [f, i + 1])
+		if fx.has("buff"):
+			var b = fx.buff
+			if not (b is Dictionary and _is_num(b.get("seconds")) and b.seconds > 0.0 and b.get("modifiers") is Array and not b.modifiers.is_empty()):
+				errors.append("%s: level %d \"buff\" needs \"seconds\" and a non-empty \"modifiers\" list" % [f, i + 1])
+			else:
+				_check_modifiers(f, b.modifiers)
+
+
+## Buildings name real content, shop upgrades, maps and "town" objects;
+## content and upgrades belong to one building at most; every town object
+## names a building whose "interactable" it is.
+func _check_town_links() -> void:
+	var owner := {}
+	for b: Dictionary in entries.buildings.values():
+		var f: String = b._file
+		if not entries.maps.has(b.district):
+			errors.append("%s: unknown district \"%s\"" % [f, b.district])
+		if b.has("icon") and Icons.ref_error(self, b.icon) != "":
+			errors.append("%s: \"icon\" %s" % [f, Icons.ref_error(self, b.icon)])
+		var it: Dictionary = entries.interactables.get(b.interactable, {})
+		if it.get("behavior", "") != "town" or it.get("building", "") != b.id:
+			errors.append("%s: \"interactable\" must name a \"town\" object whose \"building\" is \"%s\"" % [f, b.id])
+		for id in b.get("unlocks", []):
+			var c := Meta.content(self, id)
+			if c.is_empty():
+				errors.append("%s: \"unlocks\" names unknown content \"%s\"" % [f, id])
+			elif id == b.unlocks[0] and not c.get("status", "") in ["start", "unlock"]:
+				errors.append("%s: the first of \"unlocks\" must be start or unlock content" % f)
+			if owner.has(id):
+				errors.append("%s: \"%s\" is already in %s" % [f, id, owner[id]])
+			owner[id] = b.id
+		for id in b.get("shop", []):
+			var s: Dictionary = entries.shop.get(id, {})
+			if s.get("kind", "") != "stat":
+				errors.append("%s: \"shop\" names \"%s\", not a shop stat upgrade" % [f, id])
+			elif s.prices.size() != b.levels.size():
+				errors.append("%s: has %d levels but shop \"%s\" has %d" % [f, b.levels.size(), id, s.prices.size()])
+			if owner.has(id):
+				errors.append("%s: \"%s\" is already in %s" % [f, id, owner[id]])
+			owner[id] = b.id
+	for e: Dictionary in entries.interactables.values():
+		if e.behavior == "town" and entries.buildings.get(e.get("building", ""), {}).get("interactable", "") != e.id:
+			errors.append("%s: \"building\" must name a building whose \"interactable\" is \"%s\"" % [e._file, e.id])
+	if not entries.buildings.is_empty() and not entries.rules.get("town", {}).is_empty():
+		var t: Dictionary = entries.rules.town
+		if not entries.maps.has(t.get("district", "")):
+			errors.append("%s: \"district\" must name a map" % t._file)
+		if not (t.get("view") is Array and t.view.size() == 4 and t.view.all(func(v) -> bool: return _is_num(v))):
+			errors.append("%s: \"view\" must be [x, y, w, h] (the map rect the Town tab shows)" % t._file)
+		if not (_is_num(t.get("patrol_cap_hours")) and t.patrol_cap_hours > 0.0):
+			errors.append("%s: needs \"patrol_cap_hours\" above 0" % t._file)

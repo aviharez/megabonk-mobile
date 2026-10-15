@@ -1,0 +1,6 @@
+{
+	"id": "town",
+	"district": "suburbia",
+	"view": [0, 594, 340, 150],
+	"patrol_cap_hours": 8
+}

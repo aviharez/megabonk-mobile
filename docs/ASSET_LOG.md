@@ -76,8 +76,9 @@ Counted in PixelLab generations (1 for pixflux, standard map objects and standar
 
 | Date | Asset | Tool and settings | Est. generations | Actual | Notes (job / object id, size, cleanup, balance after) |
 | --- | --- | --- | --- | --- | --- |
+| 2026-10-15 | Town test building: Bakery (`assets/town/bakery.png`), owner-approved generation | `create_map_object`, style match on a 64x64 crop of the Bakery's empty lot (`MapLayout.bake_view`), oval 60%, high top-down, single colour outline, medium shading, medium detail | 1 | 1 | object 93d073ac-a424-4c12-ac16-4b38e97c7933; trial plan, 40 generations before |
 
-**Running total:** 0
+**Running total:** 1
 
 ## Non-SpriteCook placeholders
 
@@ -93,6 +94,8 @@ Counted in PixelLab generations (1 for pixflux, standard map objects and standar
 | 2026-10-09 | `assets/audio/sfx/*.wav` (48 sound effects, 22050 Hz mono) | sfxr-style generator `tools/audio/sfxr.py`, recipes in `tools/audio/sfx.json`; no credits |
 | 2026-10-09 | ~~`assets/audio/music/{menu,gameplay,boss}.ogg` (placeholder chiptune loops, 37 / 42 / 35 s)~~ (replaced 2026-10-15) | `tools/audio/chiptune.py` (numpy + ffmpeg libvorbis) |
 | 2026-10-15 | `assets/audio/sfx/*.wav` (all 49 sounds remade, 44.1 kHz mono; replaces the sfxr set) | Audio as Code 0.4.0 (MIT, synthesized instruments, no samples) + numpy noise layers, `tools/audio/aac_sfx.py`; no credits |
+| 2026-10-15 | `assets/town/{bakery,pigeon_coop,office,gym}.png` (placeholder Town buildings, 34x34: the Suburbia house with its roof ramp swapped; replaced as the PixelLab buildings are approved) | `tools/art/town_placeholders.py` (never overwrites an existing file); no credits |
+| 2026-10-15 | `assets/props/{bread_stall,pigeon_loft,coffee_machine,pullup_bar}.png` (the Town's in-run objects, 13-16 px) | Hand-pixelled in `tools/art/town_objects.py` (BRIEF "PixelLab rules": 16 px or less by hand); no credits |
 | 2026-10-15 | `assets/audio/music/{menu,gameplay,boss,game_over,victory}.ogg` (seamless loops 40 / 51 / 47 / 25 / 23 s, -16 LUFS) | Audio as Code 0.4.0, `tools/audio/music/*.py`; composed by Claude Code; owner approved the gameplay test loop; no credits |
 
 2026-10-09: both heroes re-shrunk to ~22px tall (scale 0.67) from the downloaded SpriteCook sheets on owner request; no new generations.

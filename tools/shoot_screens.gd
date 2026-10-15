@@ -64,9 +64,10 @@ func _run() -> void:
 	for id in ["fridge_magnets", "tin_foil_hat_theories", "lottery_tips"]:
 		save.data.unlocks[id] = "available"
 	save.data.unlocks["self_help_book"] = "owned"
-	save.data.shop["might"] = 2
-	save.data.shop["vitality"] = 1
 	save.data.shop["magnetism"] = 5
+	# Town like the mockup: Bakery at level 2, Gym built, Patrol 3 hours in.
+	save.data.town.levels = {"bakery": 2, "gym": 2}
+	save.data.town.patrol = {"since": Town.now() - 3 * 3600, "banked": 0.0}
 	# Like the Characters / Pick mockups: Turbo Pigeon hired, Mega Mole beaten
 	# on Danger 1 (Danger 2 New!), five critters met.
 	save.data.unlocks["turbo_pigeon"] = "owned"
@@ -138,6 +139,17 @@ func _run() -> void:
 		await _wait(0.3)
 		await _shot("06f_quests_milestones")
 		quests.close()
+		var town: TownScreen = menu.call("_on_tab", "town")
+		await _wait(0.5)
+		await _shot("06g_town")
+		town.select("office")
+		await _wait(0.4)
+		await _shot("06h_town_ruined")
+		town.select("bakery")
+		await _wait(0.4)
+		await _shot("06i_town_built")
+		menu.call("_on_tab", "battle")
+		await _wait(0.2)
 		await _wait(0.2)
 		var district: MenuScreen = menu.call("_on_play")
 		await _wait(0.5)

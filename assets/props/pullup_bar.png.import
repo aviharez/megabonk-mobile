@@ -1,0 +1,14 @@
+[remap]
+
+importer="image"
+type="Image"
+uid="uid://bahnp1ye178yd"
+path="res://.godot/imported/pullup_bar.png-306368962ff83bb91f76bd09c9b2ad0c.image"
+
+[deps]
+
+source_file="res://assets/props/pullup_bar.png"
+dest_files=["res://.godot/imported/pullup_bar.png-306368962ff83bb91f76bd09c9b2ad0c.image"]
+
+[params]
+

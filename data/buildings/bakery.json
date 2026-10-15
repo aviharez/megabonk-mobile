@@ -1,0 +1,16 @@
+{
+	"id": "bakery",
+	"name": "Bakery",
+	"title": "Corner Bakery",
+	"order": 1,
+	"district": "suburbia",
+	"sprite": "res://assets/town/bakery.png",
+	"unlocks": ["sir_loaf", "baguette"],
+	"interactable": "bread_stall",
+	"effect_desc": "a bread stall heals {heal} HP once per run.",
+	"levels": [
+		{"patrol": 3, "effect": {"heal": 20}},
+		{"price": 120, "patrol": 5, "effect": {"heal": 30}},
+		{"price": 250, "patrol": 7, "effect": {"heal": 40}}
+	]
+}

@@ -2,7 +2,7 @@ extends Node
 ## End-to-end check of the screens: menu -> Play -> Pick a Hero (a new save
 ## skips Pick a District) -> Start -> run -> death -> game over (with unlock
 ## progress) -> Menu -> the Quests rail counts the run's milestone, Claim
-## pays -> Collection, Shop and Characters open and close ->
+## pays -> Collection, Shop, Characters and Town open and close ->
 ## with Mega Mole beaten and Turbo Pigeon owned, Play opens Pick a District
 ## (New! on Danger 2), Danger 2 > Next > Turbo Pigeon > Start runs him there
 ## on Danger 2, and Play Again starts the same run with no Pick steps.
@@ -106,7 +106,7 @@ func _play(menu: Node) -> void:
 	await _frames(3)
 
 
-## The Collection, Shop and Characters tabs open and close; with Mega Mole
+## The Collection, Shop, Characters and Town tabs open and close; with Mega Mole
 ## beaten Play opens Pick a District (New! on Danger 2), Next Pick a Hero,
 ## and Start runs the picked hero on the picked danger; Play Again repeats it.
 func _menu_screens(tree: SceneTree, save: Node, fails: Array) -> void:
@@ -140,7 +140,7 @@ func _menu_screens(tree: SceneTree, save: Node, fails: Array) -> void:
 			await _frames(2)
 			if rail.count >= count and rail.sticker == "count":
 				fails.append("the Quests count did not drop after a claim (%d -> %d)" % [count, rail.count])
-	for b: Array in [["Collection", "UnlocksScreen"], ["Shop", "ShopScreen"], ["Characters", "CharactersScreen"]]:
+	for b: Array in [["Collection", "UnlocksScreen"], ["Shop", "ShopScreen"], ["Characters", "CharactersScreen"], ["Town", "TownScreen"]]:
 		menu.get_node("Nav/" + b[0]).pressed.emit()
 		await _frames(2)
 		var screens := menu.get_children().filter(func(c: Node) -> bool: return c is MenuScreen)

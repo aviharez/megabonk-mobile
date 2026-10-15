@@ -4,8 +4,7 @@ extends Control
 ## (Shop, Characters, Battle, Town, Collection) on a hatched strip. The
 ## current tab's tile is the lamp block, risen above the strip, with its word
 ## under it; the others are raised cards with no word. A tab can carry the red
-## notification dot (`dots`) or be off (`locked`: greyed, no press; the Town
-## until it is built). Anchored to the bottom of its parent; `inset` keeps
+## notification dot (`dots`) or be off (`locked`: greyed, no press). Anchored to the bottom of its parent; `inset` keeps
 ## the tiles above the gesture bar. Emits `picked` with the tab id.
 
 signal picked(tab: String)
@@ -28,7 +27,7 @@ var dots := {}:
 	set(v):
 		dots = v
 		_sync()
-var locked := {"town": true}:
+var locked := {}:
 	set(v):
 		locked = v
 		_sync()

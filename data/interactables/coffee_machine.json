@@ -1,0 +1,11 @@
+{
+	"id": "coffee_machine",
+	"name": "Coffee Machine",
+	"behavior": "town",
+	"building": "office",
+	"radius": 9,
+	"shape": "cup",
+	"sprite": "res://assets/props/coffee_machine.png",
+	"color": "WOOD",
+	"twinkle": "BUTTER"
+}
