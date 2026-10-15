@@ -871,3 +871,12 @@ Owner: no budget for licensed music and free tracks don't fit; the AaC gameplay 
 - Audio as Code renders are slow (~8 min for a 51 s track x3 on this machine); renders are cached by score hash in the temp folder
 - The output licence of Audio as Code isn't spelled out on its site (the code is MIT; every sound is synthesized, no samples ship with it). Worth asking the author before release to be sure
 - SFX files are 44.1 kHz now (were 22.05 kHz): the folder grew from ~0.8 MB to ~2.5 MB
+
+## Kit v2.2: no black drops, two-row HUD build (owner request 2026-10-15)
+
+- [x] Owner (2026-10-15): the solid INK drops under every part felt too heavy on the phone. `UiArt.DRAW_DROPS` = false: no silhouette is drawn under windows, cards, slots, plates, stickers or buttons; `DROP_WINDOW` / `DROP_CARD` stay as the room kept below parts, so no layout moves. Buttons still sink 2 px when pressed
+- [x] Text drops gone: drop px 0 in every `Fonts.STYLES` entry (outlines stay); `MenuScreen.bold_label` no longer sets a font shadow
+- [x] Owner (2026-10-15): with many weapons and manuals the build strip ran under the gold and KO counters (one row of up to 8 slots x 24 px = 190 px in a 180 px view, at the counters' height). HUD build is now two rows (weapons, then manuals from `STRIP_Y + STRIP_ROW`), gold over KO right-aligned under the timer; the info line and pickup card move down one row once a manual is taken (`info_y()`, `card_y()`)
+- [x] Tests: 3215 checks, 0 failed (Godot 4.7 stable, headless). Screens shot with a 4-weapon, 4-manual loadout (tools/shoot_screens.gd at 540x1170): counters clear of the build, no drops on Quests, Level Up, HUD
+- [ ] On the phone: check the look and that nothing feels flat (the room under parts is now empty space; drop it later if it reads as a gap)
+- [ ] docs/BRIEF.md "Update 1" and the concept PNGs in docs/ui/ still show drops; update them when the look is settled

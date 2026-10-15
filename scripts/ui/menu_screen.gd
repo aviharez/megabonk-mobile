@@ -424,13 +424,10 @@ func label(parent: Control, text: String, at: Vector2, color := Palette.PAPER, a
 	return l
 
 
-## A label in the bold font with an INK shadow (names, prices).
+## A label in the bold font (names, prices); no drop (kit v2.2).
 func bold_label(parent: Control, text: String, at: Vector2, color := Palette.PAPER, align := HORIZONTAL_ALIGNMENT_LEFT, w := 0.0) -> Label:
 	var l := label(parent, text, at, color, align, w)
 	Fonts.bold(l)
-	l.add_theme_color_override("font_shadow_color", Palette.color(Palette.INK))
-	l.add_theme_constant_override("shadow_offset_x", 0)
-	l.add_theme_constant_override("shadow_offset_y", 1)
 	return l
 
 

@@ -3,7 +3,8 @@ extends Control
 ## In-run HUD, kit v2 (docs/ui/hud.png): the level on a lamp badge, the
 ## segmented XP bar, the heart and HP bar with "hp/max" in it (a PAPER ghost
 ## drains after a hit), the timer plate, the pause button (Run's, PAUSE_Y);
-## gold and KO counters; weapon and manual slots with lamp level badges; the
+## gold and KO counters (stacked, right); weapon and manual slots (one row
+## each, left) with lamp level badges; the
 ## item pickup card near the top (rarity line, name, one line, stack badge);
 ## the owned items as a centred row of rarity slots along the bottom (six a
 ## row, growing upward). Then the run-flow parts: banners (Swarm incoming!,
@@ -15,10 +16,12 @@ extends Control
 ## wider screens.
 ##
 ##   y 2-29   level badge | XP bar / heart + HP bar | timer plate | pause
-##   y 32-41  gold, KO (right)
-##   y 37-59  build slots: weapons, manuals (+ key)
-##   y 66     info line (challenge shrine, Final Swarm coins)
-##   y 72+    pickup card / toast
+##   y 35-44  gold (right)        y 37-59  weapon slots (+ key)
+##   y 47-56  KO (right)          y 62-84  manual slots (once there is one)
+##   y 64/89  info line (challenge shrine, Final Swarm coins): info_y()
+##   y 72/97+ pickup card / toast: card_y()
+## The build rows stay left of x ~100 (4 slots), the counters right of it, so
+## a full build never covers gold or KO.
 
 var hp := 1.0
 var hp_max := 1.0
@@ -38,20 +41,23 @@ const BADGE := Rect2(4, 2, 26, 25)
 const XP_BAR := Rect2(32, 4, 67, 10)
 const TIMER_AT := Vector2(101, 2)
 const HP_BAR := Rect2(43, 16, 56, 10)
-const COIN_AT := Vector2(118, 35)
-const SKULL_AT := Vector2(148, 35)
+## Gold over KO, both right-aligned under the timer (y of each row).
+const COIN_AT := Vector2(0, 35)
+const SKULL_AT := Vector2(0, 47)
 const BANNER_TIME := 3.0
 const TOAST_W := 150
 const TOAST_SIZE := 8
-## Build slots: one kit slot per weapon, then per manual, the 16 px icon at
-## 1x filling its inside, the level on a lamp badge; a slot flashes when it's
-## new or levels up.
+## Build slots: weapons on one row, manuals on the row below, the 16 px icon
+## at 1x filling its inside, the level on a lamp badge; a slot flashes when
+## it's new or levels up.
 const STRIP_Y := 37
+## Rows of build slots are this far apart.
+const STRIP_ROW := 25
 const SLOT := 22
 const ICON_PX := 12
 const FLASH_TIME := 0.9
 const CARD_TIME := 3.2
-## The pickup card under the build slots.
+## The pickup card under the build slots (one row; card_y() adds the second).
 const CARD_Y := 72
 const CARD_W := 142
 const CARD_H := 41
@@ -363,17 +369,16 @@ func _draw_top() -> void:
 		ci.draw_rect(Rect2(inner.position, Vector2(floorf(inner.size.x * clampf(shield / hp_max, 0.0, 1.0)), 2)), Palette.color(Palette.SKY))
 	Fonts.draw(ci, "%d/%d" % [ceili(hp), roundi(hp_max)], Vector2(bar.position.x, Fonts.cap_y("BAR_NUM", bar.position.y, bar.size.y)), "BAR_NUM",
 			Palette.SALMON if low else -1, bar.size.x, HORIZONTAL_ALIGNMENT_CENTER)
-	# Gold and KO, right-aligned under the timer.
+	# Gold over KO, each right-aligned under the timer.
 	var bump := 1.0 if _gold_bump > 0.0 else 0.0
-	var kills := str(_kills)
-	var kw := ceilf(Fonts.width(kills, "NUM"))
-	var kx := w - 5 - kw
-	UiArt.sprite(ci, "hud_skull", Vector2(kx - 13, t + SKULL_AT.y))
-	Fonts.draw(ci, kills, Vector2(kx, Fonts.cap_y("NUM", t + SKULL_AT.y, 10)), "NUM")
 	var gs := str(gold)
-	var gx2 := kx - 22 - ceilf(Fonts.width(gs, "NUM"))
+	var gx2 := w - 5 - ceilf(Fonts.width(gs, "NUM"))
 	UiArt.sprite(ci, "hud_coin", Vector2(gx2 - 13, t + COIN_AT.y - bump))
 	Fonts.draw(ci, gs, Vector2(gx2, Fonts.cap_y("NUM", t + COIN_AT.y - bump, 10)), "NUM")
+	var kills := str(_kills)
+	var kx := w - 5 - ceilf(Fonts.width(kills, "NUM"))
+	UiArt.sprite(ci, "hud_skull", Vector2(kx - 13, t + SKULL_AT.y))
+	Fonts.draw(ci, kills, Vector2(kx, Fonts.cap_y("NUM", t + SKULL_AT.y, 10)), "NUM")
 
 	var strip_end := _draw_strip(ci, t + STRIP_Y)
 	if has_key:
@@ -398,9 +403,9 @@ func _draw() -> void:
 	var w := floorf(size.x)
 	var t := float(safe_top)
 	if _info != "":
-		Fonts.draw(self, _info, Vector2(0, t + 64), "NUM_WORLD", _info_color, w, HORIZONTAL_ALIGNMENT_CENTER, 8)
+		Fonts.draw(self, _info, Vector2(0, t + info_y()), "NUM_WORLD", _info_color, w, HORIZONTAL_ALIGNMENT_CENTER, 8)
 	_draw_arrows()
-	_draw_card(t + CARD_Y)
+	_draw_card(t + card_y())
 
 	# Toast in the pickup card's place (under it while a card shows), blinking out.
 	if _toast_left > 0.0 and not (_toast_left < 0.25 and int(_toast_left * 16.0) % 2 == 0):
@@ -408,7 +413,7 @@ func _draw() -> void:
 		var tw := 0.0
 		for l in _toast_lines:
 			tw = maxf(tw, Fonts.width(l, "NAME", TOAST_SIZE))
-		var ty := (t + CARD_Y + card_height() + 6) if not _card.is_empty() else t + CARD_Y
+		var ty := (t + card_y() + card_height() + 6) if not _card.is_empty() else t + card_y()
 		var pr := Rect2(floorf((w - tw) / 2.0) - 9, ty, ceilf(tw) + 18, lh * _toast_lines.size() + 11)
 		UiArt.window(self, pr, UiArt.DROP_CARD, false)
 		for i in _toast_lines.size():
@@ -431,17 +436,35 @@ func _draw() -> void:
 				Palette.PAPER, plate.size.x, HORIZONTAL_ALIGNMENT_CENTER, 8)
 
 
-## The build slots at `y`: weapons, then manuals, each a small icon in a
-## kit slot with its level on a lamp badge at the slot's foot (bright when
-## maxed). Returns the x where they end.
+## Rows of build slots: 1 (weapons), 2 once a manual is taken.
+func strip_rows() -> int:
+	return 2 if not _build_t.is_empty() else 1
+
+
+## Top of the info line, under the build rows (64 with one row).
+func info_y() -> float:
+	return float(STRIP_Y + STRIP_ROW * strip_rows() + 2)
+
+
+## Top of the pickup card, under the info line (72 with one row).
+func card_y() -> float:
+	return float(CARD_Y + STRIP_ROW * (strip_rows() - 1))
+
+
+## The build slots at `y`: weapons on one row, manuals on the next, each a
+## small icon in a kit slot with its level on a lamp badge at the slot's foot
+## (bright when maxed). Returns the x where the weapon row ends (the key goes
+## there).
 func _draw_strip(ci: CanvasItem, y: float) -> float:
 	if db == null:
 		return 0.0
-	var x := 4.0
-	for pair: Array in [["weapons", _build_w, _slots_w], ["tomes", _build_t, _slots_t]]:
+	var end := 4.0
+	for row in 2:
+		var pair: Array = [["weapons", _build_w, _slots_w], ["tomes", _build_t, _slots_t]][row]
 		var ids: Array = pair[1].keys()
+		var x := 4.0
 		for i in mini(ids.size(), int(pair[2])):
-			var r := Rect2(x, y, SLOT, SLOT)
+			var r := Rect2(x, y + STRIP_ROW * row, SLOT, SLOT)
 			var id: String = ids[i]
 			var lvl := int(pair[1][id])
 			var fl: float = _flash.get(pair[0] + "/" + id, 0.0)
@@ -451,7 +474,9 @@ func _draw_strip(ci: CanvasItem, y: float) -> float:
 				ci.draw_texture(tex, _icon_at(r, tex))
 			UiArt.badge(ci, str(lvl), r.end - Vector2(7, 7), "badge")
 			x += SLOT + 2
-	return x - 2
+		if row == 0:
+			end = x
+	return end - 2
 
 
 ## Top-left for `tex` centred in slot `r`.

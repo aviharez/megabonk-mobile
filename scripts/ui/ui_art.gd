@@ -104,9 +104,11 @@ static func ramp(face: int) -> Array:
 	return [Palette.color(face), Palette.color(face), Palette.color(face)]
 
 
-## Draws a 9-slice part over `rect`. `shadow`: first the part's INK silhouette 2px lower.
+## Draws a 9-slice part over `rect`. `shadow` is the space a part keeps free
+## below it (DROP_WINDOW / DROP_CARD): kit v2.2 draws no drop there, so it is
+## only spacing now (DRAW_DROPS).
 static func draw(ci: CanvasItem, part: String, rect: Rect2, face := -1, fill := -1, shadow := 0) -> void:
-	if shadow > 0:
+	if shadow > 0 and DRAW_DROPS:
 		draw_shadow(ci, part, rect, shadow)
 	ci.draw_style_box(_box(part, face, fill, false), rect)
 
@@ -151,7 +153,7 @@ static func toggle(ci: CanvasItem, at: Vector2, on: bool) -> void:
 	sprite(ci, KIT + ("toggle_on" if on else "toggle_off"), at)
 
 
-## A sticker with `text` (TAG, INK) and a 2 px drop: kit v2 "sticker" (lamp-hi,
+## A sticker with `text` (TAG, INK) and 2 px of room below: kit v2 "sticker" (lamp-hi,
 ## New / Offer), "ad" (INK plate, lamp text), "count" (paper, stack counts) or
 ## "sticker_epic" (purple, paper text: the bestiary's Boss tag).
 ## Older callers pass a palette `face`: GOLD-family faces get the sticker, the
@@ -171,16 +173,20 @@ static func sticker(ci: CanvasItem, text: String, at: Vector2, face := -1, h := 
 # --- Kit v2 (docs/BRIEF.md "Update 1"; parts drawn by tools/art/kit_v2.py) ---
 
 const KIT := "kit/"
-## Drops under parts (game px): windows and buttons 3, cards / slots / plates 2.
+## Room kept under parts (game px): windows and buttons 3, cards / slots /
+## plates 2. Kit v2.2 (owner, 2026-10-15): no black drops; depth comes from the
+## outline and the in-face bevels, so this room stays empty (DRAW_DROPS).
 const DROP_WINDOW := 3
 const DROP_CARD := 2
+## Whether the INK silhouette is drawn in that room (false since kit v2.2).
+const DRAW_DROPS := false
 ## Inset of a window's inside (outline + 3 px band + inner INK line).
 const WINDOW_INSET := 5
 ## Slot ring colours by rarity name / state.
 const RINGS := ["common", "rare", "epic", "legend", "ready", "sel"]
 
 
-## A framed window over `r` (its 3 px drop below `r`): frame, hatch, bolts.
+## A framed window over `r` (3 px of room below `r`): frame, hatch, bolts.
 static func window(ci: CanvasItem, r: Rect2, drop := DROP_WINDOW, hatched := true) -> void:
 	r = Rect2(r.position.floor(), r.size.floor())
 	draw(ci, KIT + "window", r, -1, -1, drop)
@@ -194,7 +200,7 @@ static func window(ci: CanvasItem, r: Rect2, drop := DROP_WINDOW, hatched := tru
 			sprite(ci, KIT + "bolt", r.position + p)
 
 
-## A title plate over `r` with a 2 px drop: lamp (Level Up) or frame (blue),
+## A title plate over `r` (2 px of room below): lamp (Level Up) or frame (blue),
 ## a bolt each side, vertically centred.
 static func plate(ci: CanvasItem, r: Rect2, lamp := false) -> void:
 	draw(ci, KIT + ("plate_lamp" if lamp else "plate_frame"), r, -1, -1, DROP_CARD)
@@ -205,7 +211,7 @@ static func plate(ci: CanvasItem, r: Rect2, lamp := false) -> void:
 		sprite(ci, b, r.position + Vector2(r.size.x - 8, by))
 
 
-## A card (raised, lit top) with its 2 px drop.
+## A card (raised, lit top), 2 px of room below.
 static func card(ci: CanvasItem, r: Rect2, drop := DROP_CARD) -> void:
 	draw(ci, KIT + "card", r, -1, -1, drop)
 
@@ -215,7 +221,7 @@ static func well(ci: CanvasItem, r: Rect2, ink := false) -> void:
 	draw(ci, KIT + ("well_ink" if ink else "well"), r)
 
 
-## An icon slot over `r`: the frame slot, or a 2 px `ring` (RINGS); 2 px drop.
+## An icon slot over `r`: the frame slot, or a 2 px `ring` (RINGS); 2 px of room below.
 static func slot(ci: CanvasItem, r: Rect2, ring := "", drop := DROP_CARD) -> void:
 	draw(ci, KIT + ("slot" if ring == "" else "slot_" + ring), r, -1, -1, drop)
 
@@ -235,7 +241,7 @@ static func ring_of(rarity: String) -> String:
 	return ""
 
 
-## A block button face over `r` (the drop is drawn below `r`): "primary"
+## A block button face over `r` (room for the old drop stays below `r`): "primary"
 ## (lamp), "secondary" (frame), "go" or "disabled". Pressed sinks 2 px.
 static func button(ci: CanvasItem, r: Rect2, kind := "secondary", pressed := false) -> void:
 	var part := KIT + "btn_" + kind

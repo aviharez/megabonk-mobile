@@ -1,8 +1,8 @@
 class_name Fonts
 extends RefCounted
 ## Kit v2 type (docs/BRIEF.md "Update 1"): Lilita One (TITLE_FONT, "D" in
-## STYLES) for titles, names, numbers and button labels, outlined in INK with
-## a hard drop; Inter at weight 800 (body()) for body text, never outlined,
+## STYLES) for titles, names, numbers and button labels, outlined in INK (no
+## drop); Inter at weight 800 (body()) for body text, never outlined,
 ## never under 6 px. Sizes in game px: hero names 20, screen titles 14, names
 ## and buttons 9, numbers 10, body 7, small 6. Both fonts import with
 ## antialiasing off, no hinting and subpixel positioning (their .import
@@ -25,31 +25,32 @@ const BODY_FONT := preload("res://assets/fonts/inter/inter_800.tres")
 const OUTLINE_K := 6
 
 ## name: [font ("D" Lilita / "I" Inter), size, colour, outline px, outline colour, drop px]
-## Display text is outlined in INK (1 game px) with a 1 px drop unless noted.
+## Display text is outlined in INK (1 game px). Kit v2.2: no drops (drop px 0
+## everywhere; the column stays for a style that ever needs one back).
 const STYLES := {
-	"LOGO": ["D", 34, Palette.GOLD, 3, Palette.INK, 2],
+	"LOGO": ["D", 34, Palette.GOLD, 3, Palette.INK, 0],
 	## Hero names on stages and result titles ("Swarmed!", "Unlocked!").
-	"HERO": ["D", 20, Palette.PAPER, 1, Palette.INK, 1],
+	"HERO": ["D", 20, Palette.PAPER, 1, Palette.INK, 0],
 	## Result titles over the world (Swarmed!, Unlocked!).
-	"RESULT": ["D", 24, Palette.GOLD, 1, Palette.INK, 1],
+	"RESULT": ["D", 24, Palette.GOLD, 1, Palette.INK, 0],
 	## The big primary button (Play, Resume, Play Again, Nice!).
-	"BIG_BUTTON": ["D", 16, Palette.PAPER, 1, Palette.INK, 1],
+	"BIG_BUTTON": ["D", 16, Palette.PAPER, 1, Palette.INK, 0],
 	## Screen titles and title plates.
-	"TITLE": ["D", 14, Palette.PAPER, 1, Palette.INK, 1],
-	"BANNER": ["D", 14, Palette.RED, 1, Palette.INK, 1],
-	"NAME": ["D", 9, Palette.PAPER, 1, Palette.INK, 1],
-	"BUTTON": ["D", 9, Palette.PAPER, 1, Palette.INK, 1],
+	"TITLE": ["D", 14, Palette.PAPER, 1, Palette.INK, 0],
+	"BANNER": ["D", 14, Palette.RED, 1, Palette.INK, 0],
+	"NAME": ["D", 9, Palette.PAPER, 1, Palette.INK, 0],
+	"BUTTON": ["D", 9, Palette.PAPER, 1, Palette.INK, 0],
 	## Names on popup cards (level-up, bonus, merchant, pause details).
-	"CARD_NAME": ["D", 9, Palette.PAPER, 1, Palette.INK, 1],
+	"CARD_NAME": ["D", 9, Palette.PAPER, 1, Palette.INK, 0],
 	"CARD_BODY": ["I", 7, Palette.PAPER, 0, Palette.INK, 0],
-	"NUM": ["D", 10, Palette.PAPER, 1, Palette.INK, 1],
-	"NUM_WORLD": ["D", 9, Palette.WHITE, 1, Palette.INK, 1],
+	"NUM": ["D", 10, Palette.PAPER, 1, Palette.INK, 0],
+	"NUM_WORLD": ["D", 9, Palette.WHITE, 1, Palette.INK, 0],
 	## Words and gold popping out of the world ("+5", "Shield!").
 	"POP": ["D", 8, Palette.WHITE, 1, Palette.INK, 0],
 	"BAR_NUM": ["D", 7, Palette.PAPER, 1, Palette.INK, 0],
-	"RIBBON": ["D", 9, Palette.PAPER, 1, Palette.INK, 1],
+	"RIBBON": ["D", 9, Palette.PAPER, 1, Palette.INK, 0],
 	## The active bottom-nav tile's word.
-	"NAV": ["D", 8, Palette.PAPER, 1, Palette.INK, 1],
+	"NAV": ["D", 8, Palette.PAPER, 1, Palette.INK, 0],
 	## INK words on a lamp plate (the current Play step), no outline.
 	"ON_LAMP": ["D", 9, Palette.INK, 0, Palette.INK, 0],
 	## Stickers and badges (New, AD, level and stack counts): INK on a light plate.
@@ -59,8 +60,8 @@ const STYLES := {
 	"SMALL": ["I", 6, Palette.MUTED, 0, Palette.INK, 0],
 	"CHANGE": ["I", 7, Palette.LIME, 0, Palette.INK, 0],
 	"HIT": ["I", 6, Palette.WHITE, 1, Palette.INK, 0],
-	"CRIT": ["D", 9, Palette.BUTTER, 1, Palette.RED, 1],
-	"SPLASH": ["D", 22, Palette.GOLD, 2, Palette.INK, 2],
+	"CRIT": ["D", 9, Palette.BUTTER, 1, Palette.RED, 0],
+	"SPLASH": ["D", 22, Palette.GOLD, 2, Palette.INK, 0],
 }
 ## Cap height per font, in ems (OS/2 sCapHeight): centring on the caps lines
 ## text up with what's beside it (the ascent includes room above the letters).
