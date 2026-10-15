@@ -16,7 +16,7 @@ const ICON_SLOT := 26
 ## Right column of a card: the reward and x/y, or Claim.
 const RIGHT_W := 38
 const CLAIM := Vector2(36, 22)
-const POINTS_H := 78
+const POINTS_H := 70
 const ROW_H := 14
 
 var tab := 0
@@ -127,7 +127,7 @@ func _points(p: Control, y: float) -> void:
 	_clock_box = box
 	var chests := Quests.chests(db)
 	var top := float(chests.back().points) if not chests.is_empty() else 60.0
-	var bar := Rect2(14, 62, W - 28, 9)
+	var bar := Rect2(14, 54, W - 28, 9)
 	box.draw.connect(func() -> void:
 		UiArt.window(box, Rect2(Vector2.ZERO, box.size))
 		Fonts.draw(box, "Daily points", Vector2(10, Fonts.cap_y("NAME", 8, 11)), "NAME")
@@ -142,7 +142,7 @@ func _points(p: Control, y: float) -> void:
 		b.can_open = Quests.can_open_chest(db, save.data, i)
 		var cx := bar.position.x + bar.size.x * float(chests[i].points) / top
 		cx = minf(cx, bar.end.x - 14)
-		b.position = Vector2(floorf(cx - ChestButton.SIZE.x / 2.0), 17)
+		b.position = Vector2(floorf(cx - ChestButton.SIZE.x / 2.0), 21)
 		b.size = ChestButton.SIZE
 		b.pressed.connect(_open_chest.bind(i))
 		box.add_child(b)
@@ -362,7 +362,7 @@ func _on_double() -> void:
 ## A points chest: the sack, its points under it; a red dot when it can be
 ## opened, a check once opened.
 class ChestButton extends BaseButton:
-	const SIZE := Vector2(30, 44)
+	const SIZE := Vector2(30, 32)
 	var _dim: Texture2D
 	var points := 0
 	var open := false
@@ -379,13 +379,14 @@ class ChestButton extends BaseButton:
 		if sack != null:
 			if open and _dim == null:
 				_dim = QuestsScreen.dimmed(QuestsScreen.dimmed(sack))
-			# 2x, like 16 px icons on cards.
-			var s := Vector2(sack.get_size()) * 2
+			# 1x: at 2x the sacks crowded the window (owner, 2026-10-15).
+			var s := Vector2(sack.get_size())
 			var at := Vector2(floorf((SIZE.x - s.x) / 2.0), 2)
 			draw_texture_rect(_dim if open else sack, Rect2(at, s), false)
+			# Corner marks sit mostly outside the 1x sack so they don't hide it.
 			if open:
-				UiArt.sprite(self, "kit/check", at + Vector2(s.x - 5, 1))
+				UiArt.sprite(self, "kit/check", at + Vector2(s.x - 2, -2))
 			elif can_open:
-				UiArt.dot(self, at + Vector2(s.x - 5, -2))
+				UiArt.dot(self, at + Vector2(s.x - 3, -4))
 		var t := str(points)
-		Fonts.draw(self, t, Vector2(0, Fonts.cap_y("NUM", 34, 10)), "NUM", -1, SIZE.x, HORIZONTAL_ALIGNMENT_CENTER)
+		Fonts.draw(self, t, Vector2(0, Fonts.cap_y("NUM", 20, 10)), "NUM", -1, SIZE.x, HORIZONTAL_ALIGNMENT_CENTER)

@@ -880,3 +880,4 @@ Owner: no budget for licensed music and free tracks don't fit; the AaC gameplay 
 - [x] Tests: 3215 checks, 0 failed (Godot 4.7 stable, headless). Screens shot with a 4-weapon, 4-manual loadout (tools/shoot_screens.gd at 540x1170): counters clear of the build, no drops on Quests, Level Up, HUD
 - [ ] On the phone: check the look and that nothing feels flat (the room under parts is now empty space; drop it later if it reads as a gap)
 - [ ] docs/BRIEF.md "Update 1" and the concept PNGs in docs/ui/ still show drops; update them when the look is settled
+- [x] Owner (2026-10-15): the coin sacks on the Daily points window were too big. Sacks at 1x (13x16) instead of 2x; chest buttons 30x32, the window 78 -> 70 px; the red dot and the check sit on the sack's corner so they don't hide it
