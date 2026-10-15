@@ -910,7 +910,7 @@ Prompt: the Town tab on the Suburbia map with Bakery, Pigeon Coop, Office and Gy
 - [x] Owner (2026-10-15): Overdue! and Gave Up play the game over music even in the Final Swarm (they still count as won for rewards); pinned in test_map_flow
 - [x] Owner (2026-10-15): Gym regenerated with weights in the windows (1 generation, 5 in total); 187 assets pass
 - [x] Owner (2026-10-15): Overdue! plays the victory music again; Gave Up plays game over and shows the hit pose (test in test_map_flow)
-- [ ] Owner (2026-10-15): Gym third try made (1 generation, 6 in total) but not installed: no door, diagonal barbells. Owner picks: keep the kettlebell Gym, use the third try, or try again
+- [x] Owner (2026-10-15): Gym third try (1 generation, 6 in total) installed; owner chose it over the kettlebell version. 187 assets pass, tests and FLOW OK
 
 ### Found during phase 13
 
