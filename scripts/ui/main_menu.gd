@@ -21,6 +21,10 @@ extends Control
 ## rewarded ad (greyed out when no ad can pay for it). The bottom banner shows
 ## on the menu, shop and collection screens only (data/rules/ads.json
 ## "banner"), and the whole menu shrinks by its height so nothing sits under it.
+##
+## Play Games (scripts/autoload/play_games.gd): its one-line notices (which
+## save the cloud sync kept) show as a chip under the district name for a
+## few seconds; a tap hides it.
 
 const RUN_SCENE := "res://scenes/run.tscn"
 ## The design's screen (docs/ui/ are 180 x 390 at 4x).
@@ -45,6 +49,9 @@ var _no_ads: KitButton
 var _unlock: KitButton
 var _settings_btn: KitButton
 var _settings: SettingsPanel
+var _notice: Control
+var _notice_text := ""
+var _notice_left := 0.0
 var _nav: BottomNav
 var _tab: MenuScreen
 var _ads: Node
@@ -76,6 +83,7 @@ func _ready() -> void:
 	_nav = BottomNav.new()
 	_nav.picked.connect(_on_tab)
 	add_child(_nav)
+	_build_notice()
 	_settings = SettingsPanel.new()
 	add_child(_settings)
 
@@ -89,6 +97,10 @@ func _ready() -> void:
 	if store != null and store.has_signal("changed"):
 		store.changed.connect(_refresh_wallet)
 	_refresh_daily()
+	var pg := get_node_or_null("/root/PlayGames")
+	if pg != null:
+		pg.notice.connect(func(_text: String) -> void: show_notice(pg.take_notice()))
+		show_notice(pg.take_notice())
 	resized.connect(_layout)
 	get_viewport().size_changed.connect(_layout)
 	_layout()
@@ -244,9 +256,40 @@ func _layout() -> void:
 	_place()
 
 
+func _build_notice() -> void:
+	_notice = Control.new()
+	_notice.name = "Notice"
+	_notice.size = Vector2(BASE.x, 12)
+	_notice.draw.connect(func() -> void:
+		var w := ceilf(Fonts.width(_notice_text, "BODY")) + 8.0
+		UiArt.chip(_notice, _notice_text, Vector2(floorf((_notice.size.x - w) / 2.0), 0), 12.0))
+	_notice.gui_input.connect(func(e: InputEvent) -> void:
+		if (e is InputEventScreenTouch or e is InputEventMouseButton) and e.pressed:
+			_notice_left = 0.0
+			_notice.hide())
+	_notice.hide()
+	add_child(_notice)
+
+
+## Shows one line under the district name for a few seconds ("" does nothing).
+func show_notice(text: String) -> void:
+	if text == "":
+		return
+	_notice_text = text
+	_notice_left = 4.0
+	_notice.show()
+	_notice.queue_redraw()
+	_notice.position = Vector2(floorf((size.x - BASE.x) / 2.0), _top_y + 86.0)
+	UiFx.slide_in(_notice, Vector2(0, -8), 0.18)
+
+
 func _process(delta: float) -> void:
 	_t += delta
 	_place()
+	if _notice_left > 0.0:
+		_notice_left -= delta
+		if _notice_left <= 0.0:
+			_notice.hide()
 	# Midnight passing while Home is up: the new dailies count.
 	if int(_t / 30.0) != int((_t - delta) / 30.0):
 		_refresh_quests()

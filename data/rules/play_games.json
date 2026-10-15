@@ -1,0 +1,70 @@
+{
+	"id": "play_games",
+	"ids_note": "Play Games ids are empty until the owner creates the entries in Play Console (docs/PLUGINS.md). An empty id is skipped. The game id itself is in export_presets.cfg (godot_play_game_services/game_id).",
+	"save_name": "mobbed_save",
+	"timeout_sec": 30,
+	"leaderboards": {
+		"final_swarm": {
+			"name": "Longest Final Swarm",
+			"id": "",
+			"stat": "final_swarm_seconds",
+			"order": "larger",
+			"span": "weekly"
+		},
+		"mega_mole": {
+			"name": "Fastest Mega Mole",
+			"id": "",
+			"stat": "boss_defeated_at",
+			"boss": "mega_mole",
+			"order": "smaller",
+			"span": "all_time"
+		}
+	},
+	"achievements": {
+		"challenges": {
+			"alarm_clock": "",
+			"angry_neighbor": "",
+			"bubble_wrap_crafts": "",
+			"clone_machine": "",
+			"copy_machine_manual": "",
+			"cursed_diary": "",
+			"faulty_toaster": "",
+			"fireworks": "",
+			"fridge_magnets": "",
+			"gary": "",
+			"golden_toilet": "",
+			"leaf_blower": "",
+			"lottery_tips": "",
+			"microwave_meltdown": "",
+			"pinata": "",
+			"self_help_book": "",
+			"static_sweater": "",
+			"tin_foil_hat_theories": "",
+			"turbo_pigeon": ""
+		},
+		"quests": {
+			"ms_runs_1": "",
+			"ms_runs_10": "",
+			"ms_runs_100": "",
+			"ms_bonk_1000": "",
+			"ms_bonk_10000": "",
+			"ms_bonk_100000": "",
+			"ms_boss_3": "",
+			"ms_boss_25": "",
+			"ms_final_1": "",
+			"ms_final_10": "",
+			"ms_final_time_180": "",
+			"ms_portal_1": "",
+			"ms_portal_20": "",
+			"ms_level_30": "",
+			"ms_chests_100": "",
+			"ms_elites_150": "",
+			"ms_unhurt_10": "",
+			"ms_gems_100000": "",
+			"ms_challenges_25": "",
+			"ms_beat_sir_loaf_d5": "",
+			"ms_beat_gary_d5": "",
+			"ms_beat_turbo_pigeon_d5": ""
+		}
+	}
+}

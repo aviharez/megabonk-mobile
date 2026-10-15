@@ -416,6 +416,7 @@ func _cross_check() -> void:
 	_check_audio(entries.rules.get("audio", {}))
 	_check_fx(entries.rules.get("fx", {}))
 	_check_store(entries.rules.get("store", {}))
+	_check_play_games(entries.rules.get("play_games", {}))
 	var bills: Dictionary = entries.rules.get("bills", {})
 	if not bills.is_empty():
 		if entries.enemies.get(bills.get("enemy", ""), {}).get("role", "") != "ghost":
@@ -582,6 +583,57 @@ func _check_store(st: Dictionary) -> void:
 			errors.append("%s: product \"%s\" \"type\" must be \"non_consumable\" (the only kind Store handles)" % [f, key])
 		if key != "remove_ads":
 			errors.append("%s: unknown product \"%s\" (Store only knows what \"remove_ads\" grants)" % [f, key])
+
+
+## data/rules/play_games.json: Play Games ids (scripts/autoload/play_games.gd).
+## Ids may be empty (not created in Play Console yet); what they point at
+## (stats, bosses, challenges, milestone quests) must exist.
+func _check_play_games(pg: Dictionary) -> void:
+	if pg.is_empty():
+		return
+	var f: String = pg._file
+	if typeof(pg.get("save_name")) != TYPE_STRING or String(pg.get("save_name")).is_empty():
+		errors.append("%s: needs a \"save_name\"" % f)
+	if not _is_num(pg.get("timeout_sec")) or float(pg.get("timeout_sec")) <= 0.0:
+		errors.append("%s: needs a positive number \"timeout_sec\"" % f)
+	var boards: Variant = pg.get("leaderboards", {})
+	if not boards is Dictionary:
+		errors.append("%s: \"leaderboards\" must map keys to boards" % f)
+		boards = {}
+	for key: String in boards:
+		var b: Variant = boards[key]
+		if not b is Dictionary:
+			errors.append("%s: leaderboard \"%s\" must be an object" % [f, key])
+			continue
+		if typeof(b.get("id")) != TYPE_STRING:
+			errors.append("%s: leaderboard \"%s\" needs an \"id\" (\"\" until created)" % [f, key])
+		if not str(b.get("stat", "")) in Meta.STATS:
+			errors.append("%s: leaderboard \"%s\" \"stat\" must be a run stat (Meta.STATS)" % [f, key])
+		if not b.get("order") in ["larger", "smaller"]:
+			errors.append("%s: leaderboard \"%s\" \"order\" must be \"larger\" or \"smaller\"" % [f, key])
+		if not b.get("span") in ["daily", "weekly", "all_time"]:
+			errors.append("%s: leaderboard \"%s\" \"span\" must be daily, weekly or all_time" % [f, key])
+		if b.has("boss") and not entries.enemies.has(str(b.boss)):
+			errors.append("%s: leaderboard \"%s\" names an unknown boss \"%s\"" % [f, key, b.boss])
+	var ach: Variant = pg.get("achievements", {})
+	if not ach is Dictionary:
+		errors.append("%s: \"achievements\" must have \"challenges\" and \"quests\"" % f)
+		return
+	for kind: String in ach:
+		if not kind in ["challenges", "quests"]:
+			errors.append("%s: achievements \"%s\" must be \"challenges\" or \"quests\"" % [f, kind])
+			continue
+		var ids: Variant = ach[kind]
+		if not ids is Dictionary:
+			errors.append("%s: achievements \"%s\" must map ids to Play ids" % [f, kind])
+			continue
+		for id: String in ids:
+			if typeof(ids[id]) != TYPE_STRING:
+				errors.append("%s: achievement \"%s\" needs a Play id string (\"\" until created)" % [f, id])
+			if not entries[kind].has(id):
+				errors.append("%s: achievement \"%s\" is not in data/%s" % [f, id, kind])
+			elif kind == "quests" and entries.quests[id].get("kind") != "milestone":
+				errors.append("%s: achievement \"%s\" must be a milestone quest" % [f, id])
 
 
 ## Map screen data: status, the map whose boss opens it, the thumbnail.

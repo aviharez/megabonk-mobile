@@ -91,6 +91,9 @@ var charges := {}
 ## Rewarded ads (scripts/autoload/ads.gd): revive on death, 2x coins at game
 ## over, a level-up action when its charges run out. null = no ads.
 var ads: Node
+## Play Games (scripts/autoload/play_games.gd): scores, achievements and the
+## cloud save at run end. null = none (test saves, bots), as for ads.
+var play_games: Node
 var ad_rules: Dictionary
 var revived := false
 var director: Director
@@ -277,6 +280,9 @@ func _ready() -> void:
 	# save (no_save) or a bot never see ads unless a test passes "ads".
 	if ads == null and not options.get("bot", false) and _save != null and _save == get_node_or_null("/root/Save"):
 		ads = get_node_or_null("/root/Ads")
+	play_games = options.get("play_games")
+	if play_games == null and not options.get("bot", false) and _save != null and _save == get_node_or_null("/root/Save"):
+		play_games = get_node_or_null("/root/PlayGames")
 	if options.has("seed"):
 		rng.seed = int(options.seed)
 	else:
@@ -1804,6 +1810,8 @@ func _end(reason: String) -> void:
 		result.quests_done = Quests.commit_run(db, meta, result.stats, char_def.id, danger_level)
 		Meta.commit_bestiary(meta, seen, bonked)
 		_save.save_game()
+		if play_games != null:
+			play_games.run_ended(result)
 	if ads != null:
 		ads.end_run()
 	run_ended.emit(result)

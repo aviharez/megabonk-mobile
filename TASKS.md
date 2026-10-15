@@ -919,3 +919,34 @@ Prompt: the Town tab on the Suburbia map with Bakery, Pigeon Coop, Office and Gy
 - Rebuild prices for the unlock buildings are their challenges' prices (Turbo Pigeon 140, Gary 350); upgrade and Patrol numbers (3-8 coins an hour per building) are a first pass for balance
 - "Rebuilt x/4" counts the buildings in data, not the mockup's 12; buildings 5-12 stay an open decision
 - Patrol counts real time whether the app is open or closed; a device clock set forward can still collect up to the 8-hour cap (no server time, like the quest draws)
+
+## Phase 14: Google Play Games (docs/BRIEF.md "Update 1", 2026-10-15)
+
+Plugin (owner approved 2026-10-15): GodotPlayGameServices 3.4.0 (MIT), not the 3.2.0 the brief named (3.3 fixed release builds with ProGuard rules). Vendored trimmed in `addons/GodotPlayGameServices/`; see docs/PLUGINS.md.
+
+- [x] Plugin researched (activity, license, open issues, Kotlin source of the snapshot / sign-in calls), owner OK
+- [x] Vendored: AARs, plugin.cfg, LICENSE, patched `export_plugin.gd` (no autoload, so project.godot isn't rewritten; an empty game id leaves the plugin out of the APK). The GDScript nodes and icons aren't vendored: `GpgsBackend` talks to the native singleton
+- [x] `PlayGames` autoload over a `PlayGamesBackend`: `GpgsBackend` with the plugin, `FakePlayGamesBackend` in debug builds (pretend account in `user://fake_cloud.json`), the inert base backend in release builds without it (nothing called, Settings says Not available)
+- [x] Sign-in: silent at start, interactive from the Settings card; nothing in the game waits for it
+- [x] Cloud save: the save JSON is one snapshot. After each sign-in the cloud save is read first; the save with more playtime stays (then runs, then coins), one line on Home says which. A fresh install never uploads before that check; a cloud save from a newer build is never loaded or overwritten; a winning cloud save waits for the end of a run. Uploads on every run end and on app pause, progress value = playtime ms (the plugin's HIGHEST_PROGRESS policy keeps the same rule on a conflict). Timeouts on every request (the plugin stays silent on some failures)
+- [x] Save: new `playtime` key (seconds in runs, added by `Meta.commit_run`); `Save.replace_data()` migrates and fills a cloud save like a file, keeps this device's settings, refuses newer versions
+- [x] Achievements: the 19 unlock challenges + 22 milestone quests, ids in `data/rules/play_games.json` (empty until created; empty ids skipped), unlocked once each per session after sign-in, run end and restore; a failed unlock retries
+- [x] Leaderboards: "Longest Final Swarm" (final_swarm_seconds, ms, weekly) and "Fastest Mega Mole" (boss_defeated_at, ms, smaller is better, only on a map whose boss is Mega Mole; `Meta.map_boss_id`). Scores from runs while signed out are sent at the next sign-in that session
+- [x] Settings rows (docs/ui/settings.png): "Google Play Games" heading, status card with the hero face (Signed in / Not signed in, tap to sign in / Not available), Achievements and Leaderboard buttons (flat while signed out). 0 off-palette pixels in both shots
+- [x] Data validation for play_games.json in GameData
+- [x] Tests: `tests/test_play_games.gd` (113 checks: backend choice, inert = untouched save, silent + Settings sign-in, sign-in timeout, round trip between two installs, more playtime wins both ways, fresh install never overwrites the cloud (checked by removing the guard: 4 checks fail), newer cloud save, upload queue + timeout, restore waits for the end of a run, replace_data, playtime, achievements once each + retry, scores incl. queue, a real run end, Settings card and buttons, notice widths, data). Full suite 3473 checks, 0 failed
+- [x] Android export with an empty game id: plugin left out of the dex, AdMob and Billing in, builds. With a placeholder id (throwaway build, not installed): plugin classes, Play Games SDK, APP_ID meta-data and the game id string all in the APK on Godot 4.7.2
+- [x] Debug build (no game id, fake backend) installed on the Xiaomi 15T: starts, no script or engine errors in logcat (screen locked, so Settings not seen on the phone)
+- [ ] Owner: Play Console setup (Play Games project with Saved Games on, Android OAuth credential for `com.aviharez.swarmsurvivor` with the debug SHA-1, one test achievement, the two leaderboards, tester account); send the game id and the ids
+- [ ] Put the ids in: game id in export_presets.cfg (`godot_play_game_services/game_id`, Android preset), achievement / leaderboard ids in data/rules/play_games.json
+- [ ] On the phone with test ids: sign-in, a save round trip between two installs, one achievement, one leaderboard score
+- [ ] Stress test fps with the phase done (only a run-end call was added to the run; not measured yet)
+
+### Found during phase 14
+
+- The plugin sends no signal when a snapshot open fails (except "not found") and has no sign-out; timeouts cover the first, Play Games v2 has no sign-out by design
+- Play Games has no public test ids (unlike AdMob): "test ids" means draft entries the owner creates in Play Console, visible to tester accounts
+- Saved Games can take up to 24 hours to work after it is switched on in Play Console (plugin issue #123)
+- Playtime counts from this phase on: older saves start at 0, so the first comparison falls back to runs played, then coins
+- Scores from runs while signed out are kept only until the app closes (sending an old score later would put it in the wrong week)
+- A tapped sign-in while the silent check is still running is ignored (the card says "Signing in")

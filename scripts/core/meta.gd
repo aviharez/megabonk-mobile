@@ -6,6 +6,7 @@ extends RefCounted
 ## and the run use them without a scene.
 ##
 ## Save keys (all in save_manager.gd default_data()):
+## - "playtime": seconds spent in runs, all runs together (commit_run).
 ## - "stats": cumulative tracker totals, {key: number}. A key is a stat name,
 ##   optionally narrowed to a weapon (".<weapon id>") and/or a character
 ##   ("@<character id>"): "kills", "kills.hot_coffee", "kills@sir_loaf",
@@ -179,10 +180,16 @@ static func map_state(db: GameData, data: Dictionary, id: String) -> String:
 
 ## Boss summoned on the map (its altar's "boss"), by name; "" if none.
 static func map_boss_name(db: GameData, id: String) -> String:
+	var boss := map_boss_id(db, id)
+	return db.get_entry("enemies", boss).get("name", "") if boss != "" else ""
+
+
+## The enemy id of the boss a map's altar summons ("" when it has none).
+static func map_boss_id(db: GameData, id: String) -> String:
 	for it: Dictionary in db.get_entry("maps", id).get("interactables", []):
 		var boss: String = db.get_entry("interactables", it.get("id", "")).get("boss", "")
 		if boss != "":
-			return db.get_entry("enemies", boss).get("name", "")
+			return boss
 	return ""
 
 
@@ -526,6 +533,8 @@ static func buy(db: GameData, data: Dictionary, id: String) -> bool:
 static func commit_run(db: GameData, data: Dictionary, run_stats: Dictionary, character: String, coins: int, map := "",
 		seconds := -1.0, danger := 1) -> Array:
 	data.runs_played = int(data.runs_played) + 1
+	if seconds > 0.0:
+		data.playtime = float(data.get("playtime", 0.0)) + seconds
 	if map != "" and seconds >= 0.0:
 		if not data.has("best_times"):
 			data.best_times = {}

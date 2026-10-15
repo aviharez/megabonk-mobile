@@ -53,6 +53,7 @@ mediation/vungle=false
 Save="*res://scripts/autoload/save_manager.gd"
 Ads="*res://scripts/autoload/ads.gd"
 Store="*res://scripts/autoload/store.gd"
+PlayGames="*res://scripts/autoload/play_games.gd"
 Audio="*res://scripts/autoload/audio.gd"
 Transition="*res://scripts/autoload/transition.gd"
 
@@ -70,7 +71,7 @@ window/handheld/orientation=1
 
 [editor_plugins]
 
-enabled=PackedStringArray("res://addons/admob/plugin.cfg", "res://addons/GodotGooglePlayBilling/plugin.cfg")
+enabled=PackedStringArray("res://addons/admob/plugin.cfg", "res://addons/GodotGooglePlayBilling/plugin.cfg", "res://addons/GodotPlayGameServices/plugin.cfg")
 
 [gui]
 

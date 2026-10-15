@@ -3,9 +3,12 @@ extends Control
 ## The Settings popup, kit v2 (docs/ui/settings.png): a dithered dim, a window
 ## with the "Settings" plate and a close button on its corner, then Sound
 ## (Music and Effects volume as 5 pips, Vibration) and Game (Damage numbers,
-## Screen shake, Reduce effects) rows with kit toggles, Restore purchases and
-## the version at the foot. Every change goes straight to the save. Tapping
-## the dim or the close button hides it (`closed`).
+## Screen shake, Reduce effects) rows with kit toggles, Google Play Games
+## (a status card with the picked hero's face, tapped to sign in, and
+## Achievements / Leaderboard buttons, live while signed in; PlayGames
+## autoload), Restore purchases and the version at the foot. Every change
+## goes straight to the save. Tapping the dim or the close button hides it
+## (`closed`).
 
 signal closed
 
@@ -23,11 +26,20 @@ const ROWS := [
 const W := 170
 const ROW_H := 17
 const HEAD_H := 20
+## Google Play Games: heading, status card, gap, button row (with its drop), gap.
+const PG_CARD_H := 27
+const PG_BTN_H := 24
+const PG_H := HEAD_H + PG_CARD_H + 4 + PG_BTN_H + 4
 
 var _dim: DitherDim
 var _win: PixelPanel
 var _rows := {}  # key -> Control
 var _save: Node
+var _pg: Node
+var _pg_card: Button
+var _pg_face: Texture2D
+var _achievements: KitButton
+var _leaderboard: KitButton
 
 
 func _init() -> void:
@@ -87,6 +99,7 @@ func _init() -> void:
 		_win.add_child(row)
 		_rows[r[0]] = row
 		y += ROW_H
+	_build_play_games(y)
 	var restore := PixelButton.new()
 	restore.name = "Restore"
 	restore.label = "Restore purchases"
@@ -110,10 +123,106 @@ func _init() -> void:
 
 func _ready() -> void:
 	_save = get_node_or_null("/root/Save")
+	_pg = get_node_or_null("/root/PlayGames")
+	if _pg != null:
+		_pg.changed.connect(_refresh_play_games)
+	_refresh_play_games()
+
+
+func _build_play_games(y: float) -> void:
+	var head := Fonts.label("Google Play Games", "NAME")
+	head.name = "PlayGamesHead"
+	head.position = Vector2(12, y + 4)
+	_win.add_child(head)
+	y += HEAD_H
+	_pg_card = Button.new()
+	_pg_card.name = "PlayGamesCard"
+	_pg_card.flat = true
+	_pg_card.focus_mode = Control.FOCUS_NONE
+	_pg_card.position = Vector2(8, y)
+	_pg_card.size = Vector2(W - 16, PG_CARD_H)
+	_pg_card.draw.connect(_draw_pg_card)
+	_pg_card.pressed.connect(func() -> void:
+		if _pg != null and _pg.status == "signed_out":
+			UiArt.click(self, "click")
+			_pg.sign_in())
+	_win.add_child(_pg_card)
+	y += PG_CARD_H + 4
+	var bw := floorf((W - 16 - 4) / 2.0)
+	_achievements = _pg_button("Achievements", "Achievements", "star", Vector2(8, y), bw)
+	_achievements.pressed.connect(func() -> void:
+		if _pg != null:
+			_pg.show_achievements())
+	_leaderboard = _pg_button("Leaderboard", "Leaderboard", "hud_clock", Vector2(W - 8 - bw, y), bw)
+	_leaderboard.pressed.connect(func() -> void:
+		if _pg != null:
+			_pg.show_leaderboards())
+
+
+func _pg_button(node_name: String, text: String, icon: String, at: Vector2, w: float) -> KitButton:
+	var b := KitButton.new()
+	b.name = node_name
+	b.part = "secondary"
+	b.label = text
+	b.art = UiArt.texture(icon)
+	b.art_scale = 1
+	b.size = Vector2(w, PG_BTN_H)
+	b.art_centre = Vector2(11, floorf((PG_BTN_H - UiArt.DROP_WINDOW) / 2.0))
+	b.text_box = Rect2(18, 0, w - 21, PG_BTN_H - UiArt.DROP_WINDOW)
+	b.position = at
+	_win.add_child(b)
+	return b
+
+
+## The card's two lines for the service's state.
+static func play_games_lines(status: String, cloud: String) -> Array:
+	match status:
+		"signed_in":
+			match cloud:
+				"error":
+					return ["Signed in", "Cloud save will try again"]
+				"newer":
+					return ["Signed in", "Update the game to load your save"]
+				"checking":
+					return ["Signed in", "Checking your cloud save"]
+			return ["Signed in", "Progress saved to the cloud"]
+		"signing_in":
+			return ["Signing in", "One moment"]
+		"signed_out":
+			return ["Not signed in", "Tap to sign in"]
+	return ["Not available", "Needs Google Play Games"]
+
+
+func _refresh_play_games() -> void:
+	var on: bool = _pg != null and _pg.signed_in()
+	if _achievements != null:
+		_achievements.dim = not on
+		_leaderboard.dim = not on
+		_achievements.disabled = not on
+		_leaderboard.disabled = not on
+	if _pg_card != null:
+		_pg_card.mouse_default_cursor_shape = Control.CURSOR_POINTING_HAND if _pg != null and _pg.status == "signed_out" else Control.CURSOR_ARROW
+		_pg_card.queue_redraw()
+
+
+func _draw_pg_card() -> void:
+	var r := Rect2(Vector2.ZERO, _pg_card.size - Vector2(0, UiArt.DROP_CARD))
+	UiArt.card(_pg_card, r)
+	var slot := Rect2(3, 2, r.size.y - 4, r.size.y - 4)
+	UiArt.slot(_pg_card, slot, "", 0)
+	if _pg_face != null:
+		var inner := UiArt.slot_inner(slot)
+		var fs := Vector2(_pg_face.get_size())
+		_pg_card.draw_texture(_pg_face, (inner.position + (inner.size - fs) / 2.0).floor())
+	var lines := play_games_lines(_pg.status if _pg != null else "off", _pg.cloud if _pg != null else "idle")
+	var x := slot.end.x + 5
+	var w := r.size.x - x - 4
+	Fonts.draw(_pg_card, lines[0], Vector2(x, Fonts.cap_y("NAME", 3, 10)), "NAME", -1, w)
+	Fonts.draw(_pg_card, lines[1], Vector2(x, 14), "BODY", Palette.MUTED, w)
 
 
 static func _height() -> float:
-	var h := 22.0 + 40.0  # top, foot (Restore + margins)
+	var h := 22.0 + 40.0 + PG_H  # top, foot (Restore + margins), Play Games
 	for r: Array in ROWS:
 		h += HEAD_H if r.size() == 1 else ROW_H
 	return h + 14.0 + UiArt.DROP_WINDOW
@@ -122,6 +231,10 @@ static func _height() -> float:
 func open() -> void:
 	for r in _rows.values():
 		r.queue_redraw()
+	if _save != null:
+		var db := GameData.shared()
+		_pg_face = PlayParts.fitted(Icons.image(db, "characters", Meta.picked_character(db, _save.data)), 16)
+	_refresh_play_games()
 	show()
 	_dim.level = 0
 	_dim.fade_to(8, 0.12)

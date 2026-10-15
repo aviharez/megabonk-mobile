@@ -26,6 +26,9 @@ static func default_data() -> Dictionary:
 		"version": SAVE_VERSION,
 		"coins": 0,
 		"runs_played": 0,
+		# Seconds spent in runs, all runs together. The cloud save keeps the
+		# side with more of it (scripts/autoload/play_games.gd).
+		"playtime": 0.0,
 		"settings": {
 			"music": true,
 			"sfx": true,
@@ -136,6 +139,24 @@ func load_game() -> void:
 		data = _migrate(data, version)
 	data = _merge_defaults(data, default_data())
 	loaded.emit()
+
+
+## Replaces the progress with `d` (a cloud save) and writes it: migrated and
+## filled in like a file, this device's settings kept. The dictionary stays
+## the same object, so everything holding Save.data sees the new progress.
+## False (nothing changed) for a save from a newer build or a read-only one.
+func replace_data(d: Dictionary) -> bool:
+	var version := int(d.get("version", 0))
+	if read_only or version > SAVE_VERSION:
+		return false
+	var settings: Dictionary = data.get("settings", {}).duplicate(true)
+	var fresh := _merge_defaults(_migrate(d.duplicate(true), version), default_data())
+	fresh.settings = settings if not settings.is_empty() else fresh.settings
+	data.clear()
+	data.merge(fresh)
+	save_game()
+	loaded.emit()
+	return true
 
 
 func save_game() -> bool:
