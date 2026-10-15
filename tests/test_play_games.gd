@@ -485,7 +485,7 @@ func test_settings_rows(t) -> void:
 	t.check(SettingsPanel._height() + 12.0 <= 320.0, "the window with its title fits a 320 px screen (%d)" % (SettingsPanel._height() + 12.0))
 	t.check(top >= -160.0, "and isn't pushed off the top")
 	for text in [PlayGamesScript.NOTICE_LOADED, PlayGamesScript.NOTICE_CLOUD_WON, PlayGamesScript.NOTICE_LOCAL_WON, PlayGamesScript.NOTICE_NEWER]:
-		t.check(Fonts.width(text, "BODY") + 8.0 <= 180.0, "notice fits the screen: " + text)
+		t.check(Fonts.width(text, "BODY") + 10.0 <= 180.0, "notice fits the district chip: " + text)
 	for st in ["off", "signed_out", "signing_in", "signed_in"]:
 		for cl in ["idle", "checking", "synced", "error", "newer"]:
 			var lines := SettingsPanel.play_games_lines(st, cl)
@@ -504,3 +504,16 @@ func test_data(t) -> void:
 	t.check(ch.size() == Meta.challenges(db).size(), "every unlock challenge is an achievement (%d)" % ch.size())
 	t.check(qs.size() >= 18 and qs.size() <= 25, "about 20 milestone quests (%d)" % qs.size())
 	t.check(c.leaderboards.final_swarm.span == "weekly" and c.leaderboards.mega_mole.order == "smaller", "the two boards")
+
+
+func test_home_shows_the_notice(t) -> void:
+	var menu: Control = load("res://scenes/main_menu.tscn").instantiate()
+	t.root.add_child(menu)
+	_nodes.append(menu)
+	await _frames(t)
+	t.check(menu.district_chip_text() == "", "no notice: the district chip as before")
+	menu.show_notice(PlayGamesScript.NOTICE_CLOUD_WON)
+	t.check(menu.district_chip_text() == PlayGamesScript.NOTICE_CLOUD_WON, "a notice takes the district chip's place")
+	menu._process(4.1)
+	t.check(menu.district_chip_text() == "", "and gives it back after a few seconds")
+	_done(t)

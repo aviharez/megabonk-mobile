@@ -23,8 +23,8 @@ extends Control
 ## "banner"), and the whole menu shrinks by its height so nothing sits under it.
 ##
 ## Play Games (scripts/autoload/play_games.gd): its one-line notices (which
-## save the cloud sync kept) show as a chip under the district name for a
-## few seconds; a tap hides it.
+## save the cloud sync kept) take the district chip's place for a few
+## seconds.
 
 const RUN_SCENE := "res://scenes/run.tscn"
 ## The design's screen (docs/ui/ are 180 x 390 at 4x).
@@ -49,7 +49,6 @@ var _no_ads: KitButton
 var _unlock: KitButton
 var _settings_btn: KitButton
 var _settings: SettingsPanel
-var _notice: Control
 var _notice_text := ""
 var _notice_left := 0.0
 var _nav: BottomNav
@@ -83,7 +82,6 @@ func _ready() -> void:
 	_nav = BottomNav.new()
 	_nav.picked.connect(_on_tab)
 	add_child(_nav)
-	_build_notice()
 	_settings = SettingsPanel.new()
 	add_child(_settings)
 
@@ -175,6 +173,8 @@ func _build_district() -> void:
 		var best := float(Save.data.get("best_times", {}).get(id, 0.0))
 		if best > 0.0:
 			chip += " · Best %d:%02d" % [int(best) / 60, int(best) % 60]
+		if district_chip_text() != "":
+			chip = district_chip_text()
 		var cw := ceilf(Fonts.width(chip, "BODY")) + 10
 		UiArt.chip(_district, chip, Vector2(floorf((BASE.x - cw) / 2.0), 0), 13, 5)
 		Fonts.draw(_district, String(db.get_entry("maps", id).get("name", "Suburbia")), Vector2(0, 15), "HERO", -1,
@@ -256,31 +256,18 @@ func _layout() -> void:
 	_place()
 
 
-func _build_notice() -> void:
-	_notice = Control.new()
-	_notice.name = "Notice"
-	_notice.size = Vector2(BASE.x, 12)
-	_notice.draw.connect(func() -> void:
-		var w := ceilf(Fonts.width(_notice_text, "BODY")) + 8.0
-		UiArt.chip(_notice, _notice_text, Vector2(floorf((_notice.size.x - w) / 2.0), 0), 12.0))
-	_notice.gui_input.connect(func(e: InputEvent) -> void:
-		if (e is InputEventScreenTouch or e is InputEventMouseButton) and e.pressed:
-			_notice_left = 0.0
-			_notice.hide())
-	_notice.hide()
-	add_child(_notice)
-
-
-## Shows one line under the district name for a few seconds ("" does nothing).
+## Shows one line in the district chip's place for a few seconds ("" does nothing).
 func show_notice(text: String) -> void:
 	if text == "":
 		return
 	_notice_text = text
 	_notice_left = 4.0
-	_notice.show()
-	_notice.queue_redraw()
-	_notice.position = Vector2(floorf((size.x - BASE.x) / 2.0), _top_y + 86.0)
-	UiFx.slide_in(_notice, Vector2(0, -8), 0.18)
+	_district.queue_redraw()
+
+
+## The text of the chip over the district name: a notice while one is up.
+func district_chip_text() -> String:
+	return _notice_text if _notice_left > 0.0 else ""
 
 
 func _process(delta: float) -> void:
@@ -289,7 +276,7 @@ func _process(delta: float) -> void:
 	if _notice_left > 0.0:
 		_notice_left -= delta
 		if _notice_left <= 0.0:
-			_notice.hide()
+			_district.queue_redraw()
 	# Midnight passing while Home is up: the new dailies count.
 	if int(_t / 30.0) != int((_t - delta) / 30.0):
 		_refresh_quests()
