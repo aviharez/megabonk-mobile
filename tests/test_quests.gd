@@ -492,6 +492,13 @@ func test_home_rail_and_quests_screen(t) -> void:
 	qs.show_tab(2)
 	await t.process_frame
 	t.check(qs.list.get_child(0).name == "ms_bonk_100", "Milestones lists the claimable one first")
+	# Coming from Daily (whose list fits) the longer list still scrolls: the
+	# range used to stay at Daily's 0, so it wouldn't drag (owner, 2026-10-15).
+	var sb := qs._scroll.get_v_scroll_bar()
+	var grows := await _until(t, func() -> bool: return sb.max_value >= qs.list.size.y and qs.list.size.y > qs._scroll.size.y, 1.0)
+	t.check(grows, "after Daily, the Milestones list has its scroll range (%d of %d)" % [sb.max_value, qs.list.size.y])
+	qs._scroll.scroll_vertical = 40
+	t.check(qs._scroll.scroll_vertical == 40, "and moves (%d)" % qs._scroll.scroll_vertical)
 	qs.close()
 	await t.process_frame
 	t.check(rail.sticker == "count" and rail.count == Quests.total_ready(db, data), "back on Home the count follows (%d)" % rail.count)

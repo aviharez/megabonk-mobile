@@ -106,6 +106,10 @@ func _init(save_node: Node, title: String) -> void:
 	list.custom_minimum_size.x = W
 	list.add_theme_constant_override("separation", 4)
 	_scroll.add_child(list)
+	# A rebuild in place (Quests switching tabs) could leave the scroll range
+	# at 0, so the list wouldn't drag (owner, 2026-10-15): re-measure it
+	# whenever the list's size settles.
+	list.resized.connect(_scroll.queue_sort, CONNECT_DEFERRED)
 	_scrollbar = _scroll.make_bar()
 	_scrollbar.anchor_left = 0.5
 	_scrollbar.anchor_right = 0.5

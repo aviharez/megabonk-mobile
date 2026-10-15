@@ -901,6 +901,8 @@ Prompt: the Town tab on the Suburbia map with Bakery, Pigeon Coop, Office and Gy
 - [x] Owner OK on the Bakery art (2026-10-15)
 - [x] Pigeon Coop, Office and Gym the same way (owner approved all three at once; 1 generation each, 4 used in total). Snapped with `tools/art/pixellab_object.py` (crop, binary alpha, world colours only, `--force` for split shades); raws in `docs/pixellab/`. 187 assets pass, 3354 checks, 0 failed, FLOW OK
 - [x] 3353 checks, 0 failed with the Bakery art in; FLOW OK
+- [x] Owner phone check (2026-10-15): Town tab drag / tap, names on every building, Rebuild and Upgrade work
+- [x] Fix (owner, phone): Milestones wouldn't scroll after opening Quests on Daily. The scroll range kept the previous tab's size when the list grew (it updated only when it shrank); MenuScreen now re-measures on the list's deferred resize. Pinned in test_quests
 - [x] Owner (2026-10-15): the Upgrade button was cramped and sat on the window's bottom frame. Now 86 px wide with 7 px clear each side (text shrinks only if a price ever needs it), window 130 px tall so the button clears the frame; a ruined building's challenge wraps to two lines instead of being cut off
 - [ ] On the phone: Town tab drag and tap, Patrol after a real night away, the four objects in a run
 
