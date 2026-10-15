@@ -4,6 +4,8 @@ house (assets/props/house.png) with its red roof ramp swapped per building. Writ
 assets/town/<id>.png (only files that don't exist yet, so approved art is never overwritten;
 --force rewrites them all).
 
+All four were replaced by PixelLab art on 2026-10-15: --force overwrites it (raws in docs/pixellab/).
+
 Usage:  python3 tools/art/town_placeholders.py [--force]
 """
 import os

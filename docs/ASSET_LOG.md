@@ -77,8 +77,11 @@ Counted in PixelLab generations (1 for pixflux, standard map objects and standar
 | Date | Asset | Tool and settings | Est. generations | Actual | Notes (job / object id, size, cleanup, balance after) |
 | --- | --- | --- | --- | --- | --- |
 | 2026-10-15 | Town test building: Bakery (`assets/town/bakery.png`), owner-approved generation | `create_map_object`, style match on a 64x64 crop of the Bakery's empty lot (`MapLayout.bake_view`), oval 60%, high top-down, single colour outline, medium shading, medium detail | 1 | 1 | object 93d073ac-a424-4c12-ac16-4b38e97c7933; trial plan, 40 generations before |
+| 2026-10-15 | Town building: Pigeon Coop (`assets/town/pigeon_coop.png`, 31x36), owner-approved generation | `create_map_object`, style match on a 64x64 crop of its empty lot, oval 60%, high top-down, single colour outline, medium shading, medium detail | 1 | 1 | object 2ddc8c9b-6c36-4016-b0f7-4e763cfbda72; round dovecote; roof forced onto MIST / GRAY / SHADE (slate) instead of BLUE / OCEAN / PLUM; raw in `docs/pixellab/` |
+| 2026-10-15 | Town building: Office (`assets/town/office.png`, 29x35), owner-approved generation | `create_map_object`, style match on a 64x64 crop of its empty lot, oval 60%, high top-down, single colour outline, medium shading, medium detail | 1 | 1 | object 0cdaa97d-304e-40d8-9c5d-6b03dcaf66d5; window-edge grey-greens forced off TEAL; raw in `docs/pixellab/` |
+| 2026-10-15 | Town building: Gym (`assets/town/gym.png`, 34x32), owner-approved generation | `create_map_object`, style match on a 64x64 crop of its empty lot, oval 60%, high top-down, single colour outline, medium shading, medium detail | 1 | 1 | object 4ecf5887-7260-49d1-a9bd-0daeca254bd6; light roof shades forced to BLOOD (ribs kept), cream walls to BUTTER; raw in `docs/pixellab/` |
 
-**Running total:** 1
+**Running total:** 4
 
 ## Non-SpriteCook placeholders
 
@@ -94,7 +97,7 @@ Counted in PixelLab generations (1 for pixflux, standard map objects and standar
 | 2026-10-09 | `assets/audio/sfx/*.wav` (48 sound effects, 22050 Hz mono) | sfxr-style generator `tools/audio/sfxr.py`, recipes in `tools/audio/sfx.json`; no credits |
 | 2026-10-09 | ~~`assets/audio/music/{menu,gameplay,boss}.ogg` (placeholder chiptune loops, 37 / 42 / 35 s)~~ (replaced 2026-10-15) | `tools/audio/chiptune.py` (numpy + ffmpeg libvorbis) |
 | 2026-10-15 | `assets/audio/sfx/*.wav` (all 49 sounds remade, 44.1 kHz mono; replaces the sfxr set) | Audio as Code 0.4.0 (MIT, synthesized instruments, no samples) + numpy noise layers, `tools/audio/aac_sfx.py`; no credits |
-| 2026-10-15 | `assets/town/{bakery,pigeon_coop,office,gym}.png` (placeholder Town buildings, 34x34: the Suburbia house with its roof ramp swapped; replaced as the PixelLab buildings are approved) | `tools/art/town_placeholders.py` (never overwrites an existing file); no credits |
+| 2026-10-15 | `assets/town/{bakery,pigeon_coop,office,gym}.png` (placeholder Town buildings, 34x34: the Suburbia house with its roof ramp swapped; all four replaced by the PixelLab buildings on 2026-10-15; `--force` would overwrite them) | `tools/art/town_placeholders.py` (never overwrites an existing file); no credits |
 | 2026-10-15 | `assets/props/{bread_stall,pigeon_loft,coffee_machine,pullup_bar}.png` (the Town's in-run objects, 13-16 px) | Hand-pixelled in `tools/art/town_objects.py` (BRIEF "PixelLab rules": 16 px or less by hand); no credits |
 | 2026-10-15 | `assets/audio/music/{menu,gameplay,boss,game_over,victory}.ogg` (seamless loops 40 / 51 / 47 / 25 / 23 s, -16 LUFS) | Audio as Code 0.4.0, `tools/audio/music/*.py`; composed by Claude Code; owner approved the gameplay test loop; no credits |
 

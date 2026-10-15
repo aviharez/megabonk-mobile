@@ -899,7 +899,7 @@ Prompt: the Town tab on the Suburbia map with Bakery, Pigeon Coop, Office and Gy
 - [x] Done check (2026-10-15, Godot 4.7.2): 3349 checks, 0 failed (before the Bakery art); FLOW OK; 187 assets pass. Stress (300+ enemies, full build, Final Swarm, low HP, 540x1014): vsync 75.0 fps, 1% low 66.4, ~306 on screen, logic 3.69 ms; uncapped 270.3 fps (phase 12: 302.5 / 267.8). Not alternated with the phase 12 commit this time
 - [x] PixelLab test building: Bakery (`create_map_object` style-matched to its empty lot, 1 generation, object 93d073ac). Cut to 30x35, snapped to the 31 world colours (the three near-cream wall shades forced to PAPER, the house's wall colour), raw kept in `docs/pixellab/`; passes check_assets; ruin overlay checked on it
 - [x] Owner OK on the Bakery art (2026-10-15)
-- [ ] Pigeon Coop, Office and Gym the same way (1 generation each, ask before each; empty-lot crops baked at x 89 / 170 / 251, y 600, 64x64); placeholders until then
+- [x] Pigeon Coop, Office and Gym the same way (owner approved all three at once; 1 generation each, 4 used in total). Snapped with `tools/art/pixellab_object.py` (crop, binary alpha, world colours only, `--force` for split shades); raws in `docs/pixellab/`. 187 assets pass, 3354 checks, 0 failed, FLOW OK
 - [x] 3353 checks, 0 failed with the Bakery art in; FLOW OK
 - [x] Owner (2026-10-15): the Upgrade button was cramped and sat on the window's bottom frame. Now 86 px wide with 7 px clear each side (text shrinks only if a price ever needs it), window 130 px tall so the button clears the frame; a ruined building's challenge wraps to two lines instead of being cut off
 - [ ] On the phone: Town tab drag and tap, Patrol after a real night away, the four objects in a run
