@@ -14,7 +14,7 @@ const PATROL_H := 32
 const STRIP_MIN := 92
 const STRIP_MAX := 150
 ## The building window, its title plate hanging over its top edge.
-const WIN_H := 124
+const WIN_H := 130
 const PLATE_OVER := 11
 
 var selected := ""
@@ -252,13 +252,13 @@ func _window() -> void:
 		var shown := maxi(1, lvl)
 		var text := "In runs: " + Town.effect_text(b, shown)
 		_wrap(win, text, Rect2(well.position + Vector2(5, 3), well.size - Vector2(10, 4)))
-		_status(win, b, st, lvl, Rect2(8, y0 + 87, W - 16 - 70, 22)))
+		_status(win, b, st, lvl, Rect2(8, y0 + 88, W - 16 - 90, 22)))
 	var title := HeaderTitle.new(String(b.title))
 	title.name = "Title"
 	title.position = Vector2(20, 0)
 	title.size = Vector2(W - 40, HeaderTitle.H + 2)
 	win.add_child(title)
-	_action(win, b, st, lvl, Rect2(W - 8 - 66, y0 + 86, 66, 21 + PixelButton.SHADOW))
+	_action(win, b, st, lvl, Rect2(W - 8 - 86, y0 + 86, 86, 22 + PixelButton.SHADOW))
 
 
 ## Two lines of BODY in `r` (word wrapped by hand: Fonts.draw draws one line).
@@ -300,8 +300,17 @@ func _status(ci: CanvasItem, b: Dictionary, st: String, lvl: int, r: Rect2) -> v
 		"ruined":
 			var ch := Town.challenge(db, b)
 			var prog := Meta.progress(db, save.data, ch)
-			Fonts.draw(ci, String(ch.get("desc", "")), Vector2(r.position.x, Fonts.cap_y("SMALL", r.position.y, 8)), "SMALL", -1, r.size.x)
-			var bar := Rect2(r.position.x, r.position.y + 10, r.size.x - 2, 10)
+			# The challenge on up to two small lines, its bar under them.
+			var lines := [""]
+			for word in String(ch.get("desc", "")).split(" "):
+				var cand: String = (lines.back() + " " + word).strip_edges()
+				if Fonts.width(cand, "SMALL") > r.size.x and lines.back() != "":
+					lines.append(word)
+				else:
+					lines[lines.size() - 1] = cand
+			for i in mini(lines.size(), 2):
+				Fonts.draw(ci, lines[i], Vector2(r.position.x, Fonts.cap_y("SMALL", r.position.y - 2 + i * 7, 7)), "SMALL")
+			var bar := Rect2(r.position.x, r.position.y + 13, r.size.x - 2, 9)
 			var txt := "Needs " + String(Meta.content(db, ch.requires).get("name", "")) if prog.blocked else Meta.progress_text(ch, prog)
 			UiArt.bar2(ci, bar, float(prog.frac), "lamp")
 			Fonts.draw(ci, txt, Vector2(bar.position.x, Fonts.cap_y("BAR_NUM", bar.position.y, bar.size.y)), "BAR_NUM", -1,
@@ -376,17 +385,23 @@ class PriceButton extends KitButton:
 		var r := face_rect()
 		var coin := UiArt.texture("hud_coin")
 		var num := str(price)
-		var ww := ceilf(Fonts.width(word, "BUTTON")) + 2
-		var nw := ceilf(Fonts.width(num, "BUTTON")) + 2
 		var cw := float(coin.get_width()) if coin != null else 0.0
-		var total := ww + 3 + cw + 2 + nw
+		# Word, a gap, the coin, the price; 7 px clear of each side of the face.
+		var fs: int = Fonts.STYLES.BUTTON[1]
+		var total := 0.0
+		while true:
+			total = ceilf(Fonts.width(word, "BUTTON", fs)) + 5 + cw + 2 + ceilf(Fonts.width(num, "BUTTON", fs))
+			if total <= r.size.x - 14 or fs <= 7:
+				break
+			fs -= 1
 		var x := floorf((r.size.x - total) / 2.0)
 		var face_h := r.size.y - 3
 		var col := Palette.MUTED if dim else -1
-		Fonts.draw(self, word, Vector2(x, Fonts.cap_y("BUTTON", r.position.y, face_h)), "BUTTON", col)
-		x += ww + 3
+		Fonts.draw(self, word, Vector2(x, Fonts.cap_y("BUTTON", r.position.y, face_h, fs)), "BUTTON", col, -1,
+				HORIZONTAL_ALIGNMENT_LEFT, fs)
+		x += ceilf(Fonts.width(word, "BUTTON", fs)) + 5
 		if coin != null:
 			draw_texture(coin, Vector2(x, r.position.y + floorf((face_h - coin.get_height()) / 2.0)))
 		x += cw + 2
-		Fonts.draw(self, num, Vector2(x, Fonts.cap_y("BUTTON", r.position.y, face_h)), "BUTTON",
-				Palette.SALMON if poor else col)
+		Fonts.draw(self, num, Vector2(x, Fonts.cap_y("BUTTON", r.position.y, face_h, fs)), "BUTTON",
+				Palette.SALMON if poor else col, -1, HORIZONTAL_ALIGNMENT_LEFT, fs)

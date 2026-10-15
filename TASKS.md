@@ -862,7 +862,7 @@ Owner: no budget for licensed music and free tracks don't fit; the AaC gameplay 
 - [x] `tools/audio/README.md`; BRIEF audio section and ASSET_LOG updated
 - [x] Done check (2026-10-15, Godot 4.7.2 headless): 3215 checks pass, FLOW OK
 - [x] Owner listen-through on the phone: SFX volumes by ear in a busy run (levels were matched by numbers only), loop points, music level against SFX (`music_db` -9 unchanged) (owner tested on the phone, 2026-10-15)
-- [ ] Owner check: does victory also fit "Survived!" (Final Swarm) or only the portal escape?
+- [x] Owner check: does victory also fit "Survived!" (Final Swarm) or only the portal escape? Owner (2026-10-15): also Survived. It already did (a run that reached the Final Swarm counts as won); now pinned by a test in `test_map_flow`
 
 - [x] Owner (2026-10-15): no charge sound heard on a shrine. The remade blip was an 80 ms bell, too close to the gem pickup to stand out. Redrawn as a 0.13 s buzzy synth rung that bends up a little; "charge" db -11 -> -8, max 1 -> 2 (a blip played at 1x pitch now lasts 0.13 s against the 0.2 s step of a 2 s charge, so two can overlap at the end)
 
@@ -900,6 +900,7 @@ Prompt: the Town tab on the Suburbia map with Bakery, Pigeon Coop, Office and Gy
 - [x] PixelLab test building: Bakery (`create_map_object` style-matched to its empty lot, 1 generation, object 93d073ac). Cut to 30x35, snapped to the 31 world colours (the three near-cream wall shades forced to PAPER, the house's wall colour), raw kept in `docs/pixellab/`; passes check_assets; ruin overlay checked on it
 - [ ] Owner OK on the Bakery, then Pigeon Coop, Office and Gym the same way (1 generation each, ask before each); placeholders until then
 - [x] 3353 checks, 0 failed with the Bakery art in; FLOW OK
+- [x] Owner (2026-10-15): the Upgrade button was cramped and sat on the window's bottom frame. Now 86 px wide with 7 px clear each side (text shrinks only if a price ever needs it), window 130 px tall so the button clears the frame; a ruined building's challenge wraps to two lines instead of being cut off
 - [ ] On the phone: Town tab drag and tap, Patrol after a real night away, the four objects in a run
 
 ### Found during phase 13

@@ -620,6 +620,16 @@ func test_result_screen_music(t) -> void:
 	won._reveal_over()
 	t.check(won.juice.audio.music_id == "victory", "an escape plays the victory music (%s)" % won.juice.audio.music_id)
 	_done(t, won)
+	# Owner (2026-10-15): "Survived!" (down in the Final Swarm) gets the victory music too.
+	var held := _start(t, {"start_at": float(held_len()) + 30.0})
+	held._end("died")
+	held._reveal_over()
+	t.check(held.final_swarm() and held.juice.audio.music_id == "victory", "Survived! plays the victory music (%s)" % held.juice.audio.music_id)
+	_done(t, held)
+
+
+func held_len() -> int:
+	return int(GameData.shared().get_entry("rules", "run").get("run_length_sec", 480))
 
 
 func test_shop_purchase_rechecks_the_legendary_limit(t) -> void:
