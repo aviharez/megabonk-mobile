@@ -78,6 +78,8 @@ SpriteCook credits (Starter plan, 800 per month). Ask before every generation. N
 | 2026-10-05 | ~~`assets/creatures/chomper.png`~~ (removed 2026-10-13, replaced by the SpriteCook critters in `assets/enemies/`) (Chomper walk, 4 frames 28x20) | procedural-pixel-creatures, quadruped/beast seed 5, palette-snapped; owner-approved |
 
 | 2026-10-09 | `assets/audio/sfx/*.wav` (48 sound effects, 22050 Hz mono) | sfxr-style generator `tools/audio/sfxr.py`, recipes in `tools/audio/sfx.json`; no credits |
-| 2026-10-09 | `assets/audio/music/{menu,gameplay,boss}.ogg` (placeholder chiptune loops, 37 / 42 / 35 s) | `tools/audio/chiptune.py` (numpy + ffmpeg libvorbis); to be replaced by licensed music with the same file names |
+| 2026-10-09 | ~~`assets/audio/music/{menu,gameplay,boss}.ogg` (placeholder chiptune loops, 37 / 42 / 35 s)~~ (replaced 2026-10-15) | `tools/audio/chiptune.py` (numpy + ffmpeg libvorbis) |
+| 2026-10-15 | `assets/audio/sfx/*.wav` (all 49 sounds remade, 44.1 kHz mono; replaces the sfxr set) | Audio as Code 0.4.0 (MIT, synthesized instruments, no samples) + numpy noise layers, `tools/audio/aac_sfx.py`; no credits |
+| 2026-10-15 | `assets/audio/music/{menu,gameplay,boss,game_over,victory}.ogg` (seamless loops 40 / 51 / 47 / 25 / 23 s, -16 LUFS) | Audio as Code 0.4.0, `tools/audio/music/*.py`; composed by Claude Code; owner approved the gameplay test loop; no credits |
 
 2026-10-09: both heroes re-shrunk to ~22px tall (scale 0.67) from the downloaded SpriteCook sheets on owner request; no new generations.

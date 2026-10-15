@@ -443,7 +443,7 @@ const AUDIO_EVENTS := ["hit", "crit", "kill", "hurt", "dodge", "gem", "level_up"
 	"chest", "beam", "gold", "pot", "shrine", "charge", "key", "cage", "merchant", "buy", "portal", "boom", "zap",
 	"boss_roar", "boss_dig", "boss_slam", "rocks", "boss_down", "elite", "alarm", "final", "bills",
 	"death", "revive", "heartbeat", "escape", "pop"]
-const MUSIC_TRACKS := ["menu", "gameplay", "boss"]
+const MUSIC_TRACKS := ["menu", "gameplay", "boss", "game_over", "victory"]
 const HIT_FX_KINDS := ["puff", "star", "sparks"]
 
 

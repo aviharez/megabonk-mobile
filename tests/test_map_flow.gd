@@ -605,6 +605,23 @@ func test_end_guards_each_hold_on_their_own(t) -> void:
 	_done(t, run)
 
 
+func test_result_screen_music(t) -> void:
+	var lost := _start(t)
+	if lost.juice.audio == null or not lost.juice.audio.has_method("play_music"):
+		t.check(true, "no audio manager in this test run: result music not checked")
+		_done(t, lost)
+		return
+	lost._end("died")
+	lost._reveal_over()
+	t.check(lost.juice.audio.music_id == "game_over", "a lost run plays the game over music (%s)" % lost.juice.audio.music_id)
+	_done(t, lost)
+	var won := _start(t)
+	won._end("portal")
+	won._reveal_over()
+	t.check(won.juice.audio.music_id == "victory", "an escape plays the victory music (%s)" % won.juice.audio.music_id)
+	_done(t, won)
+
+
 func test_shop_purchase_rechecks_the_legendary_limit(t) -> void:
 	var run := _start(t, {"all_content": true})
 	run.give_item("microwave_meltdown")

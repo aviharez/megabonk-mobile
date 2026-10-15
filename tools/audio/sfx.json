@@ -1,5 +1,5 @@
 {
-	"_doc": "Sound recipes for tools/audio/sfxr.py. preset (optional) is rolled with seed, then set overrides parameters. wave: 0 square, 1 saw, 2 sine, 3 noise. Ids must match data/rules/audio.json.",
+	"_doc": "The list of sound ids (with what each is for). The shipped WAVs are made by tools/audio/aac_sfx.py (one function per id). The preset / set fields are the old sfxr recipes for tools/audio/sfxr.py, kept so the chiptune versions can still be rebuilt. preset (optional) is rolled with seed, then set overrides parameters. wave: 0 square, 1 saw, 2 sine, 3 noise. Ids must match data/rules/audio.json.",
 	"sounds": [
 		{"id": "hit", "note": "weapon hits an enemy", "seed": 1, "set": {"wave": 0, "duty": 0.35, "base_freq": 0.42, "freq_ramp": -0.5, "env_sustain": 0.02, "env_decay": 0.18, "hpf_freq": 0.12}},
 		{"id": "crit", "note": "critical hit", "seed": 2, "set": {"wave": 0, "duty": 0.2, "base_freq": 0.68, "freq_ramp": -0.45, "env_sustain": 0.03, "env_punch": 0.5, "env_decay": 0.25, "hpf_freq": 0.1}},

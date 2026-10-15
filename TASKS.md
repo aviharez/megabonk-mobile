@@ -850,3 +850,22 @@ Tuned quest coins by source: milestones 359, challenges 240, chests 110, dailies
 - The weekly event rail (top right on Home) and the Town level badge stay for later phases
 - A player who changes the device clock gets a new draw (no server time); not guarded
 - `ERROR: 2 resources still in use at exit` after the flow check also happens on the phase 11 commit (not new)
+
+## Audio remake: Audio as Code (owner request 2026-10-15)
+
+Owner: no budget for licensed music and free tracks don't fit; the AaC gameplay test loop and SFX samples were approved. Make all the audio in code: menu, in-run, boss and game over music, and every SFX.
+
+- [x] `tools/audio/aac_sfx.py`: all 49 sounds remade (Audio as Code instruments + numpy noise layers with a per-sample sweeping filter); same ids and file names; spectrograms checked (fixed a click in heartbeat and zipper noise in the noise filter)
+- [x] Per-sound `db` in `rules/audio.json` re-levelled so each new sound sits where the old one did (short-term loudness above 150 Hz, 75% of the difference, kept between -24 and -1 dB)
+- [x] Music in `tools/audio/music/`: menu (F major, 96 bpm, 40 s), gameplay (the approved loop extended to 32 bars, 51 s), boss (164 bpm, 47 s), game_over (music box, 25 s), victory (brass march, 23 s). Seamless loops (middle of three copies), -16 LUFS, limiter at -1 dBFS
+- [x] Result music: the run's music fades under the death sting, then game_over (loss) or victory (portal / Final Swarm survived) when the result screen shows; `MUSIC_TRACKS` + `rules/audio.json`; test in `test_map_flow`
+- [x] `tools/audio/README.md`; BRIEF audio section and ASSET_LOG updated
+- [x] Done check (2026-10-15, Godot 4.7.2 headless): 3215 checks pass, FLOW OK
+- [ ] Owner listen-through on the phone: SFX volumes by ear in a busy run (levels were matched by numbers only), loop points, music level against SFX (`music_db` -9 unchanged)
+- [ ] Owner check: does victory also fit "Survived!" (Final Swarm) or only the portal escape?
+
+### Found during the audio remake
+
+- Audio as Code renders are slow (~8 min for a 51 s track x3 on this machine); renders are cached by score hash in the temp folder
+- The output licence of Audio as Code isn't spelled out on its site (the code is MIT; every sound is synthesized, no samples ship with it). Worth asking the author before release to be sure
+- SFX files are 44.1 kHz now (were 22.05 kHz): the folder grew from ~0.8 MB to ~2.5 MB

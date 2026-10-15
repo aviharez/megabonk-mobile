@@ -309,8 +309,8 @@ Estimated MVP usage is about 600 credits, or 900–1,200 including regenerations
 
 ### Audio
 
-- **SFX:** made by Claude Code with an sfxr-style generator script, rendered to WAV. Pitch is randomized slightly on each play, and simultaneous voices are capped.
-- **Music:** placeholder chiptune made by Claude Code, rendered to OGG. Three tracks: menu, gameplay, boss/Final Swarm. To be replaced later with commercially licensed music.
+- **SFX:** made by Claude Code in code with Audio as Code (MIT, synthesized instruments, no samples) plus numpy noise layers, rendered to WAV by `tools/audio/aac_sfx.py` (owner change 2026-10-15; replaced the sfxr square waves). Pitch is randomized slightly on each play, and simultaneous voices are capped.
+- **Music:** composed by Claude Code with Audio as Code, rendered to seamless OGG loops by `tools/audio/music/*.py` (owner change 2026-10-15: no licensed music budget; replaces the placeholder chiptune). Five tracks: menu, gameplay, boss/Final Swarm, game over (result after a loss), victory (result after a win).
 - All audio loads through one audio manager with the file list in one place. Swapping a track means overwriting the file with the same name.
 
 ### VFX
@@ -501,7 +501,7 @@ Also flag anything that departs from docs/BRIEF.md.
 - [ ] Final game name (check availability on Play Store and App Store, add a keyword subtitle).
 - [ ] Pick the final palette from Lospec.
 - [ ] Subscribe to SpriteCook Starter during phase 6, then cancel.
-- [ ] Replace placeholder music with commercially licensed music before release.
+- [x] ~~Replace placeholder music with commercially licensed music before release.~~ Music is now composed in code (Audio as Code, 2026-10-15).
 - [ ] Register Google Play and Apple developer accounts, and line up at least 12 testers for closed testing.
 
 # Update 1: UI v2 and Retention

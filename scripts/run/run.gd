@@ -1776,6 +1776,8 @@ func _end(reason: String) -> void:
 	end_reason = reason
 	var reached_final := final_swarm()
 	won = reason == "portal" or reached_final
+	if not won:
+		_music("")  # the run's music fades under the death sting; the result screen brings its own
 	gems.pull_all()
 	if reached_final:
 		run_stats["final_swarm_seconds"] = director.final_time
@@ -1847,6 +1849,7 @@ func _reveal_over() -> void:
 		return
 	_over_bg.show()
 	_over_panel.show()
+	_music("victory" if won else "game_over")
 	UiFx.slide_in(_over_panel, Vector2(0, 60), 0.3)
 	var earned := int(result.coins) * (2 if result.get("coins_doubled", false) else 1)
 	_over_coins.count_to(earned, 0, 0.9)
