@@ -627,13 +627,22 @@ func test_result_screen_music(t) -> void:
 	held._reveal_over()
 	t.check(held.final_swarm() and held.juice.audio.music_id == "victory", "Survived! plays the victory music (%s)" % held.juice.audio.music_id)
 	_done(t, held)
-	# Owner (2026-10-15): Overdue! and Gave Up get the game over music, even in the Final Swarm.
+	# Owner (2026-10-15): in the Final Swarm, Overdue! keeps the victory music
+	# and the idle pose; Gave Up gets the game over music and the hit pose.
 	for reason in ["bills", "gave_up"]:
 		var late := _start(t)
 		late.director.final_started = true
 		late._end(reason)
 		late._reveal_over()
-		t.check(late.won and late.juice.audio.music_id == "game_over", "%s in the Final Swarm plays the game over music (%s)" % [reason, late.juice.audio.music_id])
+		var want := "victory" if reason == "bills" else "game_over"
+		t.check(late.won and late.juice.audio.music_id == want, "%s in the Final Swarm plays the %s music (%s)" % [reason, want, late.juice.audio.music_id])
+		var sheets: Dictionary = late.char_def.get("sheets", {})
+		var pose := "idle" if reason == "bills" else "hit"
+		var hero: Node = late._over_hero.get_child(late._over_hero.get_child_count() - 1) if late._over_hero.get_child_count() > 0 else null
+		if hero == null or not sheets.has("hit"):
+			t.check(true, "no hero sheets in this test run: pose not checked")
+		else:
+			t.check(hero.sheet.texture.resource_path == sheets[pose], "%s in the Final Swarm shows the %s pose (%s)" % [reason, pose, hero.sheet.texture.resource_path])
 		_done(t, late)
 
 

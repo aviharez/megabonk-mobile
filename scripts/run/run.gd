@@ -1829,7 +1829,8 @@ func _end(reason: String) -> void:
 		"bills": "The bills caught up with you.",
 		"gave_up": "Even heroes need a nap.",
 	}.get(reason, "Even heroes need a nap." if not reached_final else "You held on to the very end!")
-	_show_over_hero(won)
+	# Gave Up shows the hit pose even after the Final Swarm (owner, 2026-10-15).
+	_show_over_hero(won and reason != "gave_up")
 	_over_tiles.queue_redraw()
 	_sync_over_coins(false)
 	_double_btn.visible = _can_double()
@@ -1851,9 +1852,10 @@ func _reveal_over() -> void:
 		return
 	_over_bg.show()
 	_over_panel.show()
-	# Overdue! and Gave Up get the game over music even after reaching the
-	# Final Swarm (owner, 2026-10-15); won still counts them for rewards.
-	_music("victory" if won and end_reason not in ["bills", "gave_up"] else "game_over")
+	# Gave Up gets the game over music even after reaching the Final Swarm;
+	# Overdue! keeps the victory music (owner, 2026-10-15). won still counts
+	# Gave Up for rewards.
+	_music("victory" if won and end_reason != "gave_up" else "game_over")
 	UiFx.slide_in(_over_panel, Vector2(0, 60), 0.3)
 	var earned := int(result.coins) * (2 if result.get("coins_doubled", false) else 1)
 	_over_coins.count_to(earned, 0, 0.9)
