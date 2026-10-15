@@ -1851,7 +1851,9 @@ func _reveal_over() -> void:
 		return
 	_over_bg.show()
 	_over_panel.show()
-	_music("victory" if won else "game_over")
+	# Overdue! and Gave Up get the game over music even after reaching the
+	# Final Swarm (owner, 2026-10-15); won still counts them for rewards.
+	_music("victory" if won and end_reason not in ["bills", "gave_up"] else "game_over")
 	UiFx.slide_in(_over_panel, Vector2(0, 60), 0.3)
 	var earned := int(result.coins) * (2 if result.get("coins_doubled", false) else 1)
 	_over_coins.count_to(earned, 0, 0.9)

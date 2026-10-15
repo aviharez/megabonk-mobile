@@ -79,9 +79,10 @@ Counted in PixelLab generations (1 for pixflux, standard map objects and standar
 | 2026-10-15 | Town test building: Bakery (`assets/town/bakery.png`), owner-approved generation | `create_map_object`, style match on a 64x64 crop of the Bakery's empty lot (`MapLayout.bake_view`), oval 60%, high top-down, single colour outline, medium shading, medium detail | 1 | 1 | object 93d073ac-a424-4c12-ac16-4b38e97c7933; trial plan, 40 generations before |
 | 2026-10-15 | Town building: Pigeon Coop (`assets/town/pigeon_coop.png`, 31x36), owner-approved generation | `create_map_object`, style match on a 64x64 crop of its empty lot, oval 60%, high top-down, single colour outline, medium shading, medium detail | 1 | 1 | object 2ddc8c9b-6c36-4016-b0f7-4e763cfbda72; round dovecote; roof forced onto MIST / GRAY / SHADE (slate) instead of BLUE / OCEAN / PLUM; raw in `docs/pixellab/` |
 | 2026-10-15 | Town building: Office (`assets/town/office.png`, 29x35), owner-approved generation | `create_map_object`, style match on a 64x64 crop of its empty lot, oval 60%, high top-down, single colour outline, medium shading, medium detail | 1 | 1 | object 0cdaa97d-304e-40d8-9c5d-6b03dcaf66d5; window-edge grey-greens forced off TEAL; raw in `docs/pixellab/` |
-| 2026-10-15 | Town building: Gym (`assets/town/gym.png`, 34x32), owner-approved generation | `create_map_object`, style match on a 64x64 crop of its empty lot, oval 60%, high top-down, single colour outline, medium shading, medium detail | 1 | 1 | object 4ecf5887-7260-49d1-a9bd-0daeca254bd6; light roof shades forced to BLOOD (ribs kept), cream walls to BUTTER; raw in `docs/pixellab/` |
+| 2026-10-15 | Town building: Gym (`assets/town/gym.png`, 34x32), owner-approved generation | `create_map_object`, style match on a 64x64 crop of its empty lot, oval 60%, high top-down, single colour outline, medium shading, medium detail | 1 | 1 | object 4ecf5887-7260-49d1-a9bd-0daeca254bd6; light roof shades forced to BLOOD (ribs kept), cream walls to BUTTER; raw in `docs/pixellab/`. Replaced the same day (no dumbbells in the window) |
+| 2026-10-15 | Town building: Gym again (`assets/town/gym.png`, 34x35), owner asked for it (the first had no dumbbells) | Same as above; prompt asks for two bright windows each showing a large dark dumbbell | 1 | 1 | object 97a7a0f0-3b31-46c0-8b4a-1cccac29873e; the weights read as kettlebells; snapped as is, tan walls to DOUGH; raw in `docs/pixellab/` |
 
-**Running total:** 4
+**Running total:** 5
 
 ## Non-SpriteCook placeholders
 

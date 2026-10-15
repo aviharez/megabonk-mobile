@@ -907,6 +907,8 @@ Prompt: the Town tab on the Suburbia map with Bakery, Pigeon Coop, Office and Gy
 - [x] On the phone: Town tab drag and tap, building names, Rebuild / Upgrade (owner, 2026-10-15)
 - [x] On the phone: Patrol pays after time away, the four objects work in a run (owner, 2026-10-15)
 - [x] Phase done (2026-10-15): stress with all four PixelLab buildings in, 75.0 fps (vsync 74.9 Hz), 1% low 66.8, ~303 enemies on screen, logic 3.46 ms, 0 missed vsync frames; 3356 checks, 0 failed; FLOW OK
+- [x] Owner (2026-10-15): Overdue! and Gave Up play the game over music even in the Final Swarm (they still count as won for rewards); pinned in test_map_flow
+- [x] Owner (2026-10-15): Gym regenerated with weights in the windows (1 generation, 5 in total); 187 assets pass
 
 ### Found during phase 13
 

@@ -627,6 +627,14 @@ func test_result_screen_music(t) -> void:
 	held._reveal_over()
 	t.check(held.final_swarm() and held.juice.audio.music_id == "victory", "Survived! plays the victory music (%s)" % held.juice.audio.music_id)
 	_done(t, held)
+	# Owner (2026-10-15): Overdue! and Gave Up get the game over music, even in the Final Swarm.
+	for reason in ["bills", "gave_up"]:
+		var late := _start(t)
+		late.director.final_started = true
+		late._end(reason)
+		late._reveal_over()
+		t.check(late.won and late.juice.audio.music_id == "game_over", "%s in the Final Swarm plays the game over music (%s)" % [reason, late.juice.audio.music_id])
+		_done(t, late)
 
 
 
