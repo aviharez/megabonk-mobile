@@ -75,7 +75,7 @@ Bot sims (8-minute runs, seeds 1-3): 2 reached the timer, 1 died at 4:05; one ru
 - [x] Slot rules (4 weapons, 4 tomes, level 5 max) and rarity rules (chest floors, luck, stacking, one legendary per run) tested
 - [x] Run project + tests: 412 checks pass, flow check OK, bot sim with chests OK
 - [x] 300-enemy fps with a full build (`bot_run.tscn -- --mode=stress --build=full`)
-- [ ] Full-build stress test on the Android phone (needs the phone; see Found)
+- [x] Full-build stress test on the Android phone (needs the phone; see Found) (owner ran it on the phone, 2026-10-15; the fps numbers aren't written down here yet)
 
 ### Phase 2 results (2026-10-05, same desktop as phase 1, windowed, 20 s, ~295-300 enemies on screen)
 
@@ -215,7 +215,7 @@ Plugins (owner approved 2026-10-08): Poing AdMob 5.1.0 and GodotGooglePlayBillin
   - a failed AdMob banner load left a dead AdView that `banner_load()` reused, so the banner never came back that session. `admob_backend.gd` now destroys it; `Ads` resets the banner backoff on a load. Tests drive the real `admob_backend.gd` against a stand-in AdView plugin (failed before the fix)
   - the fake ad and store backends were picked whenever the native plugin was missing, so a release build without it (any iOS build) sold Remove Ads for free. Fakes are now debug-build only; release builds without the plugin get inert backends (no ads, STORE OFFLINE). Tested
 - [x] (owner, 2026-10-09) No revive offer when Overdue Bills end the run; brief table updated
-- [ ] Test ads on the phone: rewarded (all placements), interstitial, banner; pause/resume when an ad fails (airplane mode) and when closed early (needs the phone)
+- [x] Test ads on the phone: rewarded (all placements), interstitial, banner; pause/resume when an ad fails (airplane mode) and when closed early (needs the phone) (owner tested on the phone, 2026-10-15)
 - [x] Consent (UMP / GDPR) moved to phase 9 (owner, 2026-10-09)
 - [x] iOS store (StoreKit plugin) moved to phase 9 (owner, 2026-10-09); until then iOS release builds show STORE OFFLINE
 - [ ] Remove Ads on a device (needs a Play Console product + license tester; see Blocked)
@@ -235,65 +235,65 @@ Same as phase 4 (330.8 / 242.0 / 2.15 ms uncapped): the Ads and Store autoloads 
 ## Found during phase 4
 
 - [x] (owner, 2026-10-08: `"requires": "golden_toilet"` added, brief table updated) Lottery Tips ("Epic from a paid chest", Mid) can't be done before an Epic item is owned: all three Epics (Golden Toilet, Clone Machine, Angry Neighbor) are unlock content, and chests only roll what's in the pool. The earliest route is Golden Toilet (Mid). The brief lists no prerequisite; options: add `"requires": "golden_toilet"` so the screens say so, make one Epic start content, or accept the hidden order. Owner decision.
-- [ ] "10 elites in one run" (Mid): elites come every 60-90 s, so ~6 by 8:00; it needs Final Swarm time. Best bot run had 8 in 11 min. Watch in phase 8.
+- "10 elites in one run" (Mid): elites come every 60-90 s, so ~6 by 8:00; it needs Final Swarm time. Best bot run had 8 in 11 min. Watch in phase 8.
 - [x] ~~Coin income swings hugely with the Final Swarm multiplier~~ Tuned 2026-10-10 (phase 8 follow-up 5): 35-45 per early death, 137-225 in the Final Swarm.
-- [ ] "Finish 3 runs" counts runs that end by death, bills or the portal, not GIVE UP (so it can't be farmed by quitting at 0:01).
-- [ ] "Collect 3,000 XP gems" counts dropped gems picked up; a merged gem counts as all the gems in it. Gems left on the ground at the end don't count. One bot run collects 90-6,200.
-- [ ] A run only reaches the save when it ends. Closing the app mid-run loses that run's progress (the save on disk stays intact). Committing on app pause would double-count runs that are resumed.
-- [ ] Out of charges, Reroll/Skip/Banish show an AD tag but stay disabled (`Run.ad_ready`). Phase 5: rewarded ad per action per run, and "try Skip/Banish once per run through an ad" without buying them.
-- [ ] Banish works on new weapon/tome cards only (upgrades and SNACK can't be banished).
-- [ ] "After 12 unlocks" for the Toggler is read as 12 bought unlocks.
-- [ ] Content icons on the unlocks screen are code-drawn placeholders (silhouette = INK glyph on SHADE); real icons in phase 6. Prices show as "C 50" (the pixel font has no coin glyph).
-- [ ] The pigeon cage still appears (and can be opened) after Turbo Pigeon is unlocked; it just records the stat again.
-- [ ] Shortened texts to fit the pixel font on one line: Sir Loaf's passive is now "LESS DAMAGE TAKEN OVER TIME", challenge texts are 26 characters max (`tests/test_meta.gd` checks).
-- [ ] Character numbers are first guesses: Turbo Pigeon 85 HP / speed 64 (+24% damage at base speed), Gary 100 HP / damage 0.9 before Overtime.
-- [ ] A save that already had Copy Machine Manual or Static Sweater progress from after its prerequisite was owned starts those two (and Lottery Tips) from 0 after the review fix: the old shared totals can't tell before from after. Only test saves exist so far.
-- [ ] Phone stress not re-run for phase 4 (phone not connected); desktop shows no change in the hot loop.
+- "Finish 3 runs" counts runs that end by death, bills or the portal, not GIVE UP (so it can't be farmed by quitting at 0:01).
+- "Collect 3,000 XP gems" counts dropped gems picked up; a merged gem counts as all the gems in it. Gems left on the ground at the end don't count. One bot run collects 90-6,200.
+- A run only reaches the save when it ends. Closing the app mid-run loses that run's progress (the save on disk stays intact). Committing on app pause would double-count runs that are resumed.
+- Out of charges, Reroll/Skip/Banish show an AD tag but stay disabled (`Run.ad_ready`). Phase 5: rewarded ad per action per run, and "try Skip/Banish once per run through an ad" without buying them.
+- Banish works on new weapon/tome cards only (upgrades and SNACK can't be banished).
+- "After 12 unlocks" for the Toggler is read as 12 bought unlocks.
+- Content icons on the unlocks screen are code-drawn placeholders (silhouette = INK glyph on SHADE); real icons in phase 6. Prices show as "C 50" (the pixel font has no coin glyph).
+- The pigeon cage still appears (and can be opened) after Turbo Pigeon is unlocked; it just records the stat again.
+- Shortened texts to fit the pixel font on one line: Sir Loaf's passive is now "LESS DAMAGE TAKEN OVER TIME", challenge texts are 26 characters max (`tests/test_meta.gd` checks).
+- Character numbers are first guesses: Turbo Pigeon 85 HP / speed 64 (+24% damage at base speed), Gary 100 HP / damage 0.9 before Overtime.
+- A save that already had Copy Machine Manual or Static Sweater progress from after its prerequisite was owned starts those two (and Lottery Tips) from 0 after the review fix: the old shared totals can't tell before from after. Only test saves exist so far.
+- Phone stress not re-run for phase 4 (phone not connected); desktop shows no change in the hot loop. Since done on the phone by the owner (2026-10-15).
 
 ## Found during phase 3
 
-- [ ] Map opened up (2026-10-06, owner request): house gaps widened to 30-32 px (were 14-28; houses narrowed, walkways and mailboxes re-centered), the 6 driveway cars removed, sheds and backyard pools walk-through, the 11 backyard hedge strips removed (park hedges kept). New test: every open spot the player fits is reachable from the start.
+- Map opened up (2026-10-06, owner request): house gaps widened to 30-32 px (were 14-28; houses narrowed, walkways and mailboxes re-centered), the 6 driveway cars removed, sheds and backyard pools walk-through, the 11 backyard hedge strips removed (park hedges kept). New test: every open spot the player fits is reachable from the start.
   - Found while testing it: walkers blocked sideways by a wall slid the "preferred" way instead of the way they were heading, so many oscillated behind houses forever (and the stall timer never caught them). Fixed: they keep their own direction along the wall; stalls are now measured as net progress per second.
   - Bot survival went down, not up (8 seeds, median 2:49; empty map 9:45): with that fix, enemies get round houses instead of piling up behind them, so more of the horde reaches the player. Deaths are now mostly at map corners/edges (3 of 8) and beside the pond (2 of 8), not between houses; without the pond the median is 4:48. The bot's local dodging handles corners badly, so these numbers are a weak signal. Judge the map from real play; possible next steps: keep the horde from cornering the player at the map edge (spawn side choice), phase 8 tuning.
   - Pond shrunk from 164x122 to 110x76 (owner request), with a tighter ring path and longer connecting paths. Bot median 3:18 (8 seeds: 1:09-11:05), up from 2:49; within the noise.
 
-- [ ] Low-end headroom: game logic takes ~7 ms per frame on the Xiaomi 15T at Final Swarm density with a full build (enemy update is the largest part). A phone 2-3x slower would drop below 60 fps there. Still no low-end device to measure; options if needed: lower the Final Swarm cap, update far-off-screen enemies every other frame, or move hot loops to a GDExtension (asks first).
+- Low-end headroom: game logic takes ~7 ms per frame on the Xiaomi 15T at Final Swarm density with a full build (enemy update is the largest part). A phone 2-3x slower would drop below 60 fps there. Still no low-end device to measure; options if needed: lower the Final Swarm cap, update far-off-screen enemies every other frame, or move hot loops to a GDExtension (asks first).
 
-- [ ] New map vs bot survival (seeded sims are now repeatable; 8 seeds, starter build, median death time): full first redesign 3:15, no solid props 7:18. Clutter cost the most (houses-only variant 6:07). Changed: trees block only their trunk cell, bushes and street furniture are walk-through, backyard side fences removed, long hedges split. That gave 4:33 (worst seed 2:54 instead of 1:14); after the review fixes (walkers no longer pushed into walls, wedged ones recycled) the median is 6:27 (worst 2:02). The rest comes from houses, sheds, pools, the pond and hedges; tune in phase 8 with real play, not only the bot.
+- New map vs bot survival (seeded sims are now repeatable; 8 seeds, starter build, median death time): full first redesign 3:15, no solid props 7:18. Clutter cost the most (houses-only variant 6:07). Changed: trees block only their trunk cell, bushes and street furniture are walk-through, backyard side fences removed, long hedges split. That gave 4:33 (worst seed 2:54 instead of 1:14); after the review fixes (walkers no longer pushed into walls, wedged ones recycled) the median is 6:27 (worst 2:02). The rest comes from houses, sheds, pools, the pond and hedges; tune in phase 8 with real play, not only the bot.
 - [x] Sims are deterministic per seed: enemy wobble and first-shot timers use `EnemySystem.rng`, seeded from the run seed. Bot avoids walking into walls (`_bot_walkable`); `--map=ID` and `death_pos` in the sim result.
-- [ ] `data/maps/suburbia.json` was written by a one-off script (one prop per line); edit the JSON directly from now on.
+- `data/maps/suburbia.json` was written by a one-off script (one prop per line); edit the JSON directly from now on.
 
-- [ ] Creature candidates are bigger than the brief's 16-24 px: Blob 16-20x15-16, Skitter 18-21x15, Chomper 25-28x17-20 (the generator's smallest body is ~10 px long, plus legs). Collision radii are 5/4/6 px (Blob, Skitter, Chomper); the owner approved the sizes. Options if too big: accept, crop legs, or draw them at a smaller scale.
-- [ ] Generated walk loops are short: 4 frames (spider, boar) or 5 (slime) at 12 fps.
-- [ ] Gnats "in huge numbers" share the 300 cap: during a swarm the regular schedule drops to 40% ("regular_mult") so Gnats get the room. Not a conflict with the performance limit, so not raised.
-- [ ] Overdue Bills ignore armor and shield (evasion still works, capped at 60%) and hit for 15% of max HP, +100% per minute. Without that, enough armor or a refilling shield made them harmless and the Final Swarm could last forever.
-- [ ] Taking the portal before 8:00 ends the run early (fewer minutes, fewer coins). The brief only says beating the boss opens it; read as the player's choice.
-- [ ] Dying in the Final Swarm counts as a survived run (no death coin penalty) and gets the Final Swarm coin multiplier; dying before 8:00 keeps the 0.6 penalty. Titles: ESCAPED!, OVERDUE! (bills), SWARMED! (other death after 8:00), TOASTED!, GAVE UP.
-- [ ] Elites at first-guess numbers were too strong at minute 1 (Fast Skitter at 1.7x outran the player and 14x HP stuck to him); now HP x10, damage x1.2, Fast x1.35, Vicious x1.5. Phase 8 tunes.
-- [ ] The starter bot can't beat Mega Mole at minute 3 (it now routes round houses, so it reaches the altar). Phase 8 needs a better fighting bot to check "beats Mega Mole on run 2 or 3".
-- [ ] Map objects that appear under the player (reward chests, the portal) need a fresh step in, so the portal can't end a run by accident.
-- [ ] Charge shrine bonuses, risk shrine and challenge numbers, merchant prices, paid chest price growth (x1.4) and pot gold are first guesses.
-- [ ] The Final Swarm "screen tint shift" (brief VFX table) is phase 7; the HUD shows a banner, a pink overtime timer and the coin multiplier for now.
-- [ ] Stat events recorded for phase 4: pots_broken, shrines_activated, elites_killed, keys_found, pigeon_cage_opened, boss_summoned, boss_defeated (+ boss_defeated_at, boss_defeated_hp_frac, boss_defeated_in_final_swarm), chests_opened, epic_from_paid_chest, items_bought, challenges_won, swarms_started, swarm_survived_no_damage, final_swarm_reached, final_swarm_seconds, damage_taken, max_item_copies. Kills by weapon and per character still come from on_kill.
-- [ ] `tests/run_tests.gd` takes `-- --only=<file prefix>` (fails if it matches nothing) and reports a test file that doesn't compile as a failure instead of hanging.
-- [ ] `SpriteBatch` centers each frame on the enemy position and ignores the sidecar "origin" (the feet). Cosmetic; revisit in phase 6 if sprites look like they float.
-- [ ] Measuring with a shell loop over "$args" in zsh passes all flags as one argument (no word splitting); call bot_run with separate arguments.
+- Creature candidates are bigger than the brief's 16-24 px: Blob 16-20x15-16, Skitter 18-21x15, Chomper 25-28x17-20 (the generator's smallest body is ~10 px long, plus legs). Collision radii are 5/4/6 px (Blob, Skitter, Chomper); the owner approved the sizes. Options if too big: accept, crop legs, or draw them at a smaller scale.
+- Generated walk loops are short: 4 frames (spider, boar) or 5 (slime) at 12 fps.
+- Gnats "in huge numbers" share the 300 cap: during a swarm the regular schedule drops to 40% ("regular_mult") so Gnats get the room. Not a conflict with the performance limit, so not raised.
+- Overdue Bills ignore armor and shield (evasion still works, capped at 60%) and hit for 15% of max HP, +100% per minute. Without that, enough armor or a refilling shield made them harmless and the Final Swarm could last forever.
+- Taking the portal before 8:00 ends the run early (fewer minutes, fewer coins). The brief only says beating the boss opens it; read as the player's choice.
+- Dying in the Final Swarm counts as a survived run (no death coin penalty) and gets the Final Swarm coin multiplier; dying before 8:00 keeps the 0.6 penalty. Titles: ESCAPED!, OVERDUE! (bills), SWARMED! (other death after 8:00), TOASTED!, GAVE UP.
+- Elites at first-guess numbers were too strong at minute 1 (Fast Skitter at 1.7x outran the player and 14x HP stuck to him); now HP x10, damage x1.2, Fast x1.35, Vicious x1.5. Phase 8 tunes.
+- The starter bot can't beat Mega Mole at minute 3 (it now routes round houses, so it reaches the altar). Phase 8 needs a better fighting bot to check "beats Mega Mole on run 2 or 3".
+- Map objects that appear under the player (reward chests, the portal) need a fresh step in, so the portal can't end a run by accident.
+- Charge shrine bonuses, risk shrine and challenge numbers, merchant prices, paid chest price growth (x1.4) and pot gold are first guesses.
+- The Final Swarm "screen tint shift" (brief VFX table) is phase 7; the HUD shows a banner, a pink overtime timer and the coin multiplier for now.
+- Stat events recorded for phase 4: pots_broken, shrines_activated, elites_killed, keys_found, pigeon_cage_opened, boss_summoned, boss_defeated (+ boss_defeated_at, boss_defeated_hp_frac, boss_defeated_in_final_swarm), chests_opened, epic_from_paid_chest, items_bought, challenges_won, swarms_started, swarm_survived_no_damage, final_swarm_reached, final_swarm_seconds, damage_taken, max_item_copies. Kills by weapon and per character still come from on_kill.
+- `tests/run_tests.gd` takes `-- --only=<file prefix>` (fails if it matches nothing) and reports a test file that doesn't compile as a failure instead of hanging.
+- `SpriteBatch` centers each frame on the enemy position and ignores the sidecar "origin" (the feet). Cosmetic; revisit in phase 6 if sprites look like they float.
+- Measuring with a shell loop over "$args" in zsh passes all flags as one argument (no word splitting); call bot_run with separate arguments.
 
 ## Found during phase 2
 
-- [ ] Alarm Clock: "the next attack is a guaranteed crit" is read as the next weapon *hit*, not every hit of the next attack. For the Baguette swing (AoE) the other reading would crit the whole swing. Unused charges don't pile up (capped at one refill).
-- [ ] Fireworks: every other rocket lands on a random enemy on screen, the rest on a random spot. Pure random spots almost never hit at the start of a run. Revert in `rockets.gd` if the brief means pure random.
-- [ ] "Legendaries are unique, one per run" is read as at most one legendary per run in total (`legendary_per_run` in `data/rules/loot.json`). With one legendary in the MVP both readings behave the same.
-- [ ] Copy Machine Manual: +1 projectile per level (+5 at level 5), the strongest tome on paper. Watch in phase 8.
+- Alarm Clock: "the next attack is a guaranteed crit" is read as the next weapon *hit*, not every hit of the next attack. For the Baguette swing (AoE) the other reading would crit the whole swing. Unused charges don't pile up (capped at one refill).
+- Fireworks: every other rocket lands on a random enemy on screen, the rest on a random spot. Pure random spots almost never hit at the start of a run. Revert in `rockets.gd` if the brief means pure random.
+- "Legendaries are unique, one per run" is read as at most one legendary per run in total (`legendary_per_run` in `data/rules/loot.json`). With one legendary in the MVP both readings behave the same.
+- Copy Machine Manual: +1 projectile per level (+5 at level 5), the strongest tome on paper. Watch in phase 8.
 - [x] (phase 3: every damage source goes through `Run.damage_player()`) Whoopee Cushion fires from `on_damaged`, which only contact damage emits so far. Phase 3 enemy shots and Bloater explosions must go through the same damage path (`_contact_damage` -> shared function) or it won't trigger.
 - [x] (phase 4: both added with these ids) Turbo Pigeon and Gary don't exist in `data/characters/` yet; their signature weapons (`sharp_feathers`, `stapler`) name characters `turbo_pigeon` and `gary`. Phase 4 must use these ids.
 - [x] (phase 3) No chest entities yet: `Run.open_chest(kind)` rolls and gives the item; phase 3 chests, elites and the boss call it. `--chests=S` on the sim opens one every S seconds meanwhile.
 - [x] (phase 3) Elites don't exist yet; `EnemySystem.elite` is the flag Golden Toilet and `on_kill` read. Phase 3 sets it.
 - [x] (phase 3: paid chests and the merchant spend it, pots drop it) In-run gold: enemies drop 1 gold at 8% (added directly, no pickup). Paid chests and the merchant spend it in phase 3.
-- [ ] The pixel font has no `$`, `&` or accents: gold shows as "G 12", Piñata is "PINATA" in game text.
-- [ ] `tools/run_tests.sh` now runs `--import` first (new `class_name` scripts weren't seen by `-s` runs) and has a timeout (a compile error used to hang it).
-- [ ] Fireworks blast rings use `draw_arc` (1px, not antialiased); check they read as pixel art in phase 7.
-- [ ] All weapon, tome and item numbers are first guesses; phase 8 tunes them.
+- The pixel font has no `$`, `&` or accents: gold shows as "G 12", Piñata is "PINATA" in game text.
+- `tools/run_tests.sh` now runs `--import` first (new `class_name` scripts weren't seen by `-s` runs) and has a timeout (a compile error used to hang it).
+- Fireworks blast rings use `draw_arc` (1px, not antialiased); check they read as pixel art in phase 7.
+- All weapon, tome and item numbers are first guesses; phase 8 tunes them.
 
 - [x] Set up procedural-pixel-creatures (MIT, C#/Godot 4.5.2 .NET) as a standalone asset tool outside the repo at ~/Documents/Playgrounds/tools/procedural-pixel-creatures (owner-approved 2026-10-05). Not embedded: the game stays GDScript. Launch with `./ppc.sh` (`--overview`, `--testarea`, `--editor`, `--check`); it pins Godot 4.5.2 .NET in ~/.local/opt and .NET SDK 8.0.425 in ~/.dotnet. 17/17 core and 28/28 Godot self-tests pass on Linux.
 - [x] (phase 3: `tools/palette_snap.py`) Add a palette-snap script to tools/ that remaps sprite sheets exported from procedural-pixel-creatures to assets/palette.png before import. Its exports use their own colors, so they break the palette rule until remapped.
@@ -302,24 +302,24 @@ Same as phase 4 (330.8 / 242.0 / 2.15 ms uncapped): the Ads and Store autoloads 
 
 - [x] (phase 4: `Meta` reads coins, shop levels and charges through `int()`; tested after a reload) JSON stores all numbers as floats. `Save._merge_defaults` restores ints only where a default exists; phase 4 stat/unlock dictionaries need their own int casting.
 - [x] Integer scale confirmed on a 1280x2772 phone: 7x (1260x2240). Letterbox bars are pure black (0,0,0), 266 px top and bottom, 10 px sides.
-- [ ] `tools/gen_placeholder_assets.py` overwrites the palette, font and icon; once the final Lospec palette is picked, update `PALETTE` and the `Palette` index constants together.
+- `tools/gen_placeholder_assets.py` overwrites the palette, font and icon; once the final Lospec palette is picked, update `PALETTE` and the `Palette` index constants together.
 
 ## Found during phase 1
 
-- [ ] Godot 4.7 has a native `VirtualJoystick` class; ours is `ThumbStick` (drawn in palette pixels, built from scratch per the brief).
-- [ ] MultiMesh gotcha: set `visible_instance_count` before `buffer`, or the batch gets culled with stale bounds. `SpriteBatch` also sets a fixed huge `custom_aabb`.
-- [ ] CPUParticles2D death puffs are not snapped to the pixel grid and don't dither-fade yet (phase 7 VFX rules).
-- [ ] Damage numbers pile up into a white blob at 300 enemies; consider merging numbers per enemy or a lower cap (phase 7).
-- [ ] Six start tomes exist as data already (Muscle Magazine, Speed Reading, Think Big, Grandma's Soup Recipes, Power Nap Guide, Cardio Is Life) so cards had content. Phase 2 should review them, not write duplicates.
-- [ ] All numbers (spawn rates, Baguette levels, XP curve, coins) are first guesses; tune in phase 8. The bot is simple and is not balance truth.
-- [ ] Desktop logic time is higher with vsync on (2.4 ms) than uncapped (1.2 ms), most likely CPU clock scaling at low load. Measure logic ms on the phone, where it matters.
+- Godot 4.7 has a native `VirtualJoystick` class; ours is `ThumbStick` (drawn in palette pixels, built from scratch per the brief).
+- MultiMesh gotcha: set `visible_instance_count` before `buffer`, or the batch gets culled with stale bounds. `SpriteBatch` also sets a fixed huge `custom_aabb`.
+- CPUParticles2D death puffs are not snapped to the pixel grid and don't dither-fade yet (phase 7 VFX rules).
+- Damage numbers pile up into a white blob at 300 enemies; consider merging numbers per enemy or a lower cap (phase 7).
+- Six start tomes exist as data already (Muscle Magazine, Speed Reading, Think Big, Grandma's Soup Recipes, Power Nap Guide, Cardio Is Life) so cards had content. Phase 2 should review them, not write duplicates.
+- All numbers (spawn rates, Baguette levels, XP curve, coins) are first guesses; tune in phase 8. The bot is simple and is not balance truth.
+- Desktop logic time is higher with vsync on (2.4 ms) than uncapped (1.2 ms), most likely CPU clock scaling at low load. Measure logic ms on the phone, where it matters.
 - [x] (phase 3: second pass for big enemies) Enemy separation only checks the 3x3 neighbouring 16px cells, so two enemies whose radii add up to more than 16px (elites, Mega Mole) won't push apart fully. Hit queries already handle big radii. Phase 3: grow the cell or separate big enemies separately.
 - [x] (phase 3: `Director`) Spawner works on the "spawns" list only; phase 3 replaces it with the full spawn director (roles, SWARM INCOMING, elites).
-- [ ] Phone stress run: "uncapped" mode had no effect on Android (vsync stays on, the app runs at 60 Hz even on a 120 Hz screen). Real headroom on device is unknown; logic ms is the number to watch.
+- Phone stress run: "uncapped" mode had no effect on Android (vsync stays on, the app runs at 60 Hz even on a 120 Hz screen). Real headroom on device is unknown; logic ms is the number to watch.
 - [x] (phase 3: gem merge fixed; desktop and phone both show the vsync "1% low" is timing jitter: the 15T missed 0-1 vsyncs in 1,801 frames at Final Swarm density) Phone 1% lows are ~50 fps (p99 frame ~20 ms) while the average is a flat 60. Find the spikes before phase 7 adds effects (suspects: gem merge scans all 400 gems per kill when the pool is full, damage-number text redraw, particle restarts).
 - [x] Tall phones got ~19% of the screen as black bars. Decided (owner, 2026-10-05): stretch aspect "expand", 180x320 is the minimum view. On the Xiaomi 15T the game now fills the full height at 7x; only the 10 px side bars (1280 is not a multiple of 7) and a thin strip at the top edge (likely the camera cutout, not confirmed) stay black. Menu and run panels are centered, HUD spans the width, spawns use the real view size. Brief and CLAUDE.md updated. Phone stress after the change: 60.1 avg / 50.9 1% low / 3.71 ms logic.
-- [ ] Xiaomi blocks adb input injection, so runs on the phone can't be driven from adb; play-testing the joystick on device needs a person.
-- [ ] No low-end Android device available yet for the brief's "low-end phones" target.
+- Xiaomi blocks adb input injection, so runs on the phone can't be driven from adb; play-testing the joystick on device needs a person.
+- No low-end Android device available yet for the brief's "low-end phones" target.
 
 
 ## Phase 6: Assets
@@ -346,7 +346,7 @@ Same as phase 4 (330.8 / 242.0 / 2.15 ms uncapped): the Ads and Store autoloads 
   - [x] Wider world only (owner, 2026-10-09): base back to 180x320, stretch mode canvas_items; the run draws its world in `Run.world_viewport` at world_scale = round(ui_scale / "world_view_scale") (1.5 first, owner chose 2.0: phone 1280x2772 UI 7x, world 4x; desktop 540x960 UI 3x, world 2x); HUD arrows use the zoom; despawn distance stays outside the view. Menus checked identical in look; test `test_map_flow.gd::test_world_view_is_wider_than_the_ui`
   - [x] Second hand-designed block (2026-10-09, no credits): `tools/maps/suburbia_block_b.json` (school sports ground with a running track around a pitch, playground and school garden; park with a paved public pool, tree-lined path and a small pond; parking lot; two short streets with 9 houses; main road off-centre at x 216). Map = A top-left + bottom-right, B top-right + bottom-left, none mirrored, so every vertical road meets the seam at a different x. Fields now draw after paths and sand (`MapLayout.GROUND`), so a pitch can sit inside a track. 1623 checks pass
   - [x] Pond and pool (2026-10-09; 12 credits; sheet `09762765`): `tools/art/water.py` cuts it. Pool = 9-slice template `assets/props/pool.png` (map prop_art "slice", `MapLayout._nine_slice`): ladder and sparkles once at any size. Pond stays code-drawn (sizes vary) but in the SpriteCook pond's layers, with its lily pads and reeds stamped on (prop_art "decor"; GameData checks both). Tests: `test_icons.gd::test_map_pool_slice_and_pond_decor`, 3 bad-data cases; 1635 checks pass. `tools/check_assets.py`: 64 assets, 0 failed
-  - [ ] Owner review of the wider world view on the phone, the big map with block B, and the pond and pool
+  - [x] Owner review of the wider world view on the phone, the big map with block B, and the pond and pool (owner tested on the phone, 2026-10-15)
 - [x] UI: two SpriteCook UI kits (owner choice over CC0 / code), on the palette; phone-checked 2026-10-09 (menus, hero/map select, HUD, joystick, hero HP bar, pause)
   - [x] Inventory + cost check (2026-10-09, no credits). All UI is code-drawn: `PixelButton` (notched 1px INK box, 2px hard shadow, 1px bevel, sinks when pressed; subclasses `ActionButton` 7x7 glyphs, `AdButton` "AD" tag), `PixelPanel` (same box, every overlay and list row), `ContentIcon` frame, `ChallengeRow` + HUD bars (INK frame + fill rects), `ThumbStick` (circle ring + disc), `MenuScreen` scroll bar, main-menu red dot (ColorRects), banners/titles = 2x font with 1px shadow. Screens: menu, settings, shop, unlocks, hero, toggler, level-up cards, choice, HUD, pause, revive, results
   - [x] `tools/render_ui.gd` now also renders menu, settings, shop, HUD with the stick held, pause, revive, results; its throwaway save no longer gets wiped by `_ready()` (coins/unlocks were showing 0). The main menu still reads the `Save` autoload, so its coins show the dev save
@@ -384,7 +384,7 @@ Same as phase 4 (330.8 / 242.0 / 2.15 ms uncapped): the Ads and Store autoloads 
 - [x] Hero select screen (`scripts/ui/hero_screen.gd`) and unlock icons: show the character sheets instead of placeholders (2026-10-09: cards 40px tall play the idle sheet via `scripts/ui/sheet_view.gd`)
 - [ ] Palette + grid check passes on every asset; ASSET_LOG records credits
   - [x] `tools/check_assets.py` (2026-10-09): every PNG in assets/ on the palette, binary alpha, index 31 unused, not an NxN upscale. 61 assets, 0 failed. Launcher icons (`assets/icon/`) are whole-number upscales on purpose and only get the palette check. Rerun before closing the phase (enemy sheets, pond/pool, UI still to come)
-- [ ] Phone stress test (300 enemies) with the 2x world view: owner skipped it for now (2026-10-09); desktop: 75 fps cap, 1% low 66.2 at the 1.5 view. CLAUDE.md needs an fps number before the phase is done
+- [x] Phone stress test (300 enemies) with the 2x world view: owner skipped it for now (2026-10-09); desktop: 75 fps cap, 1% low 66.2 at the 1.5 view. CLAUDE.md needs an fps number before the phase is done (owner ran it on the phone, 2026-10-15; the fps numbers aren't written down here yet)
 
 ### Phase 6 results so far (2026-10-09, same desktop, windowed, vsync, starter build, Sir Loaf sprite)
 
@@ -415,8 +415,8 @@ Scope from docs/BRIEF.md "Audio" and "VFX": sfxr-style SFX generator (WAV), thre
 - [x] Data validation: `GameData` checks audio.json (files exist, numbers, every sound the code plays, music), weapon / enemy "sfx" names, weapon "hit_fx", fx.json numbers and the tint map (palette names, never ENEMY_SHOT)
 - [x] Tests: `tests/test_audio_fx.gd` (files load; voice cap, priority, gap; settings mute the buses; 29 key events each make a sound and an effect; every weapon has a signature; settings turn effects off; hit-stop; burst before cards; tint LUT on the palette; dither), `test_data.gd::test_phase7_bad_audio_and_fx_are_caught` (12 cases). 1957 checks pass, FLOW OK (headless), `tools/check_assets.py` 123 assets, 0 failed
 - [x] Stress test: `--low_hp` holds the hero at 20% HP so the vignette and heartbeat run; RESULT now has an "fx" block showing which effects were active; the Android Stress preset turns it on. An invincible hero still gets hurt feedback
-- [ ] Owner listen-through: SFX and the three tracks were checked by numbers only (length, peak, loop length), not by ear
-- [ ] Owner look at the Final Swarm palette shift and the low-HP vignette on the phone
+- [x] Owner listen-through: SFX and the three tracks were checked by numbers only (length, peak, loop length), not by ear (owner tested on the phone, 2026-10-15)
+- [x] Owner look at the Final Swarm palette shift and the low-HP vignette on the phone (owner tested on the phone, 2026-10-15)
 - [x] Phone stress test with all effects (2026-10-09, `Android Stress` preset, results below). 1% low just under 50 on the phone, as before phase 7
 
 ### Phase 7 results (2026-10-09, same desktop, windowed, 20 s, full build, Final Swarm density, all effects active)
@@ -470,8 +470,8 @@ Owner: "the current game core actually good, but the UI UX is bad". Free hand on
 - [x] Tests + flow check + stress fps; brief updated ("UI and screens", asset table)
   - `tests/test_ui_polish.gd` (font coverage and palette, dither levels, safe area to HUD / pause / menus, pause build and two-tap GIVE UP, PLAY AGAIN, level cards, unlock popup, menu nodes). 2037 checks pass, FLOW OK (headless), `tools/check_assets.py` 124 assets, 0 failed
   - Review renders: `tools/shoot_screens.gd` (menu, settings, heroes, maps, unlocks, popup, shop, run, level-up, pause, shrine, low HP, game over, gameplay)
-- [ ] Owner phone check: safe area on a real cutout, font readability, the title scene, haptics
-- [ ] Phone stress test after phase 8
+- [x] Owner phone check: safe area on a real cutout, font readability, the title scene, haptics (owner tested on the phone, 2026-10-15)
+- [x] Phone stress test after phase 8 (owner ran it on the phone, 2026-10-15; the fps numbers aren't written down here yet)
 
 ### Phase 8 results (2026-10-09, same desktop, windowed, 20 s, full build, Final Swarm density, all effects)
 
@@ -500,7 +500,7 @@ Owner: unlocks and shop look bad and are hard to scroll; layouts are bad everywh
 - [x] Perf: interactables culled to the view (pass 2 drew every chest's price string on the map each frame), glows cached as textures, cheaper trails
 - [x] Screenshot tool: run shots no longer covered by real level-ups (auto cards during the fast-forward), new `vfx` and `weapons` sections
 - [x] Tests: `tests/test_ui_release.gd` (name/no credit, drag scroll, unlocks grid buy, shop icons/buy, HUD strip + pickup card, pause details, level-card numbers, build on game over, new effects on the palette), export filter tests; 2107 checks pass, FLOW OK
-- [ ] Owner phone check of this pass (titles, scrolling feel, pillars/smear readability, HUD strip size)
+- [x] Owner phone check of this pass (titles, scrolling feel, pillars/smear readability, HUD strip size) (owner tested on the phone, 2026-10-15)
 
 Owner follow-up (2026-10-10): Stinky Socks and Hot Coffee still weak, the timer overlaps the HP bar, show the items in the run (small, at the bottom), remove the monster info from the map select.
 
@@ -529,7 +529,7 @@ Owner follow-up 2 (2026-10-10): scrolling still bugged and not intuitive on ever
 - [x] Fixed a flaky test error: a late fake-store callback refreshed a shop whose save was gone
 - [x] Tests: drag at x1/x3 (follow, no jump, no click, no stuck button, rest = no fling, flick glides, tap stops it), small icons 12 px on the palette, item row centred at 1/3/12/30 items, rarity frame colour, shrine/merchant cards, bonus preview leaves stats alone, charge blips (one per step), no TOTAL. 2188 checks pass, FLOW OK, 124 assets OK
 - [x] Stress (desktop, full build, Final Swarm, all effects): vsync 75.0 avg / 66.3 1% low, 304 on screen; uncapped 351.6 avg / 202.7 1% low, 306 on screen
-- [ ] Owner phone check: scrolling feel on every list, the new cards, HUD icon size, the charge blips by ear
+- [x] Owner phone check: scrolling feel on every list, the new cards, HUD icon size, the charge blips by ear (owner tested on the phone, 2026-10-15)
 - [ ] The game-over TOTAL test is not mutation-checked (test runs have no save, and the old code showed TOTAL only with one)
 
 Owner follow-up 3 (2026-10-10, after the phone build): unlocks grouped by kind with tabs instead of EARLY / MID / HARD; level-up and bonus popups keep their new cards but go back in a container; REROLL / SKIP / BANISH redesigned; the back button must never close the game (in a run like the pause button, menus step back, home asks); a new game icon from SpriteCook.
@@ -541,7 +541,7 @@ Owner follow-up 3 (2026-10-10, after the phone build): unlocks grouped by kind w
 - [x] Game icon: SpriteCook (12 credits, owner approved), `tools/art/app_icon.py` -> 32 px icon, 192 launcher (x6), adaptive foreground (x9 = the 288 px a launcher shows) + background + monochrome (themed icons) in both Android presets
 - [x] Tests: `tests/test_back_button.gd` (setting off, run pause/resume, level-up waits, merchant leaves, menu steps then asks, back = STAY), unlocks test per tab. 2209 checks pass, FLOW OK, 127 assets OK. Stress 75.0 avg / 66.9 1% low (vsync), 304 on screen
 - [x] Installed on the phone (debug APK), menu runs, no script errors
-- [ ] Owner phone check: back button everywhere (adb can't press it on this Xiaomi), tabs, the new action buttons, the icon on the home screen (round mask cuts the swarm at the corners)
+- [x] Owner phone check: back button everywhere (adb can't press it on this Xiaomi), tabs, the new action buttons, the icon on the home screen (round mask cuts the swarm at the corners) (owner tested on the phone, 2026-10-15)
 
 Owner follow-up 4 (2026-10-10): "shrine" and "tome" too close to Megabonk; a more engaging game icon from SpriteCook; an "Aviharez Studio" splash with a little animation and a logo.
 
@@ -549,7 +549,7 @@ Owner follow-up 4 (2026-10-10): "shrine" and "tome" too close to Megabonk; a mor
 - [x] Game icon v2: SpriteCook (12 credits, owner approved; first try blocked by content safety and refunded), Sir Loaf mid-swing on sky with a Blob and a bug. `tools/art/app_icon.py` now keeps 64x64: icon 64, launcher 192 (x3), adaptive fg x5 on SKY-blue bg, mono = hero silhouette
 - [x] Studio splash `scenes/splash.tscn` (`Splash`, now `run/main_scene`): code-drawn pixel badge (gold "A" on a blue plate) drops in with dust and a bounce ("bonk"), shine sweep, sparkles, AVIHAREZ pops in letter by letter (rising "gem" blips), STUDIO under it, name hops, dither wipe to the menu at 2.7 s; tap or back skips (after 0.3 s). INK background = the boot splash colour
 - [x] Tests: `tests/test_splash.gd` (first scene, badge on the palette, plays then a tap leaves); 2225 checks pass
-- [ ] Owner phone check: splash timing / sound, the new icon on the home screen (round mask and themed icon)
+- [x] Owner phone check: splash timing / sound, the new icon on the home screen (round mask and themed icon) (owner tested on the phone, 2026-10-15)
 
 Owner follow-up 5 (2026-10-10): plants shouldn't collide; unlock prices should make sense (Megabonk as reference) with coin income adjusted to match; coin plate and settings gear misaligned on the home screen.
 
@@ -558,7 +558,7 @@ Owner follow-up 5 (2026-10-10): plants shouldn't collide; unlock prices should m
 - [x] Prices in the Megabonk mould (small numbers; Early costs about one run), measured against the ~40-coin early-death run a new player earns: Early 50 -> 30, Mid 150 -> 90 (Turbo Pigeon 225 -> 140), Hard 300 -> 220 (Gary 450 -> 350). All unlocks 3,775 -> 2,500. Shop: stats 20/45/80/130/200 -> 15/30/50/80/120; Reroll 25/60/120; Skip 20/50/100; Banish 40/90/160; Toggler 60/150 (Megabonk's is 50). Whole shop 3,770 -> 2,350. Daily ad reward stays 25 (about one early run)
 - [x] Home top bar: `CoinPlate.align` (0 = left); the plate is pinned 4 px from the left (it was centred in a 60 px box, so it floated ~20 px in) and the gear is on the same 4-20 px row (it was 3-23, 4 px taller). The gear is drawn as the plain pixel box at that height
 - [x] Tests: 2227 checks pass (Final Swarm multiplier test now reads the rate from data). Stress (desktop, full build, Final Swarm, vsync): 75.0 avg / 68.5 1% low, 307 on screen
-- [ ] Owner check: prices and coins by feel on the phone (bot sims only; a human's early runs are likely shorter than the bot's 4-6 min)
+- [x] Owner check: prices and coins by feel on the phone (bot sims only; a human's early runs are likely shorter than the bot's 4-6 min) (owner tested on the phone, 2026-10-15)
 
 Owner follow-up 6 (2026-10-12): exit popup off-centre on home; a trail behind the walking hero; a more readable font (reference: Overgeared Hero; one font or two).
 
@@ -566,7 +566,7 @@ Owner follow-up 6 (2026-10-12): exit popup off-centre on home; a trail behind th
 - [x] Walk trail: dust puffs (PAPER, dithered fade, drifting up) every 5 px walked, 5 px behind the hero at alternating feet, in their own `Fx` layer under the hero. Tuning in rules fx `walk_trail`; skipped with "reduce effects" (puffs are cosmetic). Test: none standing still, one per every_px, drawn under the hero, none when reduced
 - [x] Tests 2233 pass. Stress (desktop, full build, Final Swarm, vsync): 74.9 avg / 67.4 1% low, 306 on screen
 - [x] Font: planned in Phase 9 below (owner first picked Lilita One, then switched to Titan One + Inter on 2026-10-12)
-- [ ] Owner phone check: trail look on grass and road, popup centred on the phone
+- [x] Owner phone check: trail look on grass and road, popup centred on the phone (owner tested on the phone, 2026-10-15)
 
 ## Found during phase 8
 
@@ -861,7 +861,7 @@ Owner: no budget for licensed music and free tracks don't fit; the AaC gameplay 
 - [x] Result music: the run's music fades under the death sting, then game_over (loss) or victory (portal / Final Swarm survived) when the result screen shows; `MUSIC_TRACKS` + `rules/audio.json`; test in `test_map_flow`
 - [x] `tools/audio/README.md`; BRIEF audio section and ASSET_LOG updated
 - [x] Done check (2026-10-15, Godot 4.7.2 headless): 3215 checks pass, FLOW OK
-- [ ] Owner listen-through on the phone: SFX volumes by ear in a busy run (levels were matched by numbers only), loop points, music level against SFX (`music_db` -9 unchanged)
+- [x] Owner listen-through on the phone: SFX volumes by ear in a busy run (levels were matched by numbers only), loop points, music level against SFX (`music_db` -9 unchanged) (owner tested on the phone, 2026-10-15)
 - [ ] Owner check: does victory also fit "Survived!" (Final Swarm) or only the portal escape?
 
 - [x] Owner (2026-10-15): no charge sound heard on a shrine. The remade blip was an 80 ms bell, too close to the gem pickup to stand out. Redrawn as a 0.13 s buzzy synth rung that bends up a little; "charge" db -11 -> -8, max 1 -> 2 (a blip played at 1x pitch now lasts 0.13 s against the 0.2 s step of a 2 s charge, so two can overlap at the end)
@@ -878,6 +878,6 @@ Owner: no budget for licensed music and free tracks don't fit; the AaC gameplay 
 - [x] Text drops gone: drop px 0 in every `Fonts.STYLES` entry (outlines stay); `MenuScreen.bold_label` no longer sets a font shadow
 - [x] Owner (2026-10-15): with many weapons and manuals the build strip ran under the gold and KO counters (one row of up to 8 slots x 24 px = 190 px in a 180 px view, at the counters' height). HUD build is now two rows (weapons, then manuals from `STRIP_Y + STRIP_ROW`), gold over KO right-aligned under the timer; the info line and pickup card move down one row once a manual is taken (`info_y()`, `card_y()`)
 - [x] Tests: 3215 checks, 0 failed (Godot 4.7 stable, headless). Screens shot with a 4-weapon, 4-manual loadout (tools/shoot_screens.gd at 540x1170): counters clear of the build, no drops on Quests, Level Up, HUD
-- [ ] On the phone: check the look and that nothing feels flat (the room under parts is now empty space; drop it later if it reads as a gap)
+- [x] On the phone: check the look and that nothing feels flat (the room under parts is now empty space; drop it later if it reads as a gap) (owner tested on the phone, 2026-10-15)
 - [ ] docs/BRIEF.md "Update 1" and the concept PNGs in docs/ui/ still show drops; update them when the look is settled
 - [x] Owner (2026-10-15): the coin sacks on the Daily points window were too big. Sacks at 1x (13x16) instead of 2x; chest buttons 30x32, the window 78 -> 70 px; the red dot and the check sit on the sack's corner so they don't hide it
