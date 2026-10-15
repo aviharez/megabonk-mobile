@@ -905,7 +905,7 @@ Prompt: the Town tab on the Suburbia map with Bakery, Pigeon Coop, Office and Gy
 - [x] Fix (owner, phone): Milestones wouldn't scroll after opening Quests on Daily. The scroll range kept the previous tab's size when the list grew (it updated only when it shrank); MenuScreen now re-measures on the list's deferred resize. Pinned in test_quests; owner confirmed on the phone (2026-10-15)
 - [x] Owner (2026-10-15): the Upgrade button was cramped and sat on the window's bottom frame. Now 86 px wide with 7 px clear each side (text shrinks only if a price ever needs it), window 130 px tall so the button clears the frame; a ruined building's challenge wraps to two lines instead of being cut off
 - [x] On the phone: Town tab drag and tap, building names, Rebuild / Upgrade (owner, 2026-10-15)
-- [ ] On the phone: Patrol after a real night away, the four objects in a run
+- [x] On the phone: Patrol pays after time away, the four objects work in a run (owner, 2026-10-15)
 
 ### Found during phase 13
 
