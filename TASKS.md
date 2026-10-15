@@ -864,6 +864,8 @@ Owner: no budget for licensed music and free tracks don't fit; the AaC gameplay 
 - [ ] Owner listen-through on the phone: SFX volumes by ear in a busy run (levels were matched by numbers only), loop points, music level against SFX (`music_db` -9 unchanged)
 - [ ] Owner check: does victory also fit "Survived!" (Final Swarm) or only the portal escape?
 
+- [x] Owner (2026-10-15): no charge sound heard on a shrine. The remade blip was an 80 ms bell, too close to the gem pickup to stand out. Redrawn as a 0.13 s buzzy synth rung that bends up a little; "charge" db -11 -> -8, max 1 -> 2 (a blip played at 1x pitch now lasts 0.13 s against the 0.2 s step of a 2 s charge, so two can overlap at the end)
+
 ### Found during the audio remake
 
 - Audio as Code renders are slow (~8 min for a 51 s track x3 on this machine); renders are cached by score hash in the temp folder

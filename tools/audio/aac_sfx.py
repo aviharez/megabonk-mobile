@@ -507,8 +507,15 @@ def s_escape():
 
 
 def s_charge():
-    return aac(T("fm_bell", [n("C6", 0, 0.08, 0.7)], tone={"decay_seconds": 0.12, "fm_index": 1.5}),
-               T("trance_pluck", [n("C5", 0, 0.06, 0.4)], gain=0.4))
+    # One rung of the charge ladder (the game replays it 10x, each step higher, up to an
+    # octave). A buzzy synth note that bends up a little, so it can't be mistaken for the
+    # bell-like gem / gold pickups, with a soft tick on top to mark each step.
+    return mix(
+        tone(0.13, 523.25, 554.37, "square", gain=0.32, attack=0.004, hold=0.07, curve=1.5, vib_hz=18, vib_amt=0.01),
+        tone(0.13, 1046.5, 1108.7, "triangle", gain=0.22, attack=0.004, hold=0.07, curve=1.5),
+        tone(0.13, 261.63, 277.18, "sine", gain=0.25, attack=0.004, hold=0.07, curve=1.5),
+        noise(0.03, 5000, None, q=1.5, gain=0.12, decay=0.008, seed=60),
+    )
 
 
 SOUNDS = {k[2:]: v for k, v in globals().items() if k.startswith("s_") and callable(v)}

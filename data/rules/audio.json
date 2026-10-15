@@ -26,7 +26,7 @@
 		"gold": {"file": "res://assets/audio/sfx/gold.wav", "db": -10, "pitch": 0.05, "max": 2, "gap": 0.06, "priority": 1},
 		"pot": {"file": "res://assets/audio/sfx/pot.wav", "db": -10, "pitch": 0.05, "max": 2, "gap": 0.05, "priority": 2},
 		"shrine": {"file": "res://assets/audio/sfx/shrine.wav", "db": -3, "pitch": 0.05, "max": 1, "gap": 0.2, "priority": 3},
-		"charge": {"file": "res://assets/audio/sfx/charge.wav", "db": -11, "pitch": 0.0, "max": 1, "gap": 0.05, "priority": 3, "steps": 10, "rise": 1.0},
+		"charge": {"file": "res://assets/audio/sfx/charge.wav", "db": -8, "pitch": 0.0, "max": 2, "gap": 0.05, "priority": 3, "steps": 10, "rise": 1.0},
 		"key": {"file": "res://assets/audio/sfx/key.wav", "db": -3, "pitch": 0.05, "max": 1, "gap": 0.1, "priority": 3},
 		"cage": {"file": "res://assets/audio/sfx/cage.wav", "db": -1, "pitch": 0.05, "max": 1, "gap": 0.1, "priority": 3},
 		"merchant": {"file": "res://assets/audio/sfx/merchant.wav", "db": -5, "pitch": 0.05, "max": 1, "gap": 0.3, "priority": 3},
