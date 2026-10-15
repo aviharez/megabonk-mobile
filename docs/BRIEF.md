@@ -295,6 +295,17 @@ Every creature (the heroes, every enemy, the boss) belongs to one family: the go
 
 Estimated MVP usage is about 600 credits, or 900–1,200 including regenerations.
 
+### PixelLab rules (from phase 13, owner decision 2026-10-15)
+
+SpriteCook stays the record for the art made up to phase 12. New art is made with PixelLab through its MCP server (`pixellab`, set up in the owner's Claude Code with their own token; the token never goes in the repo). Tool docs: https://api.pixellab.ai/mcp/docs.
+
+- Start each new kind of asset with one test piece matched against the existing art in the game (for the Town: one building next to `assets/props/house.png`), and wait for approval before the rest.
+- Ask for confirmation before every generation and log estimated and actual generations in `docs/ASSET_LOG.md` (PixelLab table). No variations by default.
+- Prefer the 1-generation tools: `create_image_pixflux` (palette via `color_image` = `assets/palette.png`), `create_map_object` (style matched with `background_image`, e.g. a render of the Suburbia map) and standard `create_character`. Pro tools cost 10-25 generations each: name the cost and ask first.
+- Ask for the final pixel size and a single-colour black outline; front-facing for map props. Results still go through `tools/palette_snap.py` and `tools/check_assets.py`: no off-grid pixels, no off-palette colors.
+- Sprites of 16 px or less (icons, the Gnat) come out weaker; draw those by hand or shrink from a larger generation.
+- Map objects are deleted on PixelLab after 8 hours: save each result into the repo at once and log its id.
+
 ### UI and screens (owner direction 2026-10-09: "the core is good, the UI/UX is not")
 
 - **Safe area.** The Android build is immersive and draws under the camera cutout. HUD rows, the pause button, menu headers and every panel keep `SafeArea.top()` px clear at the top and `SafeArea.bottom()` px at the bottom; backgrounds still fill the screen.
@@ -672,7 +683,7 @@ Read docs/BRIEF.md "Update 1" (Quests). Add data/quests with daily, weekly and m
 ### Phase 13: Town, first version
 
 ```text
-Read docs/BRIEF.md "Update 1" (Town). Build the Town tab on the Suburbia map with 4 buildings (Bakery, Pigeon Coop, Office, Gym) wrapping the existing unlocks and permanent upgrades, ruined / buildable / built states with the code overlay for ruins, building levels, the in-run effect of each built building on its own lot, Patrol offline coins with the 8-hour cap, and Town level on Home. Ask me before any SpriteCook generation. Done when: an existing save migrates (owned content shows as built), each in-run effect works in a run and does not block paths (reachability test), Patrol pays correctly across app restarts, and tests pass.
+Read docs/BRIEF.md "Update 1" (Town). Build the Town tab on the Suburbia map with 4 buildings (Bakery, Pigeon Coop, Office, Gym) wrapping the existing unlocks and permanent upgrades, ruined / buildable / built states with the code overlay for ruins, building levels, the in-run effect of each built building on its own lot, Patrol offline coins with the 8-hour cap, and Town level on Home. Art is made with PixelLab ("PixelLab rules"): make one test building first and wait for my OK, and ask me before every generation. Done when: an existing save migrates (owned content shows as built), each in-run effect works in a run and does not block paths (reachability test), Patrol pays correctly across app restarts, and tests pass.
 ```
 
 ### Phase 14: Google Play Games

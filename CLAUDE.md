@@ -19,7 +19,9 @@ The full spec is in docs/BRIEF.md. The brief is the source of truth for content 
 
 ## Assets
 - Every asset uses the palette in assets/palette.png. No off-palette colors, no off-grid pixels.
-- SpriteCook: ask me before every generation, log estimated credits in docs/ASSET_LOG.md, no variations by default.
+- PixelLab (MCP server `pixellab`) is the asset generator from phase 13 on: ask me before every generation, log estimated and actual generations in docs/ASSET_LOG.md, no variations by default. Full rules: docs/BRIEF.md "PixelLab rules".
+- PixelLab: pass assets/palette.png as the palette (`color_image`) and ask for the final pixel size; still snap with tools/palette_snap.py and pass tools/check_assets.py. Prefer the 1-generation tools (create_image_pixflux, create_map_object, create_character standard); name the cost and ask before any pro tool (10-25 generations each). Commit results to the repo right away (map objects are deleted on PixelLab after 8 hours). Never put the API token in the repo.
+- SpriteCook made the art up to phase 12 (its log stays in docs/ASSET_LOG.md). Don't generate with it unless I ask.
 - Don't use names, characters, or assets from other games.
 - Creatures (player, enemies, boss) are one family of mutant critters: 1 px INK outline, big eyes, 2-3 tone shading lit from the top left, one colour per enemy role, no green on enemies. Player ~24 px, regular enemies 12-20 px, Gnat 6-8 px. Static sprites; motion is code (`data/rules/creature_motion.json`). Full rules: docs/BRIEF.md "Creature art rules".
 

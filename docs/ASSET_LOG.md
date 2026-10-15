@@ -1,6 +1,10 @@
 # Asset log
 
-SpriteCook credits (Starter plan, 800 per month). Ask before every generation. No variations by default.
+Two generators: SpriteCook up to phase 12 (credits, first table), PixelLab from phase 13 on (generations, second table; owner decision 2026-10-15). Ask before every generation. No variations by default.
+
+## SpriteCook (up to phase 12)
+
+SpriteCook credits (Starter plan, 800 per month). No longer used unless the owner asks.
 
 | Date | Asset | Kind | Est. credits | Actual | Notes |
 | --- | --- | --- | --- | --- | --- |
@@ -65,6 +69,15 @@ SpriteCook credits (Starter plan, 800 per month). Ask before every generation. N
 | 2026-10-13 | Spitter mouth open / close | Account `lurch_brim_speller`. Cleaned Spitter uploaded at 2x (upload `1a6b6f52`, free), animate_game_art 4 frames, spritesheet, default pixel engine, own prompt (shut, half, wide, half) | 20 | 20 | job `82443601`, asset `9922cc80-978a-49e6-b6c1-5f726c54a8dd` (4 x 48x48, sha12 3abd965a84e4). Owner asked for it (mouth always open looked odd) and waived the per-generation OK. Frames 1-2 lost the mouth interior to background removal (grass shows through): not used. Frame 4 (shut) is the walking pose, frame 3 (half) eases the mouth shut after a spit; the wide-open pose is the sheet 1 Spitter. Balance after: 0 |
 
 **Running total:** 817
+
+## PixelLab (from phase 13)
+
+Counted in PixelLab generations (1 for pixflux, standard map objects and standard characters; 10-25 for pro tools). Plan and monthly allowance: fill in when the owner subscribes. Rules: docs/BRIEF.md "PixelLab rules".
+
+| Date | Asset | Tool and settings | Est. generations | Actual | Notes (job / object id, size, cleanup, balance after) |
+| --- | --- | --- | --- | --- | --- |
+
+**Running total:** 0
 
 ## Non-SpriteCook placeholders
 
