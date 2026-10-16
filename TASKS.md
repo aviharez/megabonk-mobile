@@ -788,7 +788,7 @@ Prompt: build kit v2 as reusable 9-slice parts on the palette, add the UI tones,
 
 ### Not in this phase (later phases or owner decisions)
 
-- Home: Town level badge + bar, Quests rail, weekly event rail (phases 12-13, open decision); Characters / Critters tab, Pick a District, Pick a Hero (phase 11); Settings' Google Play Games rows (phase 14). The Town nav tile is greyed out until the Town exists
+- Home: Town level badge + bar, Quests rail, weekly event rail (phases 12-13, open decision); Characters / Critters tab, Pick a District, Pick a Hero (phase 11); Settings' Google Play Games rows (phase 15, renumbered 2026-10-17). The Town nav tile is greyed out until the Town exists
 - No `shrine.png` in docs/ui/: the beacon bonus uses the Merchant / Level Up panel look
 - [x] Old UI files deleted (owner OK, 2026-10-14): Titan One, Bonk and 5x7 pixel fonts (+ `tools/fonts/make_bonk.py`), `PixelTitle`, `TitleScene`, `LogoTitle`, `PatternBg`, `SpriteButton`, `NextUnlockCard`, `tools/ui_mockups*.gd`, `revamp_fonts.gd`, `font_preview.gd`, the logo's leaves and radish, `home/icon_mystery`, `home/play_tri`, and 34 kit 3 / 3b parts no screen uses (dropped from `ui_kit.json` and from `SHIP` in `tools/art/ui_kit.py`, so a re-cut doesn't bring them back). 2298 checks pass, flow OK, 173 assets pass, 16 shots 0 off-palette
 

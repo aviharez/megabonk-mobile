@@ -476,6 +476,8 @@ Stop and ask only if fixing performance would mean removing an effect the brief 
 
 ### Phase 8: Balance and polish
 
+Not run: phase 8 became the UI/UX polish pass (owner request 2026-10-09). Balance is now Update 1's Phase 14, which keeps these targets.
+
 ```
 Build a headless run simulation with simple bots for all three characters, then tune the numbers for weapons, tomes, items, and enemies.
 Targets: an average player beats Mega Mole on run 2 or 3, the first Early unlock is completed and bought within the first 3 runs, and no single weapon appears in more than 40% of the bots' winning runs.
@@ -492,6 +494,8 @@ Stop and ask before any SpriteCook generation beyond the approved backdrop art.
 ```
 
 ### Phase 10: Release prep
+
+Not run: phase 10 became Update 1's Game UI kit v2. Release prep is now Update 1's Phase 16.
 
 ```
 Prepare Android and iOS release builds.
@@ -660,7 +664,7 @@ These names are Megabonk's own words; change the player-facing text only (ids ma
 
 ## Phases
 
-Five phases, numbered after the current ones. Each prompt is pasted as it is; each ends with the usual review prompt.
+Seven phases, numbered after the current ones (Balance and Release prep added 2026-10-17, after a review found the original phases 8 and 10 had been replaced and never run). Each prompt is pasted as it is; each ends with the usual review prompt.
 
 ### Phase 10: Game UI kit v2 and restyle
 
@@ -686,10 +690,45 @@ Read docs/BRIEF.md "Update 1" (Quests). Add data/quests with daily, weekly and m
 Read docs/BRIEF.md "Update 1" (Town). Build the Town tab on the Suburbia map with 4 buildings (Bakery, Pigeon Coop, Office, Gym) wrapping the existing unlocks and permanent upgrades, ruined / buildable / built states with the code overlay for ruins, building levels, the in-run effect of each built building on its own lot, Patrol offline coins with the 8-hour cap, and Town level on Home. Art is made with PixelLab ("PixelLab rules"): make one test building first and wait for my OK, and ask me before every generation. Done when: an existing save migrates (owned content shows as built), each in-run effect works in a run and does not block paths (reachability test), Patrol pays correctly across app restarts, and tests pass.
 ```
 
-### Phase 14: Google Play Games
+### Phase 14: Balance and big numbers
+
+```text
+Read docs/BRIEF.md (Phase 8 "Balance and polish" was never run; its targets still apply) and the "first pass" notes in TASKS.md (Danger 2-5, Town prices and Patrol, unlock prices, XP gems piling up round the hero).
+
+Housekeeping first: move the finished phases out of TASKS.md into docs/TASKS_ARCHIVE.md, close or delete the stale unchecked items from phases 6 and 9 (say which, and why), and ask me for the phone fps numbers from phases 6 and 8 so they can be written down.
+
+Balance: build on scripts/debug/bot_run.gd and the quest sim into one headless simulation that plays a fresh save forward, run by run, for all three heroes, on every Danger level, and buys unlocks, Town buildings and shop upgrades as a player would. Tune numbers in data/ only. Targets:
+- an average player beats Mega Mole on run 2 or 3;
+- the first Early unlock is completed and bought within the first 3 runs;
+- no single weapon appears in more than 40% of the bots' winning runs;
+- win rate falls with each Danger level; Danger 5 is beatable by a good build but not by a typical one;
+- quests stay at 30-40% of coins;
+- report how many runs and hours of play it takes until every unlock, every building and Danger 5 are done (no target; I decide from this number whether to add content before release).
+
+Big numbers in the UI (found 2026-10-17 at 540x1170):
+- Game Over "Coins earned" is hidden by the AD x2 button from 4 digits;
+- the Pick a District / Pick a Hero title is cut by the coin plate from 5 digits of coins;
+- an item stack of 10+ overlaps the pickup card text, and its count is cut in the bottom item row;
+- 4-5 digit damage numbers merge into one unreadable block in crowds;
+- Game Over stat tiles break at 6 digits; the Home coin plate covers the Town bar at 7 digits;
+- the Danger rule line sits under the New! stickers;
+- numbers are formatted two ways (menus 9,876,543; HUD, Merchant, Game Over 9876543).
+Add one number-format helper used everywhere: separators in menus, short form (12.3K, 1.2M) where the space is fixed (HUD, damage numbers, stat tiles, stack badges). Add a big-numbers case to tests/test_text_fit.gd (coins 9,999,999, run gold and KO 999,999, level 999, stacks 99, damage 999,999, quest targets at the largest in data) so this can't come back, and a --big option to tools/shoot_screens.gd.
+
+Done when: docs/BALANCE.md has the simulation report (a table per hero, per weapon and per Danger level, plus the hours-to-everything number), every target above is met or explained, number changes are only in data/, every screen shot with --big at 540x1170 has no clipped or overlapping text and 0 off-palette pixels, tests pass, and the 300-enemy stress test stays within 5% of phase 13.
+Stop and ask only if a target can't be met without changing the design in the brief.
+```
+
+### Phase 15: Google Play Games
 
 ```text
 Read docs/BRIEF.md "Update 1" (Google Play Games and cloud save). Propose the plugin and wait for my OK. Then add sign-in, saved games, achievements and the two leaderboards behind a backend interface with fake and inert backends, plus the Settings rows. Done when: on the phone, sign-in, a save round trip between two installs, one achievement and one leaderboard score all work with test IDs; without the plugin the game behaves as before; tests pass.
+```
+
+### Phase 16: Release prep
+
+```text
+Prepare Android and iOS release builds (the original Phase 10, never run). Propose a StoreKit plugin for iOS and wait for my OK (iOS builds show STORE OFFLINE until then; docs/PLUGINS.md). Test Remove Ads on a device through a Play Console license tester. Done when: the AAB and iOS builds export successfully, the icon and splash use game assets, the privacy policy page and store copy (title, short and long descriptions) are in docs/STORE.md, and a Google Play closed-testing checklist is in TASKS.md. Stop and ask before entering real ad unit or product IDs, and before uploading anything to Play Console or App Store Connect.
 ```
 
 ## Open decisions for the owner
