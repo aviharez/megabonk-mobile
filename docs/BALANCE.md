@@ -63,7 +63,26 @@ The 30-40% target was set in phase 12 on 20 runs, and holds there (32% / 31%). I
 | Typical | 3/5 | 122, 130, 159 (2 saves past 200) | 11.6, 11.7, 14.9 (2 past ~18) | 41, 44, 54 |
 | Good | 3/3 | 31, 87, 107 | 3.4, 8.9, 11.0 | 11, 30, 36 |
 
-Buildings and the shop are done far earlier (median run 37 / 28 for a typical player); Danger 5 is beaten by run 75 (typical) / 37 (good). The long tail is unlocks: Golden Toilet ("10 elites in one run", mid tier in the brief) and then Lottery Tips (needs Golden Toilet; an Epic from a paid chest) and Angry Neighbor ("beat the boss below 20% HP") are bought last, usually after run 100 for a typical player. These numbers were measured with Golden Toilet at 10 elites. The owner then lowered it to 7 (2026-10-18). In a 40-run check, Golden Toilet is bought around runs 6-14 instead of after run 100, so hours to everything fall. The check's result is written below once it is done.
+Buildings and the shop are done far earlier (median run 37 / 28 for a typical player); Danger 5 is beaten by run 75 (typical) / 37 (good). The long tail is unlocks: Golden Toilet ("10 elites in one run", mid tier in the brief) and then Lottery Tips (needs Golden Toilet; an Epic from a paid chest) and Angry Neighbor ("beat the boss below 20% HP") are bought last, usually after run 100 for a typical player. These numbers were measured with Golden Toilet at 10 elites. The owner then lowered it to 7 (2026-10-18). In a 40-run check, Golden Toilet is bought around runs 6-14 instead of after run 100, so hours to everything fall. Result below.
+
+#### Golden Toilet at 7 (same 8 saves and seeds, 40 runs each; `build/balance/gt7`)
+
+| Save | Golden Toilet bought (10 -> 7) | Lottery Tips bought (10 -> 7) |
+| --- | --- | --- |
+| Typical 1-5 | runs 60, 153, 83, 155, 129 -> 14, 1, 33, 12, 12 | runs 61, 159, 85, 159, 130 -> 20, 9, 37, 14, 22 |
+| Good 1-3 | runs 104, 17, 85 -> 6, 6, 6 | runs 107, 21, 87 -> 12, 7, 9 |
+
+- **Good players: everything by run 34-35 (3.6-3.7 h).** Two of 3 good saves did everything by runs 35 and 34 (3.7 and 3.6 h); before, it took runs 87 and 107. The third (31 runs before) had every unlock by run 22 but had not beaten Danger 5 after 40 runs. The final bought-everything matrix shows good players win about 1 in 4 Danger 5 runs (27%), so missing it within 40 runs is plausible.
+- **Typical players: under 40 runs it's always Angry Neighbor or Cursed Diary.**
+  - None of the 5 typical saves finished in 40 runs.
+  - What each still lacked: Angry Neighbor (2 saves), Cursed Diary (1 save), or both (2 saves).
+  - In the earlier campaigns (Golden Toilet at 10) these two came at runs 22-117. Danger 5 isn't beaten yet either. Its median was run 75 before, and Golden Toilet doesn't change it.
+  - So for a typical player, hours to everything now run to about Danger 5 (median run 75, ~7.5 h) or the two unlocks above, whichever comes later. They were not measured past 40 runs.
+- **Elites per run** (all Danger levels, 309 runs):
+  - Median: 3-4 at every Danger level.
+  - Runs with 7 or more: 9 of 110 at Danger 1, 2-6 of about 50 at each higher Danger.
+  - Danger 1 runs that reach 8:00 kill a median of 7, because elites keep spawning in the boss and Final Swarm part.
+  - So 7 takes a long run or a strong one: a mid-tier challenge, as the brief places it.
 
 ### Heroes
 

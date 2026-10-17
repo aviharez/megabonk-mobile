@@ -38,7 +38,7 @@ Prompt: housekeeping (archive, stale items, phone fps); one headless sim that pl
 
 - Bots dodge by local push, so the weapon that keeps enemies off the hero (Garden Gnomes) is worth more to them than to a person; its high share of wins is partly that, partly that runs which get it early live long enough to fill every slot
 - In a fresh save only the four start weapons can be taken (three per run), so each is in 40-70% of early wins whatever the numbers; the 40% target is judged on the everything-bought matrix
-- [x] Golden Toilet lowered from 10 to 7 elites in one run (owner, 2026-10-18). Changed in data, the brief and test_meta. Before the change it was bought after run 100 for a typical player, with Lottery Tips waiting on it. Early check: runs 6-14, the 40-run check is pending. Elites keep spawning after 8:00, so long Danger 1 runs reach 7-8
+- [x] Golden Toilet lowered from 10 to 7 elites in one run (owner, 2026-10-18). Changed in data, the brief and test_meta. Before the change it was bought after run 100 for a typical player, with Lottery Tips waiting on it. 40-run check: now bought on runs 1-33 (good: 6, 6, 6); good saves do everything by run 34-35 instead of 87-107; the typical tail is now Angry Neighbor / Cursed Diary and Danger 5 (docs/BALANCE.md). Elites keep spawning after 8:00, so long Danger 1 runs reach 7-8
 - Sir Loaf wins least (matrix 24% against 34% / 32%); Sharp Feathers and Faulty Toaster win least when taken. No target, noted in docs/BALANCE.md
 - Flow check and screenshot runs print "N resources still in use at exit" (same on the last commit; noted in phase 11)
 - Quests are 31-33% of coins over the first 20 runs but ~11-14% over a whole save: milestones run out while Patrol grows with the Town
