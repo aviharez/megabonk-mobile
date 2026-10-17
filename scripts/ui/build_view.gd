@@ -94,7 +94,7 @@ func _draw() -> void:
 		_hit.append([Rect2(at, Vector2(SLOT, SLOT)), "items", id])
 		_icon(Icons.small(db, "items", id, ICON_PX), at)
 		if int(items[id]) > 1:
-			UiArt.badge(self, str(int(items[id])), at + Vector2(SLOT - 7, SLOT - 7), "count")
+			UiArt.corner_badge(self, Num.short(int(items[id])), at + Vector2(SLOT + 2, SLOT + 2), "count")
 		x += step
 
 
@@ -114,7 +114,7 @@ func _slots(cat: String, owned: Dictionary, n: int, y: float) -> void:
 			UiArt.slot(self, r, "sel" if cat + "/" + ids[i] == selected else "")
 			_hit.append([r, cat, ids[i]])
 			_icon(Icons.small(db, cat, ids[i], ICON_PX), at)
-			UiArt.badge(self, str(int(owned[ids[i]])), at + Vector2(SLOT - 6, SLOT - 6))
+			UiArt.corner_badge(self, Num.short(int(owned[ids[i]])), at + Vector2(SLOT + 3, SLOT + 3))
 		else:
 			UiArt.slot(self, r)
 

@@ -1,7 +1,7 @@
 {
 	"id": "bubble_wrap_crafts",
 	"tier": "mid",
-	"desc": "2000 KO as Sir Loaf.",
+	"desc": "2,000 KO as Sir Loaf.",
 	"stat": "kills",
 	"character": "sir_loaf",
 	"scope": "total",

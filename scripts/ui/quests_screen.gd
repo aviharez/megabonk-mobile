@@ -224,7 +224,7 @@ func _card(c: Dictionary) -> Control:
 		if faded:
 			UiArt.sprite(card, "kit/check", Vector2(rx - 8, 8))
 		else:
-			var n := str(int(c.coins))
+			var n := Num.full(int(c.coins))
 			var nw := ceilf(Fonts.width(n, "NUM"))
 			Fonts.draw(card, n, Vector2(rx - nw, Fonts.cap_y("NUM", 5, 13)), "NUM")
 			var coin := UiArt.texture("hud_coin")
@@ -342,7 +342,7 @@ func _refresh_double() -> void:
 	var ad_ok: bool = _ads != null and _ads.can_offer("quest_double")
 	_double.visible = can and ad_ok
 	if can:
-		_note.text = "Double your last claim: +%d" % int(q.last_claim.coins)
+		_note.text = "Double your last claim: +" + Num.full(int(q.last_claim.coins))
 	elif int(q.get("doubled_day", -1)) == Quests.day_of(Quests.now()):
 		_note.text = "Claim doubled. Again tomorrow!"
 	else:

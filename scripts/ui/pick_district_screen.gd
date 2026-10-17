@@ -16,7 +16,7 @@ extends MenuScreen
 signal picked(character_id: String, map_id: String, danger: int)
 
 const CARD_H := 146
-const DANGER_H := 52
+const DANGER_H := 59
 const ROW_H := 25
 const THUMB := Vector2(148, 52)
 
@@ -150,7 +150,8 @@ func _dangers() -> void:
 		t.locked = not Meta.danger_open(db, save.data, selected, lv)
 		t.is_new = is_new_danger(lv)
 		t.disabled = t.locked
-		t.position = Vector2(11 + i * (tw + gap), 20)
+		# Low enough that a New! sticker (7 px above the tile) clears the rule line.
+		t.position = Vector2(11 + i * (tw + gap), 27)
 		t.size = Vector2(tw, 26)
 		t.pressed.connect(pick_danger.bind(lv))
 		c.add_child(t)

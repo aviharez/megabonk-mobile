@@ -217,7 +217,7 @@ func _detail(win: Control) -> void:
 	var br := Rect2(DETAIL.size.x - 50, 63, 40, 20 + PixelButton.SHADOW)
 	match st:
 		"available":
-			var b := button(win, str(int(ch.price)), br, Palette.GOLD, _buy.bind(id), int(save.data.coins) >= int(ch.price))
+			var b := button(win, Num.full(int(ch.price)), br, Palette.GOLD, _buy.bind(id), int(save.data.coins) >= int(ch.price))
 			b.name = "Buy"
 			b.art = UiArt.texture("hud_coin")
 			b.art_plain = true
@@ -227,7 +227,7 @@ func _detail(win: Control) -> void:
 			ol.position = Vector2(br.position.x, br.position.y + 5)
 			win.add_child(ol)
 		_:
-			var b := button(win, str(int(ch.price)), br, Palette.FRAME, func() -> void: pass, false)
+			var b := button(win, Num.full(int(ch.price)), br, Palette.FRAME, func() -> void: pass, false)
 			b.name = "Price"
 			b.art = UiArt.texture("hud_coin")
 			b.art_plain = true

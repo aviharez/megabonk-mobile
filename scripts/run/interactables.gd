@@ -176,7 +176,7 @@ func _touch(o: Dictionary) -> void:
 				remove(o)
 				run.open_chest(def.chest, o.pos)
 			else:
-				run.toast("Need G %d" % price, "GOLD")
+				run.toast("Need G " + Num.full(price), "GOLD")
 		"free_chest":
 			remove(o)
 			run.open_chest(def.chest, o.pos)
@@ -403,7 +403,7 @@ func _draw() -> void:
 		if def.behavior == "paid_chest":
 			var price := paid_price(def)
 			var can: bool = run.gold >= price
-			labels.append([at + Vector2(0, -floorf(tex.get_height() / 2.0) - 2 - bob), str(price), Palette.GOLD if can else Palette.SALMON, true])
+			labels.append([at + Vector2(0, -floorf(tex.get_height() / 2.0) - 2 - bob), Num.short(price), Palette.GOLD if can else Palette.SALMON, true])
 		elif def.behavior == "merchant":
 			labels.append([at + Vector2(0, -10), "Shop %d" % ceili(o.left), Palette.BUTTER, false])
 	if not risks.is_empty():

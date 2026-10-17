@@ -1,7 +1,7 @@
 {
 	"id": "copy_machine_manual",
 	"tier": "hard",
-	"desc": "Fire 3000 staples as Gary.",
+	"desc": "Fire 3,000 staples as Gary.",
 	"stat": "shots",
 	"weapon": "stapler",
 	"character": "gary",

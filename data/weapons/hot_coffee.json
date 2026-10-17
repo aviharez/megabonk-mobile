@@ -6,11 +6,11 @@
 	"shot_sprite": "res://assets/shots/cup.png",
 	"status": "start",
 	"levels": [
-		{"damage": 4, "cooldown": 2.6, "count": 1, "radius": 14, "duration": 3, "tick": 0.5, "throw_range": 80, "desc": "Scalding puddle."},
-		{"damage": 4, "cooldown": 2.6, "count": 1, "radius": 17, "duration": 3, "tick": 0.5, "throw_range": 80, "desc": "Bigger puddle."},
-		{"damage": 5, "cooldown": 2.6, "count": 1, "radius": 20, "duration": 3, "tick": 0.5, "throw_range": 85, "desc": "Bigger puddle, more damage."},
-		{"damage": 5, "cooldown": 2.5, "count": 1, "radius": 23, "duration": 3.5, "tick": 0.5, "throw_range": 85, "desc": "Bigger, longer puddle."},
-		{"damage": 6, "cooldown": 2.5, "count": 2, "radius": 27, "duration": 3.5, "tick": 0.5, "throw_range": 90, "desc": "Bigger puddle, +1 cup."}
+		{"damage": 5, "cooldown": 2.6, "count": 1, "radius": 14, "duration": 3, "tick": 0.5, "throw_range": 80, "desc": "Scalding puddle."},
+		{"damage": 5, "cooldown": 2.6, "count": 1, "radius": 17, "duration": 3, "tick": 0.5, "throw_range": 80, "desc": "Bigger puddle."},
+		{"damage": 6, "cooldown": 2.6, "count": 1, "radius": 20, "duration": 3, "tick": 0.5, "throw_range": 85, "desc": "Bigger puddle, more damage."},
+		{"damage": 7, "cooldown": 2.5, "count": 1, "radius": 23, "duration": 3.5, "tick": 0.5, "throw_range": 85, "desc": "Bigger, longer puddle."},
+		{"damage": 8, "cooldown": 2.5, "count": 2, "radius": 27, "duration": 3.5, "tick": 0.5, "throw_range": 90, "desc": "Bigger puddle, +1 cup."}
 	],
 	"sfx": {"attack": "throw", "land": "splash"},
 	"hit_fx": {"kind": "puff", "color": "MIST", "r": 3}

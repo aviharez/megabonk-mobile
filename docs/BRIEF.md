@@ -194,7 +194,7 @@ Planned update maps: Sewers (giant crocodile boss), Farm (mutant cow boss), and 
 | Mid | Self-Help Book | Reach level 20 in one run | — |
 | Mid | Bubble Wrap Crafts | Kill 2,000 enemies as Sir Loaf | — |
 | Mid | Lottery Tips | Get an Epic item from a paid chest | Golden Toilet |
-| Mid | Golden Toilet | Defeat 10 elites in one run | — |
+| Mid | Golden Toilet | Defeat 7 elites in one run (was 10; owner, 2026-10-18, phase 14 balance) | — |
 | Hard | Gary the Intern | Survive 60 seconds in the Final Swarm | — |
 | Hard | Copy Machine Manual | Fire 3,000 staples as Gary | Gary the Intern |
 | Hard | Static Sweater | Kill 300 enemies with Faulty Toaster | Faulty Toaster |

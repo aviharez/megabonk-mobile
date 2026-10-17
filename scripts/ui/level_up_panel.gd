@@ -89,7 +89,7 @@ func _draw() -> void:
 		if gold >= 0:
 			var word := "your gold"
 			var ww := ceilf(Fonts.width(word, "BODY"))
-			var num := str(gold)
+			var num := Num.short(gold)
 			var nw := ceilf(Fonts.width(num, "NUM"))
 			var x := SIZE.x - CARD_X - ww
 			Fonts.draw(self, word, Vector2(x, Fonts.cap_y("BODY", y, 12)), "BODY", Palette.MUTED)

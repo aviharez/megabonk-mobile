@@ -63,6 +63,9 @@ func update(delta: float, player: Vector2, player_r: float, hit_fn: Callable) ->
 			var from := source[s]
 			pool.release(s)
 			hit_fn.call(dmg, from)
+			# The hit can clear shots (the player dies, an item's blast): keep
+			# the index inside what is left.
+			i = mini(i, pool.active.size() - 1)
 
 
 func clear() -> void:

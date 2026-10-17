@@ -235,19 +235,7 @@ static func progress_text(data: Dictionary, e: Dictionary) -> String:
 	var target := float(e.target)
 	if e.get("goal", "at_least") != "at_most":
 		v = minf(v, target)
-	return "%s/%s" % [_grouped(Meta.format_stat(e.stat, v)), _grouped(Meta.format_stat(e.stat, target))]
-
-
-## "5000" -> "5,000" (other texts as they are).
-static func _grouped(s: String) -> String:
-	if not s.is_valid_int() or s.length() <= 3:
-		return s
-	var out := ""
-	for i in s.length():
-		if i > 0 and (s.length() - i) % 3 == 0:
-			out += ","
-		out += s[i]
-	return out
+	return "%s/%s" % [Meta.format_stat(e.stat, v), Meta.format_stat(e.stat, target)]
 
 
 static func is_claimed(data: Dictionary, id: String) -> bool:

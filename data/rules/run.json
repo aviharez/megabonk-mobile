@@ -5,7 +5,7 @@
 	"enemy_cap": 300,
 	"enemy_reserve": 48,
 	"enemy_shots": 160,
-	"gem_cap": 400,
+	"gem_cap": 150,
 	"card_count": 3,
 	"world_view_scale": 2.0,
 	"weapon_slots": 4,

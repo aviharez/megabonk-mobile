@@ -75,6 +75,11 @@ const SMALL := BODY_FONT
 const SIZE := 8
 
 static var _styles := {}
+## Tests (test_text_fit's big numbers): while true, every draw() is logged in
+## `trace` as {ci, text, rect (the ink box in the item's local px), cut (the
+## text is wider than its max_width, so draw_string cut it)}.
+static var tracing := false
+static var trace: Array = []
 
 
 ## Inter at weight 800.
@@ -169,6 +174,16 @@ static func draw(ci: CanvasItem, text: String, pos: Vector2, style_name: String,
 	var f := font_of(style_name)
 	var fs: int = d[1] if size < 0 else size
 	var base := Vector2(pos.x, pos.y + f.get_ascent(fs)).round()
+	if tracing:
+		var tw := f.get_string_size(text, HORIZONTAL_ALIGNMENT_LEFT, -1, fs).x
+		var x := pos.x
+		if max_width > 0.0 and align == HORIZONTAL_ALIGNMENT_CENTER:
+			x += floorf((max_width - tw) / 2.0)
+		elif max_width > 0.0 and align == HORIZONTAL_ALIGNMENT_RIGHT:
+			x += max_width - tw
+		var cap := ceilf(fs * float(CAP[d[0]]))
+		trace.append({"ci": ci, "text": text, "rect": Rect2(x, base.y - cap, tw, cap),
+			"cut": max_width > 0.0 and tw > max_width + 0.5})
 	var outline: int = d[3] * OUTLINE_K
 	if d[5] > 0:
 		var sp: Vector2 = base + Vector2(0, d[5])

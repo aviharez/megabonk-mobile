@@ -5,11 +5,11 @@
 	"pattern": "aura",
 	"status": "start",
 	"levels": [
-		{"damage": 3, "cooldown": 0.5, "radius": 24, "knockback": 8, "desc": "Stinky aura."},
-		{"damage": 3, "cooldown": 0.5, "radius": 27, "knockback": 8, "desc": "Bigger radius."},
-		{"damage": 4, "cooldown": 0.5, "radius": 30, "knockback": 10, "desc": "Bigger radius, more damage."},
-		{"damage": 4, "cooldown": 0.5, "radius": 34, "knockback": 10, "desc": "Bigger radius."},
-		{"damage": 5, "cooldown": 0.45, "radius": 38, "knockback": 12, "desc": "Bigger radius, more damage."}
+		{"damage": 4, "cooldown": 0.5, "radius": 24, "knockback": 12, "desc": "Stinky aura."},
+		{"damage": 4, "cooldown": 0.5, "radius": 27, "knockback": 12, "desc": "Bigger radius."},
+		{"damage": 5, "cooldown": 0.5, "radius": 30, "knockback": 14, "desc": "Bigger radius, more damage."},
+		{"damage": 6, "cooldown": 0.5, "radius": 34, "knockback": 16, "desc": "Bigger radius."},
+		{"damage": 7, "cooldown": 0.45, "radius": 38, "knockback": 18, "desc": "Bigger radius, more damage."}
 	],
 	"sfx": {"attack": "stink", "hit": ""},
 	"hit_fx": {"kind": "puff", "color": "LIME", "r": 3}

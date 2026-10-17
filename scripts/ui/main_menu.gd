@@ -117,8 +117,11 @@ func _build_top() -> void:
 	_coins = CoinPlate.new()
 	_coins.name = "Coins"
 	_coins.align = 1.0
-	_coins.position = Vector2(50, 10)
-	_coins.size = Vector2(94, CoinPlate.H)
+	# Between the Town bar (ends at x 82) and the gear (x 148); past that the
+	# number goes short (Num.short).
+	_coins.room = 62
+	_coins.position = Vector2(84, 10)
+	_coins.size = Vector2(62, CoinPlate.H)
 	_top.add_child(_coins)
 	# The account badge: the picked hero in a slot with the Town level on it.
 	_account = KitButton.new()
@@ -133,7 +136,7 @@ func _build_top() -> void:
 	_town_info.name = "TownLevel"
 	_town_info.mouse_filter = MOUSE_FILTER_IGNORE
 	_town_info.position = Vector2(6, 6)
-	_town_info.size = Vector2(88, 30)
+	_town_info.size = Vector2(78, 30)
 	_town_info.draw.connect(_draw_town_level)
 	_top.add_child(_town_info)
 	_settings_btn = KitButton.new()
@@ -154,7 +157,7 @@ func _draw_town_level() -> void:
 	var lv := Town.town_level(db, Save.data)
 	var c := _town_info
 	Fonts.draw(c, "Town Lv %d" % lv, Vector2(31, Fonts.cap_y("NAME", 2, 10)), "NAME")
-	UiArt.bar2(c, Rect2(31, 15, 55, 7), float(lv) / maxf(1.0, Town.max_town_level(db)), "lamp")
+	UiArt.bar2(c, Rect2(31, 15, 45, 7), float(lv) / maxf(1.0, Town.max_town_level(db)), "lamp")
 	UiArt.badge(c, str(lv), Vector2(17, 18), "badge", 10)
 
 

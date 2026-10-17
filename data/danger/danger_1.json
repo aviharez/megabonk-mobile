@@ -3,8 +3,8 @@
 	"level": 1,
 	"modifiers": {
 		"spawn_rate": 1.0,
-		"enemy_hp": 1.0,
-		"enemy_damage": 1.0,
+		"enemy_hp": 0.9,
+		"enemy_damage": 0.9,
 		"elite_every_sec": [
 			60,
 			90

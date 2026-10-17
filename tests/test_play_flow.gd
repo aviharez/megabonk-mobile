@@ -220,7 +220,10 @@ func test_director_applies_danger(t) -> void:
 	var rules := db.get_entry("rules", "run")
 	var d1 := Director.new(map, 300, 480.0, RandomNumberGenerator.new(), {}, Meta.danger_def(db, 1))
 	var d3 := Director.new(map, 300, 480.0, RandomNumberGenerator.new(), {}, Meta.danger_def(db, 3))
-	t.check(is_equal_approx(d1.hp_mult(), 1.0) and is_equal_approx(d1.coin_mult(), 1.0), "Danger 1 changes nothing")
+	# Danger 1 is tuned a little easier than the base numbers (phase 14, docs/BALANCE.md).
+	var m1: Dictionary = Meta.danger_def(db, 1).modifiers
+	t.check(is_equal_approx(d1.hp_mult(), float(m1.enemy_hp)) and is_equal_approx(d1.damage_mult(), float(m1.enemy_damage))
+		and float(m1.enemy_hp) <= 1.0 and is_equal_approx(d1.coin_mult(), 1.0), "Danger 1: the level's HP and damage, coins x1")
 	t.check(is_equal_approx(d3.hp_mult(), 1.55) and is_equal_approx(d3.damage_mult(), 1.3), "Danger 3: enemy HP x1.55, damage x1.3")
 	t.check(is_equal_approx(d3.coin_mult(), 2.0), "Danger 3: coins x2")
 	t.check(d3.elite_cfg.every_sec == [45.0, 66.0] and map.elites.every_sec == [60.0, 90.0], "the elite interval is the level's (the map's data untouched)")

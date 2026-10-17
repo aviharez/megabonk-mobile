@@ -65,6 +65,9 @@ static var next_options := {}
 ## bot_goals: the bot walks to map objects (chests, pots, keys...).
 ## bot_boss_min: the bot walks to the altar from this minute (-1 = never).
 ## bot_portal: the bot takes the portal once it's open.
+## bot_picker: chooses for auto_cards instead of "the first option" (sims,
+##   scripts/debug/bot_picker.gd): pick_card(run, cards) -> index, or -1 to
+##   reroll while charges last; pick_choice(run, opts) -> index (beacon bonus).
 ## no_spawns: the director spawns nothing (tests).
 ## pin_hp: hold HP at this fraction of max (stress: low-HP effects on).
 ## character: who plays (default: the save's last pick, if owned).
@@ -744,7 +747,7 @@ func show_item_card(id: String) -> void:
 	var n := items.count(id)
 	var tag := "%s item" % String(loot.rarity_names.get(def.rarity, ""))
 	if n > 1:
-		tag += "  ×%d" % n
+		tag += "  ×" + Num.short(n)
 	_hud.pickup_card(Icons.texture(db, "items", id), def.name, tag, def.get("desc", ""), Palette.index_of(loot.rarity_colors[def.rarity]))
 
 
@@ -1332,7 +1335,7 @@ func _open_level_up() -> void:
 	if options.get("auto_cards", false):
 		pending_levels -= 1
 		if not _cards.is_empty():
-			apply_card(_cards[0])
+			apply_card(_cards[_bot_card()])
 		return
 	var chained := state == "level_up"
 	state = "level_up"
@@ -1624,7 +1627,7 @@ func open_shrine_choice(def: Dictionary) -> void:
 		var value := desc.substr(cut + 1) if cut > 0 else ""
 		opts.append({"label": desc, "face": faces[opts.size() % faces.size()], "enabled": true, "art": _stat_icon(c.stat),
 			"title": desc.substr(0, cut) if cut > 0 else desc, "value": value,
-			"tag": "Beacon", "desc": _bonus_preview(c, value.ends_with("%"))})
+			"tag": "Beacon", "desc": _bonus_preview(c, value.ends_with("%")), "stat": c.stat})
 	_show_choice("Pick a bonus", opts, "", func(i: int) -> bool:
 		var c: Dictionary = offer[i]
 		var before := stat("max_hp")
@@ -1666,7 +1669,7 @@ func open_merchant(o: Dictionary) -> void:
 		var opts := []
 		for st: Dictionary in o.stock:
 			var item := db.get_entry("items", st.item)
-			var price_text := "Sold" if st.sold else "G %d" % st.price
+			var price_text := "Sold" if st.sold else "G " + Num.short(int(st.price))
 			var ok := _can_hold(st.item)
 			if not st.sold and not ok:
 				price_text = "You have one"
@@ -1697,12 +1700,36 @@ func open_merchant(o: Dictionary) -> void:
 		return false, "Leaves in %d:%02d" % [int(left) / 60, int(left) % 60])
 
 
+## The card the bot takes: the picker's, rerolling while it asks and charges
+## last (no picker: the first card).
+func _bot_card() -> int:
+	var picker: Object = options.get("bot_picker")
+	if picker == null:
+		return 0
+	while true:
+		var i: int = picker.pick_card(self, _cards)
+		if i >= 0 and i < _cards.size():
+			return i
+		if charges.get("reroll", 0) <= 0:
+			return 0
+		charges.reroll -= 1
+		_cards = LevelUpCards.pick(rng, db, owned_weapons, owned_tomes, rules, pool)
+	return 0
+
+
 ## Shows the choice panel. on_pick(i) returns true to close the panel.
 ## leave = label of a close button ("" = none). Bots pick automatically.
 func _show_choice(title: String, opts: Array, leave: String, on_pick: Callable, info := "") -> void:
 	_choice = {"opts": opts, "on_pick": on_pick, "leave": leave}
 	if options.get("auto_cards", false):
-		# Take the first enabled option; at a shop, buy all it can afford.
+		# Take the first enabled option (or the picker's); at a shop, buy all
+		# it can afford.
+		var picker: Object = options.get("bot_picker")
+		if picker != null and leave == "":
+			var want: int = picker.pick_choice(self, opts)
+			if want >= 0 and want < opts.size() and opts[want].enabled and on_pick.call(want):
+				_choice = {}
+				return
 		for i in opts.size():
 			if _choice.opts[i].enabled and on_pick.call(i):
 				break
@@ -1743,7 +1770,7 @@ func _set_choice_options(opts: Array) -> void:
 				b.position.x = LevelUpPanel.CARD_X
 				UiFx.slide_in(b, Vector2(180, 0), 0.25, 0.06 * i)
 	# The merchant shows your gold (it changes as you buy); beacons just ask.
-	_choice_panel.hint = ("Your gold: %d" % floori(gold)) if _choice.get("leave", "") != "" else "Choose one bonus."
+	_choice_panel.hint = ("Your gold: " + Num.full(floori(gold))) if _choice.get("leave", "") != "" else "Choose one bonus."
 	if _choice_panel.info != "":
 		_choice_panel.gold = floori(gold)
 
@@ -1902,17 +1929,17 @@ func _sync_over_coins(roll: bool) -> void:
 
 func _over_lines() -> String:
 	var sec := int(minf(elapsed, rules.run_length_sec))
-	var lines := "Time %d:%02d   Level %d\nKO %d" % [sec / 60, sec % 60, level, kills]
+	var lines := "Time %d:%02d   Level %s\nKO %s" % [sec / 60, sec % 60, Num.full(level), Num.full(kills)]
 	if final_swarm():
 		var f := int(director.final_time)
 		lines += "\nFinal Swarm +%d:%02d" % [f / 60, f % 60]
-	lines += "\nCoins +%d" % (result.coins * (2 if result.get("coins_doubled", false) else 1))
+	lines += "\nCoins +" + Num.full(int(result.coins) * (2 if result.get("coins_doubled", false) else 1))
 	if result.get("coins_doubled", false):
 		lines += "  ×2"
 	elif director.coin_mult() > 1.0:
 		lines += "  ×%.1f" % director.coin_mult()
 	if _save != null:
-		lines += "  (%d)" % int(meta.coins)
+		lines += "  (%s)" % Num.full(int(meta.coins))
 	return lines
 
 
@@ -1959,7 +1986,7 @@ func _fill_over_progress() -> void:
 		card.mouse_filter = Control.MOUSE_FILTER_IGNORE
 		var tex := Icons.texture(db, Meta.category_of(db, id), id)
 		var name_t: String = Meta.content(db, id).get("name", id)
-		var price := str(int(Meta.challenge_for(db, id).price))
+		var price := Num.full(int(Meta.challenge_for(db, id).price))
 		card.draw.connect(func() -> void:
 			UiArt.card(card, Rect2(0, 0, 150, 32))
 			var sr := Rect2(5, 4, 24, 24)
@@ -2052,6 +2079,13 @@ func _bot_dir() -> Vector2:
 		if off.length_squared() < 30.0 * 30.0 and off.dot(enemy_shots.vel[s]) > 0.0:
 			var side := enemy_shots.vel[s].orthogonal().normalized()
 			away += side * signf(side.dot(off) + 0.01) / maxf(off.length(), 4.0)
+	# Sim bots (a picker) step out of Mega Mole's red warning zone, as a
+	# player who sees it would.
+	if options.has("bot_picker") and boss != null and boss.alive() and boss.burrowed():
+		var off := _pos - boss.shadow
+		var r := float(boss.cfg.burrow.radius) + 14.0
+		if off.length_squared() < r * r:
+			away += off.normalized() / 4.0 if off.length() > 0.5 else Vector2.RIGHT / 4.0
 	var goal := _bot_goal() if options.get("bot_goals", false) else Vector2(-INF, -INF)
 	var pull := Vector2.ZERO
 	if goal.x > -INF:
@@ -2166,6 +2200,7 @@ func _bot_goal() -> Vector2:
 			"paid_chest": want = gold >= interactables.paid_price(o.def)
 			"pot": want = o.pos.distance_to(_pos) < 90.0
 			"charge_shrine": want = o.pos.distance_to(_pos) < 120.0
+			"town": want = options.has("bot_picker") and o.pos.distance_to(_pos) < 160.0
 		if not want:
 			continue
 		var d: float = o.pos.distance_squared_to(_pos)
@@ -2749,7 +2784,7 @@ func _disarm_give_up() -> void:
 ## Fills the pause panel with the run so far.
 func _sync_pause() -> void:
 	var sec := int(minf(elapsed, rules.run_length_sec))
-	_pause_facts.text = "%d:%02d   Lv %d   KO %d" % [sec / 60, sec % 60, level, kills]
+	_pause_facts.text = "%d:%02d   Lv %s   KO %s" % [sec / 60, sec % 60, Num.short(level), Num.short(kills)]
 	_pause_build.setup(db, owned_weapons, owned_tomes, items.stacks, int(rules.weapon_slots), int(rules.tome_slots))
 	if _pause_pick.is_empty() or not _pause_has(_pause_pick):
 		_pause_pick = ["weapons", owned_weapons.keys()[0]] if not owned_weapons.is_empty() else []
@@ -2812,30 +2847,33 @@ func _build_over(ui: CanvasLayer) -> void:
 	_over_text = Label.new()
 	_over_text.visible = false
 	p.add_child(_over_text)
+	# Coins earned: the words, the big number under them (all the width up to
+	# AD x2, short form past it), the Danger / Final Swarm multiplier under that.
 	var coins := Control.new()
 	coins.name = "Coins"
 	coins.position = Vector2(10, 46)
-	coins.size = Vector2(150, 33)
+	coins.size = Vector2(150, 40)
 	coins.mouse_filter = Control.MOUSE_FILTER_IGNORE
 	coins.draw.connect(func() -> void:
 		UiArt.card(coins, Rect2(0, 0, coins.size.x, coins.size.y - UiArt.DROP_CARD))
-		Fonts.draw(coins, "Coins earned", Vector2(6, Fonts.cap_y("NAME", 0, 22)), "NAME"))
+		Fonts.draw(coins, "Coins earned", Vector2(6, Fonts.cap_y("NAME", 2, 10)), "NAME"))
 	_over_win.add_child(coins)
 	_over_coins = CoinPlate.new()
 	_over_coins.plain = true
 	_over_coins.align = 0.0
-	_over_coins.position = Vector2(68, 4)
-	_over_coins.size = Vector2(40, 22)
+	_over_coins.room = 98
+	_over_coins.position = Vector2(6, 13)
+	_over_coins.size = Vector2(98, 17)
 	coins.add_child(_over_coins)
 	_over_mult = Fonts.label("", "SMALL", Palette.PINK)
-	_over_mult.position = Vector2(6, 20)
-	_over_mult.size = Vector2(60, 8)
+	_over_mult.position = Vector2(6, 29)
+	_over_mult.size = Vector2(98, 8)
 	coins.add_child(_over_mult)
 	# AD x2 (rewarded ad) on the coins it doubles.
 	_double_btn = AdButton.new()
 	_double_btn.name = "Double"
 	_double_btn.label = "x2"
-	_double_btn.position = Vector2(108, 4)
+	_double_btn.position = Vector2(108, 8)
 	_double_btn.custom_minimum_size = Vector2(38, 23)
 	_double_btn.size = _double_btn.custom_minimum_size
 	_double_btn.pressed.connect(_on_double_pressed)
@@ -2843,11 +2881,11 @@ func _build_over(ui: CanvasLayer) -> void:
 	coins.add_child(_double_btn)
 	var head := Fonts.label("Almost there", "NAME")
 	head.name = "AlmostThere"
-	head.position = Vector2(11, 85)
+	head.position = Vector2(11, 92)
 	_over_win.add_child(head)
 	var scroll := DragScroll.new()
-	scroll.position = Vector2(10, 98)
-	scroll.size = Vector2(150, 90)
+	scroll.position = Vector2(10, 105)
+	scroll.size = Vector2(150, 83)
 	_over_win.add_child(scroll)
 	_over_scroll = scroll
 	_over_list = VBoxContainer.new()
@@ -2938,7 +2976,7 @@ func _pause_has(pick: Array) -> bool:
 ## The run facts row in the pause window: clock + time, star + level, skull + KO.
 func _draw_pause_facts(ci: Control) -> void:
 	var sec := int(minf(elapsed, rules.run_length_sec))
-	var parts := [["hud_clock", "%d:%02d" % [sec / 60, sec % 60]], ["star", "Lv %d" % level], ["hud_skull", str(kills)]]
+	var parts := [["hud_clock", "%d:%02d" % [sec / 60, sec % 60]], ["star", "Lv " + Num.short(level)], ["hud_skull", Num.short(kills)]]
 	var total := 0.0
 	for pt: Array in parts:
 		total += 12.0 + ceilf(Fonts.width(pt[1], "NUM")) + 12.0
@@ -2970,8 +3008,8 @@ func _draw_pause_info() -> void:
 			sub = "Weapon · Lv %d/%d" % [lvl, def.levels.size()]
 			var ld: Dictionary = def.levels[lvl - 1]
 			if ld.has("damage"):
-				extra = "Damage %d · " % roundi(float(ld.damage) * stat("damage"))
-			extra += "%d KO" % int(run_stats.get("kills." + id, 0.0))
+				extra = "Damage %s · " % Num.full(roundi(float(ld.damage) * stat("damage")))
+			extra += "%s KO" % Num.full(int(run_stats.get("kills." + id, 0.0)))
 		"tomes":
 			var lvl := int(owned_tomes[id])
 			sub = "Manual · Lv %d/%d" % [lvl, int(rules.get("max_level", 5))]
@@ -2981,7 +3019,7 @@ func _draw_pause_info() -> void:
 			var loot := db.get_entry("rules", "loot")
 			sub = "%s item" % String(loot.rarity_names.get(def.rarity, ""))
 			if int(items.stacks[id]) > 1:
-				sub += " x%d" % int(items.stacks[id])
+				sub += " x" + Num.short(int(items.stacks[id]))
 	var name_t: String = def.get("name", id)
 	var sw := ceilf(Fonts.width(sub, "SMALL"))
 	var nfs: int = Fonts.STYLES.CARD_NAME[1]
@@ -3020,26 +3058,26 @@ func _draw_pause_stats() -> void:
 		Fonts.draw(ci, rows[i][1], at, "BODY", Palette.PAPER, 68, HORIZONTAL_ALIGNMENT_RIGHT)
 
 
-## Four stat tiles in wells: icon + value (NUM), caption (SMALL) under it.
+## Four stat tiles in wells: the value (NUM, short form: "999K") on top with
+## the whole width, icon + caption (SMALL) under it.
 func _draw_over_tiles() -> void:
 	var ci := _over_tiles
 	var sec := int(minf(elapsed, rules.run_length_sec))
 	var tiles := [
 		["hud_clock", "%d:%02d" % [sec / 60, sec % 60], "Time"],
-		["star", str(level), "Level"],
-		["hud_skull", str(kills), "KO"],
-		["hud_coin", str(floori(gold)), "Gold"],
+		["star", Num.short(level), "Level"],
+		["hud_skull", Num.short(kills), "KO"],
+		["hud_coin", Num.short(floori(gold)), "Gold"],
 	]
 	for i in 4:
 		var r := Rect2(i * 38, 0, 36, 29)
 		UiArt.well(ci, r)
-		var v: String = tiles[i][1]
-		var vw := ceilf(Fonts.width(v, "NUM"))
+		Fonts.draw(ci, tiles[i][1], Vector2(r.position.x, Fonts.cap_y("NUM", 2, 13)), "NUM", -1, r.size.x, HORIZONTAL_ALIGNMENT_CENTER)
 		var ss := Vector2(UiArt.sprite_size(tiles[i][0]))
-		var x := r.position.x + floorf((r.size.x - ss.x - 2 - vw) / 2.0)
-		UiArt.sprite(ci, tiles[i][0], Vector2(x, 4 + floorf((12 - ss.y) / 2.0)))
-		Fonts.draw(ci, v, Vector2(x + ss.x + 2, Fonts.cap_y("NUM", 3, 12)), "NUM")
-		Fonts.draw(ci, tiles[i][2], Vector2(r.position.x, 18), "SMALL", -1, r.size.x, HORIZONTAL_ALIGNMENT_CENTER)
+		var cw := ceilf(Fonts.width(tiles[i][2], "SMALL"))
+		var x := r.position.x + floorf((r.size.x - ss.x - 2 - cw) / 2.0)
+		UiArt.sprite(ci, tiles[i][0], Vector2(x, 15 + floorf((11 - ss.y) / 2.0)))
+		Fonts.draw(ci, tiles[i][2], Vector2(x + ss.x + 2, Fonts.cap_y("SMALL", 15, 11)), "SMALL")
 
 
 ## A hidden panel. `rect` is in a 180x320 design frame; the panel is

@@ -337,7 +337,7 @@ func _draw_top() -> void:
 	# Level badge: the lamp block with the level in it.
 	var br := Rect2(BADGE.position + Vector2(0, t), BADGE.size)
 	UiArt.button(ci, br, "primary")
-	var lv := str(_level)
+	var lv := Num.short(_level)
 	var lfs := 14 if _level < 100 else 11
 	Fonts.draw(ci, lv, Vector2(br.position.x, Fonts.cap_y("TITLE", br.position.y + 1, br.size.y - 4, lfs)), "TITLE", -1,
 			br.size.x, HORIZONTAL_ALIGNMENT_CENTER, lfs)
@@ -367,15 +367,15 @@ func _draw_top() -> void:
 		ci.draw_rect(Rect2(gx, inner.position.y, maxf(0.0, floorf(inner.size.x * _ghost) - floorf(inner.size.x * hf) - 1), inner.size.y), Palette.color(Palette.PAPER))
 	if shield > 0.0:
 		ci.draw_rect(Rect2(inner.position, Vector2(floorf(inner.size.x * clampf(shield / hp_max, 0.0, 1.0)), 2)), Palette.color(Palette.SKY))
-	Fonts.draw(ci, "%d/%d" % [ceili(hp), roundi(hp_max)], Vector2(bar.position.x, Fonts.cap_y("BAR_NUM", bar.position.y, bar.size.y)), "BAR_NUM",
+	Fonts.draw(ci, "%s/%s" % [Num.short(ceili(hp)), Num.short(roundi(hp_max))], Vector2(bar.position.x, Fonts.cap_y("BAR_NUM", bar.position.y, bar.size.y)), "BAR_NUM",
 			Palette.SALMON if low else -1, bar.size.x, HORIZONTAL_ALIGNMENT_CENTER)
 	# Gold over KO, each right-aligned under the timer.
 	var bump := 1.0 if _gold_bump > 0.0 else 0.0
-	var gs := str(gold)
+	var gs := Num.short(gold)
 	var gx2 := w - 5 - ceilf(Fonts.width(gs, "NUM"))
 	UiArt.sprite(ci, "hud_coin", Vector2(gx2 - 13, t + COIN_AT.y - bump))
 	Fonts.draw(ci, gs, Vector2(gx2, Fonts.cap_y("NUM", t + COIN_AT.y - bump, 10)), "NUM")
-	var kills := str(_kills)
+	var kills := Num.short(_kills)
 	var kx := w - 5 - ceilf(Fonts.width(kills, "NUM"))
 	UiArt.sprite(ci, "hud_skull", Vector2(kx - 13, t + SKULL_AT.y))
 	Fonts.draw(ci, kills, Vector2(kx, Fonts.cap_y("NUM", t + SKULL_AT.y, 10)), "NUM")
@@ -422,7 +422,7 @@ func _draw() -> void:
 
 	# Banner: BANNER text over the world, a quarter of the way down.
 	if _banner.visible and _banner.text != "":
-		Fonts.draw(self, _banner.text, Vector2(0, t + floorf(size.y * 0.24)), "BANNER", _banner_color, w, HORIZONTAL_ALIGNMENT_CENTER)
+		Fonts.draw(self, _banner.text, Vector2(0, banner_y()), "BANNER", _banner_color, w, HORIZONTAL_ALIGNMENT_CENTER)
 
 	# Boss bar along the bottom, its name on a plate above it.
 	if boss_frac >= 0.0:
@@ -444,6 +444,19 @@ func strip_rows() -> int:
 ## Top of the info line, under the build rows (64 with one row).
 func info_y() -> float:
 	return float(STRIP_Y + STRIP_ROW * strip_rows() + 2)
+
+
+## Top of the banner (Swarm incoming!): a quarter down the screen, or under
+## the pickup card and the toast while they show (it used to cover the card).
+func banner_y() -> float:
+	var t := float(safe_top)
+	var y := t + floorf(size.y * 0.24)
+	var below := t + card_y()
+	if not _card.is_empty():
+		below += card_height() + 6
+	if _toast_left > 0.0:
+		below += 10.0 * _toast_lines.size() + 11
+	return maxf(y, below + 4) if below > t + card_y() else y
 
 
 ## Top of the pickup card, under the info line (72 with one row).
@@ -511,7 +524,7 @@ func _draw_items() -> void:
 			_items_view.draw_texture(tex, _icon_at(r, tex))
 		var stacks := int(_items[id])
 		if stacks > 1:
-			UiArt.badge(_items_view, str(stacks), r.end - Vector2(6, 7), "count")
+			UiArt.corner_badge(_items_view, Num.short(stacks), r.end + Vector2(2, 2), "count")
 		i += 1
 
 
@@ -570,7 +583,7 @@ func _draw_card(y: float) -> void:
 		draw_texture_rect(art, Rect2((sr.get_center() - s / 2.0).floor(), s), false)
 	var stacks := _card_stacks()
 	if stacks != "":
-		UiArt.badge(self, stacks, sr.end - Vector2(9, 8), "count", 10)
+		UiArt.corner_badge(self, stacks, sr.end + Vector2(3, 2), "count", 10)
 	var x := sr.end.x + 5
 	var tw := r.end.x - x - 6
 	Fonts.draw(self, String(_card.get("tag_line", _card.tag)), Vector2(x, r.position.y + 6), "SMALL", int(_card.color), tw)
@@ -584,7 +597,7 @@ func _draw_card(y: float) -> void:
 func _card_stacks() -> String:
 	var tag: String = _card.get("tag", "")
 	var m := RegEx.create_from_string("[xX×](\\d+)").search(tag)
-	return "x" + m.get_string(1) if m != null else ""
+	return "x" + Num.short(int(m.get_string(1))) if m != null else ""
 
 
 ## Height of the pickup card now showing (0 when there's none).

@@ -1,10 +1,10 @@
 {
 	"id": "golden_toilet",
 	"tier": "mid",
-	"desc": "10 elites in one run.",
+	"desc": "7 elites in one run.",
 	"stat": "elites_killed",
 	"scope": "run",
-	"target": 10,
+	"target": 7,
 	"requires": "",
 	"reward": "golden_toilet",
 	"price": 90,

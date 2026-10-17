@@ -201,7 +201,7 @@ func _draw_price(y: float, w: float, h: float) -> void:
 		return
 	var ok: bool = option.get("afford", true)
 	UiArt.button(self, r, "secondary" if ok else "disabled")
-	var txt := str(int(option.price))
+	var txt := Num.short(int(option.price))
 	var tw := ceilf(Fonts.width(txt, "BUTTON"))
 	var x := r.position.x + floorf((r.size.x - tw - 12) / 2.0)
 	var face_h := r.size.y - (3.0 if ok else 1.0)

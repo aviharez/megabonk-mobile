@@ -207,7 +207,7 @@ func _locked_hero(win: Control, c: Dictionary) -> void:
 		var lw := ceilf(Fonts.width(lead, "BODY"))
 		Fonts.draw(win, lead, Vector2(12, Fonts.cap_y("BODY", hy, 10)), "BODY", Palette.LIME if ready else Palette.MUTED)
 		UiArt.sprite(win, "hud_coin", Vector2(16 + lw, hy + 1))
-		Fonts.draw(win, str(price), Vector2(16 + lw + UiArt.sprite_size("hud_coin").x + 3, Fonts.cap_y("NUM", hy, 10)), "NUM")
+		Fonts.draw(win, Num.full(price), Vector2(16 + lw + UiArt.sprite_size("hud_coin").x + 3, Fonts.cap_y("NUM", hy, 10)), "NUM")
 		Fonts.draw(win, "Hire it in the Collection." if ready else "Its stats show once hired.", Vector2(12, hy + 13), "BODY", Palette.MUTED))
 	if not ch.is_empty():
 		var dl := Fonts.label(String(ch.desc), "BODY")
@@ -281,7 +281,7 @@ func _critter(page: Control, win: Control, stage_top: float, stage_h: float, k: 
 	if seen:
 		var t := int(entry.first_seen)
 		first = "%d:%02d" % [t / 60, t % 60]
-	var bonks := CoinPlate.grouped(int(entry.get("bonked", 0)))
+	var bonks := Num.full(int(entry.get("bonked", 0)))
 	win.draw.connect(func() -> void:
 		UiArt.window(win, Rect2(1, 0, W - 2, CRITTER_WIN_H))
 		PlayParts.stat_tiles(win, Vector2(11, 8), W - 22, tiles, 4, not seen)

@@ -157,7 +157,7 @@ func _draw_patrol() -> void:
 	Fonts.draw(c, "Patrol", Vector2(27, Fonts.cap_y("NAME", 5, 10)), "NAME")
 	var coins := Town.patrol_pending(db, save.data)
 	var rate := Town.patrol_rate(db, save.data)
-	var line := "%d coins" % coins
+	var line := "%s coins" % Num.full(coins)
 	var col := Palette.GOLD
 	if rate <= 0.0:
 		line = "Build to earn"
@@ -384,7 +384,7 @@ class PriceButton extends KitButton:
 		super._draw()
 		var r := face_rect()
 		var coin := UiArt.texture("hud_coin")
-		var num := str(price)
+		var num := Num.full(price)
 		var cw := float(coin.get_width()) if coin != null else 0.0
 		# Word, a gap, the coin, the price; 7 px clear of each side of the face.
 		var fs: int = Fonts.STYLES.BUTTON[1]

@@ -111,3 +111,18 @@ func test_query_reaches_big_enemies(t) -> void:
 	e.query_circle(Vector2(233, 200), 4.0, out)
 	t.check(out.has(s), "edge of a radius-30 enemy is hit")
 	e.free()
+
+
+## A shot hit that clears every shot (the player dies) mid-update doesn't
+## read past the pool (phase 14: "Out of bounds get index" in the balance sim).
+func test_shot_hit_that_clears_the_pool(t) -> void:
+	var shots := EnemyShots.new()
+	shots.setup(16)
+	for i in 10:
+		shots.fire(Vector2(100, 100), Vector2.ZERO, 1.0, 2.0, 5.0)
+	var hits := [0]
+	shots.update(0.016, Vector2(100, 100), 4.0, func(_dmg: float, _from: String) -> void:
+		hits[0] += 1
+		shots.clear())
+	t.check(hits[0] == 1 and shots.count() == 0, "one hit, then nothing left (hits %d, left %d)" % [hits[0], shots.count()])
+	shots.free()

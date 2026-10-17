@@ -314,6 +314,13 @@ static func badge(ci: CanvasItem, text: String, at: Vector2, kind := "badge", h 
 	return r
 
 
+## A badge whose bottom-right corner is at `corner`, so a longer number
+## ("99") grows into its slot instead of out past it.
+static func corner_badge(ci: CanvasItem, text: String, corner: Vector2, kind := "badge", h := 9.0) -> Rect2:
+	var w := maxf(h, ceilf(Fonts.width(text, "TAG")) + 4.0)
+	return badge(ci, text, corner - Vector2(w, h), kind, h)
+
+
 ## A label chip (kind "Manual", "District 1 · Best 6:12"): frame plate, BODY text.
 static func chip(ci: CanvasItem, text: String, at: Vector2, h := 11.0, pad := 4.0) -> Rect2:
 	var r := Rect2(at.floor(), Vector2(ceilf(Fonts.width(text, "BODY")) + pad * 2.0, h))

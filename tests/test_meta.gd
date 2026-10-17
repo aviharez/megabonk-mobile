@@ -60,7 +60,7 @@ const BRIEF := {
 	"self_help_book": ["mid", "level", "run", 20, ""],
 	"bubble_wrap_crafts": ["mid", "kills", "total", 2000, ""],
 	"lottery_tips": ["mid", "epic_from_paid_chest", "total", 1, "golden_toilet"],  # owner, 2026-10-08: Epics are all unlocks
-	"golden_toilet": ["mid", "elites_killed", "run", 10, ""],
+	"golden_toilet": ["mid", "elites_killed", "run", 7, ""],  # owner, 2026-10-18: 10 -> 7 (phase 14 balance)
 	"gary": ["hard", "final_swarm_seconds", "run", 60, ""],
 	"copy_machine_manual": ["hard", "shots", "total", 3000, "gary"],
 	"static_sweater": ["hard", "kills", "total", 300, "faulty_toaster"],

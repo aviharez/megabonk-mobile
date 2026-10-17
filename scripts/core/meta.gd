@@ -450,7 +450,7 @@ static func format_stat(stat: String, x: float) -> String:
 			return "%d:%02d" % [int(x) / 60, int(x) % 60]
 		"boss_defeated_hp_frac":
 			return "%d%%" % roundi(x * 100.0)
-	return str(floori(x))
+	return Num.full(floori(x))
 
 
 ## A "total" challenge with a prerequisite keeps its own count in "challenges",

@@ -39,7 +39,7 @@ func _sync() -> void:
 	if _buy_btn == null:
 		return
 	_buy_btn.visible = state != "locked" and price >= 0
-	_buy_btn.label = str(price)
+	_buy_btn.label = Num.short(price)
 	_buy_btn.disabled = not affordable
 	_buy_btn.ink = Palette.PAPER
 	_buy_btn.disabled_ink = Palette.SALMON

@@ -12,11 +12,18 @@ extends Node2D
 ## flashing WHITE. Words and gold: POP. Everything hops up and out in a
 ## small arc (whole pixels). When the pool is full the oldest number is
 ## reused. Numbers can be turned off in settings; labels can't.
+## Big numbers stay short in a crowd (phase 14): at most 4 characters
+## (Num.tiny: "999", "1.2K", "999K"), and hits on the same spot within
+## MERGE_SEC add up in the number already there instead of piling a new one
+## on top of it.
 
 const CAPACITY := 40
 const LIFE := 0.5
 const CRIT_LIFE := 0.65
 const GRAVITY := 160.0
+## Hits this close (world px) and this soon after a number add into it.
+const MERGE_PX := 12.0
+const MERGE_SEC := 0.15
 
 var enabled := true
 ## Camera centre in world px, UI px per world px (Run sets both every frame).
@@ -29,6 +36,8 @@ var _life := PackedFloat32Array()
 var _color := PackedInt32Array()
 var _crit := PackedByteArray()
 var _plain := PackedByteArray()
+var _amount := PackedFloat32Array()
+var _origin := PackedVector2Array()
 var _next := 0
 var _live := 0
 var _t := 0.0
@@ -45,14 +54,23 @@ func _ready() -> void:
 	_color.resize(CAPACITY)
 	_crit.resize(CAPACITY)
 	_plain.resize(CAPACITY)
+	_amount.resize(CAPACITY)
+	_origin.resize(CAPACITY)
 
 
 ## Plain hits small in Inter, crits big in Titan One.
 func show_number(at: Vector2, amount: float, crit := false) -> void:
-	show_text(at, str(maxi(1, roundi(amount))) + ("!" if crit else ""), Palette.BUTTER if crit else Palette.WHITE)
 	if not enabled:
 		return
-	var i := (_next - 1 + CAPACITY) % CAPACITY
+	var i := _merge_slot(at, crit)
+	if i >= 0:
+		_amount[i] += amount
+		_text[i] = _number_text(_amount[i], crit)
+		return
+	show_text(at, _number_text(amount, crit), Palette.BUTTER if crit else Palette.WHITE)
+	i = (_next - 1 + CAPACITY) % CAPACITY
+	_amount[i] = amount
+	_origin[i] = at
 	if crit:
 		_crit[i] = 1
 		_life[i] = CRIT_LIFE
@@ -60,6 +78,20 @@ func show_number(at: Vector2, amount: float, crit := false) -> void:
 	else:
 		_plain[i] = 1
 		_life[i] = LIFE * 0.85
+
+
+static func _number_text(amount: float, crit: bool) -> String:
+	return Num.tiny(maxi(1, roundi(amount))) + ("!" if crit else "")
+
+
+## A live number of the same kind started at `at` less than MERGE_SEC ago, or -1.
+func _merge_slot(at: Vector2, crit: bool) -> int:
+	var fresh := (CRIT_LIFE if crit else LIFE * 0.85) - MERGE_SEC
+	for i in CAPACITY:
+		if _life[i] > fresh and (_crit[i] == 1) == crit and (_plain[i] == 1) != crit \
+				and _origin[i].distance_squared_to(at) <= MERGE_PX * MERGE_PX:
+			return i
+	return -1
 
 
 func show_text(at: Vector2, text: String, color := Palette.PAPER) -> void:

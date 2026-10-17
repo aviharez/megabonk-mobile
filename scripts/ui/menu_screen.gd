@@ -259,7 +259,7 @@ func _layout_bar() -> void:
 		_coins.visible = true
 		_set_rect(_coins, Rect2(-16, inner.position.y + 4, 102, CoinPlate.H))
 		_coins.custom_minimum_size = Vector2.ZERO
-		_coins.call("_fit")
+		_coins.room = 102
 	else:
 		_coins.visible = false
 		_set_rect(_primary, Rect2(-16, inner.position.y, 102, inner.size.y))
@@ -289,6 +289,23 @@ func _set_tab_mode() -> void:
 	_tab_coins.size = Vector2(94, CoinPlate.H)
 	_tab_coins.value = int(save.data.coins)
 	_header.add_child(_tab_coins)
+	_coins_beside(_tab_title, 10.0, 20.0)
+
+
+## The coin plate takes the room right of the title (to x 174) and goes to
+## the short form ("12.3K") when the full number would run into it; if even
+## that doesn't fit, the title steps down a size or two.
+func _coins_beside(title: Label, box_y: float, box_h: float) -> void:
+	var short_w := _tab_coins._plate_w(Num.short(int(save.data.coins)))
+	var room := 174.0 - title.position.x - ceilf(Fonts.width(title.text, "TITLE")) - 4.0
+	if room < short_w:
+		room = short_w
+		var fs := Fonts.fit(title, 174.0 - short_w - 4.0 - title.position.x)
+		title.position.y = Fonts.cap_y("TITLE", box_y, box_h, fs)
+	# room first: it sets the plate's minimum width, which size can't go under.
+	_tab_coins.room = room
+	_tab_coins.size.x = room
+	_tab_coins.position.x = 174.0 - room
 
 
 ## Step look (Play's Pick a District / Pick a Hero): the back block left of
@@ -317,6 +334,7 @@ func _set_step_mode() -> void:
 	_tab_coins.size = Vector2(94, CoinPlate.H)
 	_tab_coins.value = int(save.data.coins)
 	_header.add_child(_tab_coins)
+	_coins_beside(_tab_title, 8.0, 23.0)
 	if step > 0:
 		var steps := Control.new()
 		steps.name = "Steps"
@@ -451,7 +469,7 @@ func button(parent: Control, text: String, rect: Rect2, face: int, on_press: Cal
 ## A price button: the coin and the number (gray and off when unaffordable).
 func price_button(parent: Control, price: int, rect: Rect2, on_press: Callable, prefix := "") -> PixelButton:
 	var can := int(save.data.coins) >= price
-	var b := button(parent, prefix + str(price), rect, Palette.FRAME, on_press, can)
+	var b := button(parent, prefix + Num.full(price), rect, Palette.FRAME, on_press, can)
 	b.art = UiArt.texture("hud_coin")
 	b.art_plain = true
 	return b

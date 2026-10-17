@@ -2,7 +2,8 @@ class_name CoinPlate
 extends Control
 ## The coin count on the kit v2 coin plate (a slot: INK, frame ring, WELL
 ## inside): the big kit coin, then the number in NUM with a thousands comma
-## ("1,246").
+## ("1,246"), or its short form ("12.3K", Num) when the full one would make
+## the plate wider than `room`.
 ## `count_to()` rolls the number up (coins earned at the end of a run) with a
 ## tick sound every few steps. Sizes itself to its text.
 
@@ -21,6 +22,12 @@ var plain := false:
 	set(v):
 		plain = v
 		_fit()
+## The most width the plate may take (0 = no limit).
+var room := 0.0:
+	set(v):
+		room = v
+		_fit()
+var _short := false
 var _tween: Tween
 
 
@@ -51,19 +58,22 @@ func _set_shown(v: int) -> void:
 	_fit()
 
 
-## "1246" -> "1,246".
-static func grouped(n: int) -> String:
-	var digits := str(absi(n))
-	var out := ""
-	while digits.length() > 3:
-		out = "," + digits.right(3) + out
-		digits = digits.left(digits.length() - 3)
-	return ("-" if n < 0 else "") + digits + out
+## The number as shown: full, or short when the full one doesn't fit `room`
+## (decided on the biggest number of a roll-up, so it doesn't switch midway).
+func text_of(n: int) -> String:
+	return Num.short(n) if _short else Num.full(n)
+
+
+func _plate_w(text: String) -> float:
+	if plain:
+		return UiArt.sprite_size("coin_big").x + 4 + ceilf(Fonts.width(text, "NUM", 16))
+	return UiArt.sprite_size("coin_big").x + ceilf(Fonts.width(text, "NUM")) + 17
 
 
 func _fit() -> void:
-	var tw := ceilf(Fonts.width(grouped(maxi(_shown, value)), "NUM"))
-	custom_minimum_size = Vector2(UiArt.sprite_size("coin_big").x + tw + 17, H)
+	var top := maxi(_shown, value)
+	_short = room > 0.0 and _plate_w(Num.full(top)) > room
+	custom_minimum_size = Vector2(_plate_w(text_of(top)), H)
 	queue_redraw()
 
 
@@ -71,7 +81,7 @@ func _draw() -> void:
 	if plain:
 		var cs0 := Vector2(UiArt.sprite_size("coin_big"))
 		UiArt.sprite(self, "coin_big", Vector2(0, floorf((size.y - cs0.y) / 2.0)))
-		Fonts.draw(self, grouped(_shown), Vector2(cs0.x + 4, Fonts.cap_y("NUM", 0, size.y, 16)), "NUM", -1, -1,
+		Fonts.draw(self, text_of(_shown), Vector2(cs0.x + 4, Fonts.cap_y("NUM", 0, size.y, 16)), "NUM", -1, -1,
 				HORIZONTAL_ALIGNMENT_LEFT, 16)
 		return
 	var w := floorf(size.x)
@@ -79,4 +89,4 @@ func _draw() -> void:
 	UiArt.slot(self, r, "", 0)
 	var cs := Vector2(UiArt.sprite_size("coin_big"))
 	UiArt.sprite(self, "coin_big", Vector2(r.position.x + 5, r.position.y + floorf((H - cs.y) / 2.0)))
-	Fonts.draw(self, grouped(_shown), Vector2(r.position.x + cs.x + 9, Fonts.cap_y("NUM", r.position.y + 1, H - 2)), "NUM")
+	Fonts.draw(self, text_of(_shown), Vector2(r.position.x + cs.x + 9, Fonts.cap_y("NUM", r.position.y + 1, H - 2)), "NUM")

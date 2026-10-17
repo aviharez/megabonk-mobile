@@ -6,12 +6,16 @@ extends SceneTree
 ##   godot --path . --resolution 540x1170 -s res://tools/shoot_screens.gd -- [--out=user://screens] [--notch=12] [--only=menu,run] [--size=540x1170]
 ## --size forces the window to that size (borderless) when it is taller than the
 ## screen (the compositor clamps --resolution to the screen height).
+## --big (phase 14) shoots the same screens with the largest numbers they
+## should hold (BigNumbers: coins 9,999,999, run gold and KO 999,999, level
+## 999, stacks 99, damage 999,999, quest targets at the largest in data).
 
 const TEST_SAVE := "user://shoot_screens_save.json"
 
 var out := "user://screens"
 var only: PackedStringArray = []
 var force_size := Vector2i.ZERO
+var big := false
 
 
 func _initialize() -> void:
@@ -25,6 +29,7 @@ func _initialize() -> void:
 	if args.has("notch"):
 		SafeArea.debug_top = int(args.notch)
 		SafeArea.debug_bottom = int(args.get("chin", "4"))
+	big = args.has("big")
 	if args.has("size"):
 		var wh := String(args.size).split("x")
 		force_size = Vector2i(int(wh[0]), int(wh[1]))
@@ -89,6 +94,8 @@ func _run() -> void:
 	save.data.quests.points = 40
 	save.data.quests.chests = [0]
 	save.data.quests.last_claim = {"id": qd[2], "coins": 10, "day": Quests.day_of(Quests.now())}
+	if big:
+		BigNumbers.fill_save(GameData.shared(), save.data)
 	save.save_game()
 	var ads := root.get_node_or_null("/root/Ads")
 
@@ -182,6 +189,8 @@ func _run() -> void:
 		for it in ["hot_sauce", "band_aid", "band_aid", "lucky_penny"]:
 			run.give_item(it)
 		run.hp = run.stat("max_hp") * 0.6
+		if big:
+			BigNumbers.fill_run(run)
 		run.show_item_card("band_aid")
 		await _wait(0.3)
 		await _shot("10_run")
@@ -214,7 +223,7 @@ func _run() -> void:
 		var mdef := run.db.get_entry("interactables", "merchant")
 		if not mdef.is_empty():
 			var m: Dictionary = run.interactables.add("merchant", run.player_pos() + Vector2(300, 0))
-			run.gold = 40
+			run.gold = BigNumbers.RUN if big else 40
 			m.stock[0].sold = true
 			run.open_merchant(m)
 			await _wait(0.4)
@@ -224,6 +233,8 @@ func _run() -> void:
 		await _wait(0.6)
 		await _shot("14_low_hp")
 		run.call("_end", "died")
+		if big:
+			BigNumbers.fill_result(run)
 		await _wait(1.8)
 		await _shot("15_game_over")
 
@@ -292,8 +303,12 @@ func _run() -> void:
 		for i in 120:
 			var at := p + Vector2.from_angle(TAU * i / 120.0 * 7.0) * (46.0 + float(i % 11) * 8.0)
 			run.spawn_enemy(ids[i % ids.size()], run.free_spot_near(at))
+		if big:
+			BigNumbers.fill_run(run)
 		for i in 3:
-			await _wait(0.45)
+			if big:
+				BigNumbers.hit_crowd(run)
+			await _wait(0.2 if big else 0.45)
 			await _shot("50_crowd_%d" % i)
 
 	save.path = real_path
