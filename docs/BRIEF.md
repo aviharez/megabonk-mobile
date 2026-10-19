@@ -670,7 +670,7 @@ These names are Megabonk's own words; change the player-facing text only (ids ma
 
 ## Phases
 
-Eight phases, numbered after the current ones (Balance and Release prep added 2026-10-17, after a review found the original phases 8 and 10 had been replaced and never run; Tutorial and first session added 2026-10-18 as Phase 16, Release prep moved to Phase 17). Each prompt is pasted as it is; each ends with the usual review prompt.
+Eight phases, numbered after the current ones (Balance and Release prep added 2026-10-17, after a review found the original phases 8 and 10 had been replaced and never run; Tutorial and first session added 2026-10-18 as Phase 16, Release prep moved to Phase 17; Release prep made Android only and iOS split off as Phase 18 on 2026-10-20). Each prompt is pasted as it is; each ends with the usual review prompt.
 
 ### Phase 10: Game UI kit v2 and restyle
 
@@ -754,10 +754,33 @@ Stop and ask before any PixelLab generation, and if a target can't be met withou
 
 Owner changes after the phase (2026-10-19): the tutorial a little harder; the tutorial doesn't open Danger 2 (rule 2: maps_cleared and Danger 2 open move to "does not count"; the "Danger 2 is open" check becomes "Danger 2 opens on the first real Danger 1 win"); the portal step and Sir Loaf's 135 HP stay.
 
-### Phase 17: Release prep
+### Phase 17: Release prep (Android)
+
+Android only (owner, 2026-10-20); iOS is Phase 18. Consent (UMP) was planned for phase 5, then phase 9, and never built, so it is part of this phase.
 
 ```text
-Prepare Android and iOS release builds (the original Phase 10, never run). Propose a StoreKit plugin for iOS and wait for my OK (iOS builds show STORE OFFLINE until then; docs/PLUGINS.md). Test Remove Ads on a device through a Play Console license tester. Done when: the AAB and iOS builds export successfully, the icon and splash use game assets, the privacy policy page and store copy (title, short and long descriptions) are in docs/STORE.md, and a Google Play closed-testing checklist is in TASKS.md. Stop and ask before entering real ad unit or product IDs, and before uploading anything to Play Console or App Store Connect.
+Read docs/BRIEF.md, docs/PLUGINS.md and TASKS.md. Prepare the Android release (the original Phase 10, never run, now Android only; iOS is Phase 18). Start the phase checklist in TASKS.md.
+
+1. Consent. Before the first ad request, run Google's consent flow (UMP) through the AdMob plugin's UMP API (addons/admob/gdscript/src/ump/): request consent info at start, show the form when it is required, and request no ads until the flow ends (with a timeout, so the game never waits on it). When a privacy options entry is required, add a "Privacy" row to Settings that reopens the form. Nothing else waits on it: the tutorial and the menus start at once. Same pattern as ads: the fake backend in debug builds can play "consent required" and "not required". Test on the phone with UMP's debug geography set to the EEA. The consent message itself is made by me in AdMob; tell me exactly what to set up.
+
+2. Release build. A release AAB with all three plugins (AdMob, Billing, Play Games) and their R8 / ProGuard rules, signed with an upload key read from environment variables or a file outside the repo (never committed; I keep the key; Play App Signing on). Versioning: versionCode and versionName from one place, documented. Check the Play target API level rule for this year. In a release build: no fake backends, no debug or test entry points (bot, sims, "enter the Final Swarm directly", shoot_screens), no debug logging. Install the release build on the Xiaomi 15T from the AAB (bundletool) and play splash > tutorial > a real run, with test ads.
+
+3. Look in the store. Adaptive launcher icon (foreground, background, monochrome) and the 512 px store icon from game assets; the Android 12+ system splash matches the Aviharez splash; a 1024x500 feature graphic and phone screenshots from shoot_screens. Palette rules apply; ask before any PixelLab generation.
+
+4. docs/STORE.md: title, short description (80 chars max), long description, privacy policy text and where it will be hosted, the Data safety form answers (what AdMob, Billing and Play Games collect), the content rating questionnaire answers, target audience (propose one and say what changes for a younger audience: Families policy, ads), and the app-ads.txt line.
+
+5. Carried-over items in TASKS.md: glyph pre-warm, the Inter subset, the phone fps numbers from phases 6 and 8.
+
+6. Closed testing checklist in TASKS.md, with my steps and yours: Play Console listing, the internal and closed tracks, the tester count and days Play currently requires for a new personal account (check it), the Remove Ads product and a license tester, the Play Games ids, real AdMob ids, and what to watch during the test (crashes, ANRs, consent, ad fill, cloud save).
+
+Done when: the release AAB builds and installs on the phone; the consent flow works with EEA debug geography and no ad is requested before it ends; Remove Ads is bought and restored on the phone through a license tester (internal track); the icon and splash use game assets; docs/STORE.md is complete; the checklist is in TASKS.md; tests pass; the 300-enemy stress test on the release build stays within 5% of phase 16.
+Stop and ask: before confirming the package name com.aviharez.swarmsurvivor (it can never change after the first upload), before entering real ad unit, product or Play Games ids, before uploading anything to Play Console, and before any PixelLab generation.
+```
+
+### Phase 18: iOS (not scheduled)
+
+```text
+Prepare the iOS release build. Propose a StoreKit plugin and wait for my OK (iOS builds show STORE OFFLINE until then; docs/PLUGINS.md); vendor the AdMob iOS binaries; reuse the consent flow from Phase 17; App Tracking Transparency prompt before ads. Done when: the iOS build exports and runs on a device with test ads, Remove Ads works through StoreKit sandbox, and the App Store copy and privacy answers are in docs/STORE.md. Stop and ask before entering real ids and before uploading anything to App Store Connect.
 ```
 
 ## Open decisions for the owner

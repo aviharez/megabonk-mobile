@@ -48,6 +48,6 @@ Play Games has no public test ids. To test: in Play Console create the Play Game
 
 ## Not done yet (needs the owner, or a later phase)
 
-- **Consent (UMP / GDPR):** AdMob requires a consent message for users in the EEA/UK before serving personalized ads. The plugin ships the UMP API (`addons/admob/gdscript/src/ump/`). Scheduled for phase 9 (owner, 2026-10-09), after the owner sets up the consent message in AdMob.
-- **iOS:** the AdMob plugin supports iOS (binaries not vendored). Play Billing is Android only; iOS needs a StoreKit plugin, which needs approval before installing. Moved to phase 9 (owner, 2026-10-09); until then an iOS release build has no store and the shop shows STORE OFFLINE.
+- **Consent (UMP / GDPR):** AdMob requires a consent message for users in the EEA/UK before serving personalized ads. The plugin ships the UMP API (`addons/admob/gdscript/src/ump/`). Phase 9 became the UI revamp and it was never built; it is now part of Phase 17 (Release prep, Android), after the owner sets up the consent message in AdMob.
+- **iOS:** the AdMob plugin supports iOS (binaries not vendored). Play Billing is Android only; iOS needs a StoreKit plugin, which needs approval before installing. Moved to phase 9 (owner, 2026-10-09), now Phase 18 (iOS, not scheduled; owner, 2026-10-20); until then an iOS release build has no store and the shop shows STORE OFFLINE.
 - **app-ads.txt** on the developer website, before release.
