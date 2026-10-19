@@ -46,6 +46,7 @@ Prompt: a fresh save goes Splash > tutorial run (Sir Loaf, Suburbia, Danger 1, n
 - [x] Home guide line moves above the Unlock rail button while it shows (it covered its label; caught by the stricter guide check in test_text_fit, which now checks each open screen like the big-numbers check)
 - [x] Tests 3634 checks, 0 failed; FLOW OK; 16 tutorial shots at 540x1170 shot again, 0 off-palette pixels, reviewed
 - [x] Review prompt on the phase diff (2026-10-20): no merge blockers. Departs from the brief: the tutorial's typical length is 4:44, not "about 4 minutes" (the owner's harder numbers; run timer 5:00, clock stops at 0:00). Tests again 3634 checks, 0 failed
+- [x] Characters screen (owner, 2026-10-20): the hero / critter name sat at the stage's foot and covered the sprite's feet and the plinth. The name and the role chip now share one row at the stage's top (chip under the name when it doesn't fit, as for Gary the Intern); STAGE_MIN 62 -> 84 so short screens scroll instead of the name row touching a 2x sprite. Shot at 540x1170 and 540x960 (Sir Loaf, Turbo Pigeon, Gary, locked, Skitter, Mega Mole): no overlaps, 0 off-palette pixels. Tests 3634 checks, 0 failed
 
 ### Found during phase 16
 

@@ -23,8 +23,10 @@ const SLOT := 30
 const TABS_H := PixelTabs.H + 2
 const HERO_WIN_H := 127
 const CRITTER_WIN_H := 99
-const STAGE_MIN := 62
-## Stage height a 3x sprite needs (26 px sprite + chip + feet margin).
+## Least stage height: the name row (about 24 px) over a 2x sprite (26 px
+## sprite + feet margin). Shorter screens scroll the page instead.
+const STAGE_MIN := 84
+## Stage height a 3x sprite needs (26 px sprite + the name row + feet margin).
 const STAGE_3X := 96
 
 var tab := 0
@@ -163,8 +165,7 @@ func _hero(page: Control, win: Control, stage_top: float, stage_h: float, k: int
 		page.add_child(sprite)
 	var nl := Fonts.label(String(c.get("name", "")) if owned else "???", "HERO")
 	nl.name = "HeroName"
-	nl.position = Vector2(6, stage_top + stage_h - 24)
-	page.add_child(nl)
+	_place_name(page, nl, stage_top)
 	if owned:
 		var tiles := PlayParts.hero_tiles(db, c, 8)
 		win.draw.connect(func() -> void:
@@ -178,6 +179,24 @@ func _hero(page: Control, win: Control, stage_top: float, stage_h: float, k: int
 				String(passive.get("name", "")), "Passive", String(passive.get("desc", "")), "Passive")
 	else:
 		_locked_hero(win, c)
+
+
+## The name and the role chip share one row at the stage's top, over the sky
+## (the name used to sit at the stage's foot, over the sprite's feet and the
+## plinth): the name on the left, the chip after it, both centred on the
+## name's height. A chip that doesn't fit on the row goes under the name.
+func _place_name(page: Control, nl: Label, stage_top: float) -> void:
+	var sz := nl.get_combined_minimum_size()
+	nl.position = Vector2(6, stage_top + 2)
+	page.add_child(nl)
+	var chip: Control = page.get_node_or_null("Role")
+	if chip == null:
+		return
+	var x := nl.position.x + sz.x + 4
+	if x + chip.size.x <= W - 4:
+		chip.position = Vector2(x, floorf(nl.position.y + (sz.y - chip.size.y) / 2.0))
+	else:
+		chip.position = Vector2(6, nl.position.y + sz.y)
 
 
 ## A locked hero: dim "?" tiles, how to unlock it, the hire price.
@@ -273,8 +292,7 @@ func _critter(page: Control, win: Control, stage_top: float, stage_h: float, k: 
 	page.add_child(sprite)
 	var nl := Fonts.label(String(e.get("name", "")) if seen else "???", "HERO")
 	nl.name = "CritterName"
-	nl.position = Vector2(6, stage_top + stage_h - 24)
-	page.add_child(nl)
+	_place_name(page, nl, stage_top)
 	var tiles := PlayParts.critter_tiles(db, e, not seen)
 	var entry: Dictionary = save.data.get("bestiary", {}).get(critter_sel, {})
 	var first := "-"
