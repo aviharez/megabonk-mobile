@@ -2,5 +2,6 @@
 	"id": "sewers",
 	"name": "Sewers",
 	"status": "planned",
-	"unlock_after": "suburbia"
+	"unlock_after": "suburbia",
+	"unlock_danger": 2
 }

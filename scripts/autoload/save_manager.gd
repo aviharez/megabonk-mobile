@@ -91,6 +91,10 @@ static func default_data() -> Dictionary:
 			"levels": {},
 			"patrol": {"since": 0, "banked": 0.0},
 		},
+		# First session (phase 16; see scripts/core/tutorial.gd): the tutorial
+		# run's state and the Home guide step. Older saves get this filled in;
+		# with runs played they never see the tutorial.
+		"tutorial": {"state": "", "guide": ""},
 		# Ad pacing, daily reward, Remove Ads (phase 5; see scripts/autoload/ads.gd).
 		"ads": {
 			# Remove Ads bought (no interstitials, no banners; rewarded ads stay).

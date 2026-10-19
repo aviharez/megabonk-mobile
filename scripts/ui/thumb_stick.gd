@@ -10,13 +10,15 @@ const KNOB := 6
 const DEAD_ZONE := 0.15
 
 var direction := Vector2.ZERO
-## First runs: a ghost stick at the bottom with "Drag anywhere to move.",
-## gone after the first touch.
+## A ghost stick at the bottom, gone after the first touch: the tutorial's
+## first step (its line says "Drag anywhere to move." on the tip, so the
+## stick shows no text of its own unless `hint_text` is set).
 var hint := false:
 	set(v):
 		hint = v
 		set_process(hint)
 		queue_redraw()
+var hint_text := ""
 var _hint_t := 0.0
 var _touch := -1
 var _base := Vector2.ZERO
@@ -117,14 +119,16 @@ static func _circle_pixels(r: int, filled: bool) -> PackedVector2Array:
 
 
 ## The ghost stick: base and knob at the bottom middle, the knob swaying
-## left and right, and the hint text above it.
+## left and right, and `hint_text` (if any) above it.
 func _draw_hint() -> void:
 	var base := Vector2(floorf(size.x / 2.0), floorf(size.y * 0.78))
 	var sway := Vector2(roundf(sin(_hint_t * 3.0) * RADIUS * 0.8), 0)
 	if UiArt.has("stick_base") and UiArt.has("stick_knob"):
 		UiArt.sprite(self, "stick_base", (base - Vector2(UiArt.sprite_size("stick_base")) / 2.0).round())
 		UiArt.sprite(self, "stick_knob", (base + sway - Vector2(UiArt.sprite_size("stick_knob")) / 2.0).round())
-	var text := "Drag anywhere to move."
+	var text := hint_text
+	if text == "":
+		return
 	var tw := Fonts.BOLD.get_string_size(text, HORIZONTAL_ALIGNMENT_LEFT, -1, 8).x
 	var at := Vector2(floorf((size.x - tw) / 2.0), base.y - RADIUS - 8)
 	if int(_hint_t * 2.0) % 4 != 3:

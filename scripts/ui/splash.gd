@@ -3,12 +3,15 @@ extends Control
 ## Studio splash, the first scene: the Aviharez Studio badge (a gold pixel "A"
 ## on a blue plate, drawn from the grids below) drops in and bounces, a shine
 ## sweeps across it, AVIHAREZ pops in one letter at a time, STUDIO under it,
-## then a dither wipe to the main menu. A tap or the back button skips ahead.
+## then a dither wipe to the main menu (a fresh save goes straight into the
+## tutorial run instead: Tutorial.should_start, phase 16; nothing waits for
+## Play Games sign-in). A tap or the back button skips ahead.
 ## INK background, the same colour as the boot splash, so the hand-over from
 ## the engine's splash is seamless. Every pixel is a palette colour on the
 ## whole-pixel grid (the badge is drawn at a whole-number scale).
 
 const NEXT_SCENE := "res://scenes/main_menu.tscn"
+const RUN_SCENE := "res://scenes/run.tscn"
 const NAME := "AVIHAREZ"
 const SUB := "STUDIO"
 ## Badge pixels, in UI pixels per art pixel. The name is Titan One in the
@@ -80,6 +83,9 @@ const LIGHTER := {
 
 ## Palette index per badge pixel (-1: clear), PLATE-sized.
 var badge: Array = []
+## The save that decides where the splash goes (the Save autoload unless a
+## test sets one first).
+var save: Node
 var _tex: ImageTexture
 var _t := 0.0
 var _leaving := false
@@ -94,6 +100,8 @@ var _next_letter := 0
 func _ready() -> void:
 	set_anchors_and_offsets_preset(PRESET_FULL_RECT)
 	mouse_filter = MOUSE_FILTER_STOP
+	if save == null:
+		save = get_node_or_null("/root/Save")
 	_build_badge()
 	# Letters are their own titles so each can pop in on its own.
 	var x := 0.0
@@ -305,13 +313,25 @@ func _notification(what: int) -> void:
 		leave()
 
 
-## To the main menu (once).
+## Where the splash goes for this save: the tutorial run for a fresh save
+## (marking it started and setting the run's options), else the main menu.
+static func next_scene(save: Node) -> String:
+	if save == null or not Tutorial.should_start(GameData.shared(), save.data):
+		return NEXT_SCENE
+	Tutorial.begin(save.data)
+	save.save_game()
+	Run.next_options = Tutorial.run_options(GameData.shared())
+	return RUN_SCENE
+
+
+## To the main menu, or the tutorial run (once).
 func leave() -> void:
 	if _leaving:
 		return
 	_leaving = true
+	var to := next_scene(save)
 	var tr := get_node_or_null("/root/Transition")
 	if tr != null:
-		tr.change_scene(NEXT_SCENE)
+		tr.change_scene(to)
 	else:
-		get_tree().change_scene_to_file(NEXT_SCENE)
+		get_tree().change_scene_to_file(to)

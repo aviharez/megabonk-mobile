@@ -6,7 +6,7 @@
 	"status": "start",
 	"signature_weapon": "baguette",
 	"stats": {
-		"max_hp": 120,
+		"max_hp": 135,
 		"move_speed": 52,
 		"pickup_range": 30,
 		"armor": 0,
@@ -26,7 +26,8 @@
 		"id": "getting_stale",
 		"name": "Getting Stale",
 		"desc": "Less damage taken over time.",
-		"reduction_per_minute": 0.03,
+		"start_reduction": 0.10,
+		"reduction_per_minute": 0.02,
 		"max_reduction": 0.24
 	}
 }

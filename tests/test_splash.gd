@@ -26,7 +26,15 @@ func test_badge_is_on_the_palette(t) -> void:
 
 
 func test_splash_plays_then_a_tap_leaves(t) -> void:
+	# A save with runs played goes to the menu (a fresh one would go into the
+	# tutorial: tests/test_tutorial.gd).
+	var save: Node = preload("res://scripts/autoload/save_manager.gd").new()
+	save.path = "user://test_splash_save.json"
+	t.root.add_child(save)
+	save.reset()
+	save.data.runs_played = 3
 	var s: Splash = load("res://scenes/splash.tscn").instantiate()
+	s.save = save
 	t.root.add_child(s)
 	await t.process_frame
 	s._process(Splash.LETTERS_AT + Splash.NAME.length() * Splash.LETTER_GAP)
@@ -44,4 +52,8 @@ func test_splash_plays_then_a_tap_leaves(t) -> void:
 	for n in t.root.get_children():
 		if n.scene_file_path == Splash.NEXT_SCENE or n is Splash:
 			n.queue_free()
+	save.free()
+	for p in ["user://test_splash_save.json", "user://test_splash_save.json.bak", "user://test_splash_save.json.tmp"]:
+		if FileAccess.file_exists(p):
+			DirAccess.remove_absolute(p)
 	await t.process_frame

@@ -18,6 +18,11 @@ extends Node
 ##   each --dangers (default 1-5) from one fixed save, nothing bought:
 ##   --meta=fresh (a new save, every hero owned) or --meta=max (everything
 ##   bought and built). For win rates per hero, weapon and Danger.
+## --mode=tutorial: --runs runs (default 40) of the tutorial (phase 16), each
+##   from a fresh save, then the Home guide's first step done (one quest
+##   claimed) to see whether Fireworks can be bought. For the tutorial's win
+##   rate (target 95% for a typical player).
+## Campaign mode starts with the tutorial too (run 1), as a fresh save does.
 ## --skill=typical|good: the card picker (scripts/debug/bot_picker.gd).
 ## --boss=M: the bot walks to the altar from minute M (default 4).
 ## --per_day=N: runs per day on the fake clock (default 3, one session each
@@ -78,6 +83,8 @@ func _ready() -> void:
 	_wall = Time.get_ticks_msec()
 	if _mode == "matrix":
 		_setup_matrix()
+	elif _mode == "tutorial":
+		_max_runs = int(_args.get("runs", "40"))
 	_next.call_deferred()
 
 
@@ -117,6 +124,10 @@ func _next() -> void:
 		danger = maxi(1, Meta.open_dangers(_db, data, "suburbia"))
 		if _step_down and danger > 1:
 			danger -= 1
+	if _mode == "tutorial":
+		_save.reset()
+		data = _save.data
+		Quests.roll(_db, data, _t)
 	var plan := _plan(data) if _mode == "campaign" else {}
 	_chase = not plan.is_empty()
 	if plan.has("danger"):
@@ -124,6 +135,13 @@ func _next() -> void:
 	Run.next_options = {"bot": true, "auto_cards": true, "bot_goals": true, "save": _save, "seed": _seed * 1000 + _i,
 		"character": hero, "map": "suburbia", "danger": danger, "bot_boss_min": float(plan.get("boss_min", _args.get("boss", "4"))),
 		"bot_portal": plan.get("portal", true), "bot_picker": BotPicker.new(_skill, _seed * 7919 + _i)}
+	# A fresh save's first run is the tutorial, as the splash starts it: its
+	# steps lead the bot (no altar minute of its own).
+	if _mode != "matrix" and Tutorial.should_start(_db, data):
+		Tutorial.begin(data)
+		Run.next_options.merge(Tutorial.run_options(_db), true)
+		Run.next_options.bot_boss_min = -1.0
+		_chase = false
 	_run = RUN_SCENE.instantiate()
 	_run.run_ended.connect(_on_end, CONNECT_DEFERRED)
 	add_child(_run)
@@ -173,12 +191,15 @@ func _on_end(result: Dictionary) -> void:
 		"level": result.level, "kills": result.kills, "run_coins": int(result.coins),
 		"weapons": _run.owned_weapons.duplicate(), "tomes": _run.owned_tomes.duplicate(), "items": _run.items.stacks.duplicate(),
 		"signature": _run.char_def.signature_weapon, "chase": _chase, "boss_at": float(result.stats.get("boss_defeated_at", -1.0)),
-		"elites": int(result.stats.get("elites_killed", 0))}
+		"elites": int(result.stats.get("elites_killed", 0)), "tutorial": result.get("tutorial", false),
+		"revived": _run.revived, "gold": int(result.gold)}
 	_hero_runs[result.character] = int(_hero_runs.get(result.character, 0)) + 1
 	_played_sec += float(result.time) + MENU_SEC
 	_t += int(float(result.time) + MENU_SEC)
 	if _mode == "campaign":
 		_after_run(data, result, line)
+	elif _mode == "tutorial":
+		_after_tutorial(data, line)
 	_runs.append(line)
 	print("  run %d: %s D%d %s %s at %d:%02d lv %d, coins run %d quest %d patrol %d, bank %d, %s" % [_i + 1, result.character,
 		result.danger, _skill, "WON" if result.boss_defeated else result.reason, int(result.time) / 60, int(result.time) % 60,
@@ -194,6 +215,23 @@ func _on_end(result: Dictionary) -> void:
 		var day_start := _start + (_i / _per_day) * Quests.DAY
 		_t = maxi(_t, day_start)
 	_next.call_deferred()
+
+
+## The tutorial's end as the Home guide plays it: claim one quest reward, then
+## is Fireworks ready and affordable (the guide's second step)?
+func _after_tutorial(data: Dictionary, line: Dictionary) -> void:
+	line.coins_after = int(data.coins)
+	var step := Tutorial.guide_step(_db, data)
+	line.guide_first = step.get("id", "")
+	if step.get("kind", "") == "claim_quest":
+		for kind: String in Quests.KINDS:
+			for c: Dictionary in Quests.cards(_db, data, kind):
+				if Tutorial.guide_step(_db, data).get("id", "") == step.id and c.done and not c.claimed and c.blocked == "":
+					Quests.claim(_db, data, c.id, _t)
+	line.guide_second = Tutorial.guide_step(_db, data).get("id", "")
+	line.coins_after_claim = int(data.coins)
+	line.danger_2 = Meta.open_dangers(_db, data, "suburbia") >= 2  # false since map_progress isn't counted
+	line.fireworks = Meta.state(_db, data, "fireworks")
 
 
 func _after_run(data: Dictionary, result: Dictionary, line: Dictionary) -> void:
@@ -215,6 +253,10 @@ func _after_run(data: Dictionary, result: Dictionary, line: Dictionary) -> void:
 	line.bank = int(data.coins)
 	_save.save_game()
 	_mark("first_boss", result.boss_defeated)
+	# Phase 16: the tutorial is run 1; the first win after it, Fireworks bought.
+	_mark("tutorial_won", result.get("tutorial", false) and result.boss_defeated)
+	_mark("first_boss_after_tutorial", result.boss_defeated and not result.get("tutorial", false))
+	_mark("fireworks_bought", line.bought.has("unlock:fireworks") or _milestones.has("fireworks_bought"))
 	_mark("first_unlock_done", not result.completed.is_empty() or _milestones.has("first_unlock_done"))
 	_mark("first_unlock_bought", not line.bought.filter(func(b: String) -> bool: return b.begins_with("unlock:")).is_empty())
 	_mark("all_unlocks", _unlocks_left(data) == 0)

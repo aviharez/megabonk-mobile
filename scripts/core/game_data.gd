@@ -49,7 +49,8 @@ const PASSIVES := {
 const WEAPON_STATUSES := ["start", "unlock", "signature"]
 const CONTENT_STATUSES := ["start", "unlock"]
 ## Maps: "start" (open), "unlock" (opens when the boss of its "unlock_after"
-## map is defeated), "planned" (shown locked on the map screen, not playable).
+## map is defeated, on its optional "unlock_danger", default 1), "planned"
+## (shown locked on the map screen, not playable).
 const MAP_STATUSES := ["start", "unlock", "planned"]
 ## Keys a playable (not planned) map needs on top of SCHEMA.maps.
 const PLAYABLE_MAP := {"size": TYPE_ARRAY, "spawns": TYPE_ARRAY}
@@ -243,6 +244,9 @@ func _check_entry(category: String, e: Dictionary) -> void:
 				for k: String in PASSIVES[pid]:
 					if not _is_num(e.passive.get(k)):
 						errors.append("%s: passive \"%s\" needs a number \"%s\"" % [file, pid, k])
+				if pid == "getting_stale" and e.passive.has("start_reduction") and not (_is_num(e.passive.start_reduction) \
+						and float(e.passive.start_reduction) >= 0.0 and float(e.passive.start_reduction) <= float(e.passive.get("max_reduction", 1.0))):
+					errors.append("%s: passive \"getting_stale\" \"start_reduction\" must be a number from 0 to \"max_reduction\"" % file)
 				if pid == "overtime":
 					if not (e.passive.get("modifiers_per_step") is Array and not e.passive.modifiers_per_step.is_empty()):
 						errors.append("%s: passive \"overtime\" needs a non-empty \"modifiers_per_step\" list" % file)
@@ -417,6 +421,7 @@ func _cross_check() -> void:
 	_check_fx(entries.rules.get("fx", {}))
 	_check_store(entries.rules.get("store", {}))
 	_check_play_games(entries.rules.get("play_games", {}))
+	_check_tutorial(entries.rules.get("tutorial", {}))
 	var bills: Dictionary = entries.rules.get("bills", {})
 	if not bills.is_empty():
 		if entries.enemies.get(bills.get("enemy", ""), {}).get("role", "") != "ghost":
@@ -636,6 +641,92 @@ func _check_play_games(pg: Dictionary) -> void:
 				errors.append("%s: achievement \"%s\" must be a milestone quest" % [f, id])
 
 
+## What a tutorial step's "done" can count (TutorialFlow.counts).
+const TUTORIAL_COUNTS := ["moved_sec", "kills", "gems", "level_ups", "chests", "beacons", "boss_summoned", "boss_defeated", "escaped"]
+const TUTORIAL_HOME_KINDS := ["claim_quest", "buy_unlock"]
+## Home guide targets (HomeGuide; Home finds them).
+const TUTORIAL_TARGETS := ["home:quests", "quests:claim", "nav:collection", "collection:tile", "collection:buy"]
+
+
+## data/rules/tutorial.json (phase 16, Tutorial / TutorialFlow / HomeGuide).
+func _check_tutorial(tu: Dictionary) -> void:
+	if tu.is_empty():
+		return
+	var f: String = tu._file
+	var who: Dictionary = entries.characters.get(str(tu.get("character", "")), {})
+	if who.is_empty() or who.get("status", "") != "start":
+		errors.append("%s: \"character\" must be a start character" % f)
+	var m: Dictionary = entries.maps.get(str(tu.get("map", "")), {})
+	if m.is_empty() or m.get("status", "start") != "start":
+		errors.append("%s: \"map\" must be the start map" % f)
+	if not _is_num(tu.get("danger")) or not entries.danger.values().any(func(d: Dictionary) -> bool: return d.level == tu.danger):
+		errors.append("%s: \"danger\" must be a danger level" % f)
+	var run_rules: Dictionary = entries.rules.get("run", {})
+	for k: String in tu.get("rules", {}):
+		if not run_rules.has(k):
+			errors.append("%s: \"rules\" key \"%s\" is not in rules/run.json" % [f, k])
+	if tu.has("final_swarm") and typeof(tu.final_swarm) != TYPE_BOOL:
+		errors.append("%s: \"final_swarm\" must be true or false" % f)
+	if not tu.get("map_overrides", {}) is Dictionary:
+		errors.append("%s: \"map_overrides\" must be an object of map keys" % f)
+	for k: String in tu.get("modifiers", {}):
+		var v: Variant = tu.modifiers[k]
+		if not ((k in DANGER_MULTS and _is_num(v) and v > 0.0) or (k in DANGER_PAIRS and _is_pair(v) and v[0] > 0.0 and v[0] <= v[1])):
+			errors.append("%s: modifier \"%s\" must be a danger multiplier above 0 or [min, max] seconds" % [f, k])
+	for k: String in tu.get("boss", {}):
+		if not k in ["hp_mult", "damage_mult"] or not _is_num(tu.boss[k]) or tu.boss[k] <= 0.0:
+			errors.append("%s: \"boss\" takes \"hp_mult\" and \"damage_mult\" above 0 (not \"%s\")" % [f, k])
+	if not _is_num(tu.get("free_revives", 0.0)) or float(tu.get("free_revives", 0.0)) < 0.0:
+		errors.append("%s: \"free_revives\" must be 0 or more" % f)
+	var nc: Variant = tu.get("not_counted", {})
+	if not nc is Dictionary:
+		errors.append("%s: \"not_counted\" must have \"stats\" and \"leaderboards\"" % f)
+	else:
+		for st: Variant in nc.get("stats", []):
+			if not str(st) in Meta.STATS:
+				errors.append("%s: not_counted stat \"%s\" is not a run stat (Meta.STATS)" % [f, st])
+		for k: String in ["leaderboards", "map_progress"]:
+			if nc.has(k) and typeof(nc[k]) != TYPE_BOOL:
+				errors.append("%s: not_counted \"%s\" must be true or false" % [f, k])
+	var ids := {}
+	for s: Variant in tu.get("steps", []):
+		if not s is Dictionary or typeof(s.get("id")) != TYPE_STRING or ids.has(s.id):
+			errors.append("%s: every step needs its own \"id\"" % f)
+			continue
+		ids[s.id] = true
+		if typeof(s.get("text")) != TYPE_STRING or String(s.text).is_empty():
+			errors.append("%s: step \"%s\" needs a \"text\" line" % [f, s.id])
+		var done: Variant = s.get("done")
+		if not done is Dictionary or done.is_empty():
+			errors.append("%s: step \"%s\" needs \"done\" counts" % [f, s.id])
+		else:
+			for k: String in done:
+				if not k in TUTORIAL_COUNTS or not _is_num(done[k]):
+					errors.append("%s: step \"%s\" counts \"%s\" (one of %s, a number)" % [f, s.id, k, ", ".join(TUTORIAL_COUNTS)])
+		for k: String in ["spawn", "pulse"]:
+			if s.has(k) and not entries.interactables.has(str(s[k])):
+				errors.append("%s: step \"%s\" \"%s\" names an unknown interactable \"%s\"" % [f, s.id, k, s[k]])
+		if s.has("spawn_dist") and not (_is_pair(s.spawn_dist) and s.spawn_dist[0] <= s.spawn_dist[1]):
+			errors.append("%s: step \"%s\" \"spawn_dist\" must be [min, max] px" % [f, s.id])
+		if s.has("start_at_sec") and not _is_num(s.start_at_sec):
+			errors.append("%s: step \"%s\" \"start_at_sec\" must be a number" % [f, s.id])
+	var hids := {}
+	for h: Variant in tu.get("home_steps", []):
+		if not h is Dictionary or typeof(h.get("id")) != TYPE_STRING or hids.has(h.id):
+			errors.append("%s: every home step needs its own \"id\"" % f)
+			continue
+		hids[h.id] = true
+		if not h.get("kind") in TUTORIAL_HOME_KINDS:
+			errors.append("%s: home step \"%s\" \"kind\" must be one of %s" % [f, h.id, ", ".join(TUTORIAL_HOME_KINDS)])
+		if h.get("kind") == "buy_unlock" and not entries.challenges.values().any(func(c: Dictionary) -> bool: return c.reward == str(h.get("content", ""))):
+			errors.append("%s: home step \"%s\" \"content\" must be the reward of an unlock challenge" % [f, h.id])
+		if typeof(h.get("text")) != TYPE_STRING:
+			errors.append("%s: home step \"%s\" needs a \"text\" line" % [f, h.id])
+		for t: Variant in h.get("targets", []):
+			if not t is Dictionary or not str(t.get("at", "")) in TUTORIAL_TARGETS or typeof(t.get("text")) != TYPE_STRING:
+				errors.append("%s: home step \"%s\" targets need \"at\" (one of %s) and \"text\"" % [f, h.id, ", ".join(TUTORIAL_TARGETS)])
+
+
 ## Map screen data: status, the map whose boss opens it, the thumbnail.
 func _check_map_meta(m: Dictionary) -> void:
 	var f: String = m._file
@@ -646,6 +737,13 @@ func _check_map_meta(m: Dictionary) -> void:
 		var prev: String = str(m.get("unlock_after", ""))
 		if not entries.maps.has(prev) or prev == m.id:
 			errors.append("%s: \"unlock_after\" must name another map" % f)
+	# The danger level the "unlock_after" map's boss must be beaten on (default 1).
+	if m.has("unlock_danger"):
+		var n: Variant = m.unlock_danger
+		if not m.has("unlock_after"):
+			errors.append("%s: \"unlock_danger\" needs an \"unlock_after\" map" % f)
+		elif not _is_num(n) or float(n) != floorf(float(n)) or int(n) < 1 or int(n) > maxi(1, entries.danger.size()):
+			errors.append("%s: \"unlock_danger\" must be a whole number from 1 to %d (the danger levels)" % [f, maxi(1, entries.danger.size())])
 	if m.has("thumb") and not (typeof(m.thumb) == TYPE_STRING and ResourceLoader.exists(m.thumb)):
 		errors.append("%s: thumbnail \"%s\" not found" % [f, m.thumb])
 

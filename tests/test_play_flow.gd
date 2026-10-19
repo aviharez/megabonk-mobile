@@ -112,15 +112,27 @@ func test_maps_in_unlock_order_and_their_state(t) -> void:
 	t.check(ids == ["suburbia", "sewers", "farm", "shopping_mall"], "districts follow the unlock chain (%s)" % [ids])
 	var d := SaveManager.default_data()
 	t.check(Meta.map_state(db, d, "suburbia") == "open" and Meta.map_state(db, d, "sewers") == "locked", "Suburbia open, Sewers locked")
-	t.check(Meta.map_hint(db, d, "sewers") == "Beat Mega Mole on Danger 1", "Sewers says what opens it (%s)" % Meta.map_hint(db, d, "sewers"))
+	t.check(Meta.map_hint(db, d, "sewers") == "Beat Mega Mole on Danger 2", "Sewers says what opens it (%s)" % Meta.map_hint(db, d, "sewers"))
 	t.check(Meta.district_title(db, d, "sewers") == "Sewers" and Meta.district_title(db, d, "farm") == "???",
 		"the next district is named, the ones after are ???")
 	t.check(Meta.map_hint(db, d, "farm") == "Clear the Sewers", "Farm: clear the Sewers (%s)" % Meta.map_hint(db, d, "farm"))
 	Meta.commit_run(db, d, {"runs_finished": 1.0}, "sir_loaf", 0, "suburbia")
 	t.check(d.maps_cleared.is_empty(), "no boss, no clear")
 	_beat_mole(d)
-	t.check(d.maps_cleared.has("suburbia") and Meta.map_state(db, d, "sewers") == "soon", "beating Mega Mole: Sewers is coming soon")
+	# Phase 16: Sewers' "unlock_danger" is 2, so Danger 1 isn't enough.
+	t.check(d.maps_cleared.has("suburbia") and Meta.map_state(db, d, "sewers") == "locked", "beating Mega Mole on Danger 1: Sewers still locked")
+	t.check(Meta.map_hint(db, d, "sewers") == "Beat Mega Mole on Danger 2" and Meta.district_title(db, d, "sewers") == "Sewers",
+		"still says Danger 2, still named")
+	_beat_mole(d, 2)
+	t.check(Meta.map_state(db, d, "sewers") == "soon", "beaten on Danger 2: Sewers is coming soon")
 	t.check(Meta.map_hint(db, d, "sewers") == "Coming soon", "and says so")
+	# A map without "unlock_danger" opens on Danger 1, as before.
+	var db2 := GameData.load_from(GameData.ROOT)
+	db2.entries.maps.sewers.erase("unlock_danger")
+	var d1 := SaveManager.default_data()
+	_beat_mole(d1)
+	t.check(Meta.map_state(db2, d1, "sewers") == "soon" and Meta.map_hint(db2, SaveManager.default_data(), "sewers") == "Beat Mega Mole on Danger 1",
+		"default unlock_danger is 1")
 
 
 ## Danger n + 1 opens when the district's boss is beaten on Danger n.
@@ -176,6 +188,7 @@ func test_district_step_skip_rule(t) -> void:
 	var db2 := GameData.load_from(GameData.ROOT)
 	db2.entries.maps.sewers.status = "unlock"
 	db2.entries.danger = {"danger_1": db2.entries.danger.danger_1}
+	db2.entries.maps.sewers.erase("unlock_danger")
 	var d2 := SaveManager.default_data()
 	d2.maps_cleared["suburbia"] = true
 	t.check(Meta.open_dangers(db2, d2, "suburbia") == 1 and Meta.open_maps(db2, d2).size() == 2, "two districts, one level each")
@@ -381,7 +394,7 @@ func test_after_mega_mole_the_district_step_appears(t) -> void:
 	t.check(three != null and three.locked and three.disabled and not three.is_new, "Danger 3 is locked")
 	t.check((screen.find_child("Danger1", true, false) as PickDistrictScreen.DangerTile).on, "Danger 1 pre-selected (the last pick)")
 	var sewers: PickDistrictScreen.DistrictRow = screen.find_child("sewers", true, false)
-	t.check(sewers != null and not sewers.open and sewers.hint == "Coming soon", "Sewers is listed, not open yet")
+	t.check(sewers != null and not sewers.open and sewers.hint == "Beat Mega Mole on Danger 2", "Sewers is listed, locked until Danger 2 (%s)" % (sewers.hint if sewers else ""))
 	three.pressed.emit()
 	t.check((screen as PickDistrictScreen).danger == 1, "a locked level can't be picked")
 	two.pressed.emit()

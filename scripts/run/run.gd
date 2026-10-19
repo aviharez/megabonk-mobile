@@ -62,6 +62,10 @@ static var next_options := {}
 ##   "items": {id: stacks}} on top of the signature weapon (tests, stress).
 ## start_at: start the clock at this many seconds (tests, stress).
 ## first_run: force the first-run altar hint on or off.
+## tutorial: the tutorial run (phase 16, data/rules/tutorial.json; set by the
+##   splash via Tutorial.run_options): its rules on top of the run's, steps
+##   and lines (TutorialFlow), no Final Swarm, a weaker boss, free revives, no
+##   ads, the "not_counted" stats and scores left out, Skip on the pause.
 ## bot_goals: the bot walks to map objects (chests, pots, keys...).
 ## bot_boss_min: the bot walks to the altar from this minute (-1 = never).
 ## bot_portal: the bot takes the portal once it's open.
@@ -99,6 +103,9 @@ var ads: Node
 var play_games: Node
 var ad_rules: Dictionary
 var revived := false
+## The tutorial run's steps (options.tutorial), null in any other run.
+var tutorial: TutorialFlow
+var tutorial_rules: Dictionary
 var director: Director
 var bounds := Rect2()
 
@@ -252,6 +259,7 @@ var _revive_btn: AdButton
 var _double_btn: AdButton
 var _menu_btn: PixelButton
 var _leaving := false
+var _tip: TutorialTip
 
 
 func _ready() -> void:
@@ -259,6 +267,9 @@ func _ready() -> void:
 	next_options = {}
 	db = GameData.shared()
 	rules = db.get_entry("rules", "run").duplicate(true)
+	if options.get("tutorial", false):
+		tutorial_rules = Tutorial.rules(db)
+		rules.merge(tutorial_rules.get("rules", {}), true)
 	rules.merge(options.get("rules", {}), true)
 	map_def = db.get_entry("maps", options.get("map", "suburbia"))
 	_save = options.get("save")
@@ -267,6 +278,10 @@ func _ready() -> void:
 	meta = _save.data if _save != null else SaveManager.default_data()
 	# The Town's buildings stand ruined or built, their lots only when built.
 	map_def = Town.resolve_map(db, meta, map_def)
+	if not tutorial_rules.is_empty():
+		# The tutorial's map: no SWARM INCOMING waves, no merchant (its "map_overrides").
+		map_def = map_def.duplicate()
+		map_def.merge(tutorial_rules.get("map_overrides", {}), true)
 	var who: String = options.get("character", Meta.picked_character(db, meta))
 	char_def = db.get_entry("characters", who)
 	if char_def.is_empty():
@@ -281,7 +296,9 @@ func _ready() -> void:
 	ads = options.get("ads")
 	# The Ads autoload goes with the real save: runs on a test save, blank
 	# save (no_save) or a bot never see ads unless a test passes "ads".
-	if ads == null and not options.get("bot", false) and _save != null and _save == get_node_or_null("/root/Save"):
+	# No ads of any kind in the tutorial.
+	if ads == null and not options.get("bot", false) and _save != null and _save == get_node_or_null("/root/Save") \
+			and tutorial_rules.is_empty():
 		ads = get_node_or_null("/root/Ads")
 	play_games = options.get("play_games")
 	if play_games == null and not options.get("bot", false) and _save != null and _save == get_node_or_null("/root/Save"):
@@ -308,8 +325,13 @@ func _ready() -> void:
 		charges[a] = Meta.charges(db, meta, a)
 	charges.merge(options.get("charges", {}), true)
 	danger_level = int(options.get("danger", Meta.picked_danger(db, meta, map_def.id)))
-	director = Director.new(map_def, int(rules.enemy_cap), float(rules.run_length_sec), rng, db.get_entry("rules", "bills"),
-			Meta.danger_def(db, danger_level))
+	var ddef := Meta.danger_def(db, danger_level)
+	var director_length := float(rules.run_length_sec)
+	if not tutorial_rules.is_empty():
+		ddef = _tutorial_danger(ddef)
+		if not tutorial_rules.get("final_swarm", true):
+			director_length = INF  # the clock stops at 0:00; no Final Swarm, no bills
+	director = Director.new(map_def, int(rules.enemy_cap), director_length, rng, db.get_entry("rules", "bills"), ddef)
 	for e: Dictionary in db.all("enemies"):
 		if e.has("pack_size"):
 			_pack_sizes[e.id] = e.pack_size
@@ -336,7 +358,25 @@ func _ready() -> void:
 	_render()
 	if not options.get("bot", false) and not options.get("stress", false):
 		_hud.banner("Survive!", Palette.BUTTER, 1.5)
-		_joystick.hint = int(meta.get("runs_played", 0)) < 2
+	# The ghost stick (the old first-run hint) is the tutorial's first step now.
+	if not tutorial_rules.is_empty():
+		tutorial = TutorialFlow.new(self, tutorial_rules)
+		tutorial.tip = _tip
+
+
+## The danger level's numbers with the tutorial's "modifiers" on top: rates
+## and multipliers multiply, the elite interval is replaced.
+func _tutorial_danger(ddef: Dictionary) -> Dictionary:
+	var d := ddef.duplicate(true)
+	var mods: Dictionary = d.get("modifiers", {})
+	var extra: Dictionary = tutorial_rules.get("modifiers", {})
+	for k: String in extra:
+		if extra[k] is Array:
+			mods[k] = extra[k]
+		else:
+			mods[k] = float(mods.get(k, 1.0)) * float(extra[k])
+	d.modifiers = mods
+	return d
 
 
 func _process(delta: float) -> void:
@@ -430,6 +470,8 @@ func tick(delta: float) -> void:
 	interactables.update(delta)
 	_tick_merchant()
 	_tick_hint(minute)
+	if tutorial != null:
+		tutorial.update(delta)
 	_mark("map_objects")
 	numbers.update(delta)
 	fx.update(delta)
@@ -473,7 +515,10 @@ func facing_angle() -> float:
 
 
 ## Seconds left on the run timer; negative = time spent in the Final Swarm.
+## (The tutorial has no Final Swarm: its clock stops at 0:00.)
 func seconds_left() -> float:
+	if tutorial != null and not tutorial_rules.get("final_swarm", true):
+		return maxf(0.0, rules.run_length_sec - elapsed)
 	return rules.run_length_sec - elapsed
 
 
@@ -855,6 +900,13 @@ func summon_boss(id: String, at: Vector2) -> bool:
 		return false
 	boss_summoned = true
 	boss = MegaMole.new(self, slot)
+	if tutorial != null:
+		# The tutorial's weaker boss: less HP, softer hits (rocks too).
+		var bm: Dictionary = tutorial_rules.get("boss", {})
+		enemies.hp[slot] *= float(bm.get("hp_mult", 1.0))
+		enemies.max_hp[slot] = enemies.hp[slot]
+		enemies.damage[slot] *= float(bm.get("damage_mult", 1.0))
+		boss.rock_mult = float(bm.get("damage_mult", 1.0))
 	interactables.altar_pulse = false
 	record("boss_summoned")
 	_hud.banner(String(enemies.types[enemies.type_of[slot]].name) + "!", Palette.RED)
@@ -1304,7 +1356,8 @@ func _tick_merchant() -> void:
 ## First run: if the boss isn't summoned by the map's hint minute, the
 ## altar arrow pulses and a short hint shows.
 func _tick_hint(minute: float) -> void:
-	if _hint_done or boss_summoned:
+	# The tutorial's altar step shows the altar instead (nothing shows twice).
+	if _hint_done or boss_summoned or tutorial != null:
 		return
 	var at: float = map_def.get("boss", {}).get("hint_at_min", 5.0)
 	if minute < at:
@@ -1362,6 +1415,18 @@ func _screen_pos(world: Vector2) -> Vector2:
 func _show_cards() -> void:
 	_cards_panel.title = "Banish which?" if _banish_mode else "Level Up!"
 	_cards_panel.hint = "Tap a card to banish it." if _banish_mode else "Choose one upgrade."
+	# The tutorial's one line on what a card is, over the cards (the panel's
+	# info line: the cards and the button row move down for it).
+	var line := tutorial.card_hint() if tutorial != null and not _banish_mode else ""
+	if line != "":
+		_cards_panel.hint = line
+	if _cards_panel.info != line:
+		_cards_panel.info = line
+		_cards_panel.rows = true  # resizes to the taller window
+		for i in _card_buttons.size():
+			_card_buttons[i].position.y = _cards_panel.card_y(i)
+		for a: String in _action_buttons:
+			_action_buttons[a].position.y = _cards_panel.row_y() if line != "" else LevelUpPanel.ACTION_Y
 	_cards_panel.count = maxi(1, pending_levels)
 	var fresh := not _cards_panel.visible
 	for i in _card_buttons.size():
@@ -1490,6 +1555,12 @@ func _die() -> void:
 	UiFx.buzz(self, 150)
 	fx.sparks(_pos, 20.0, Palette.RED, 0.6)
 	var reason := "bills" if is_bill(last_damage_source) else "died"
+	if reason == "died" and tutorial != null and tutorial.revives_left > 0:
+		# The tutorial's free revive: no ad, no offer screen.
+		tutorial.revives_left -= 1
+		revive()
+		toast(str(tutorial_rules.get("revive_text", "Back for seconds!")), "LIME", 2.5)
+		return
 	if reason == "died" and _ad_offer("revive"):
 		state = "dying"
 		_choice = {}
@@ -1798,7 +1869,8 @@ func _can_hold(id: String) -> bool:
 	return Loot.available(db, items.stacks, pool).get(def.get("rarity", ""), []).has(id)
 
 
-## reason: "died", "bills" (Overdue Bills, Final Swarm), "portal", "gave_up".
+## reason: "died", "bills" (Overdue Bills, Final Swarm), "portal", "gave_up",
+## "skipped" (Skip tutorial: like Give Up, then straight to Home).
 func _end(reason: String) -> void:
 	if state == "over":
 		return  # one end per run: never two results, never two saves
@@ -1819,8 +1891,8 @@ func _end(reason: String) -> void:
 	run_stats["kills"] = float(kills)
 	run_stats["level"] = float(level)
 	run_stats["gems_collected"] = float(gems.collected)
-	# Giving up doesn't count as finishing a run.
-	if reason != "gave_up":
+	# Giving up (or skipping the tutorial) doesn't count as finishing a run.
+	if not reason in ["gave_up", "skipped"]:
 		run_stats["runs_finished"] = 1.0
 	if reason == "portal":
 		run_stats["escaped"] = 1.0
@@ -1832,8 +1904,16 @@ func _end(reason: String) -> void:
 		"kills": kills, "coins": coins, "coin_mult": snappedf(director.coin_mult(), 0.01), "gold": floori(gold),
 		"final_swarm_seconds": director.final_time, "boss_defeated": boss_defeated, "stats": run_stats.duplicate(),
 		"character": char_def.id, "map": map_def.id, "danger": danger_level, "seen": seen.duplicate(), "completed": [], "quests_done": []}
+	if tutorial != null:
+		# A real Danger 1 run, minus what the tutorial doesn't count (data).
+		result.stats = Tutorial.strip_stats(db, result.stats)
+		result.tutorial = true
+		result.scores = Tutorial.counts_scores(db)
+		Tutorial.finish(db, meta, "skipped" if reason == "skipped" else "done")
+		tutorial.tip.say("")
 	if _save != null:
-		result.completed = Meta.commit_run(db, meta, result.stats, char_def.id, coins, map_def.id, elapsed, danger_level)
+		var opens := tutorial == null or Tutorial.counts_map_progress(db)
+		result.completed = Meta.commit_run(db, meta, result.stats, char_def.id, coins, map_def.id, elapsed, danger_level, opens)
 		result.quests_done = Quests.commit_run(db, meta, result.stats, char_def.id, danger_level)
 		Meta.commit_bestiary(meta, seen, bonked)
 		_save.save_game()
@@ -1844,6 +1924,10 @@ func _end(reason: String) -> void:
 	run_ended.emit(result)
 	if options.get("bot", false) and options.get("auto_cards", false):
 		return  # headless sims read `result`; no screen to show
+	if reason == "skipped":
+		_leaving = true
+		_go_to_menu()
+		return
 	_joystick.release()
 	get_tree().paused = true
 	var title := "Swarmed!"
@@ -1852,7 +1936,7 @@ func _end(reason: String) -> void:
 			title = "Escaped!"
 		"bills":
 			title = "Overdue!"
-		"gave_up":
+		"gave_up", "skipped":
 			title = "Gave Up"
 		_:
 			if reached_final:
@@ -1864,6 +1948,13 @@ func _end(reason: String) -> void:
 		"bills": "The bills caught up with you.",
 		"gave_up": "Even heroes need a nap.",
 	}.get(reason, "Even heroes need a nap." if not reached_final else "You held on to the very end!")
+	if tutorial != null and won:
+		_over_reason.text = str(tutorial_rules.get("result_line", _over_reason.text))
+	# After the tutorial the only way on is Home (no Play Again, no ads).
+	_menu_btn.visible = tutorial == null
+	_again_btn.label = "Continue" if tutorial != null else "Play Again"
+	if tutorial != null:
+		_apply_safe_area()
 	# Gave Up shows the hit pose even after the Final Swarm (owner, 2026-10-15).
 	_show_over_hero(won and reason != "gave_up")
 	_over_tiles.queue_redraw()
@@ -2093,6 +2184,10 @@ func _bot_dir() -> Vector2:
 	else:
 		pull = (bounds.get_center() - _pos) * 0.0004
 	var wander := Vector2.from_angle(elapsed * 0.35) * 0.02
+	# In the tutorial the bot stays on its step's object (a beacon, the altar)
+	# once it's there, as the line asks, instead of wandering off it.
+	if tutorial != null and goal.x > -INF and goal.distance_to(_pos) < 6.0:
+		wander = Vector2.ZERO
 	var d := away * 8.0 + pull + wander
 	if d.length() <= 0.01:
 		return Vector2.ZERO
@@ -2185,6 +2280,9 @@ func _route_dir(goal: Vector2) -> Vector2:
 
 
 func _bot_goal() -> Vector2:
+	# In the tutorial the bot does what the line asks first.
+	if tutorial != null and tutorial.target_pos().x > -INF:
+		return tutorial.target_pos()
 	var best := Vector2(-INF, -INF)
 	var best_d := INF
 	var boss_min: float = options.get("bot_boss_min", -1.0)
@@ -2275,6 +2373,10 @@ func _render() -> void:
 	_hud.set_values(level, seconds_left(), kills)
 	_hud.set_build(owned_weapons, owned_tomes, int(rules.weapon_slots), int(rules.tome_slots))
 	_hud.set_items(items.stacks)
+	if _tip.visible:
+		# Centred, just above the item row (and the boss bar).
+		var vs := get_viewport_rect().size
+		_tip.position = Vector2(floorf((vs.x - _tip.size.x) / 2.0), floorf(_hud.items_top() - _tip.size.y - 6.0))
 
 
 func _arrow_targets() -> Array:
@@ -2545,6 +2647,11 @@ func _build_ui() -> void:
 	_pause_btn.offset_right = -4
 	_pause_btn.pressed.connect(_pause.bind(true))
 	ui.add_child(_pause_btn)
+	# The tutorial's line (TutorialFlow), over the world and HUD, under the panels.
+	_tip = TutorialTip.new()
+	_tip.hide()
+	_tip.show_if = func() -> bool: return state == "live"
+	ui.add_child(_tip)
 	# Kit v2: modal panels dim the world, the HUD and the pause button alike
 	# (one step down each colour's ramp).
 	_dim = DitherDim.new()
@@ -2743,7 +2850,7 @@ func _build_pause(ui: CanvasLayer) -> void:
 		_pause_panel.hide()
 		get_tree().paused = false
 		state = "live"
-		_end("gave_up"))
+		_end("skipped" if tutorial != null else "gave_up"))
 	_pause_win.add_child(_give_up)
 	var resume := PixelButton.new()
 	resume.name = "Resume"
@@ -2777,7 +2884,8 @@ func _layout_pause(h: float) -> void:
 
 func _disarm_give_up() -> void:
 	_give_up_armed = false
-	_give_up.label = "Give Up"
+	# The tutorial's pause offers Skip tutorial in Give Up's place.
+	_give_up.label = "Skip tutorial" if tutorial != null else "Give Up"
 	_give_up.face = Palette.FRAME
 
 
@@ -2940,6 +3048,10 @@ func _layout_over(h: float) -> void:
 	_menu_btn.size = _menu_btn.custom_minimum_size
 	_again_btn.position = Vector2(40, btn_y)
 	_again_btn.custom_minimum_size = Vector2(128, 34)
+	if tutorial != null:
+		# Continue alone, the full width (no Home button beside it).
+		_again_btn.position.x = 4
+		_again_btn.custom_minimum_size.x = 164
 	_again_btn.size = _again_btn.custom_minimum_size
 	# Title + line 50, hero 60 when it fits, then the window down to the buttons.
 	var win_h := 228.0
@@ -3124,6 +3236,9 @@ func _set_title(l: Label, text: String) -> void:
 ## Again with the same hero, map and danger (no Pick steps). A break like the way to the menu, so
 ## an interstitial may show first (Ads decides).
 func _play_again() -> void:
+	if tutorial != null:
+		_to_menu()
+		return
 	if _leaving or _ad_busy():
 		return
 	_leaving = true

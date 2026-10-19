@@ -19,6 +19,10 @@ extends Node
 ## during a run, never with Remove Ads. `banner_inset` is its height in game
 ## pixels so the menu can keep its buttons above it.
 ##
+## First session (phase 16): no ads of any kind while the tutorial runs or the
+## Home guide after it is up (quiet(): no rewarded buttons, no interstitial,
+## no banner). Home calls refresh() when the guide ends.
+##
 ## While a full-screen ad is up the tree is paused and the master bus muted;
 ## both go back to what they were when it closes, fails to show, or the SDK
 ## never answers (watchdog, `show_timeout_sec`).
@@ -128,6 +132,11 @@ func removed() -> bool:
 	return bool(data().get("removed", false))
 
 
+## The tutorial or the Home guide after it is on: no ads at all.
+func quiet() -> bool:
+	return save != null and Tutorial.ads_quiet(save.data)
+
+
 func is_showing() -> bool:
 	return not _show.is_empty()
 
@@ -151,7 +160,7 @@ func refresh() -> void:
 
 ## True when a rewarded button for `placement` should be on screen.
 func can_offer(placement: String) -> bool:
-	return rewarded_ready() and not is_showing() and uses_left(placement) > 0
+	return rewarded_ready() and not is_showing() and not quiet() and uses_left(placement) > 0
 
 
 ## Uses left for a rewarded placement this run (per_run) or today (per_day).
@@ -197,6 +206,8 @@ func interstitial_block_reason() -> String:
 	var ic: Dictionary = config.get("interstitial", {})
 	if removed():
 		return "removed"
+	if quiet():
+		return "tutorial"
 	if int(d.get("first_seen", 0)) <= 0:
 		d.first_seen = now_unix.call()  # a fresh or reset save: day one starts now
 	if now_unix.call() - int(d.first_seen) < float(ic.get("first_day_hours", 24.0)) * 3600.0:
@@ -252,7 +263,7 @@ func _update_banner() -> void:
 			_banner_requested = false
 		_set_inset(0)
 		return
-	if _banner_wanted:
+	if _banner_wanted and not quiet():
 		if not _banner_requested:
 			_banner_requested = true
 			backend.banner_load()

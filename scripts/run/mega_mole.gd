@@ -28,6 +28,8 @@ var shadow := Vector2.ZERO
 var _next := 0
 var _rings_left := 0
 var _last_hit_anim := -INF
+## Multiplier on the rocks' damage (the tutorial's weaker boss).
+var rock_mult := 1.0
 
 
 func _init(owner_run: Node, boss_slot: int) -> void:
@@ -171,7 +173,7 @@ func _ring(fast: float) -> void:
 		if (i - skip + n) % n < gap:
 			continue
 		var dir := Vector2.from_angle(TAU * i / n + 0.1)
-		run.enemy_shots.fire(at + dir * run.enemies.radius[slot], dir * float(r.speed) * fast, float(r.damage), float(r.radius), float(r.life), r.get("sprite", "rock"), "mega_mole")
+		run.enemy_shots.fire(at + dir * run.enemies.radius[slot], dir * float(r.speed) * fast, float(r.damage) * rock_mult, float(r.radius), float(r.life), r.get("sprite", "rock"), "mega_mole")
 
 
 func _rest_time() -> float:

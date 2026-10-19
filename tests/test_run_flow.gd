@@ -67,8 +67,9 @@ func test_level_up_applies_tome(t) -> void:
 	run.apply_card({"kind": "tome", "id": "muscle_magazine", "level": 2, "is_new": false, "def": run.db.get_entry("tomes", "muscle_magazine")})
 	t.check(is_equal_approx(run.stat("damage"), before * 1.2), "2 levels of +10%% damage, got %s" % run.stat("damage"))
 	var hp_before := run.hp
+	var max_before := run.stat("max_hp")
 	run.apply_card({"kind": "tome", "id": "grandmas_soup_recipes", "level": 1, "is_new": true, "def": run.db.get_entry("tomes", "grandmas_soup_recipes")})
-	t.check(run.stat("max_hp") == 140.0 and run.hp == hp_before + 20.0, "max HP +20 also heals 20")
+	t.check(run.stat("max_hp") == max_before + 20.0 and run.hp == hp_before + 20.0, "max HP +20 also heals 20")
 	run.add_xp(Run.xp_needed(run.rules.xp_curve, 1))
 	t.check(run.level == 2 and run.pending_levels == 1, "xp levels up")
 	run.tick(DT)
@@ -96,7 +97,12 @@ func test_enemy_cap_holds_in_a_run(t) -> void:
 
 func test_getting_stale(t) -> void:
 	var p: Dictionary = GameData.shared().get_entry("characters", "sir_loaf").passive
-	t.check(Passives.damage_taken_mult(p, 0.0) == 1.0, "full damage at start")
+	# Phase 16: 10% from the start, +2% a minute, to the 24% cap.
+	t.check(is_equal_approx(Passives.damage_taken_mult(p, 0.0), 0.9), "10%% less damage at start (%s)" % Passives.damage_taken_mult(p, 0.0))
+	t.check(is_equal_approx(Passives.damage_taken_mult(p, 3.0), 0.84), "16%% at minute 3")
+	t.check(is_equal_approx(Passives.damage_taken_mult(p, 7.0), 0.76) and is_equal_approx(p.max_reduction, 0.24), "24%% cap from minute 7")
+	t.check(Passives.damage_taken_mult({"id": "getting_stale", "reduction_per_minute": 0.03, "max_reduction": 0.24}, 0.0) == 1.0,
+		"no start_reduction: full damage at start")
 	t.check(Passives.damage_taken_mult(p, 4.0) < Passives.damage_taken_mult(p, 1.0), "less damage later")
 	t.check(is_equal_approx(Passives.damage_taken_mult(p, 100.0), 1.0 - p.max_reduction), "capped")
 

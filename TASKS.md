@@ -8,6 +8,58 @@
 - [ ] Owner decision: Mega Mole vs the creature rules (outline 84% INK, small squinting eyes; Sir Loaf 22 px tall, outline 74% INK) (enemy redesign)
 - [ ] Phone fps numbers from phases 6 and 8 (owner ran both on the Xiaomi 15T on 2026-10-15): asked for in phase 14, to be written into docs/TASKS_ARCHIVE.md
 
+## Phase 16: Tutorial and first session (docs/BRIEF.md "Update 1", 2026-10-18)
+
+Prompt: a fresh save goes Splash > tutorial run (Sir Loaf, Suburbia, Danger 1, no menu); one short line per step, each moving on when done; shorter and kinder run, weaker Mega Mole, one free revive, no ads; Skip on Paused; a real Danger 1 win minus boss times / HP / Final Swarm boss stat / leaderboard scores; guided Home (claim a quest, buy Fireworks); Sewers on Danger 2 ("unlock_danger"); Sir Loaf's Getting Stale from 10% (+2%/min to 24%), matrix sim within ~5 points or max HP 135; cloud save doesn't block the tutorial. Done = flow, 95% of 40 typical-bot tutorials won, post-tutorial state checks, existing saves untouched, Skip, campaign_sim starts with the tutorial, docs/BALANCE.md early milestones + Sir Loaf matrix, tests per rule, every step shot at 540x1170 (0 off-palette, text fit), stress within 5% of phase 14.
+
+### Brief and data
+- [x] Brief: Phase 16 added to "Update 1" (Release prep is Phase 17), First session summary in New systems, notes where the old stick and altar hints went
+- [x] `data/rules/tutorial.json`: steps, timings, run rules, boss modifiers, free revive, counting rules, Home guide steps; validated in GameData
+- [x] Maps: optional "unlock_danger" (Meta.map_state / map_hint / district_title, GameData); sewers.json = 2
+- [x] Sir Loaf: Getting Stale "start_reduction" 0.10, 0.02 a minute, cap 0.24 (data + Passives + GameData)
+
+### Tutorial run
+- [x] `Tutorial` (scripts/core/tutorial.gd): who sees it, run options, counting rules, the Home guide state; save key "tutorial"
+- [x] Splash > tutorial run on a fresh save (no menu, no wait for sign-in); existing saves go to Home
+- [x] Run: tutorial mode (rules, no Final Swarm, no waves or merchant, kinder Danger 1, weaker Mega Mole, free revive, no ads, no leaderboard scores, stripped stats), step flow with the line plate, pulsing arrows, chest / beacon placed near the hero, the Level Up card line, the ghost stick and altar hint folded in
+- [x] Skip tutorial on the Paused screen (ends it, goes to Home)
+- [x] Tutorial result screen: no AD x2, no interstitial, Continue to Home
+- [x] Bot follows the steps; tutorial mode in campaign_sim (`tools/balance_sim.sh OUT tutorial`): typical 40/40 won, good 40/40, median 4:05 (3:18-6:11); every save can buy Fireworks after the guide's claim (min 40 coins)
+
+### Home guide
+- [x] Guide over Home: claim the first quest reward (Quests rail, then Claim), buy Fireworks (Collection tile, then Buy), then hand over; no ads while it runs
+- [x] Cloud save: a winning cloud save at the tutorial's end replaces the local save (and ends the guide)
+
+### Balance
+- [x] campaign_sim plays the tutorial as run 1 (milestones: tutorial won, Fireworks bought, first win after the tutorial); balance_report tutorial section; docs/BALANCE.md "Phase 16" (8 campaigns to 40 runs + the 14-save early probe)
+- [x] Matrix sim for the three heroes: Getting Stale from 10% alone 25% vs 34% / 32%; with max HP 135 (shipped) 28% vs 34% / 32% (4-6 points: borderline "about 5"); docs/BALANCE.md
+
+### Done check
+- [x] tests/test_tutorial.gd (who sees it, splash, old saves, run setup, every step in order, free revive, folded hints, Skip, result screen, counting rules, scores and achievements, cloud save, ads, the guide, an end-to-end splash > tutorial > guided Home); test_play_flow (Sewers on Danger 2, default 1), test_run_flow (Getting Stale), test_data (bad unlock_danger / start_reduction / tutorial.json). Full suite 3631 checks, 0 failed; FLOW OK; 187 assets pass
+- [x] Every tutorial and guide step shot at 540x1170 (`shoot_screens.gd --only=tutorial`: 9 steps, Level Up line, pause with Skip, result, 4 guide states = 16 shots), 0 off-palette pixels, reviewed; test_text_fit `test_tutorial_steps_fit` checks the same states
+- [x] Stress (300+ enemies, full build, Final Swarm, low HP, 540x1014, 2026-10-19): vsync 75.0 fps, 1% low 70.6, ~304 on screen, 0 missed vsync frames; uncapped 315.5 fps (phase 14: 75.0 / 67.9 / 294.4). Alternated with the phase 14 commit: 75.0 / 75.0 fps, 1% low 69.3-69.7 vs 69.5-69.9, logic 3.52-3.83 vs 3.40-3.59 ms (noise). Headless logic: 3.12-3.14 vs 3.08-3.15 ms
+
+### Owner changes after the phase (2026-10-19)
+- [x] Tutorial a little harder: enemies HP / damage / spawns x0.8 / 0.7 / 0.8 -> 0.9 / 0.85 / 0.9, boss 45% / 60% -> 60% / 75%, altar step 2:30 -> 2:15. 40 tutorials per player: typical 40/40, good 40/40, typical median 4:44 (was 4:05); tried and dropped: altar at 2:00 (typical 38/40, at the 95% line), boss 50% HP (no change from easy)
+- [x] Danger 3 not early: the tutorial no longer opens map progress (tutorial.json "not_counted" "map_progress": true; `Meta.commit_run(..., opens)`): Danger 2 opens on the first real Danger 1 win. Campaigns to 40 runs: Danger 3 opens at median run 20 (typical) / 11 (good), was 2 / 2 (phase 14: 16 / 7); first win after the tutorial median run 2; early probe 10 of 14 by run 3. Brief, tests, docs/BALANCE.md updated
+- [x] Kept: the portal step, Sir Loaf at 135 HP
+- [x] Home guide line moves above the Unlock rail button while it shows (it covered its label; caught by the stricter guide check in test_text_fit, which now checks each open screen like the big-numbers check)
+- [x] Tests 3634 checks, 0 failed; FLOW OK; 16 tutorial shots at 540x1170 shot again, 0 off-palette pixels, reviewed
+- [x] Review prompt on the phase diff (2026-10-20): no merge blockers. Departs from the brief: the tutorial's typical length is 4:44, not "about 4 minutes" (the owner's harder numbers; run timer 5:00, clock stops at 0:00). Tests again 3634 checks, 0 failed
+
+### Found during phase 16
+
+- The splash test used the Save autoload, and the desktop save has 0 runs, so it went into the tutorial and left a run scene that ate taps in later tests. Splash now takes a `save` node (tests pass their own)
+- Sim bot: standing on a beacon or the altar, its wander term walked it off again (the charge drains when you step out). In the tutorial it now stays put on the step's object; other runs are unchanged so phase 14 numbers stay comparable
+- The tutorial adds a last "Walk into the portal" step after beating Mega Mole (the brief lists steps up to the boss; the run has to end somewhere, and the portal is how a won run ends without the Final Swarm)
+- The tutorial run has no Final Swarm (its clock stops at 0:00), so Gary's "60 s in the Final Swarm" and the Final Swarm leaderboard can't come from it
+- Mega Mole's rocks never scaled with Danger (enemy shots take a flat damage); the tutorial's weaker boss scales them through MegaMole.rock_mult only
+- The Level Up panel's `hint` is never drawn (kept for tests); the tutorial's card line uses the panel's `info` line instead (the cards move down for it, as for the merchant)
+- With the tutorial opening Danger 2 on run 1, Danger 3 opened at a median run 2 (phase 14: 16). Owner: the tutorial doesn't open Danger 2 any more (above)
+- The bots rarely die in the tutorial whatever the boss numbers (0-3 revives in 80 runs), so its difficulty is hard to read from the sim; a phone playtest will tell more
+- A tutorial that pays under 30 coins (after one quest claim) passes over the Home guide's Fireworks step; the sims never saw it (least was 38), but a scripted short run in the shots did
+- Screenshots and the windowed stress test need the screen on: Godot draws nothing while every display is off (DPMS), so tools/shoot_screens.gd waits forever on frame_post_draw
+
 ## Phase 14: Balance and big numbers (docs/BRIEF.md "Update 1", 2026-10-17)
 
 Prompt: housekeeping (archive, stale items, phone fps); one headless sim that plays a fresh save forward for all three heroes on every Danger and buys like a player; tune data/ only to the targets (Mega Mole on run 2-3, first Early unlock bought in 3 runs, no weapon in >40% of wins, win rate falls per Danger and D5 needs a good build, quests 30-40% of coins, hours to everything); big numbers in the UI (one number-format helper, short form in fixed spaces, the seven known overlaps, a big-numbers case in test_text_fit, shoot_screens --big). Done = docs/BALANCE.md report, targets met or explained, numbers only in data/, --big shots at 540x1170 clean and 0 off-palette, tests pass, stress within 5% of phase 13.

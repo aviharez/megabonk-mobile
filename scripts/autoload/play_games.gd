@@ -387,7 +387,8 @@ func run_ended(result: Dictionary) -> void:
 	if not started or not backend.available:
 		return
 	var db := GameData.shared()
-	var boards: Dictionary = config.get("leaderboards", {})
+	# The tutorial run sends no scores (data/rules/tutorial.json "not_counted").
+	var boards: Dictionary = config.get("leaderboards", {}) if result.get("scores", true) else {}
 	for key: String in boards:
 		var b: Dictionary = boards[key]
 		var score := run_score(db, b, result)

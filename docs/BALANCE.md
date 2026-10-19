@@ -86,7 +86,109 @@ Buildings and the shop are done far earlier (median run 37 / 28 for a typical pl
 
 ### Heroes
 
-Sir Loaf wins least (matrix 24% against 34% and 32%; campaign 9% against 21% and 15%), though he reaches the highest median KO. No target; noted.
+Sir Loaf wins least (matrix 24% against 34% and 32%; campaign 9% against 21% and 15%), though he reaches the highest median KO. No target; noted. Phase 16 tuned him: see "Phase 16" below (matrix 28% now).
+
+## Phase 16: tutorial and first session (2026-10-19)
+
+A fresh save's first run is now the tutorial (`data/rules/tutorial.json`): Sir Loaf, Suburbia, Danger 1, about 4-5 minutes, a weaker Mega Mole (60% HP, 75% damage), enemies a little kinder than Danger 1 (HP and spawns x0.9, damage x0.85), no SWARM INCOMING, no Final Swarm, one free revive. It counts for Fireworks, coins, KOs, the bestiary and quests, but not as map progress: Danger 2 opens on the first real Danger 1 win (owner, 2026-10-19), so Danger 3 doesn't come early. Re-run with:
+
+```sh
+tools/balance_sim.sh build/balance/p16_tutorial_e tutorial 14   # 40 tutorials per player (~2 min)
+tools/balance_sim.sh build/balance/p16_matrix_hp135 matrix 16    # hero x Danger (~40 min)
+tools/balance_sim.sh build/balance/p16_early early 14            # 14 fresh saves, 6 runs (~15 min)
+SIM_ARGS="--max_runs=40" tools/balance_sim.sh build/balance/p16_campaign40 campaign 8
+```
+
+### The tutorial (target: a typical bot wins at least 95% of 40)
+
+The bot follows the steps (it walks to the step's chest, beacon, altar and portal and stands on them). After each tutorial the sim does the Home guide's first step (claims one quest reward) and checks the second (Fireworks ready and affordable).
+
+#### Tutorial: typical player, 40 fresh saves
+
+|  | Result |
+| --- | --- |
+| Won (Mega Mole beaten, portal taken) | 40/40 (100%) |
+| Used the free revive | 0/40 |
+| Length (median, min-max) | 4:44 (3:41-11:33) |
+| Level reached (median) | 14 |
+| Coins after it (median, min) | 52, 39 |
+| Coins after the guide's quest claim (min) | 44 |
+| Guide: claim first, then Fireworks | 40/40 |
+| Danger 2 open after it | 0/40 |
+
+#### Tutorial: good player, 40 fresh saves
+
+|  | Result |
+| --- | --- |
+| Won (Mega Mole beaten, portal taken) | 40/40 (100%) |
+| Used the free revive | 0/40 |
+| Length (median, min-max) | 3:58 (3:10-5:03) |
+| Level reached (median) | 12 |
+| Coins after it (median, min) | 43, 34 |
+| Coins after the guide's quest claim (min) | 39 |
+| Guide: claim first, then Fireworks | 40/40 |
+| Danger 2 open after it | 0/40 |
+
+**Met: 40/40 (100%)** for the typical player. Tuning (owner, 2026-10-19: "a little harder"), 40 runs per player each:
+
+| Tutorial numbers | Typical won | Revives used (of 80) | Typical length (median) |
+| --- | --- | --- | --- |
+| First version: enemies HP / damage / spawns x0.8 / 0.7 / 0.8, boss 45% HP 60% damage, altar at 2:30 | 40/40 | 0 | 4:05 |
+| Enemies x0.9 / 0.85 / 0.9, boss 60% / 75%, altar at 2:30 | 39/40 | 3 | 5:06 |
+| Same, altar at 2:00 | 38/40 (95%, too close) | 3 | 4:20 |
+| Same, boss 50% HP, altar at 2:15 | 40/40 | 0 | 4:19 |
+| **Shipped:** enemies x0.9 / 0.85 / 0.9, boss 60% / 75%, altar at 2:15 | 40/40 | 0 | 4:44 |
+
+The bots seldom die in the tutorial whatever the boss numbers (they lose to being cornered, not to Mega Mole), so the revive count is a weak signal. Going harder than this put the typical bot at the 95% line. One typical run in each sample takes 11+ minutes: with no Final Swarm the clock stops at 0:00, and that seed's bot is slow to finish Mega Mole.
+
+### Early milestones with the tutorial
+
+Campaign sim, the tutorial as run 1, 40 runs per save (`build/balance/p16_campaign40`, seeds as in phase 14):
+
+| Milestone | Typical (5 saves): median run | Good (3 saves): median run | Phase 14 typical / good |
+| --- | --- | --- | --- |
+| Tutorial won | 1 (5/5) | 1 (3/3) | - |
+| Fireworks bought | 1 (5/5) | 1 (3/3) | - |
+| First Mega Mole win after the tutorial | 2 (5/5) | 2 (3/3) | 2 / 5 (first win of any run) |
+| First unlock done and bought | 1 | 1 | 1 / 1 |
+| Danger 2 open | 2 | 2 | 2 / 5 |
+| Danger 3 open | 20 | 11 | 16 / 7 |
+| Danger 4 open | 25 | 19 | 26 / 14 |
+| Turbo Pigeon hired | 4 | 5 | 4 / 5 |
+| Gary hired | 16 | 10 | 13 / 10 |
+| All 4 buildings built | 16 | 10 | 13 / 11 |
+
+- **Mega Mole on run 2 or 3** (the phase 8 target): the tutorial itself is a win on run 1, and the first win after it is a median run 2. In the 14-save early probe (`build/balance/p16_early`, seeds 101-114, 6 runs) the first win after the tutorial comes on run 2 in 7 saves, run 3 in 3, runs 5 and 6 in one each, and not by run 6 in 2 (phase 14: 9 of 14 by run 3; now 10 of 14).
+- **Danger 3 no longer comes early.** With the first version (the tutorial opened Danger 2) it opened at a median run 2; now run 20 (typical) / 11 (good), close to phase 14.
+- Quests' share of coins over the first 20 runs: 34% (typical) / 32% (good), inside the 30-40% target.
+
+### Sir Loaf (target: matrix win rate within about 5 points of the other two)
+
+Getting Stale now starts at 10% less damage and adds 2% a minute up to the same 24% (data: `start_reduction` 0.10, `reduction_per_minute` 0.03 -> 0.02). Matrix as in phase 14 (10 runs per hero per Danger, both players, new and maxed saves; the same seeds, so Turbo Pigeon's and Gary's runs are identical):
+
+| Sir Loaf | Matrix win rate | Turbo Pigeon | Gary | Gap |
+| --- | --- | --- | --- | --- |
+| Phase 14 (max HP 120, 0% + 3%/min) | 24% | 34% | 32% | 8-10 |
+| Getting Stale from 10% (max HP 120) | 25% | 34% | 32% | 7-9 |
+| + max HP 135 (shipped) | 28% | 34% | 32% | 4-6 |
+
+| Sir Loaf, max HP 135 | Typical, new save | Good, new save | Typical, everything bought | Good, everything bought |
+| --- | --- | --- | --- | --- |
+| Sir Loaf (120 HP -> 135 HP) | 2% -> 6% | 22% -> 24% | 28% -> 28% | 48% -> 52% |
+| Turbo Pigeon | 10% | 38% | 16% | 70% |
+| Gary | 16% | 28% | 28% | 56% |
+
+**Borderline:** 4 points behind Gary and 6 behind Turbo Pigeon, 200 runs each (about 3 points of noise per hero). The brief's step for a miss (max HP 135) is taken; nothing further was changed. The matrix with all heroes, max HP 135 (`build/balance/p16_matrix_hp135`):
+
+| Danger | Typical, new save | Good, new save | Typical, everything bought | Good, everything bought |
+| --- | --- | --- | --- | --- |
+| Danger 1 | 33% (30) | 80% (30) | 60% (30) | 93% (30) |
+| Danger 2 | 17% (30) | 37% (30) | 27% (30) | 73% (30) |
+| Danger 3 | 3% (30) | 23% (30) | 23% (30) | 60% (30) |
+| Danger 4 | 0% (30) | 7% (30) | 10% (30) | 40% (30) |
+| Danger 5 | 0% (30) | 3% (30) | 0% (30) | 30% (30) |
+
+Win rate still falls with each Danger level, and Danger 5 still needs a good build (typical 0%, good 3% / 30%).
 
 ## Changes in data/ (phase 14)
 
@@ -103,6 +205,8 @@ Sir Loaf wins least (matrix 24% against 34% and 32%; campaign 9% against 21% and
 | `challenges/golden_toilet.json` | target 10 -> 7 elites in one run (owner, 2026-10-18; brief updated) | Slowest unlock: after run 100 for a typical player, and Lottery Tips waits on it |
 
 No code numbers changed. Code changes in this phase are the sim, the UI (big numbers) and one crash fix (EnemyShots, found by the sim).
+
+Phase 16 (data only, numbers): `characters/sir_loaf.json` Getting Stale `start_reduction` 0.10 (new key), `reduction_per_minute` 0.03 -> 0.02, max HP 120 -> 135; `maps/sewers.json` `unlock_danger` 2 (new key); `rules/tutorial.json` (new; "not_counted" "map_progress": true keeps it from opening Danger 2).
 
 ## Tables (generated)
 

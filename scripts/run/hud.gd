@@ -543,6 +543,14 @@ func item_rect(i: int, n: int) -> Rect2:
 	return Rect2(x0 + col * ITEM_SLOT, bottom - (ITEM_SLOT + 1) * (row + 1) + 1, ITEM_FRAME, ITEM_FRAME)
 
 
+## Top of what sits along the bottom: the item rows (or, with no items, the
+## boss bar's room and the gesture bar).
+func items_top() -> float:
+	if not _items.is_empty():
+		return item_rect(_items.size() - 1, _items.size()).position.y
+	return floorf(size.y) - safe_bottom - 6.0 - (30.0 if boss_frac >= 0.0 else 0.0)
+
+
 ## The slot ring for an item's rarity.
 func _rarity_ring(id: String) -> String:
 	return UiArt.ring_of(String(db.get_entry("items", id).get("rarity", "")))

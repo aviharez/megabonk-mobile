@@ -7,6 +7,7 @@
 #
 # campaign: fresh saves, 5 typical + 3 good players (seeds 1-5 / 1-3).
 # early: 14 typical fresh saves, 6 runs each (boss on run 2-3, first unlock).
+# tutorial: 40 tutorials each for the typical and good player (phase 16).
 # matrix: 10 runs (RUNS=n) per hero per Danger for typical and good players, from a
 #   fresh save (heroes owned) and from a maxed save; one process per Danger.
 # Extra args for every process can go in SIM_ARGS (e.g. SIM_ARGS="--max_runs=40").
@@ -24,6 +25,12 @@ timeout 300 godot --headless --path . --import >/dev/null 2>&1
 cmds=()
 if [ "$what" = early ]; then
 	for s in $(seq 101 114); do cmds+=("--mode=campaign --skill=typical --seed=$s --max_runs=6 --out=$out/campaign_typical_$s.json"); done
+fi
+if [ "$what" = tutorial ]; then
+	# Phase 16: 40 tutorials (8 processes x 5 fresh saves) per player.
+	for skill in typical good; do
+		for s in 1 2 3 4 5 6 7 8; do cmds+=("--mode=tutorial --skill=$skill --seed=$s --runs=${RUNS:-5} --out=$out/tutorial_${skill}_$s.json"); done
+	done
 fi
 if [ "$what" = campaign ] || [ "$what" = all ]; then
 	for s in 1 2 3 4 5; do cmds+=("--mode=campaign --skill=typical --seed=$s --out=$out/campaign_typical_$s.json"); done

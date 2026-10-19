@@ -21,7 +21,7 @@ TARGET_SHARE = (0.30, 0.40)
 
 
 def load(d):
-    out = {"campaign": [], "matrix": []}
+    out = {"campaign": [], "matrix": [], "tutorial": []}
     for p in sorted(glob.glob(os.path.join(d, "*.json"))):
         with open(p) as f:
             j = json.load(f)
@@ -96,10 +96,12 @@ def campaign_section(camps):
         if not cs:
             continue
         out.append(f"\n#### {skill.title()} player ({len(cs)} fresh saves)\n")
-        keys = ["first_boss", "first_unlock_done", "first_unlock_bought", "hero_turbo_pigeon", "hero_gary",
+        keys = ["tutorial_won", "fireworks_bought", "first_boss_after_tutorial", "first_boss", "first_unlock_done", "first_unlock_bought", "hero_turbo_pigeon", "hero_gary",
                 "danger_2_open", "danger_3_open", "danger_4_open", "danger_5_open", "all_buildings_built",
                 "all_unlocks", "all_buildings_max", "all_shop_max", "danger_5_beaten"]
-        names = {"first_boss": "First Mega Mole win", "first_unlock_done": "First unlock challenge done",
+        names = {"tutorial_won": "Tutorial won (run 1)", "fireworks_bought": "Fireworks bought",
+                 "first_boss_after_tutorial": "First Mega Mole win after the tutorial",
+                 "first_boss": "First Mega Mole win", "first_unlock_done": "First unlock challenge done",
                  "first_unlock_bought": "First unlock bought", "hero_turbo_pigeon": "Turbo Pigeon hired",
                  "hero_gary": "Gary hired", "danger_2_open": "Danger 2 open", "danger_3_open": "Danger 3 open",
                  "danger_4_open": "Danger 4 open", "danger_5_open": "Danger 5 open",
@@ -131,6 +133,39 @@ def campaign_section(camps):
     return "\n".join(out)
 
 
+def tutorial_section(tuts):
+    """Phase 16: the tutorial from fresh saves (campaign_sim --mode=tutorial)."""
+    out = []
+    for skill in ("typical", "good"):
+        rs = [r for t in tuts if t["skill"] == skill for r in t["runs"]]
+        if not rs:
+            continue
+        won = sum(r["won"] and r["reason"] == "portal" for r in rs)
+        price = 30
+        out.append(f"\n### Tutorial: {skill} player, {len(rs)} fresh saves\n")
+        rows = [["Won (Mega Mole beaten, portal taken)", f"{won}/{len(rs)} ({pct(won, len(rs))})"],
+                ["Used the free revive", f"{sum(r.get('revived', False) for r in rs)}/{len(rs)}"],
+                ["Length (median, min-max)", f"{fmt_time(med_raw([r['time'] for r in rs]))} "
+                 f"({fmt_time(min(r['time'] for r in rs))}-{fmt_time(max(r['time'] for r in rs))})"],
+                ["Level reached (median)", str(med_raw([r['level'] for r in rs]))],
+                ["Coins after it (median, min)", f"{med_raw([r['coins_after'] for r in rs])}, {min(r['coins_after'] for r in rs)}"],
+                ["Coins after the guide's quest claim (min)", str(min(r['coins_after_claim'] for r in rs))],
+                ["Guide: claim first, then Fireworks", f"{sum(r['guide_first'] == 'claim_quest' and r['guide_second'] == 'buy_fireworks' for r in rs)}/{len(rs)}"],
+                ["Danger 2 open after it", f"{sum(r['danger_2'] for r in rs)}/{len(rs)}"]]
+        out.append(table(["", "Result"], rows))
+    return "\n".join(out)
+
+
+def med_raw(xs):
+    xs = sorted(xs)
+    return xs[len(xs) // 2] if xs else 0
+
+
+def fmt_time(sec):
+    sec = int(sec)
+    return f"{sec // 60}:{sec % 60:02d}"
+
+
 def main():
     d = sys.argv[1]
     data = load(d)
@@ -147,6 +182,9 @@ def main():
         print(wt)
         print("\n#### Per Danger level (campaign runs: win rate, runs)\n")
         print(danger_table([(f"{s.title()} player", [r for c in camps if c['skill'] == s for r in c['runs']]) for s in ("typical", "good")]))
+    tuts = data["tutorial"]
+    if tuts:
+        print(tutorial_section(tuts))
     if mats:
         groups = []
         for meta in ("fresh", "max"):

@@ -32,6 +32,8 @@ var challenges: Array[Dictionary] = []
 var buffs: Array[Dictionary] = []
 ## Set by Run on a first run when the boss wasn't summoned in time.
 var altar_pulse := false
+## The tutorial step's object (TutorialFlow): its arrow pulses and always shows.
+var pulse_target: Dictionary = {}
 static var _sprites := {}  # sprite path -> ImageTexture (null when missing)
 var _time := 0.0
 var _risk_n := 0
@@ -357,8 +359,9 @@ func arrow_targets(view: Rect2) -> Array:
 		var c: String = o.def.get("arrow", "")
 		if c == "" or o.used or view.has_point(o.pos):
 			continue
-		var t := {"pos": o.pos, "color": Palette.index_of(c), "pulse": altar_pulse and o.def.behavior == "altar", "d": p.distance_squared_to(o.pos)}
-		if o.def.behavior in ["altar", "portal"]:
+		var lit := is_same(o, pulse_target)
+		var t := {"pos": o.pos, "color": Palette.index_of(c), "pulse": lit or (altar_pulse and o.def.behavior == "altar"), "d": p.distance_squared_to(o.pos)}
+		if lit or o.def.behavior in ["altar", "portal"]:
 			keep.append(t)
 		else:
 			rest.append(t)

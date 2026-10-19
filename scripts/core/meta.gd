@@ -21,8 +21,9 @@ extends RefCounted
 ## - "toggled_off": content ids the Toggler keeps out of the pool.
 ## - "character": the character picked last.
 ## - "map": the map picked last.
-## - "maps_cleared": map id -> true once its boss was defeated (opens the
-##   maps whose "unlock_after" names it).
+## - "maps_cleared": map id -> true once its boss was defeated (with
+##   "dangers_beaten", opens the maps whose "unlock_after" names it on their
+##   "unlock_danger").
 ## - "danger": the danger level picked last.
 ## - "dangers_beaten": map id -> the highest danger level its boss was beaten
 ##   on (Danger n + 1 opens then). A save from before danger levels has only
@@ -167,15 +168,22 @@ static func maps(db: GameData) -> Array:
 	return out
 
 
-## "open" (playable), "locked" (boss of the map before not defeated yet) or
-## "soon" (a planned map whose turn has come: not playable yet).
+## "open" (playable), "locked" (boss of the map before not defeated yet on
+## its "unlock_danger") or "soon" (a planned map whose turn has come: not
+## playable yet).
 static func map_state(db: GameData, data: Dictionary, id: String) -> String:
 	var m := db.get_entry("maps", id)
 	var status: String = m.get("status", "start")
-	var prev_done: bool = data.get("maps_cleared", {}).has(m.get("unlock_after", ""))
+	var prev_done: bool = danger_beaten(data, m.get("unlock_after", "")) >= unlock_danger(m)
 	if status == "planned":
 		return "soon" if prev_done else "locked"
 	return "open" if status == "start" or prev_done else "locked"
+
+
+## The danger level the boss of a map's "unlock_after" map must be beaten on
+## to open it (data "unlock_danger", default 1).
+static func unlock_danger(m: Dictionary) -> int:
+	return maxi(1, int(m.get("unlock_danger", 1)))
 
 
 ## Boss summoned on the map (its altar's "boss"), by name; "" if none.
@@ -202,14 +210,15 @@ static func map_hint(db: GameData, data: Dictionary, id: String) -> String:
 			var prev: String = db.get_entry("maps", id).get("unlock_after", "")
 			var boss := map_boss_name(db, prev)
 			if map_state(db, data, prev) == "open" and boss != "":
-				return "Beat %s on Danger 1" % boss
+				return "Beat %s on Danger %d" % [boss, unlock_danger(db.get_entry("maps", id))]
 			var name := district_title(db, data, prev)
 			return "Clear the " + name if name != "???" else "Clear the district before"
 	return ""
 
 
 ## A district's name where the play flow shows it: known once it's open (or
-## coming soon) or next in line (the map before it is open), else "???".
+## coming soon) or next in line (the map before it is open, whatever danger
+## it still needs: map_state reads "unlock_danger"), else "???".
 static func district_title(db: GameData, data: Dictionary, id: String) -> String:
 	var m := db.get_entry("maps", id)
 	var prev: String = m.get("unlock_after", "")
@@ -527,11 +536,12 @@ static func buy(db: GameData, data: Dictionary, id: String) -> bool:
 
 ## Adds a finished run to the save: coins, runs played, the tracker totals,
 ## best run values, the map's boss cleared (`map`) on `danger` (opens the
-## next level), its best time (`seconds` survived) and goals, and newly completed
+## next level; not with `opens` false: the tutorial), its best time (`seconds`
+## survived) and goals, and newly completed
 ## challenges (their rewards become "available"). `run_stats` is Run.result.stats. Returns the ids of the
 ## challenges completed by this run. Doesn't write the file.
 static func commit_run(db: GameData, data: Dictionary, run_stats: Dictionary, character: String, coins: int, map := "",
-		seconds := -1.0, danger := 1) -> Array:
+		seconds := -1.0, danger := 1, opens := true) -> Array:
 	data.runs_played = int(data.runs_played) + 1
 	if seconds > 0.0:
 		data.playtime = float(data.get("playtime", 0.0)) + seconds
@@ -539,7 +549,7 @@ static func commit_run(db: GameData, data: Dictionary, run_stats: Dictionary, ch
 		if not data.has("best_times"):
 			data.best_times = {}
 		data.best_times[map] = maxf(float(data.best_times.get(map, 0.0)), seconds)
-	if map != "" and float(run_stats.get("boss_defeated", 0.0)) > 0.0:
+	if map != "" and opens and float(run_stats.get("boss_defeated", 0.0)) > 0.0:
 		data.maps_cleared[map] = true
 		if not data.has("dangers_beaten"):
 			data.dangers_beaten = {}

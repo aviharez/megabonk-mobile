@@ -437,3 +437,116 @@ func test_big_problems_are_caught(t) -> void:
 	t.check(bad.any(func(s: String) -> bool: return s.contains("cut at its width")), "a number cut at its width is reported")
 	c.queue_free()
 	await t.process_frame
+
+
+# --- Phase 16: the tutorial's lines and the Home guide ----------------------------
+
+## Every tutorial step's line on a 180x390 view (540x1170): on screen, inside
+## its card, over no other text; the Level Up line too. Then every Home guide
+## step (Home, Quests, Home again, Collection).
+func test_tutorial_steps_fit(t) -> void:
+	await _phone(t, true)
+	var save: Node = preload("res://scripts/autoload/save_manager.gd").new()
+	save.path = "user://test_tutorial_fit.json"
+	t.root.add_child(save)
+	save.reset()
+	var o := Tutorial.run_options(GameData.shared())
+	o.merge({"save": save, "seed": 4, "no_spawns": true, "invincible": true}, true)
+	Run.next_options = o
+	var run: Run = RUN_SCENE.instantiate()
+	t.root.add_child(run)
+	await t.process_frame
+	var flow := run.tutorial
+	var bad := []
+	var shown := 0
+	for i in flow.steps.size():
+		flow._go(i)
+		run.elapsed = maxf(run.elapsed, float(flow.steps[i].get("start_at_sec", 0.0)))
+		flow._enter(flow.steps[i])
+		flow.tip.say(flow.line())
+		run._render()
+		await t.process_frame
+		if run._tip.visible and run._tip.text() != "":
+			shown += 1
+		bad += problems(run, _screen(t), "step " + flow.step_id())
+		var tip_r := run._tip.get_global_rect()
+		if not _screen(t).encloses(tip_r):
+			bad.append("step %s: tip off screen %s" % [flow.step_id(), tip_r])
+	t.check(shown == flow.steps.size(), "every step showed its line (%d of %d)" % [shown, flow.steps.size()])
+	# The Level Up line on its panel.
+	flow._go(3)
+	run.add_xp(Run.xp_needed(run.rules.xp_curve, run.level))
+	run.tick(1.0 / 30.0)
+	await t.create_timer(0.8).timeout
+	t.check(run._cards_panel.hint == flow.steps[3].card_text, "Level Up shows the card line")
+	t.check(Fonts.width(run._cards_panel.hint, "BODY") <= LevelUpPanel.SIZE.x - 16.0, "and it fits the panel on one line (%d px)" % Fonts.width(run._cards_panel.hint, "BODY"))
+	bad += problems(run._cards_panel, _screen(t), "level up")
+	t.check(bad.is_empty(), "tutorial lines fit: %s" % [bad])
+	t.paused = false
+	run.queue_free()
+	save.queue_free()
+	await t.process_frame
+	await _guide_fits(t)
+	for p in ["user://test_tutorial_fit.json", "user://test_tutorial_fit.json.bak", "user://test_tutorial_fit.json.tmp"]:
+		if FileAccess.file_exists(p):
+			DirAccess.remove_absolute(p)
+	await _phone(t, false)
+
+
+func _guide_fits(t) -> void:
+	var tut: RefCounted = preload("res://tests/test_tutorial.gd").new()
+	var save: Node = t.root.get_node("Save")
+	save.set_meta("guide_old", [save.path, save.data])
+	save.path = "user://test_tutorial_fit.json"
+	save.data = tut._after_tutorial()
+	var menu: Control = MENU_SCENE.instantiate()
+	t.root.add_child(menu)
+	await t.create_timer(0.7).timeout
+	var guide: HomeGuide = menu.get_node("HomeGuide")
+	var bad := []
+	var seen := []
+	bad += await big_problems(t, menu, _screen(t), "guide home")
+	seen.append(guide.target_at)
+	var q: QuestsScreen = menu.call("_open_quests")
+	await t.create_timer(0.5).timeout
+	bad += await _guide_problems(t, guide, q, "guide quests")
+	seen.append(guide.target_at)
+	(q.find_child("Claim", true, false) as BaseButton).pressed.emit()
+	q.close()
+	await t.create_timer(0.4).timeout
+	bad += await big_problems(t, menu, _screen(t), "guide home 2")
+	seen.append(guide.target_at)
+	var col: MenuScreen = menu.call("_on_tab", "collection")
+	await t.create_timer(0.5).timeout
+	bad += await _guide_problems(t, guide, col, "guide collection")
+	seen.append(guide.target_at)
+	t.check(seen == ["home:quests", "quests:claim", "nav:collection", "collection:buy"], "every guide step was checked (%s)" % [seen])
+	t.check(bad.is_empty(), "Home guide lines fit: %s" % [bad])
+	menu.queue_free()
+	await t.process_frame
+	var old: Array = save.get_meta("guide_old")
+	save.path = old[0]
+	save.data = old[1]
+	save.remove_meta("guide_old")
+
+
+## An open screen as the big-numbers check sees it, plus the guide's line:
+## on screen, over none of the screen's text.
+func _guide_problems(t, guide: HomeGuide, screen: Control, where: String) -> Array:
+	var out := await big_problems(t, screen, _screen(t), where)
+	var tr := text_rect(guide.tip.label)
+	if not _screen(t).grow(0.5).encloses(guide.tip.get_global_rect()):
+		out.append("%s: the guide's line is off screen" % where)
+	for l: Label in labels(screen):
+		var r := text_rect(l)
+		var clip := _clip_of(l)
+		if clip.has_area():
+			r = r.intersection(clip)
+		if r.has_area() and r.grow(-0.5).intersects(guide.tip.get_global_rect().grow(-0.5)):
+			out.append("%s: the guide's line covers '%s'" % [where, l.text])
+	for d: Dictionary in await drawn(t, screen):
+		if (d.rect as Rect2).grow(-0.5).intersects(guide.tip.get_global_rect().grow(-0.5)):
+			out.append("%s: the guide's line covers '%s'" % [where, d.text])
+	if not tr.has_area():
+		out.append("%s: the guide's line is empty" % where)
+	return out

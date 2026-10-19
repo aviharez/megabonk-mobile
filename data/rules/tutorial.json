@@ -1,0 +1,54 @@
+{
+	"id": "tutorial",
+	"note": "The first run of a fresh save (phase 16, scripts/core/tutorial.gd). Read by the splash, the run (scripts/run/tutorial_flow.gd), Home (scripts/ui/home_guide.gd) and the sims.",
+	"character": "sir_loaf",
+	"map": "suburbia",
+	"danger": 1,
+	"rules": {"run_length_sec": 300},
+	"final_swarm": false,
+	"map_overrides": {"swarms": [], "merchant": {}},
+	"modifiers": {"spawn_rate": 0.9, "enemy_hp": 0.9, "enemy_damage": 0.85, "elite_every_sec": [80, 110]},
+	"boss": {"hp_mult": 0.6, "damage_mult": 0.75},
+	"free_revives": 1,
+	"revive_text": "Free revive! Keep going.",
+	"result_line": "Tutorial done! The town is yours.",
+	"not_counted": {
+		"stats": ["boss_defeated_at", "boss_defeated_hp_frac", "boss_defeated_in_final_swarm"],
+		"leaderboards": true,
+		"map_progress": true
+	},
+	"min_step_sec": 2.5,
+	"steps": [
+		{"id": "move", "text": "Drag anywhere to move.", "ghost_stick": true, "done": {"moved_sec": 1.5}},
+		{"id": "attack", "text": "You attack on your own. Bonk 10 critters!", "done": {"kills": 10}},
+		{"id": "gems", "text": "Walk over gems to pick them up.", "done": {"gems": 8}},
+		{"id": "level_up", "text": "Gems fill the XP bar. Fill it to level up!", "card_text": "Pick a card. Each one makes you stronger.", "done": {"level_ups": 1}},
+		{"id": "chest", "text": "A chest! Walk into it to open it.", "spawn": "elite_chest", "spawn_dist": [45, 70], "done": {"chests": 1}},
+		{"id": "beacon", "text": "Stand in the beacon to charge it.", "spawn": "charge_shrine", "spawn_dist": [50, 75], "done": {"beacons": 1}},
+		{"id": "altar", "text": "Follow the red arrow and stand on the altar.", "start_at_sec": 135, "pulse": "boss_altar", "done": {"boss_summoned": 1}},
+		{"id": "boss", "text": "Beat Mega Mole! Step out of red circles.", "done": {"boss_defeated": 1}},
+		{"id": "portal", "text": "You won! Walk into the portal.", "pulse": "portal", "done": {"escaped": 1}}
+	],
+	"home_steps": [
+		{
+			"id": "claim_quest",
+			"kind": "claim_quest",
+			"targets": [
+				{"at": "quests:claim", "text": "Tap Claim to get your coins."},
+				{"at": "home:quests", "text": "You finished a quest! Tap Quests."}
+			],
+			"text": "Go back Home and tap Quests."
+		},
+		{
+			"id": "buy_fireworks",
+			"kind": "buy_unlock",
+			"content": "fireworks",
+			"targets": [
+				{"at": "collection:buy", "text": "Buy Fireworks. It joins your level-up cards."},
+				{"at": "collection:tile", "text": "Tap Fireworks."},
+				{"at": "nav:collection", "text": "Fireworks is ready! Tap Collection."}
+			],
+			"text": "Open Collection to get Fireworks."
+		}
+	]
+}

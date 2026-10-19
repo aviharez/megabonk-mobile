@@ -311,6 +311,73 @@ func _run() -> void:
 			await _wait(0.2 if big else 0.45)
 			await _shot("50_crowd_%d" % i)
 
+	if _want("tutorial"):
+		# Phase 16: a fresh save's tutorial run, one shot per step (the step's
+		# object put down, its line up), the Level Up line, Skip on the pause,
+		# the result; then the Home guide on the save the tutorial left.
+		save.reset()
+		var tdb := GameData.shared()
+		Quests.roll(tdb, save.data)
+		Tutorial.begin(save.data)
+		Run.next_options = Tutorial.run_options(tdb)
+		Run.next_options.merge({"seed": 7, "invincible": true}, true)
+		change_scene_to_file("res://scenes/run.tscn")
+		await _wait(0.4)
+		var run := current_scene as Run
+		var flow := run.tutorial
+		run.options["auto_cards"] = true  # no surprise Level Up over a step's shot
+		for i in flow.steps.size():
+			var st: Dictionary = flow.steps[i]
+			match str(st.id):
+				"altar":
+					run.elapsed = maxf(run.elapsed, float(st.get("start_at_sec", 0.0)))
+					run.teleport(run.free_spot_near(run.interactables.find("boss_altar").pos + Vector2(70, 30)))
+				"boss":
+					var altar: Dictionary = run.interactables.find("boss_altar")
+					run.summon_boss("mega_mole", altar.pos)
+					altar.used = true
+				"portal":
+					if run.boss != null:
+						run.hit_enemy(run.boss.slot, 1e9, Vector2.ZERO, "baguette", false)
+					run.pending_levels = 0
+					await _wait(0.2)
+			flow._go(i)
+			flow._enter(st)
+			flow.tip.say(flow.line())
+			await _wait(0.5)
+			await _shot("60_tut_%d_%s" % [i, st.id])
+		flow._go(3)
+		run.options["auto_cards"] = false
+		run.add_xp(Run.xp_needed(run.rules.xp_curve, run.level))
+		await _wait(1.6)
+		await _shot("61_tut_level_up")
+		run.call("_on_card", 0)
+		await _wait(0.2)
+		run.call("_pause", true)
+		await _wait(0.3)
+		await _shot("62_tut_pause_skip")
+		run.call("_pause", false)
+		run.boss_defeated = true
+		run.run_stats["boss_defeated"] = 1.0
+		run.elapsed = maxf(run.elapsed, 260.0)  # a typical tutorial's length (and coins)
+		run.call("_end", "portal")
+		await _wait(1.6)
+		await _shot("63_tut_result")
+		change_scene_to_file("res://scenes/main_menu.tscn")
+		await _wait(0.9)
+		await _shot("64_guide_home_quests")
+		var gm := current_scene
+		var gq: QuestsScreen = gm.call("_open_quests")
+		await _wait(0.6)
+		await _shot("65_guide_claim")
+		(gq.find_child("Claim", true, false) as BaseButton).pressed.emit()
+		gq.close()
+		await _wait(0.5)
+		await _shot("66_guide_home_collection")
+		gm.call("_on_tab", "collection")
+		await _wait(0.6)
+		await _shot("67_guide_buy")
+
 	save.path = real_path
 	save.load_game()
 	if ads != null:

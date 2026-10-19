@@ -341,6 +341,9 @@ func _refresh_double() -> void:
 	var can := Quests.can_double(save.data)
 	var ad_ok: bool = _ads != null and _ads.can_offer("quest_double")
 	_double.visible = can and ad_ok
+	# No ads after the tutorial: the AD x2 line stays away too (the Home
+	# guide's line sits in this row meanwhile).
+	_note.visible = not Tutorial.ads_quiet(save.data)
 	if can:
 		_note.text = "Double your last claim: +" + Num.full(int(q.last_claim.coins))
 	elif int(q.get("doubled_day", -1)) == Quests.day_of(Quests.now()):

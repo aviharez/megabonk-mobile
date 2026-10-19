@@ -80,6 +80,20 @@ func test_phase3_bad_data_is_caught(t) -> void:
 		["maps/suburbia.json", func(d: Dictionary) -> void: d.thumb = "res://nope.png", "thumbnail \"res://nope.png\" not found"],
 		["characters/gary.json", func(d: Dictionary) -> void: d.role = 3, "gary.json: \"role\" must be text"],
 		["rules/run.json", func(d: Dictionary) -> void: d.player_hp_bar.height = 2, "\"player_hp_bar\" needs numbers"],
+		# Phase 16: the map's unlock danger, Getting Stale's start, the tutorial.
+		["maps/sewers.json", func(d: Dictionary) -> void: d.unlock_danger = 6, "sewers.json: \"unlock_danger\" must be a whole number from 1 to 5"],
+		["maps/sewers.json", func(d: Dictionary) -> void: d.unlock_danger = 1.5, "\"unlock_danger\" must be a whole number"],
+		["maps/sewers.json", func(d: Dictionary) -> void: d.erase("unlock_after"); d.status = "start"; d.unlock_danger = 2, "\"unlock_danger\" needs an \"unlock_after\" map"],
+		["characters/sir_loaf.json", func(d: Dictionary) -> void: d.passive.start_reduction = 0.5, "\"start_reduction\" must be a number from 0 to \"max_reduction\""],
+		["rules/tutorial.json", func(d: Dictionary) -> void: d.character = "gary", "tutorial.json: \"character\" must be a start character"],
+		["rules/tutorial.json", func(d: Dictionary) -> void: d.not_counted.stats.append("boss_dance"), "not_counted stat \"boss_dance\""],
+		["rules/tutorial.json", func(d: Dictionary) -> void: d.steps[0].done = {"hops": 3}, "step \"move\" counts \"hops\""],
+		["rules/tutorial.json", func(d: Dictionary) -> void: d.steps[4].spawn = "treasure", "unknown interactable \"treasure\""],
+		["rules/tutorial.json", func(d: Dictionary) -> void: d.steps[1].id = "move", "every step needs its own \"id\""],
+		["rules/tutorial.json", func(d: Dictionary) -> void: d.rules.run_seconds = 5, "\"rules\" key \"run_seconds\" is not in rules/run.json"],
+		["rules/tutorial.json", func(d: Dictionary) -> void: d.boss.hp_mult = 0, "\"boss\" takes \"hp_mult\""],
+		["rules/tutorial.json", func(d: Dictionary) -> void: d.home_steps[1].content = "baguette", "\"content\" must be the reward of an unlock challenge"],
+		["rules/tutorial.json", func(d: Dictionary) -> void: d.home_steps[0].targets[0].at = "shop:buy", "targets need \"at\""],
 	]
 	for c: Array in cases:
 		_wipe(BAD)

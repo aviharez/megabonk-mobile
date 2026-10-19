@@ -3,7 +3,9 @@ extends RefCounted
 ## Character passives. The behavior lives here, keyed by the passive "id" in
 ## the character's data; the numbers come from that data.
 ##
-## - getting_stale (Sir Loaf): takes less damage the longer the run lasts.
+## - getting_stale (Sir Loaf): takes less damage the longer the run lasts:
+##   start_reduction (optional, default 0) plus reduction_per_minute a
+##   minute, up to max_reduction.
 ## - speed_damage (Turbo Pigeon): +damage_per_speed damage (as a percent
 ##   modifier) per point of move speed above from_speed.
 ## - overtime (Gary): from minute from_min, every started minute adds one
@@ -16,7 +18,7 @@ const SOURCE := "passive"
 static func damage_taken_mult(passive: Dictionary, minute: float) -> float:
 	match passive.get("id", ""):
 		"getting_stale":
-			return 1.0 - minf(passive.reduction_per_minute * minute, passive.max_reduction)
+			return 1.0 - minf(float(passive.get("start_reduction", 0.0)) + passive.reduction_per_minute * minute, passive.max_reduction)
 	return 1.0
 
 

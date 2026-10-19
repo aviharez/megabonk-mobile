@@ -25,6 +25,10 @@ extends Control
 ## Play Games (scripts/autoload/play_games.gd): its one-line notices (which
 ## save the cloud sync kept) take the district chip's place for a few
 ## seconds.
+##
+## After the tutorial (phase 16) the Home guide (HomeGuide) sits over
+## everything but the popups and points at the next button to tap; no ads
+## while it's up. It ends by itself, or when a run starts.
 
 const RUN_SCENE := "res://scenes/run.tscn"
 ## The design's screen (docs/ui/ are 180 x 390 at 4x).
@@ -52,6 +56,7 @@ var _settings: SettingsPanel
 var _notice_text := ""
 var _notice_left := 0.0
 var _nav: BottomNav
+var _guide: HomeGuide
 var _tab: MenuScreen
 var _ads: Node
 var _banner_screen := "?"
@@ -84,6 +89,11 @@ func _ready() -> void:
 	add_child(_nav)
 	_settings = SettingsPanel.new()
 	add_child(_settings)
+	if Tutorial.guide_on(Save.data):
+		_guide = HomeGuide.new(self, Save)
+		_guide.finished.connect(_on_guide_done)
+		add_child(_guide)
+		move_child(_guide, _settings.get_index())
 
 	_refresh_wallet()
 	_ads = get_node_or_null("/root/Ads")
@@ -478,6 +488,8 @@ func _open_heroes() -> CharactersScreen:
 
 
 func _start_run(character: String, map: String, danger := 1) -> void:
+	# Starting a run hands over control: the Home guide is over.
+	Tutorial.end_guide(Save.data)
 	Save.data.character = character
 	Save.data.map = map
 	Save.data.danger = danger
@@ -519,6 +531,50 @@ func _refresh_quests() -> void:
 ## Quests: a sub-screen (no nav) over Home.
 func _open_quests() -> QuestsScreen:
 	return _open_screen(QuestsScreen) as QuestsScreen
+
+
+# --- Home guide (phase 16) -----------------------------------------------------
+
+## The guide is over: ads may come back (banner, Daily).
+func _on_guide_done() -> void:
+	_guide = null
+	if _ads != null:
+		_ads.refresh()
+	_refresh_daily()
+
+
+## The control a guide target names, when it's on screen now (HomeGuide).
+func guide_target(at: String, content := "") -> Control:
+	var screens := get_children().filter(func(c: Node) -> bool: return c is MenuScreen and not c.is_queued_for_deletion())
+	var top: MenuScreen = _top_screen(screens.back()) if not screens.is_empty() else null
+	match at:
+		"home:quests":
+			return _quests if top == null else null
+		"quests:claim":
+			return top.find_child("Claim", true, false) as Control if top is QuestsScreen else null
+		"nav:collection":
+			return _nav.tile("collection") if _nav.visible and _nav.current != "collection" and (top == null or top.tab_mode) else null
+		"collection:tile":
+			return top.find_child(content, true, false) as Control if top is UnlocksScreen and top.selected != content else null
+		"collection:buy":
+			return top.find_child("Buy", true, false) as Control if top is UnlocksScreen and top.selected == content else null
+	return null
+
+
+## The guide's line stays above this y: Play on Home (or the Unlock button
+## over it, while it shows), else the nav, else
+## the bottom edge (Quests: its bottom row, whose AD x2 is off meanwhile).
+## -1 on Play's steps: no line over their big buttons.
+func guide_floor() -> float:
+	var screens := get_children().filter(func(c: Node) -> bool: return c is MenuScreen and not c.is_queued_for_deletion())
+	if screens.is_empty():
+		var y := _play.get_global_rect().position.y
+		return minf(y, _unlock.get_global_rect().position.y) if _unlock.visible else y
+	if _nav.visible:
+		return _nav.get_global_rect().position.y
+	if (_top_screen(screens.back()) as MenuScreen).step > 0:
+		return -1.0
+	return size.y - float(SafeArea.bottom(get_viewport())) - 2.0
 
 
 ## The Unlock button shows while something is ready to buy (its icon on it).

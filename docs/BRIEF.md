@@ -142,7 +142,7 @@ Enemy behavior is written once in code as roles. Each map fills those roles with
 
 ### Boss altar
 
-The altar sits somewhere on the map, with an indicator arrow. The boss is summoned by standing in the altar's circle for 2–3 seconds. If the timer runs out before the boss is defeated, the Final Swarm starts anyway. On the first run, if the boss hasn't been summoned by minute 5, the altar arrow pulses and a short hint appears.
+The altar sits somewhere on the map, with an indicator arrow. The boss is summoned by standing in the altar's circle for 2–3 seconds. If the timer runs out before the boss is defeated, the Final Swarm starts anyway. On the first run, if the boss hasn't been summoned by minute 5, the altar arrow pulses and a short hint appears. (Phase 16: the first run is the tutorial, whose altar step does this.)
 
 ### Run timeline
 
@@ -173,7 +173,7 @@ SWARM INCOMING is a 20–30 second enemy surge with a big on-screen warning.
 
 Chests, shrines, elites, and the altar get indicator arrows at the screen edge when out of view.
 
-Planned update maps: Sewers (giant crocodile boss), Farm (mutant cow boss), and Shopping Mall (giant security guard boss). Each map unlocks after the previous map's boss is defeated.
+Planned update maps: Sewers (giant crocodile boss), Farm (mutant cow boss), and Shopping Mall (giant security guard boss). Each map unlocks after the previous map's boss is defeated (on the Danger level in the map's "unlock_danger", default 1; Sewers needs Mega Mole beaten on Danger 2: Phase 16).
 
 ## Meta progression
 
@@ -316,7 +316,7 @@ SpriteCook stays the record for the art made up to phase 12. New art is made wit
 - **Unlocks and shop are grids.** A fixed detail panel on top shows the selected tile (icon at 2x, name or "??? WEAPON", what it does once known, the challenge with its bar, BUY / OWNED / why it's locked); under it a grid of 2x icon tiles grouped by tier (unlocks) or kind (shop). Locked tiles are silhouettes with a progress strip, ones ready to buy hop and sparkle with a NEW badge or red dot, owned ones get a tick, shop tiles show level pips. Shop entries name their picture in data ("icon": "tomes/muscle_magazine" or "ui/lv_die"). Remove Ads stays a purple banner above the grid.
 - **HUD.** XP bar with the level on it, HP bar with a draining ghost, a big timer (SALMON in the last 30 s, PINK in the Final Swarm), gold and kills, toasts on a dark plate that wrap. Under the HP row, the **build strip**: an icon per weapon and tome with level pips (gold at max); a new one or a level-up flashes. The HP bar stops where the big timer starts. Items show as a small row of icons at the bottom-left (rarity-coloured corners, stack count), above the boss bar during the boss. A **pickup card** slides in for a few seconds whenever an item comes from a chest or the merchant (icon, rarity, name, what it does, stack count) or a shrine bonus is taken.
 - **Run panels.** Level-up cards show kind, icon, level pips (the new level blinks), the description, and the numbers that change in LIME ("DMG 10>14  CD 1.3>1.2", tomes "NOW +10% > +20%"); REROLL / SKIP / BANISH are labelled. The merchant's cards say what each item does. Pause fills the screen: the build (tap any weapon, tome or item to see its level, what it does now, and for weapons its damage and kills this run), stats, music/sound toggles, and GIVE UP asks for a second tap. Game over: reason line, the hero, stat tiles, coins rolling up, 2X COINS, the build you ended with, closest unlocks, PLAY AGAIN and MENU, after a short red death beat.
-- **First runs.** "SURVIVE!" at the start; for the first two runs a ghost joystick says "DRAG ANYWHERE TO MOVE" until the first touch.
+- **First runs.** "SURVIVE!" at the start; for the first two runs a ghost joystick says "DRAG ANYWHERE TO MOVE" until the first touch. (Phase 16: the ghost joystick is now the tutorial's first step only.)
 
 ### Audio
 
@@ -495,7 +495,7 @@ Stop and ask before any SpriteCook generation beyond the approved backdrop art.
 
 ### Phase 10: Release prep
 
-Not run: phase 10 became Update 1's Game UI kit v2. Release prep is now Update 1's Phase 16.
+Not run: phase 10 became Update 1's Game UI kit v2. Release prep is now Update 1's Phase 17.
 
 ```
 Prepare Android and iOS release builds.
@@ -634,6 +634,12 @@ All new content is data in `data/`, like everything else; adding a quest, a buil
 - Patrol: built buildings earn coins offline, capped at 8 hours; Collect, or AD x2.
 - Town level = buildings built + their levels; it is the account level shown on Home.
 
+**First session (Phase 16)**
+
+- A fresh save goes Splash > a tutorial run (Sir Loaf, Suburbia, Danger 1) with no menu first; a save with runs played never sees it. One short line at a time, each step moving on when the player does it. Steps, timings, the kinder numbers (shorter run, weaker Mega Mole, one free revive, no ads) and what it counts live in `data/rules/tutorial.json`.
+- The tutorial is a real Danger 1 win for Fireworks, KOs, coins, the bestiary and quests; boss times and HP, the Final Swarm boss stat, leaderboard scores and map progress don't count (owner, 2026-10-19: it doesn't open Danger 2, so Danger 3 doesn't come early; Danger 2 opens on the first real Danger 1 win).
+- After it, Home guides one step at a time (claim the first quest reward, buy Fireworks in Collection), then hands over control.
+
 **In-run additions**
 
 - Owned items row and the item pickup card (see Screens).
@@ -664,7 +670,7 @@ These names are Megabonk's own words; change the player-facing text only (ids ma
 
 ## Phases
 
-Seven phases, numbered after the current ones (Balance and Release prep added 2026-10-17, after a review found the original phases 8 and 10 had been replaced and never run). Each prompt is pasted as it is; each ends with the usual review prompt.
+Eight phases, numbered after the current ones (Balance and Release prep added 2026-10-17, after a review found the original phases 8 and 10 had been replaced and never run; Tutorial and first session added 2026-10-18 as Phase 16, Release prep moved to Phase 17). Each prompt is pasted as it is; each ends with the usual review prompt.
 
 ### Phase 10: Game UI kit v2 and restyle
 
@@ -725,7 +731,30 @@ Stop and ask only if a target can't be met without changing the design in the br
 Read docs/BRIEF.md "Update 1" (Google Play Games and cloud save). Propose the plugin and wait for my OK. Then add sign-in, saved games, achievements and the two leaderboards behind a backend interface with fake and inert backends, plus the Settings rows. Done when: on the phone, sign-in, a save round trip between two installs, one achievement and one leaderboard score all work with test IDs; without the plugin the game behaves as before; tests pass.
 ```
 
-### Phase 16: Release prep
+### Phase 16: Tutorial and first session
+
+```text
+Read docs/BRIEF.md and docs/BALANCE.md. Add this phase to the brief's "Update 1" phases (Release prep becomes Phase 17) and start its checklist in TASKS.md.
+
+1. Tutorial as the first run. A fresh save goes Splash > tutorial run with no menu: Sir Loaf, Suburbia, Danger 1. Saves with runs played never see it. Teach by doing, one short line at a time (simple English, kit parts, no text walls), each step moving on when the player does it: move with the stick, attacks are automatic, pick up gems, the first Level Up (paused, one line on what a card is), open a chest, use a beacon, go to the altar and beat Mega Mole. Fold the existing first-run stick hint and altar hint into these steps so nothing shows twice. The tutorial run is shorter and kinder (about 4 minutes, a weaker Mega Mole); one free revive with no ad; no ads of any kind in or right after it. A Skip tutorial button on the Paused screen ends it and goes to Home. Steps, timings, boss modifiers and the counting rules below live in data/rules/tutorial.json.
+
+2. The tutorial is a real Danger 1 win. It counts: boss_defeated (Fireworks challenge), maps_cleared, Danger 2 open, KOs, coins, bestiary, quest progress. It does not count: boss_defeated_at, boss_defeated_hp_frac, boss_defeated_in_final_swarm, leaderboard scores (and so their achievements). The list is data.
+
+3. After the tutorial, Home guides one step at a time: claim the first quest reward, then buy Fireworks in Collection. Then hand over control. The next Play follows the existing play flow rules.
+
+4. Sewers opens later. Add an optional "unlock_danger" key to map data: the map opens when the boss of its "unlock_after" map is beaten on that Danger (default 1, as now). Set sewers.json to 2. map_state, map_hint ("Beat Mega Mole on Danger 2") and district_title read it; GameData validates it.
+
+5. Sir Loaf. Getting Stale starts at 10% and grows 2% a minute to the same 24% cap (new data key for the starting value). Run the matrix sim for the three heroes: target Sir Loaf's win rate within about 5 points of the other two. If it isn't, raise his max_hp to 135 and run it again. Numbers only in data/.
+
+6. Cloud save: the tutorial starts on a fresh install without waiting for sign-in. If a cloud save wins at the end of the tutorial, it replaces the local save as it does after any run.
+
+Done when: a fresh save plays splash > tutorial > guided Home with no menu first; a bot playing the tutorial as the typical player wins at least 95% of 40 runs; after the tutorial, Fireworks is done, Danger 2 is open, Sewers shows "Beat Mega Mole on Danger 2", and no hard challenge, leaderboard score or achievement beyond the counted ones has fired; an existing save never sees the tutorial; Skip works; campaign_sim starts with the tutorial and docs/BALANCE.md has the new early milestones and the Sir Loaf matrix numbers; tests cover each rule above; every tutorial step is shot at 540x1170 with 0 off-palette pixels and passes test_text_fit; the 300-enemy stress test stays within 5% of phase 14.
+Stop and ask before any PixelLab generation, and if a target can't be met without changing the design in the brief.
+```
+
+Owner changes after the phase (2026-10-19): the tutorial a little harder; the tutorial doesn't open Danger 2 (rule 2: maps_cleared and Danger 2 open move to "does not count"; the "Danger 2 is open" check becomes "Danger 2 opens on the first real Danger 1 win"); the portal step and Sir Loaf's 135 HP stay.
+
+### Phase 17: Release prep
 
 ```text
 Prepare Android and iOS release builds (the original Phase 10, never run). Propose a StoreKit plugin for iOS and wait for my OK (iOS builds show STORE OFFLINE until then; docs/PLUGINS.md). Test Remove Ads on a device through a Play Console license tester. Done when: the AAB and iOS builds export successfully, the icon and splash use game assets, the privacy policy page and store copy (title, short and long descriptions) are in docs/STORE.md, and a Google Play closed-testing checklist is in TASKS.md. Stop and ask before entering real ad unit or product IDs, and before uploading anything to Play Console or App Store Connect.
